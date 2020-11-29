@@ -24,13 +24,13 @@ function initialise()
     world = new World(config)
 
     world.makeCA("gol");    
-    world.init_glidergun(world.gol,3,3)
+    world.initialGlidergun(world.gol,3,3)
     world.makeCA("vote");
 
     world.gol.nextstate = function(i,j)       // Define the next-state function. This example is game of life
     {   
         // Count living neighbours
-        let neighbours = world.CountMoore8(this,i,j,1)
+        let neighbours = world.countMoore8(this,i,j,1)
         
         let state = this.grid[i][j].val;            
         // Apply the three rules of GoL
@@ -44,14 +44,14 @@ function initialise()
     world.vote.nextstate = function(i,j)       // Define the next-state function. This example is game of shmife
     {           
         //Count living neighbours
-        let neighbours = world.CountMoore9(this,i,j,1)
-        let gol_votes = world.CountMoore9(world.gol,i,j,1)
+        let neighbours = world.countMoore9(this,i,j,1)
+        let gol_votes = world.countMoore9(world.gol,i,j,1)
         // Apply the three rules of GoL
         
         if(neighbours+gol_votes > 4)
             return 1
         else
-            return 0;
+            return 3
     }
 }
 
