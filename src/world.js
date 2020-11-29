@@ -55,7 +55,7 @@ class World
     }
 
 
-    CountMoore9(ca,col,row,val)
+    countMoore9(ca,col,row,val)
     {    
         let count = 0;
         
@@ -76,17 +76,32 @@ class World
         }
         return count;
     }
-    CountMoore8(ca,col,row,val)
+    countMoore8(ca,col,row,val)
     {
-        let count = this.CountMoore9(ca,col,row,val)
+        let count = this.countMoore9(ca,col,row,val)
         let minus_this = ca.grid[col][row].val == val
         if(minus_this) count--
         return count
     }
 
-
+    initialGrid(ca)
+    {
+        if(arguments.length%2==0) throw 'initialGrid expects an uneven nr of arguments (CA-name, value, fraction, value_2, fraction_2, etc.)'
+        //console.log("Got", arguments.length, "arguments")
+        for (let arg=1; arg<arguments.length; arg+=2)
+        {
+            
+            for(let i=0;i<ca.nc;i++)         // i are columns
+            {
+                for(let j=0;j<ca.nr;j++)     // j are rows
+                {                            
+                    if(Math.random() < arguments[arg+1]) ca.grid[i][j].val = arguments[arg];
+                }
+            }
+        }        
+    }
     
-    init_glidergun(ca,x,y)              // A little bonus... manually added glider gun :')
+    initialGlidergun(ca,x,y)              // A little bonus... manually added glider gun :')
     {
         for(let i=0;i<ca.nc;i++)         // i are columns
             for(let j=0;j<ca.nr;j++)     // j are rows

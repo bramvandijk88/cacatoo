@@ -1,6 +1,8 @@
 import Gridpoint from "./gridpoint.js"
 import Canvas from "./canvas.js"
 
+let colours;
+
 // Class definition
 class CA
 {
@@ -9,7 +11,7 @@ class CA
     {
         // Make empty grid      
         this.name = name
-        this.grid = MakeEmptyGrid(opts.ncol,opts.nrow);                 // Grid        
+        this.grid = MakeGrid(opts.ncol,opts.nrow);                 // Grid        
         this.nc = opts.ncol || 200
         this.nr = opts.nrow || 200
         this.wrap = opts.wrap || [true, true] 
@@ -41,9 +43,8 @@ class CA
         {
             for(let j=0;j<nrow;j++)     // j are columns
             {   
-                if(this.grid[i][j].val == 0) continue // Don't draw
-                if(this.grid[i][j].val == 1) col = [255,255,255,255]
-                if(this.grid[i][j].val == 2) col = [100,100,100,100]
+                let value = this.grid[i][j].val
+                if(value == 0) continue // Don't draw the background state
                 
                     for(let n=0;n<scale;n++)
                     {
@@ -52,10 +53,10 @@ class CA
                             let x = i*scale+n;
                             let y = j*scale+m;                    
                             var off = (y * id.width + x) * 4;
-                            pixels[off] = col[0];
-                            pixels[off + 1] = col[1];
-                            pixels[off + 2] = col[2];
-                            pixels[off + 3] = col[3];
+                            pixels[off] = colours[value][0];
+                            pixels[off + 1] = colours[value][1];
+                            pixels[off + 2] = colours[value][2];
+                            pixels[off + 3] = colours[value][3];
                         }
                     }
 
@@ -77,13 +78,15 @@ class CA
     // Method 2
     step()
     {
-        let new_grid = MakeEmptyGrid(this.nc,this.nr);
+        let new_grid = MakeGrid(this.nc,this.nr,this.grid);
         
         for(let i=0;i<this.nc;i++)
         {    
             for(let j=0;j<this.nr;j++)
             {
-                new_grid[i][j].val = this.nextstate(i,j)
+                let next_state = this.nextstate(i,j)
+                if(next_state === undefined) continue 
+                else new_grid[i][j].val = next_state
             }
         }
 
@@ -97,15 +100,25 @@ export default CA
 
 
 
-function MakeEmptyGrid(cols,rows)
+function MakeGrid(cols,rows,template)
 {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
     for(let r = 0; r< cols; r++)
-        grid[r] = new Array(cols);      // Insert a row of <cols> long   --> grid[cols][rows]
-
-    // Fill it up with random 0's and 1's
-    for(let i=0;i<cols;i++)         // i are columns        
-        for(let j=0;j<rows;j++)     // j are rows           
-            grid[i][j] = new Gridpoint(Math.floor(Math.random()*2));
+    {
+        grid[r] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
+        for(let i=0;i<rows;i++)
+        {
+            if(template) grid[r][i] = new Gridpoint(template[r][i].val);
+            else grid[r][i] = new Gridpoint(0);
+        }
+    }
+    
     return grid;
 }
+
+colours = [ [0,0,0,255],
+            [255,255,255,255],
+            [255,0,0,255],
+            [0,0,255,255],
+            [0,255,0,255]
+    ]
