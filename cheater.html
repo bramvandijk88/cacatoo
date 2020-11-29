@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+       
+</head>
+<script src="dist/cash-bundle.js"></script>
+<script src="lib/fpsmeter.js"></script>
+<link rel="stylesheet" href="style/cashjs.css">
+<script>
+
+let world;
+
+let X2Y =0.7;
+let Y2X =0.7;
+let Y2Z =1.0;
+let NON=10.0;
+let d=0.05;
+
+let px, py, pz, psum;
+
+function initialise()
+{
+
+    let config = {
+            maxtime: 10000,
+            ncol : 200,            
+            nrow : 160,		            // dimensions of the grid to build
+            wrap : [true, true],        // Wrap boundary [COLS, ROWS]
+            scale : 3				    // scale of the grid (nxn pixels per CA cell)
+    }
+
+    world = new World(config)
+
+    world.makeCA("cheater");
+    world.initialGrid(world.cheater,1,0.33,2,0.33,3,0.33)
+    
+    world.cheater.nextstate = function(i,j)       // Define the next-state function. This example is game of life
+    {           
+        let state = this.grid[i][j].val;
+        
+        if (state==0)
+        {
+            sumx= world.countMoore8(this,i,j,1);
+            sumy= world.countMoore8(this,i,j,2);
+            sumz= world.countMoore8(this,i,j,3);
+
+            px= (Y2X*sumy)*sumx;
+            py= (X2Y*sumx)*sumy;
+            pz= (Y2Z*sumy)*sumz;
+            psum=px+py+pz+NON;
+            ran= Math.random();
+
+            //console.log(sumx, sumy, sumz)
+
+            if (ran< px/psum)
+                return 1
+            else if (ran< (px+py)/psum)            
+                return 2
+            else if (ran< (px+py+pz)/psum)
+                return 3
+        }
+        else
+        {
+            if (Math.random()<d)
+                return 0
+        }
+    }
+}
+
+function run()
+{
+    initialise()
+    world.start()
+}
+
+</script>
+
+
+
+<body onload="run()">
+    <div class="header"><h2>CashJS - <span style="color:red">Mutualists</span> and <span style="color: blue">Cheaters</span></h2></div>
+    <div class="content" id="canvas_holder">  </div>
+    <div class="footer"><h2>(CashJS - Links to repo etc here?)</h2></div>
+</body>
+
+</html>
