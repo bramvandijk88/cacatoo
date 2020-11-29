@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+       
+</head>
+<script src="dist/cash-bundle.js"></script>
+<script src="lib/fpsmeter.js"></script>
+<link rel="stylesheet" href="style/cashjs.css">
+<script>
+
+let world;
+
+function initialise()
+{
+
+    let config = {
+            maxtime: 10000,
+            ncol : 150,            
+            nrow : 150,		            // dimensions of the grid to build
+            wrap : [true, true],        // Wrap boundary [COLS, ROWS]
+            scale : 3				    // scale of the grid (nxn pixels per CA cell)
+    }
+
+    world = new World(config)
+
+    world.makeCA("gol");    
+    world.init_glidergun(world.gol,3,3)
+    world.makeCA("vote");
+
+    world.gol.nextstate = function(i,j)       // Define the next-state function. This example is game of life
+    {   
+        // Count living neighbours
+        let neighbours = world.CountMoore8(this,i,j,1)
+        
+        let state = this.grid[i][j].val;            
+        // Apply the three rules of GoL
+        if(state == 0 && neighbours == 3)
+            return 1;
+        else if(state == 1 && (neighbours < 2 || neighbours > 3))
+            return 0;
+        else
+            return state;
+    }
+    world.vote.nextstate = function(i,j)       // Define the next-state function. This example is game of shmife
+    {           
+        //Count living neighbours
+        let neighbours = world.CountMoore9(this,i,j,1)
+        let gol_votes = world.CountMoore9(world.gol,i,j,1)
+        // Apply the three rules of GoL
+        
+        if(neighbours+gol_votes > 4)
+            return 1
+        else
+            return 0;
+    }
+}
+
+function run()
+{
+    initialise()
+    world.start()
+}
+
+</script>
+
+
+
+<body onload="run()">
+    <div class="header"><h2>CashJS - Game of Life can Vote</h2></div>
+    <div class="content" id="canvas_holder">  </div>
+    <div class="footer"><h2>(CashJS - Links to repo etc here?)</h2></div>
+</body>
+</html>
