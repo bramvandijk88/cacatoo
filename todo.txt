@@ -1,0 +1,6 @@
+> MDiffusion voor cheater
+> Graphs voor cheater
+> Andere / custom neighbourhood retrieval functions
+> Perfectmix
+> Asynchrone updating
+> En... vast meer. :)
