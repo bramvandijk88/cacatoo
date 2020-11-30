@@ -2,9 +2,13 @@
 
 class Gridpoint 
 {    
-   constructor(value) 
-    {
-        this.val = value;        
+   constructor(template) 
+    {        
+        // This class only contains a copy-constructor, meaning that a new gridpoint will be made based on the passed template gridpoint
+        // If no template is given, the object is empty (for initialisation, this is true)
+        for (var prop in template) {
+            this[prop] = template[prop];
+        }
     }
 }
 
@@ -36,48 +40,6 @@ class Canvas
         this.ctx.fillRect(0, 0, cols*scale, rows*scale);
         this.ctx.strokeRect(0, 0, cols*scale, rows*scale);
     }
-
-    show()
-    {
-        let ctx = this.ctx;
-        let scale = this.scale;
-        let ncol = this.height;
-        let nrow = this.width;
-        let col = [255,255,255,255];
-
-        ctx.clearRect(0,0,scale*ncol,scale*nrow);
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, ncol*scale, nrow*scale);
-        var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
-        var pixels = id.data;        
-        
-
-        for(let i=0;i<ncol;i++)         // i are rows
-        {
-            for(let j=0;j<nrow;j++)     // j are columns
-            {   
-                if(this.grid[i][j].val == 0) continue // Don't draw
-                if(this.grid[i][j].val == 1) col = [255,255,255,255];
-                if(this.grid[i][j].val == 2) col = [100,100,100,100];
-                
-                    for(let n=0;n<scale;n++)
-                    {
-                        for(let m=0;m<scale;m++)
-                        {
-                            let x = i*scale+n;
-                            let y = j*scale+m;                    
-                            var off = (y * id.width + x) * 4;
-                            pixels[off] = col[0];
-                            pixels[off + 1] = col[1];
-                            pixels[off + 2] = col[2];
-                            pixels[off + 3] = col[3];
-                        }
-                    }
-
-            }
-        }
-        ctx.putImageData(id, 0, 0);
-    }
 }
 
 let colours;
@@ -94,24 +56,20 @@ class CA
         this.nc = opts.ncol || 200;
         this.nr = opts.nrow || 200;
         this.wrap = opts.wrap || [true, true]; 
+        this.statecolours = dict_reverse(opts.statecolours) || {'val':1};
         this.scale = opts.scale || 1;
-
-        this.canvas = new Canvas(this.nc,this.nr,this.scale);
-        
-        
-
-        //GliderGun(this,3,3);            // Place a glider gun instead        
+        this.canvas = new Canvas(this.nc,this.nr,this.scale);  
     }
 
     display()
-    {        
+    {                        
         let ctx = this.canvas.ctx;
         let scale = this.canvas.scale;
         let ncol = this.nc;
         let nrow = this.nr;
 
         ctx.clearRect(0,0,scale*ncol,scale*nrow);
-        ctx.fillStyle = "#000";
+        ctx.fillStyle = 'rgb('+colours[this.statecolours['bg']]+')';
         ctx.fillRect(0, 0, ncol*scale, nrow*scale);
         var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
         var pixels = id.data;        
@@ -120,10 +78,20 @@ class CA
         for(let i=0;i<ncol;i++)         // i are rows
         {
             for(let j=0;j<nrow;j++)     // j are columns
-            {   
-                let value = this.grid[i][j].val;
-                if(value == 0) continue // Don't draw the background state
-                
+            {               
+                for(let prop in this.statecolours)
+                {           
+                    let state = this.statecolours[prop];        
+                    if (!(prop in this.grid[i][j])) continue
+                    
+                    let value = this.grid[i][j][prop];
+                    
+                    if(value == 0) continue // Don't draw the background state
+                    let idx = state;
+                    if (state.constructor == Object) {
+                        idx = state[value];
+                    }
+                    
                     for(let n=0;n<scale;n++)
                     {
                         for(let m=0;m<scale;m++)
@@ -131,12 +99,13 @@ class CA
                             let x = i*scale+n;
                             let y = j*scale+m;                    
                             var off = (y * id.width + x) * 4;
-                            pixels[off] = colours[value][0];
-                            pixels[off + 1] = colours[value][1];
-                            pixels[off + 2] = colours[value][2];
-                            pixels[off + 3] = colours[value][3];
+                            pixels[off] = colours[idx][0];
+                            pixels[off + 1] = colours[idx][1];
+                            pixels[off + 2] = colours[idx][2];
+                            //pixels[off + 3] = 255; // Last is always 255
                         }
                     }
+                }
 
             }
         }
@@ -149,26 +118,25 @@ class CA
     }
 
 
-    nextstate(i,j){
+    nextState(i,j){
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
     // Method 2
     step()
     {
-        let new_grid = MakeGrid(this.nc,this.nr,this.grid);
-        
+        let oldstate = MakeGrid(this.nc,this.nr,this.grid);
+        let newstate = MakeGrid(this.nc,this.nr,this.grid);
         for(let i=0;i<this.nc;i++)
         {    
             for(let j=0;j<this.nr;j++)
             {
-                let next_state = this.nextstate(i,j);
-                if(next_state === undefined) continue 
-                else new_grid[i][j].val = next_state;
+                this.nextState(i,j);
+                newstate[i][j] = this.grid[i][j];
+                this.grid[i][j] = oldstate[i][j];
             }
         }
-
-        this.grid = new_grid;                
+        this.grid = newstate;                
     }
 
 
@@ -184,20 +152,40 @@ function MakeGrid(cols,rows,template)
         grid[r] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
         for(let i=0;i<rows;i++)
         {
-            if(template) grid[r][i] = new Gridpoint(template[r][i].val);
-            else grid[r][i] = new Gridpoint(0);
+            if(template) grid[r][i] = new Gridpoint(template[r][i]); // Make real copy constructor for this, not just val!!
+            else grid[r][i] = new Gridpoint();
         }
     }
     
     return grid;
 }
 
-colours = [ [0,0,0,255],
-            [255,255,255,255],
-            [255,0,0,255],
-            [0,0,255,255],
-            [0,255,0,255]
+colours = [ [0,0,0],                // Black     0
+            [255,255,255],          // White     1
+            [255,0,0],              // Red       2
+            [0,0,255],              // Blue      3
+            [0,255,0],              // Green     4
+            [40,40,40],             // Darkgrey  5
+            [180,180,180],          // Lightgrey 6
+            [148, 0, 211],          // Violet    7
+            [64, 224, 208],         // Turquoise  8
+            [255, 165, 0],          // Orange    9
     ];
+
+for(let i = 0; i < 100; i++)
+{
+    let f = 1-(i/100);
+    colours.push([f*255,f*255,255,255]); // Blue to white gradient
+}
+
+function dict_reverse(obj) {
+    let new_obj= {};
+    let rev_obj = Object.keys(obj).reverse();
+    rev_obj.forEach(function(i) { 
+        new_obj[i] = obj[i];
+    });
+    return new_obj;
+}
 
 class World
 {
@@ -205,6 +193,7 @@ class World
     {  
         this.meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:30});
         this.options = opts;
+        this.sleep = opts.sleep || 0;
         this.CAs = [];
     }
 
@@ -224,7 +213,9 @@ class World
     display()
     {
         for(let ca of this.CAs)
+        {
             ca.display();
+        }
     }
 
     start()
@@ -232,20 +223,23 @@ class World
         let time = 0;
         let world = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
         
-        function animate()
+        async function animate()
         {    
+            if(world.sleep>0) await pause(world.sleep);
             world.meter.tickStart();
-            let t = 0;      // Will track cumulative time per step in microseconds 
-            while(t<16.67) //(t < 16.67)   // 1/60 = 0.01667 = 16.67 microseconds
+            
+            let t = 0;              // Will track cumulative time per step in microseconds 
+            while(t<16.67)          //(t < 16.67)   // 1/60 = 0.01667 = 16.67 microseconds    // This can be changed later to allow skipping of frames
             {
                 let startTime = performance.now();
                 world.step();
                 let endTime = performance.now();            
                 t += (endTime - startTime);
+                time++;            
             }       
             world.display();
             world.meter.tick();
-            time++;
+            
             let frame = requestAnimationFrame(animate);        
             if(time>world.options.maxtime) cancelAnimationFrame(frame);
             
@@ -254,7 +248,7 @@ class World
     }
 
 
-    countMoore9(ca,col,row,val)
+    countMoore9(ca,col,row,val,property)
     {    
         let count = 0;
         
@@ -268,82 +262,87 @@ class World
                 if(ca.wrap[1]) y = (row+v+ca.nr) % ca.nr; // Wraps neighbours top-to-bottom
                 if(x<0||y<0||x>=ca.nc||y>=ca.nr) continue
                 
-                let nval = ca.grid[x][y].val;                
+                let nval = ca.grid[x][y][property];                
                 if(nval == val)
                     count++;      // Add value                
             }
         }
         return count;
     }
-    countMoore8(ca,col,row,val)
+    countMoore8(ca,col,row,val,property)
     {
-        let count = this.countMoore9(ca,col,row,val);
-        let minus_this = ca.grid[col][row].val == val;
+        let count = this.countMoore9(ca,col,row,val,property);
+        let minus_this = ca.grid[col][row][property] == val;
         if(minus_this) count--;
         return count
     }
 
-    initialGrid(ca)
+    initialGrid(ca,property,def_state)
     {
-        if(arguments.length%2==0) throw 'initialGrid expects an uneven nr of arguments (CA-name, value, fraction, value_2, fraction_2, etc.)'
-        //console.log("Got", arguments.length, "arguments")
-        for (let arg=1; arg<arguments.length; arg+=2)
-        {
-            
-            for(let i=0;i<ca.nc;i++)         // i are columns
-            {
-                for(let j=0;j<ca.nr;j++)     // j are rows
-                {                            
-                    if(Math.random() < arguments[arg+1]) ca.grid[i][j].val = arguments[arg];
-                }
-            }
-        }        
+        let p = property || 'val';
+        let bg = def_state;
+        
+        for(let i=0;i<ca.nc;i++)                          // i are columns
+                for(let j=0;j<ca.nr;j++)                  // j are rows
+                    ca.grid[i][j][p] = bg;
+        
+        for (let arg=3; arg<arguments.length; arg+=2)       // Parse remaining 2+ arguments to fill the grid           
+            for(let i=0;i<ca.nc;i++)                        // i are columns
+                for(let j=0;j<ca.nr;j++)                    // j are rows
+                    if(Math.random() < arguments[arg+1]) ca.grid[i][j][p] = arguments[arg];                    
     }
     
-    initialGlidergun(ca,x,y)              // A little bonus... manually added glider gun :')
+    initialGlidergun(ca,property,x,y)              // A little bonus... manually added glider gun :')
     {
+        let p = property || 'val';
         for(let i=0;i<ca.nc;i++)         // i are columns
             for(let j=0;j<ca.nr;j++)     // j are rows
-                ca.grid[i][j].val = 0;        
+                ca.grid[i][j][p] = 0;        
 
-        ca.grid[x+0][y+4].val = 1;
-        ca.grid[x+0][y+5].val = 1;
-        ca.grid[x+1][y+4].val = 1;
-        ca.grid[x+1][y+5].val = 1;
-        ca.grid[x+10][y+4].val = 1;
-        ca.grid[x+10][y+5].val = 1;
-        ca.grid[x+10][y+6].val = 1;
-        ca.grid[x+11][y+3].val = 1;
-        ca.grid[x+11][y+7].val = 1;
-        ca.grid[x+12][y+2].val = 1;
-        ca.grid[x+12][y+8].val = 1;
-        ca.grid[x+13][y+2].val = 1;
-        ca.grid[x+13][y+8].val = 1;
-        ca.grid[x+14][y+5].val = 1;
-        ca.grid[x+15][y+3].val = 1;
-        ca.grid[x+15][y+7].val = 1;
-        ca.grid[x+16][y+4].val = 1;
-        ca.grid[x+16][y+5].val = 1;
-        ca.grid[x+16][y+6].val = 1;
-        ca.grid[x+17][y+5].val = 1;
-        ca.grid[x+20][y+2].val = 1;
-        ca.grid[x+20][y+3].val = 1;
-        ca.grid[x+20][y+4].val = 1;
-        ca.grid[x+21][y+2].val = 1;
-        ca.grid[x+21][y+3].val = 1;
-        ca.grid[x+21][y+4].val = 1;
-        ca.grid[x+22][y+1].val = 1;
-        ca.grid[x+22][y+5].val = 1;
-        ca.grid[x+24][y+1].val = 1;
-        ca.grid[x+24][y+5].val = 1;
-        ca.grid[x+24][y+0].val = 1;
-        ca.grid[x+24][y+6].val = 1;
-        ca.grid[x+34][y+2].val = 1;
-        ca.grid[x+34][y+3].val = 1;
-        ca.grid[x+35][y+2].val = 1;
-        ca.grid[x+35][y+3].val = 1;
+        ca.grid[x+0][y+4][p] = 1;
+        ca.grid[x+0][y+5][p] = 1;
+        ca.grid[x+1][y+4][p] = 1;
+        ca.grid[x+1][y+5][p] = 1;
+        ca.grid[x+10][y+4][p] = 1;
+        ca.grid[x+10][y+5][p] = 1;
+        ca.grid[x+10][y+6][p] = 1;
+        ca.grid[x+11][y+3][p] = 1;
+        ca.grid[x+11][y+7][p] = 1;
+        ca.grid[x+12][y+2][p] = 1;
+        ca.grid[x+12][y+8][p] = 1;
+        ca.grid[x+13][y+2][p] = 1;
+        ca.grid[x+13][y+8][p] = 1;
+        ca.grid[x+14][y+5][p] = 1;
+        ca.grid[x+15][y+3][p] = 1;
+        ca.grid[x+15][y+7][p] = 1;
+        ca.grid[x+16][y+4][p] = 1;
+        ca.grid[x+16][y+5][p] = 1;
+        ca.grid[x+16][y+6][p] = 1;
+        ca.grid[x+17][y+5][p] = 1;
+        ca.grid[x+20][y+2][p] = 1;
+        ca.grid[x+20][y+3][p] = 1;
+        ca.grid[x+20][y+4][p] = 1;
+        ca.grid[x+21][y+2][p] = 1;
+        ca.grid[x+21][y+3][p] = 1;
+        ca.grid[x+21][y+4][p] = 1;
+        ca.grid[x+22][y+1][p] = 1;
+        ca.grid[x+22][y+5][p] = 1;
+        ca.grid[x+24][y+1][p] = 1;
+        ca.grid[x+24][y+5][p] = 1;
+        ca.grid[x+24][y+0][p] = 1;
+        ca.grid[x+24][y+6][p] = 1;
+        ca.grid[x+34][y+2][p] = 1;
+        ca.grid[x+34][y+3][p] = 1;
+        ca.grid[x+35][y+2][p] = 1;
+        ca.grid[x+35][y+3][p] = 1;
+
     }
 
 }
+
+/**
+* Delay for a number of milliseconds
+*/
+const pause = (timeoutMsec) => new Promise(resolve => setTimeout(resolve,timeoutMsec));
 
 module.exports = World;
