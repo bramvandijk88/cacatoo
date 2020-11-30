@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> CashJS </title> 
+</head>
+<script src="dist/cash-bundle.js"></script>
+<script src="lib/fpsmeter.js"></script>
+<link rel="stylesheet" href="style/cashjs.css">
+<script>
+
+let world;
+
+let X2Y =0.7;
+let Y2X =0.7;
+let Y2Z =1.0;
+let NON=10.0;
+let d=0.05;
+
+let px, py, pz, psum;
+
+function initialise()
+{
+
+    let config = {
+            maxtime: 10000,
+            ncol : 200,            
+            nrow : 200,		                                        // dimensions of the grid to build
+            wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
+            scale : 3,				                                // scale of the grid (nxn pixels per CA cell)
+            statecolours: {'bg':0,'species':{1:1,2:2,3:3}}          // States as shown on canvas, can be either a single value or a dictionary of key,value pairs
+    }
+
+    world = new World(config)
+
+    world.makeCA("cheater");
+    world.initialGrid(world.cheater,'species',0,1,0.33,2,0.33,3,0.33)
+    world.cheater.nextState = function(i,j)                         // Define the next-state function. This example is game of life
+    {           
+        let state = this.grid[i][j].species;
+        
+        if (state==0)                               // If there is no species here
+        {
+            // Count the number of species 1 (mutualist x), 2 (mutualist y), and 3 (cheater z)
+            sumx= world.countMoore8(this,i,j,1,'species');  
+            sumy= world.countMoore8(this,i,j,2,'species');
+            sumz= world.countMoore8(this,i,j,3,'species');
+
+            px= (Y2X*sumy)*sumx;
+            py= (X2Y*sumx)*sumy;
+            pz= (Y2Z*sumy)*sumz;
+            psum=px+py+pz+NON;
+            ran= Math.random();         // TODO REPLACE MATH.RANDOM WITH MERSENNE TWISTER
+
+
+            //console.log(sumx, sumy, sumz)
+
+            if (ran< px/psum)
+                this.grid[i][j].species = 1
+            else if (ran< (px+py)/psum)            
+                this.grid[i][j].species = 2
+            else if (ran< (px+py+pz)/psum)
+                this.grid[i][j].species = 3
+        }
+        else
+        {
+            if (Math.random()<d)
+                this.grid[i][j].species = 0
+        }
+    }
+}
+
+function run()
+{
+    initialise()
+    world.start()
+}
+
+</script>
+
+
+
+<body onload="run()">
+    <div class="header"><h2>CashJS - <span style="color:red">Mutualists</span> and <span style="color: blue">Cheaters</span></h2></div>
+    <div class="content" id="canvas_holder">  </div>
+    <div class="footer"><h2>(CashJS - Links to repo etc here?)</h2></div>
+</body>
+
+</html>
