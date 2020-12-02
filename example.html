@@ -20,7 +20,7 @@ function initialise()
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]
             scale : 3,				    // scale of the grid (nxn pixels per CA cell)
             statecolours: {'bg':0,'alive':1,'shadow': 5,'left':{1:3,2:2}}
-    }
+            }
 
     world = new World(config)
 
@@ -34,7 +34,7 @@ function initialise()
     world.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
         // Count living neighbours
-        let neighbours = world.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+        let neighbours = world.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
         // Get own state
         let state = this.grid[i][j].alive;            
         // Apply the three rules of GoL
@@ -52,13 +52,23 @@ function initialise()
     world.vote.nextState = function(i,j)       // Define the next-state function. This example is game of shmife
     {           
         //Count living neighbours. countMoore9 is self-inclusive
-        let neighbours = world.countMoore9(this,i,j,1,'left')
-        let gol_neighbours = world.countMoore9(world.gol,i,j,1,'alive')
+        let neighbours = world.vote.countMoore9(this,i,j,1,'left')
+        let gol_neighbours = world.vote.countMoore9(world.gol,i,j,1,'alive')
         if(neighbours+gol_neighbours > 4)
             this.grid[i][j].left = 1    // If majority votes left, this position also votes left
         else
             this.grid[i][j].left = 2    // If majority votes right, this position also votes right
     }
+
+    for(let ca of world.CAs)
+    {
+        ca.update = function(i,j)       // In principle you could let each CA have their own update rule, but here they both jsut update the same way
+        {
+            ca.synchronous()
+            ca.display()
+        }
+    }
+
 }
 
 function run()

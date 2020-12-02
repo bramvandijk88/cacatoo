@@ -15,10 +15,10 @@ function initialise()
 
     let config = {
             maxtime: 10000,
-            ncol : 200,            
-            nrow : 200,		            // dimensions of the grid to build
-            wrap : [true, true],        // Wrap boundary [COLS, ROWS]
-            scale : 2,				    // scale of the grid (nxn pixels per CA cell)
+            ncol : 150,            
+            nrow : 150,		            // dimensions of the grid to build
+            wrap : [true, true],        // Wrap boundary [COLS, ROWS]   
+            scale : 3,				    // scale of the grid (nxn pixels per CA cell)
             statecolours: {'bg':0,'alive':1}
     }
 
@@ -34,7 +34,7 @@ function initialise()
     world.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
         // Count living neighbours
-        let neighbours = world.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+        let neighbours = world.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
         // Get own state
         let state = this.grid[i][j].alive;            
         // Apply the three rules of GoL
@@ -46,6 +46,11 @@ function initialise()
             this.grid[i][j].alive = 0;
         else
             this.grid[i][j].alive = state;
+    }
+    world.gol.update = function(i,j)
+    {
+        this.synchronous()
+        this.display()
     }
 }
 
