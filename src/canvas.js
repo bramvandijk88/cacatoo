@@ -11,11 +11,11 @@ class Canvas
             this.elem.className="grid-holder"
             this.elem.width = this.width*this.scale
             this.elem.height = this.height*this.scale   
-            document.body.appendChild(this.elem)         
+            // document.body.appendChild(this.elem)         
             document.getElementById("canvas_holder").appendChild(this.elem)
         } 
         else 
-        {                                            // In nodejs, use canvas package, FIX LATER, FIRST STUDENT VERSION
+        {                                            // In nodejs, use canvas package, FIXING THIS LATER, FIRST STUDENT BROWSER-VERSION
 			const {createCanvas} = require("canvas")
 			this.elem = createCanvas( this.width*this.scale, this.height*this.scale)
 			//this.fs = require("fs")
