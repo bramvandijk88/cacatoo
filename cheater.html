@@ -5,6 +5,7 @@
 </head>
 <script src="dist/cash-bundle.js"></script>
 <script src="lib/fpsmeter.js"></script>
+<script src="lib/dygraphs-combined-dev.js"></script>
 <link rel="stylesheet" href="style/cashjs.css">
 <script>
 
@@ -23,19 +24,21 @@ function initialise()
 
     let config = {
             maxtime: 100000000,
-            ncol : 200,            
-            nrow : 200,		                                        // dimensions of the grid to build
+            ncol : 100,            
+            nrow : 100,		                                        // dimensions of the grid to build
             sleep : 0,
+            seed : 101,
             targetfps : 60,                                          
             throttlefps : true,                                     // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
             wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
-            scale : 2,				                                // scale of the grid (nxn pixels per CA cell)
-            statecolours: {'bg':0,'species':{1:1,2:2,3:3}}          // States as shown on canvas, can be either a single value or a dictionary of key,value pairs
+            scale : 3,				                                // scale of the grid (nxn pixels per CA cell)
+            statecolours: {'bg':0,
+                           'species':{0:0,1:10,2:2,3:3}}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
     }
 
-    world = new World(config)
+    world = new CashWorld(config)             // Initialise a new Cash instance with configuration given above
     
-    world.makeCA("cheater");
+    world.makeCA("cheater");         
     
     world.initialGrid(world.cheater,'species',0,1,0.33,2,0.33,3,0.33)
 
@@ -77,11 +80,9 @@ function initialise()
     {
         this.synchronous()
         this.display()
-        if(this.time%mdif_interval==0)this.margolusDiffusion()
-        
-        //this.printgrid('species')
-    }
-    
+        this.plotPopsizes('species',[1,2,3]) 
+        //this.plotXY([this.time,getPopsizes('species',1)], ['Time','Species 1'], )
+    }    
 }
 
 function run()
@@ -95,8 +96,9 @@ function run()
 
 
 <body onload="run()">
-    <div class="header"><h2>CashJS - <span style="color:red">Mutualists</span> and <span style="color: blue">Cheaters</span></h2></div>
+    <div class="header"><h2>CashJS - <span style="box-shadow: 3px 3px 10px #00000033;padding:5px;border-radius: 8px 0px 8px 0px;background:orange;color:red">Mutualists</span> and <span style="color: blue">Cheaters</span></h2></div>
     <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="graph_holder"> </div>
     <div class="footer"><h2>(CashJS - Links to repo etc here?)</h2></div>
 </body>
 

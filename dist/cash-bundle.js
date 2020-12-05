@@ -25,11 +25,11 @@ class Canvas
             this.elem.className="grid-holder";
             this.elem.width = this.width*this.scale;
             this.elem.height = this.height*this.scale;   
-            document.body.appendChild(this.elem);         
+            // document.body.appendChild(this.elem)         
             document.getElementById("canvas_holder").appendChild(this.elem);
         } 
         else 
-        {                                            // In nodejs, use canvas package, FIX LATER, FIRST STUDENT VERSION
+        {                                            // In nodejs, use canvas package, FIXING THIS LATER, FIRST STUDENT BROWSER-VERSION
 			const {createCanvas} = require("canvas");
 			this.elem = createCanvas( this.width*this.scale, this.height*this.scale);
 			//this.fs = require("fs")
@@ -42,7 +42,67 @@ class Canvas
     }
 }
 
-let colours;
+class Graph
+{
+    constructor(labels,values,colours,title)
+    {
+        if(typeof window == undefined) throw "Using dygraphs with cashJS only works in browser-mode"        
+        this.labels = labels;
+        this.data = [values];
+        this.title = title;
+        this.num_dps = this.labels.length; // number of data points for this graphs        
+        this.elem = document.createElement("div");
+        this.elem.className="graph-holder";
+        this.colours = [];       
+        
+        for(let v in colours)
+        {
+             if(v=="Time") continue    
+             else if(colours[v][0]+colours[v][1]+colours[v][2] == 765) this.colours.push("#dddddd");       
+             else this.colours.push(rgbToHex(colours[v][0],colours[v][1],colours[v][2]));        
+        }
+        
+        document.body.appendChild(this.elem);         
+        document.getElementById("graph_holder").appendChild(this.elem);
+        
+        this.g = new Dygraph(this.elem, this.data,
+        {
+            title: this.title,
+            drawPoints: false,
+            showRoller: false,
+            ylabel: '',
+            width: 600,
+            height: 300,
+            xlabel: 'Time',         
+            axisLabelFontSize: 10,                        
+            valueRange: [0.000, ],
+            strokeWidth: 3,
+            //strokeBorderWidth: 0.5,
+            strokeBorderColor: "black",
+            colors: this.colours,
+            labels: this.labels
+        });
+    }
+
+    push_data(data_array)
+    {
+        this.data.push(data_array);
+    }
+
+    update(){
+        this.g.updateOptions( {'file': this.data } );
+    }
+}
+
+function componentToHex(c) {
+var hex = c.toString(16);
+return hex.length == 1 ? "0" + hex : hex;
+}
+  
+function rgbToHex(r, g, b) {
+//if(r+g+b==765) return "#cccccc"
+return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
 
 // Class definition
 class CA
@@ -61,6 +121,8 @@ class CA
         this.statecolours = dict_reverse(opts.statecolours) || {'val':1};
         this.scale = opts.scale || 1;
         this.canvas = new Canvas(this.nc,this.nr,this.scale);  
+        this.colours = this.setupColours();
+        this.graphs = {};
     }
 
     display()
@@ -71,7 +133,8 @@ class CA
         let nrow = this.nr;
 
         ctx.clearRect(0,0,scale*ncol,scale*nrow);
-        ctx.fillStyle = 'rgb('+colours[this.statecolours['bg']]+')';
+
+        ctx.fillStyle = 'rgb('+this.colours[this.statecolours['bg']]+')';
         ctx.fillRect(0, 0, ncol*scale, nrow*scale);
         var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
         var pixels = id.data;        
@@ -101,9 +164,9 @@ class CA
                             let x = i*scale+n;
                             let y = j*scale+m;                    
                             var off = (y * id.width + x) * 4;
-                            pixels[off] = colours[idx][0];
-                            pixels[off + 1] = colours[idx][1];
-                            pixels[off + 2] = colours[idx][2];
+                            pixels[off] = this.colours[idx][0];
+                            pixels[off + 1] = this.colours[idx][1];
+                            pixels[off + 2] = this.colours[idx][2];
                             //pixels[off + 3] = 255; // Last is always 255
                         }
                     }
@@ -112,6 +175,22 @@ class CA
             }
         }
         ctx.putImageData(id, 0, 0);
+    }
+
+    setupColours()
+    {
+        return [ [0,0,0],           // Black     0
+            [255,255,255],          // White     1
+            [255,0,0],              // Red       2
+            [0,0,255],              // Blue      3
+            [0,255,0],              // Green     4
+            [40,40,40],             // Darkgrey  5
+            [180,180,180],          // Lightgrey 6
+            [148, 0, 211],          // Violet    7
+            [64, 224, 208],         // Turquoise  8
+            [255, 165, 0],           // Orange    9
+            [240,200,0]             // Dark yellow 10
+            ]
     }
 
     printgrid()
@@ -126,15 +205,15 @@ class CA
 
     synchronous()  // Do one step (synchronous) of this CA
     {
-        let oldstate = MakeGrid(this.nc,this.nr,this.grid);
-        let newstate = MakeGrid(this.nc,this.nr,this.grid);
+        let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
+        let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
         for(let i=0;i<this.nc;i++)
         {    
             for(let j=0;j<this.nr;j++)
             {
-                this.nextState(i,j);
-                newstate[i][j] = this.grid[i][j];
-                this.grid[i][j] = oldstate[i][j];
+                this.nextState(i,j);                             // Update this.grid
+                newstate[i][j] = this.grid[i][j];                // Set this.grid to newstate
+                this.grid[i][j] = oldstate[i][j];                // Reset this.grid to old state
             }
         }
         this.grid = newstate;      
@@ -175,7 +254,7 @@ class CA
         return count
     }    
 
-    getNeighbour(i,j)
+    getGridpoint(i,j)
     {
         let x = i;
         if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
@@ -185,7 +264,7 @@ class CA
         else return this.grid[x][y]
     }
 
-    setNeighbour(i,j,neigh)
+    setGridpoint(i,j,neigh)
     {
         let x = i;
         if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
@@ -195,7 +274,7 @@ class CA
         else this.grid[x][y] = neigh;
     }
 
-
+    
     margolusDiffusion()
     {
         //   
@@ -205,17 +284,17 @@ class CA
         //   rotate cw or ccw randomly
         let even = this.time%2==0;
         if((this.nc%2 + this.nr%2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
-        
+
         for(let i=0+even;i<this.nc;i+=2)
         {    
             for(let j=0+even;j<this.nr;j+=2)
             {
                 // console.log(i,j)
                 let old_A = new Gridpoint(this.grid[i][j]);
-                let A = this.getNeighbour(i,j);
-                let B = this.getNeighbour(i+1,j);
-                let C = this.getNeighbour(i+1,j+1);
-                let D = this.getNeighbour(i,j+1);
+                let A = this.getGridpoint(i,j);
+                let B = this.getGridpoint(i+1,j);
+                let C = this.getGridpoint(i+1,j+1);
+                let D = this.getGridpoint(i,j+1);
                 
                 if(this.rng.random() < 0.5)
                 {
@@ -231,20 +310,129 @@ class CA
                     C = D;
                     D = old_A;
                 }
-                this.setNeighbour(i,j,A);
-                this.setNeighbour(i+1,j,B);
-                this.setNeighbour(i+1,j+1,C);
-                this.setNeighbour(i,j+1,D);                
+                this.setGridpoint(i,j,A);
+                this.setGridpoint(i+1,j,B);
+                this.setGridpoint(i+1,j+1,C);
+                this.setGridpoint(i,j+1,D);                
             }
         }        
     }
-    printgrid(value)
+    perfectMix()
     {
-        let grid = new Array(this.nr);             // Makes a column or <rows> long --> grid[cols]
-        for(let i = 0; i< this.nc; i++)
-        {
-            grid[i] = new Array(this.nc);          // Insert a row of <cols> long   --> grid[cols][rows]
+        let all_gridpoints = [];
+        for(let i=0;i<this.nc;i++)
             for(let j=0;j<this.nr;j++)
+                all_gridpoints.push(this.getGridpoint(i,j));
+                
+        all_gridpoints = shuffle(all_gridpoints, this.rng);    
+                
+        for(let i=0;i<all_gridpoints.length;i++)                
+            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i]);                                
+        return "Perfectly mixed the grid"
+    }
+
+    plotPopsizes(property,values)
+    {
+        if( typeof this.graph == 'undefined' ) // TODO Change this into an array of graphs, and make a plotxy wrapper for other plot-thingies
+        {   
+            let graph_values = Array(values.length+1).fill(0);
+            let graph_labels = ["Time"];
+            let colours = [];
+            
+            for(let c of values)
+            {
+                if(this.statecolours[property].constructor != Object)
+                    colours.push(this.colours[this.statecolours[property]]);
+                else                        
+                    colours.push(this.colours[this.statecolours[property][c]]);
+
+            }            
+            for (let val of values) { graph_labels.push(property+'_'+val);}                  
+            this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")");            
+        }
+        else
+        {     
+            if(this.time%5==0)
+            {  
+                let popsizes = this.getPopsizes(property,values);
+                popsizes.unshift(this.time);
+                this.graph.push_data(popsizes);     
+            }
+            if(this.time%20==0)
+            {
+                this.graph.update();
+            }
+        }
+    }
+
+    plotXY(graph_labels,graph_values,colours,title)
+    {
+        //!("key" in obj)
+        for(let g of this.graphs)   // TODO Change this into an array of graphs, and make a plotxy wrapper for other plot-thingies
+        {
+            if(g.title == title) console.log("Graph exists");
+        }
+        
+        if( typeof this.graph == 'undefined' ) 
+        {   
+            let graph_values = Array(values.length+1).fill(0);
+            let graph_labels = ["Time"];
+            let colours = [];
+            
+            for(let c of values)
+            {
+                if(this.statecolours[property].constructor != Object)
+                    colours.push(this.colours[this.statecolours[property]]);
+                else                        
+                    colours.push(this.colours[this.statecolours[property][c]]);
+
+            }            
+            for (let val of values) { graph_labels.push(property+'_'+val);}                  
+            this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")");
+            this.graphs.push(this.graph);
+            
+        }
+        else
+        {     
+            if(this.time%5==0)
+            {  
+                let popsizes = this.getPopsizes(property,values);
+                popsizes.unshift(this.time);
+                this.graph.push_data(popsizes);     
+            }
+            if(this.time%20==0)
+            {
+                this.graph.update();
+            }
+        }
+    }
+
+    getPopsizes(property,values)
+    {        
+        let sum = Array(values.length).fill(0);        
+        for(let i = 0; i< this.nc; i++)
+        {            
+            for(let j=0;j<this.nr;j++)
+            {
+                for(let val in values)
+                    if(this.getGridpoint(i,j)[property] == values[val]) sum[val]++;
+            }
+        }
+        return sum;
+    }
+    printGrid(value, fract)
+    {
+        let ncol = this.nc;
+        let nrow = this.nr;
+        console.log(fract);
+        
+        if(fract != undefined) ncol*=fract, nrow*=fract;
+        //console.log(fract)
+        let grid = new Array(nrow);             // Makes a column or <rows> long --> grid[cols]
+        for(let i = 0; i< ncol; i++)
+        {
+            grid[i] = new Array(ncol);          // Insert a row of <cols> long   --> grid[cols][rows]
+            for(let j=0;j<nrow;j++)
             {
                 grid[i][j] = this.grid[i][j][value];
             }
@@ -271,23 +459,13 @@ function MakeGrid(cols,rows,template)
     return grid;
 }
 
-colours = [ [0,0,0],                // Black     0
-            [255,255,255],          // White     1
-            [255,0,0],              // Red       2
-            [0,0,255],              // Blue      3
-            [0,255,0],              // Green     4
-            [40,40,40],             // Darkgrey  5
-            [180,180,180],          // Lightgrey 6
-            [148, 0, 211],          // Violet    7
-            [64, 224, 208],         // Turquoise  8
-            [255, 165, 0],          // Orange    9
-    ];
 
-for(let i = 0; i < 100; i++)
-{
-    let f = 1-(i/100);
-    colours.push([f*255,f*255,255,255]); // Blue to white gradient
-}
+
+// for(let i = 0; i < 100; i++)
+// {
+//     let f = 1-(i/100)
+//     colours.push([f*255,f*255,255,255]) // Blue to white gradient
+// }
 
 function dict_reverse(obj) {
     let new_obj= {};
@@ -297,6 +475,15 @@ function dict_reverse(obj) {
     });
     return new_obj;
 }
+
+function shuffle(array,rng) {
+    let i = array.length;
+    while (i--) {
+      const ri = Math.floor(rng.random() * (i + 1));
+      [array[i], array[ri]] = [array[ri], array[i]];
+    }
+    return array;
+  }
 
 /*
   I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
@@ -491,7 +678,7 @@ function MersenneTwister(seed) {
   
   /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
-class World
+class CashWorld
 {
     constructor(opts)
     {                  
@@ -502,6 +689,7 @@ class World
         this.throttlefps = true;
         if(opts.throttlefps==false) this.throttlefps = false;                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
         this.CAs = [];
+        
     }
 
     makeCA(name)
@@ -528,32 +716,37 @@ class World
     start()
     {        
         let time = 0;
-        let world = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
-        world.display();
+        let model = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
+        model.display();        
+
+
         if(typeof window != undefined)
         {
             let meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:30});
+
+            
+
             async function animate()
             {    
-                if(world.sleep>0) await pause(world.sleep);
+                if(model.sleep>0) await pause(model.sleep);
                 meter.tickStart();
                 
                 let t = 0;              // Will track cumulative time per step in microseconds 
 
-                while(t<16.67*60/world.targetfps)          //(t < 16.67) results in 60 fps if possible
+                while(t<16.67*60/model.targetfps)          //(t < 16.67) results in 60 fps if possible
                 {
                     let startTime = performance.now();
-                    world.step();
+                    model.step();
                     let endTime = performance.now();            
                     t += (endTime - startTime);                    
                     time++;    
-                    if(!world.throttlefps) break        
+                    if(!model.throttlefps) break        
                 }      
-                world.display();
+                model.display();
                 meter.tick();
                 
                 let frame = requestAnimationFrame(animate);        
-                if(time>world.options.maxtime) cancelAnimationFrame(frame);
+                if(time>model.options.maxtime) cancelAnimationFrame(frame);
                 
             }
             requestAnimationFrame(animate);
@@ -628,4 +821,4 @@ class World
 */
 const pause = (timeoutMsec) => new Promise(resolve => setTimeout(resolve,timeoutMsec));
 
-module.exports = World;
+//module.exports = CashWorld;

@@ -5,6 +5,8 @@
 </head>
 <script src="dist/cash-bundle.js"></script>
 <script src="lib/fpsmeter.js"></script>
+<script src="lib/dygraphs-combined-dev.js"></script>
+
 <link rel="stylesheet" href="style/cashjs.css">
 <script>
 
@@ -22,7 +24,7 @@ function initialise()
             statecolours: {'bg':0,'alive':1}
     }
 
-    world = new World(config)
+    world = new CashWorld(config)
 
     world.makeCA("gol");
     
@@ -51,6 +53,7 @@ function initialise()
     {
         this.synchronous()
         this.display()
+        this.plotPopsizes('alive',[1])
     }
 }
 
@@ -67,6 +70,8 @@ function run()
 <body onload="run()">
     <div class="header"><h2>CashJS - Game of Life</h2></div>
     <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="graph_holder"> </div>
+
     <div class="footer"><h2>(CashJS - Links to repo etc here?)</h2></div>
 </body>
 </html>
