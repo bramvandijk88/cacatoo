@@ -1,6 +1,6 @@
 import Gridpoint from "./gridpoint.js"
 import Canvas from "./canvas.js"
-import Graph from './graph'
+import Graph from './graph.js'
 
 let colours;
 
