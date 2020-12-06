@@ -41,9 +41,9 @@ class CA
         var pixels = id.data;        
         
 
-        for(let i=0;i<ncol;i++)         // i are rows
+        for(let i=0;i<ncol;i++)         // i are cols
         {
-            for(let j=0;j<nrow;j++)     // j are columns
+            for(let j=0;j<nrow;j++)     // j are rows
             {               
                 for(let prop in this.statecolours)
                 {           
@@ -232,80 +232,66 @@ class CA
         return "Perfectly mixed the grid"
     }
 
-    plotPopsizes(property,values)
+    
+
+    plotArray(graph_labels,graph_values,cols,title)
     {
-        if( typeof this.graph == 'undefined' ) // TODO Change this into an array of graphs, and make a plotxy wrapper for other plot-thingies
-        {   
-            let graph_values = Array(values.length+1).fill(0)
-            let graph_labels = ["Time"]
+        if(!(title in this.graphs))
+        {
             let colours = []
             
-            for(let c of values)
-            {
-                if(this.statecolours[property].constructor != Object)
-                    colours.push(this.colours[this.statecolours[property]])
-                else                        
-                    colours.push(this.colours[this.statecolours[property][c]])
-
-            }            
-            for (let val of values) { graph_labels.push(property+'_'+val)}                  
-            this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")            
+            for(let c of cols)
+                colours.push(this.colours[c])
+            graph_values.unshift(this.time)
+            graph_labels.unshift("Time")                            
+            this.graphs[title] = new Graph(graph_labels,graph_values,colours,title)                        
         }
-        else
-        {     
+        else 
+        {
             if(this.time%5==0)
             {  
-                let popsizes = this.getPopsizes(property,values)
-                popsizes.unshift(this.time)
-                this.graph.push_data(popsizes)     
+                graph_values.unshift(this.time)
+                graph_labels.unshift("Time")
+                this.graphs[title].push_data(graph_values)     
             }
             if(this.time%20==0)
             {
-                this.graph.update()
+                this.graphs[title].update()
             }
-        }
-    }
-
-    plotXY(graph_labels,graph_values,colours,title)
-    {
-        //!("key" in obj)
-        for(let g of this.graphs)   // TODO Change this into an array of graphs, and make a plotxy wrapper for other plot-thingies
-        {
-            if(g.title == title) console.log("Graph exists")
         }
         
-        if( typeof this.graph == 'undefined' ) 
-        {   
-            let graph_values = Array(values.length+1).fill(0)
-            let graph_labels = ["Time"]
-            let colours = []
-            
-            for(let c of values)
-            {
-                if(this.statecolours[property].constructor != Object)
-                    colours.push(this.colours[this.statecolours[property]])
-                else                        
-                    colours.push(this.colours[this.statecolours[property][c]])
+    }
 
-            }            
-            for (let val of values) { graph_labels.push(property+'_'+val)}                  
-            this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")
-            this.graphs.push(this.graph)
-            
-        }
-        else
-        {     
-            if(this.time%5==0)
-            {  
-                let popsizes = this.getPopsizes(property,values)
-                popsizes.unshift(this.time)
-                this.graph.push_data(popsizes)     
-            }
-            if(this.time%20==0)
-            {
-                this.graph.update()
-            }
-        }
+    plotPopsizes(property,values)
+    {
+        // Wrapper for plotXY function, which expects labels, values, colours, and a title for the plot:
+        // Labels
+        let graph_labels = []
+        for (let val of values) { graph_labels.push(property+'_'+val) }     
+
+        // Values
+        let popsizes = this.getPopsizes(property,values)
+        //popsizes.unshift(this.time)
+        let graph_values = popsizes
+
+        // Colours
+        let colours = []        
+        for(let c of values)
+        {
+            if(this.statecolours[property].constructor != Object)
+                colours.push(this.statecolours[property])
+            else                        
+                colours.push(this.statecolours[property][c])
+
+        }  
+        // Title
+        let title = "Population sizes ("+this.name+")"
+
+        this.plotArray(graph_labels, graph_values, colours, title)
+        
+                  
+                     
+        //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
     }
 
     getPopsizes(property,values)

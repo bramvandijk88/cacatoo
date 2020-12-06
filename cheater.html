@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="style/cashjs.css">
 <script>
 
-let world;
+let cash;
 
 let X2Y =0.7;
 let Y2X =0.7;
@@ -36,28 +36,28 @@ function initialise()
                            'species':{0:0,1:10,2:2,3:3}}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
     }
 
-    world = new CashWorld(config)             // Initialise a new Cash instance with configuration given above
+    cash = new Cash(config)             // Initialise a new Cash instance with configuration given above
     
-    world.makeCA("cheater");         
+    cash.makeGrid("cheater");         
     
-    world.initialGrid(world.cheater,'species',0,1,0.33,2,0.33,3,0.33)
+    cash.initialGrid(cash.cheater,'species',0,1,0.33,2,0.33,3,0.33)
 
-    world.cheater.nextState = function(i,j)                         // Define the next-state function. This example is game of life
+    cash.cheater.nextState = function(i,j)                         // Define the next-state function. This example is game of life
     {           
         let state = this.grid[i][j].species;
         
         if (state==0)                               // If there is no species here
         {
             // Count the number of species 1 (mutualist x), 2 (mutualist y), and 3 (cheater z)
-            sumx= world.cheater.countMoore8(this,i,j,1,'species');  
-            sumy= world.cheater.countMoore8(this,i,j,2,'species');
-            sumz= world.cheater.countMoore8(this,i,j,3,'species');
+            sumx= cash.cheater.countMoore8(this,i,j,1,'species');  
+            sumy= cash.cheater.countMoore8(this,i,j,2,'species');
+            sumz= cash.cheater.countMoore8(this,i,j,3,'species');
 
             px= (Y2X*sumy)*sumx;
             py= (X2Y*sumx)*sumy;
             pz= (Y2Z*sumy)*sumz;
             psum=px+py+pz+NON;
-            ran= world.rng.random();         // TODO REPLACE MATH.RANDOM WITH MERSENNE TWISTER
+            ran= cash.rng.random();         // TODO REPLACE MATH.RANDOM WITH MERSENNE TWISTER
 
 
             //console.log(sumx, sumy, sumz)
@@ -71,24 +71,38 @@ function initialise()
         }
         else
         {
-            if (world.rng.random()<d)
+            if (cash.rng.random()<d)
                 this.grid[i][j].species = 0
         }
     }
 
-    world.cheater.update = function()
+    cash.cheater.update = function()
     {
         this.synchronous()
         this.display()
         this.plotPopsizes('species',[1,2,3]) 
-        //this.plotXY([this.time,getPopsizes('species',1)], ['Time','Species 1'], )
+
+        let sumX = 0
+        let sumY = 0
+        let sumZ = 0
+        for(let i=0;i<this.nc;i++)         // i are columns
+            for(let j=0;j<this.nr;j++)     // j are rows
+            {     
+                if(this.grid[i][j].species==1)  sumX++
+                else if(this.grid[i][j].species==2)  sumY++
+                else if(this.grid[i][j].species==3)  sumZ++
+            }
+        this.plotArray(["Ratio X/Y", "Ratio Y/Z"], 
+                    [sumX/sumY,sumY/sumZ],
+                    [2,3],
+                     "My custom plot (X/Y, Y/Z ratio)")
     }    
 }
 
 function run()
 {
     initialise()
-    world.start()
+    cash.start()
 }
 
 </script>
