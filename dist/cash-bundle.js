@@ -44,9 +44,10 @@ class Canvas
 
 class Graph
 {
-    constructor(labels,values,colours,title)
+    constructor(labels,values,colours,title,opts)
     {
-        if(typeof window == undefined) throw "Using dygraphs with cashJS only works in browser-mode"        
+
+        if(typeof window == undefined) throw "Using dygraphs with cashJS only works in browser-mode"                
         this.labels = labels;
         this.data = [values];
         this.title = title;
@@ -64,23 +65,23 @@ class Graph
         
         document.body.appendChild(this.elem);         
         document.getElementById("graph_holder").appendChild(this.elem);
-        
         this.g = new Dygraph(this.elem, this.data,
         {
             title: this.title,
-            drawPoints: false,
             showRoller: false,
             ylabel: '',
             width: 600,
             height: 300,
-            xlabel: 'Time',         
-            axisLabelFontSize: 10,                        
+            xlabel: 'Time',    
+            drawPoints: opts && opts.drawPoints || false,
+            pointSize: opts ? (opts.pointSize ? opts.pointSize : 0): 0,
+            strokePattern: opts ? (opts.strokePattern ? opts.strokePattern : null) : null,
+            dateWindow: [0,100],
+            axisLabelFontSize: 10,    
             valueRange: [0.000, ],
-            strokeWidth: 3,
-            //strokeBorderWidth: 0.5,
-            strokeBorderColor: "black",
+            strokeWidth: opts ? opts.strokeWidth : 3,
             colors: this.colours,
-            labels: this.labels
+            labels: this.labels            
         });
     }
 
@@ -90,7 +91,18 @@ class Graph
     }
 
     update(){
-        this.g.updateOptions( {'file': this.data } );
+        let max_x = 0;
+        let min_x = 999999999999;
+        for(let i of this.data) 
+        {
+            if(i[0]>max_x) max_x = i[0];
+            if(i[0]<min_x) min_x = i[0];
+        }
+        this.g.updateOptions( 
+            {'file': this.data,
+             dateWindow: [min_x,max_x]
+        });
+        
     }
 }
 
@@ -189,7 +201,8 @@ class CA
             [148, 0, 211],          // Violet    7
             [64, 224, 208],         // Turquoise  8
             [255, 165, 0],           // Orange    9
-            [240,200,0]             // Dark yellow 10
+            [240,200,0],             // Dark yellow 10
+            [200,200,200]             // Light grey 11
             ]
     }
 
@@ -330,9 +343,7 @@ class CA
             this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i]);                                
         return "Perfectly mixed the grid"
     }
-
     
-
     plotArray(graph_labels,graph_values,cols,title)
     {
         if(!(title in this.graphs))
@@ -351,6 +362,30 @@ class CA
             {  
                 graph_values.unshift(this.time);
                 graph_labels.unshift("Time");
+                this.graphs[title].push_data(graph_values);     
+            }
+            if(this.time%20==0)
+            {
+                this.graphs[title].update();
+            }
+        }
+        
+    }
+
+    plotXY(graph_labels,graph_values,cols,title,opts)
+    {
+        if(!(title in this.graphs))
+        {
+            let colours = [];
+            
+            for(let c of cols)
+                colours.push(this.colours[c]);                           
+            this.graphs[title] = new Graph(graph_labels,graph_values,colours,title,opts);                        
+        }
+        else 
+        {
+            if(this.time%5==0)
+            {  
                 this.graphs[title].push_data(graph_values);     
             }
             if(this.time%20==0)
@@ -710,7 +745,8 @@ class Cash
         {
             let meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:30});
 
-            
+            document.getElementById("header").innerHTML = `<h2>CashJS - ${this.options.title}`;
+            document.getElementById("footer").innerHTML = "<h2>CashJS is currently <a href=\"https://github.com/bramvandijk88/cashjs\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
 
             async function animate()
             {    
