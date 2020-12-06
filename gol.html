@@ -1,18 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-       <title> CashJS </title> 
-</head>
-<script src="dist/cash-bundle.js"></script>
-<script src="lib/fpsmeter.js"></script>
-<script src="lib/dygraphs-combined-dev.js"></script>
-
-<link rel="stylesheet" href="style/cashjs.css">
+<html>
+<head><title> Cacatoo </title> </head>
+<script src="dist/cacatoo.js"></script> <script src="lib/dygraphs-combined-dev.js"></script> <script src="lib/fpsmeter.js"></script> <link rel="stylesheet" href="style/cacatoo.css">
 <script>
 
-let cash;
+/*-----------------------Start user-defined code ---------------------*/
 
-function initialise()
+let model;
+
+function setup()
 {
 
     let config = {
@@ -25,19 +20,19 @@ function initialise()
             statecolours: {'bg':0,'alive':1}
     }
 
-    cash = new Cash(config)
+    model = new Model(config)
 
-    cash.makeGrid("gol");
+    model.makeGrid("gol");
     
-    cash.initialGlidergun(cash.gol,'alive',3,3)    
-    //cash.initialGrid(cash.gol,'alive',0,1,0.5)    
+    model.initialGlidergun(model.gol,'alive',3,3)    
+    //model.initialGrid(model.gol,'alive',0,1,0.5)    
      
 
 
-    cash.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
+    model.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
         // Count living neighbours
-        let neighbours = cash.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+        let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
         // Get own state
         let state = this.grid[i][j].alive;            
         // Apply the three rules of GoL
@@ -50,24 +45,21 @@ function initialise()
         else
             this.grid[i][j].alive = state;
     }
-    cash.gol.update = function(i,j)
+    model.gol.update = function()
     {
         this.synchronous()
         this.display()
     }
 }
 
-function run()
-{
-    initialise()
-    cash.start()
-}
+
+/*-------------------------End user-defined code ---------------------*/
 
 </script>
 
 
 
-<body onload="run()">
+<body onload="setup()">
     <div class="header" id="header"></div>
     <div class="content" id="canvas_holder">  </div>
     <div class="content" id="graph_holder"> </div>

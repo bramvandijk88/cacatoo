@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title> CashJS </title> 
-</head>
-<script src="dist/cash-bundle.js"></script>
-<script src="lib/fpsmeter.js"></script>
-<script src="lib/dygraphs-combined-dev.js"></script>
-<link rel="stylesheet" href="style/cashjs.css">
+<html>
+<head><title> Cacatoo </title> </head>
+<script src="dist/cacatoo.js"></script> <script src="lib/dygraphs-combined-dev.js"></script> <script src="lib/fpsmeter.js"></script> <link rel="stylesheet" href="style/cacatoo.css">
 <script>
 
-let cash;
+/*-----------------------Start user-defined code ---------------------*/
+
+let model;
 
 let X2Y =0.7;
 let Y2X =0.7;
@@ -19,14 +15,14 @@ let d=0.05;
 let mdif_interval = 5;
 let px, py, pz, psum;
 
-function initialise()
+function setup()
 {
 
     let config = {  
             title: "<span style=\"padding:5px;border-radius: 8px 0px 8px 0px;background:#dddddd;color:red\">Mutualists</span> and <span style=\"color: blue\">Cheaters</span>",
             maxtime: 100000000,
-            ncol : 100,            
-            nrow : 100,		                                        // dimensions of the grid to build
+            ncol : 200,            
+            nrow : 200,		                                        // dimensions of the grid to build
             sleep : 0,
             seed : 101,
             targetfps : 60,                                          
@@ -37,28 +33,28 @@ function initialise()
                            'species':{0:0,1:11,2:2,3:3}}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
     }
 
-    cash = new Cash(config)             // Initialise a new Cash instance with configuration given above
+    model = new Model(config)             // Initialise a new Model instance with configuration given above
     
-    cash.makeGrid("cheater");         
+    model.makeGrid("cheater");         
     
-    cash.initialGrid(cash.cheater,'species',0,1,0.33,2,0.33,3,0.33)
+    model.initialGrid(model.cheater,'species',0,1,0.33,2,0.33,3,0.33)
 
-    cash.cheater.nextState = function(i,j)                         // Define the next-state function. This example is game of life
+    model.cheater.nextState = function(i,j)                         // Define the next-state function. This example is game of life
     {           
         let state = this.grid[i][j].species;
         
         if (state==0)                               // If there is no species here
         {
             // Count the number of species 1 (mutualist x), 2 (mutualist y), and 3 (cheater z)
-            sumx= cash.cheater.countMoore8(this,i,j,1,'species');  
-            sumy= cash.cheater.countMoore8(this,i,j,2,'species');
-            sumz= cash.cheater.countMoore8(this,i,j,3,'species');
+            sumx= model.cheater.countMoore8(this,i,j,1,'species');  
+            sumy= model.cheater.countMoore8(this,i,j,2,'species');
+            sumz= model.cheater.countMoore8(this,i,j,3,'species');
 
             px= (Y2X*sumy)*sumx;
             py= (X2Y*sumx)*sumy;
             pz= (Y2Z*sumy)*sumz;
             psum=px+py+pz+NON;
-            ran= cash.rng.random();         // TODO REPLACE MATH.RANDOM WITH MERSENNE TWISTER
+            ran= model.rng.random();         // TODO REPLACE MATH.RANDOM WITH MERSENNE TWISTER
 
 
             //console.log(sumx, sumy, sumz)
@@ -72,13 +68,13 @@ function initialise()
         }
         else
         {
-            if (cash.rng.random()<d)
+            if (model.rng.random()<d)
                 this.grid[i][j].species = 0
         }
     }
 
 
-    cash.cheater.update = function()
+    model.cheater.update = function()
     {
         this.synchronous()
         this.display()
@@ -103,21 +99,17 @@ function initialise()
             [sumX/sumY,sumY/sumZ],
             [2,3],
             "My custom XY plot (X/Y vs Y/Z)", {drawPoints: true, strokeWidth:1, pointSize:2, strokePattern: [2,2]})
-    }    
-}
-
-function run()
-{
-    initialise()
-    cash.start()
+    }  
+    
+    model.start()  
 }
 
 </script>
 
 
 
-<body onload="run()">
-    <div class="header" id="header"><h2>CashJS - </h2></div>
+<body onload="setup()">
+    <div class="header" id="header"><h2>ModelJS - </h2></div>
     <div class="content" id="canvas_holder">  </div>
     <div class="content" id="graph_holder"> </div>
     <div class="footer" id="footer"></div>

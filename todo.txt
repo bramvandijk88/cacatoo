@@ -4,4 +4,5 @@
 > Asynchrone updating
 > Fvals / diffuse Fvals
 > ODE solver for Fvals
+> Pause / run functionality 
 > En... vast meer. :)
