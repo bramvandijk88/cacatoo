@@ -1,7 +1,7 @@
-> MDiffusion voor cheater
-> Graphs voor cheater
+(rollup src/cash.js -o dist/cash-bundle.js -f cjs  -w)
+
 > Andere / custom neighbourhood retrieval functions
-> Perfectmix
 > Asynchrone updating
-> Mersenne twister & randseed functionality
+> Fvals / diffuse Fvals
+> ODE solver for Fvals
 > En... vast meer. :)

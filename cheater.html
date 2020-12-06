@@ -22,7 +22,8 @@ let px, py, pz, psum;
 function initialise()
 {
 
-    let config = {
+    let config = {  
+            title: "<span style=\"padding:5px;border-radius: 8px 0px 8px 0px;background:#dddddd;color:red\">Mutualists</span> and <span style=\"color: blue\">Cheaters</span>",
             maxtime: 100000000,
             ncol : 100,            
             nrow : 100,		                                        // dimensions of the grid to build
@@ -33,7 +34,7 @@ function initialise()
             wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
             scale : 3,				                                // scale of the grid (nxn pixels per CA cell)
             statecolours: {'bg':0,
-                           'species':{0:0,1:10,2:2,3:3}}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
+                           'species':{0:0,1:11,2:2,3:3}}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
     }
 
     cash = new Cash(config)             // Initialise a new Cash instance with configuration given above
@@ -76,6 +77,7 @@ function initialise()
         }
     }
 
+
     cash.cheater.update = function()
     {
         this.synchronous()
@@ -96,6 +98,11 @@ function initialise()
                     [sumX/sumY,sumY/sumZ],
                     [2,3],
                      "My custom plot (X/Y, Y/Z ratio)")
+
+        this.plotXY(["Ratio X/Y", "Ratio Y/Z"], 
+            [sumX/sumY,sumY/sumZ],
+            [2,3],
+            "My custom XY plot (X/Y vs Y/Z)", {drawPoints: true, strokeWidth:1, pointSize:2, strokePattern: [2,2]})
     }    
 }
 
@@ -110,10 +117,10 @@ function run()
 
 
 <body onload="run()">
-    <div class="header"><h2>CashJS - <span style="box-shadow: 3px 3px 10px #00000033;padding:5px;border-radius: 8px 0px 8px 0px;background:orange;color:red">Mutualists</span> and <span style="color: blue">Cheaters</span></h2></div>
+    <div class="header" id="header"><h2>CashJS - </h2></div>
     <div class="content" id="canvas_holder">  </div>
     <div class="content" id="graph_holder"> </div>
-    <div class="footer"><h2>(CashJS - Links to repo etc here?)</h2></div>
+    <div class="footer" id="footer"></div>
 </body>
 
 </html>
