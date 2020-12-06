@@ -5,5 +5,5 @@ No installation needed. Just include the cacatoo.js file (and optional other lib
 in you HTML file and begin building CA's. 
 
 The bundle was made with rollup:
-> rollup src/cash.js -o dist/cash-bundle.js -f cjs  -w
+> rollup src/model.js -o dist/cacatoo.js -f cjs  -w
 
