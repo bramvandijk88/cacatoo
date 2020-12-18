@@ -26,7 +26,7 @@ class CA
     }
 
     display()
-    {                        
+    {                   
         let ctx = this.canvas.ctx
         let scale = this.canvas.scale
         let ncol = this.nc
@@ -35,7 +35,7 @@ class CA
 
         ctx.clearRect(0,0,scale*ncol,scale*nrow);
 
-        ctx.fillStyle = 'rgb('+this.colours[this.statecolours['bg']]+')'
+        ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, ncol*scale, nrow*scale);
         var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
         var pixels = id.data;        
@@ -46,13 +46,15 @@ class CA
             for(let j=0;j<nrow;j++)     // j are rows
             {               
                 for(let prop in this.statecolours)
-                {           
+                {   
+                    
                     let state = this.statecolours[prop]        
                     if (!(prop in this.grid[i][j])) continue
                     
                     let value = this.grid[i][j][prop]
                     
-                    if(value == 0) continue // Don't draw the background state
+                    if(value == 0)
+                        continue // Don't draw the background state
                     let idx = state
                     if (state.constructor == Object) {
                         idx = state[value]

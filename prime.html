@@ -1,0 +1,65 @@
+<html>
+<head><title> Cacatoo </title> </head>
+<script src="dist/cacatoo.js"></script>
+<script src="lib/dygraphs-combined-dev.js"></script>
+<script src="lib/fpsmeter.js"></script>
+<link rel="stylesheet" href="style/cacatoo.css">
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let model;
+
+function setup()
+{
+
+    let config = {  
+            title: "Modulo prime",
+            maxtime: 100000000,
+            ncol : 150,            
+            nrow : 150,		                                        // dimensions of the grid to build
+            sleep: 800,
+            throttlefps : false,
+            wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
+            scale : 3,				                                // scale of the grid (nxn pixels per CA cell)
+            statecolours: {'alive':1}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
+    }
+
+    model = new Model(config)             // Initialise a new Model instance with configuration given above
+    
+    model.makeGrid("prime");         
+    
+    model.initialPattern(model.prime, 'alive', 'patterns/elephant_cacatoo.png', 39, 45)
+    
+    model.prime.nextState = function(i,j)                         // Define the next-state function. This example is game of life
+    {
+        this.grid[i][j].alive = (this.countMoore8(this,i,j,1,'alive')%2==0 ? 0 : 1)
+    }
+
+
+    model.prime.update = function()
+    {        
+        this.synchronous()        
+        this.display()  
+    }  
+
+    // Adds a pattern load button
+    model.addPatternButton('alive')    
+                               
+    model.start()  
+}
+
+</script>
+
+
+
+<body onload="setup()">        
+    <div class="header" id="header"><h2>ModelJS - </h2></div>
+
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>    
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

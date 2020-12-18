@@ -25,6 +25,7 @@ class Model
 
     step()
     {
+        
         for(let ca of this.CAs)
             ca.update()
     }
@@ -53,16 +54,16 @@ class Model
             document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cashjs\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>"
 
             async function animate()
-            {    
-                if(model.sleep>0) await pause(model.sleep)
+            {   
                 meter.tickStart()
+                if(model.sleep>0) await pause(model.sleep)                                
                 
                 let t = 0;              // Will track cumulative time per step in microseconds 
 
                 while(t<16.67*60/model.targetfps)          //(t < 16.67) results in 60 fps if possible
                 {
                     let startTime = performance.now();
-                    model.step()
+                    model.step();
                     let endTime = performance.now();            
                     t += (endTime - startTime);                    
                     time++    
@@ -97,53 +98,90 @@ class Model
                 for(let j=0;j<ca.nr;j++)                    // j are rows
                     if(this.rng.random() < arguments[arg+1]) ca.grid[i][j][p] = arguments[arg];                    
     }
-    
-    initialGlidergun(ca,property,x,y)              // A little bonus... manually added glider gun :')
+
+    initialPattern(ca,property,image_path, x, y)
     {
-        let p = property || 'val'
-        for(let i=0;i<ca.nc;i++)         // i are columns
-            for(let j=0;j<ca.nr;j++)     // j are rows
-                ca.grid[i][j][p] = 0;        
+        if(typeof window != undefined)
+        {
+            for(let i=0;i<ca.nc;i++) for(let j=0;j<ca.nr;j++) ca.grid[i][j][property] = 0                        
+            let tempcanv = document.createElement("canvas")
+            let tempctx = tempcanv.getContext('2d')
+            var tempimg = new Image();                        
+            
+            tempimg.onload = function() 
+            {                               
+                tempcanv.width = tempimg.width
+                tempcanv.height = tempimg.height
+                tempctx.drawImage(tempimg,0,0);
+                let grid_data = get2DFromCanvas(tempcanv)                                                        
+                if(x+tempimg.width >= ca.nc || y+tempimg.height >= ca.nr) throw RangeError("Cannot place pattern outside of the canvas")                
+                for(let i=0;i<grid_data[0].length;i++)         // i are columns
+                for(let j=0;j<grid_data.length;j++)     // j are rows
+                {                       
+                    ca.grid[x+i][y+j][property] = grid_data[j][i]
+                }                
+                ca.display()              
+            }                
+            tempimg.src=image_path            
+        }
+        else
+        {
+            console.error("initialPattern currently only supported in browser-mode")
+        }
+        
+    }
+    
+    addPatternButton(property)
+    {        
+        let imageLoader = document.createElement("input") 
+        imageLoader.type  = "file"       
+        imageLoader.id = "imageLoader"
+        imageLoader.style="display:none"
+        imageLoader.name="imageLoader"
+        document.getElementById("form_holder").appendChild(imageLoader)
+        let label = document.createElement("label")
+        label.setAttribute("for","imageLoader");
+        label.style="background-color: rgb(171, 228, 230); border-radius: 10px; border:1px solid grey;padding:5px;width:200px;"
+        label.innerHTML="Select your own initial state"
+        document.getElementById("form_holder").appendChild(label)
+        let canvas = document.createElement('canvas');
+        canvas.name="imageCanvas"
+        let ctx = canvas.getContext('2d');
+        function handleImage(e)
+        {
+            let reader = new FileReader();
+            let grid_data
+            let ca = e.currentTarget.ca 
 
-        ca.grid[x+0][y+4][p] = 1;
-        ca.grid[x+0][y+5][p] = 1;
-        ca.grid[x+1][y+4][p] = 1;
-        ca.grid[x+1][y+5][p] = 1;
-        ca.grid[x+10][y+4][p] = 1;
-        ca.grid[x+10][y+5][p] = 1;
-        ca.grid[x+10][y+6][p] = 1;
-        ca.grid[x+11][y+3][p] = 1;
-        ca.grid[x+11][y+7][p] = 1;
-        ca.grid[x+12][y+2][p] = 1;
-        ca.grid[x+12][y+8][p] = 1;
-        ca.grid[x+13][y+2][p] = 1;
-        ca.grid[x+13][y+8][p] = 1;
-        ca.grid[x+14][y+5][p] = 1;
-        ca.grid[x+15][y+3][p] = 1;
-        ca.grid[x+15][y+7][p] = 1;
-        ca.grid[x+16][y+4][p] = 1;
-        ca.grid[x+16][y+5][p] = 1;
-        ca.grid[x+16][y+6][p] = 1;
-        ca.grid[x+17][y+5][p] = 1;
-        ca.grid[x+20][y+2][p] = 1;
-        ca.grid[x+20][y+3][p] = 1;
-        ca.grid[x+20][y+4][p] = 1;
-        ca.grid[x+21][y+2][p] = 1;
-        ca.grid[x+21][y+3][p] = 1;
-        ca.grid[x+21][y+4][p] = 1;
-        ca.grid[x+22][y+1][p] = 1;
-        ca.grid[x+22][y+5][p] = 1;
-        ca.grid[x+24][y+1][p] = 1;
-        ca.grid[x+24][y+5][p] = 1;
-        ca.grid[x+24][y+0][p] = 1;
-        ca.grid[x+24][y+6][p] = 1;
-        ca.grid[x+34][y+2][p] = 1;
-        ca.grid[x+34][y+3][p] = 1;
-        ca.grid[x+35][y+2][p] = 1;
-        ca.grid[x+35][y+3][p] = 1;
-
+            reader.onload = function(event)
+            {
+                var img = new Image();        
+                img.onload = function()
+                {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img,0,0);
+                    
+                    grid_data = get2DFromCanvas(canvas)
+                    
+                    for(let i=0;i<ca.nc;i++) for(let j=0;j<ca.nr;j++) ca.grid[i][j].alive = 0
+                    for(let i=0;i<grid_data[0].length;i++)          // i are columns
+                    for(let j=0;j<grid_data.length;j++)             // j are rows
+                    {                                     
+                        ca.grid[Math.floor(i+ca.nc/2-img.width/2)][Math.floor(j+ca.nr/2-img.height/2)][property] = grid_data[j][i]
+                    }
+                    ca.display()                
+                }
+                img.src = event.target.result;
+            }              
+            reader.readAsDataURL(e.target.files[0]);
+            document.getElementById("imageLoader").value = "";
     }
 
+    imageLoader.addEventListener('change', handleImage, false);
+    imageLoader.ca = model.prime    // Bind a ca to imageLoader 
+    imageLoader.property = property
+    }    
 }
 
 export default Model
@@ -152,3 +190,35 @@ export default Model
 * Delay for a number of milliseconds
 */
 const pause = (timeoutMsec) => new Promise(resolve => setTimeout(resolve,timeoutMsec))
+
+function get2DFromCanvas(canvas)
+{
+    let width = canvas.width
+    let height = canvas.height
+    let ctx = canvas.getContext('2d');    
+    let img1 = ctx.getImageData(0, 0, width, height); 
+    let binary = new Array(img1.data.length);
+    let idx = 0
+    for (var i = 0; i < img1.data.length; i+=4) 
+    {            
+        let num = [img1.data[i],img1.data[i+1],img1.data[i+2]]
+        let state 
+        // console.log(num)
+        if(JSON.stringify(num) == JSON.stringify([0,0,0])) state = 0
+        else if(JSON.stringify(num) == JSON.stringify([255,255,255])) state = 1
+        else if(JSON.stringify(num) == JSON.stringify([255,0,0])) state = 2
+        else if(JSON.stringify(num) == JSON.stringify([0,0,255])) state = 3
+        else throw RangeError("Colour in your pattern does not exist in cash")
+        binary[idx] = state
+        idx++
+    }
+
+    const arr2D = [];
+    let rows = 0
+    while(rows < height) 
+    {
+        arr2D.push(binary.splice(0,width));
+        rows++;
+    }
+    return arr2D
+}
