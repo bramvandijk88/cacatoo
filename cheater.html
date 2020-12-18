@@ -7,10 +7,10 @@
 
 let model;
 
-let X2Y =0.7;
-let Y2X =0.7;
+let X2Y =1.7;
+let Y2X =1.7;
 let Y2Z =1.0;
-let NON=1.0;
+let NON=0.0;
 let d=0.05;
 let mdif_interval = 5;
 let px, py, pz, psum;
@@ -21,9 +21,8 @@ function setup()
     let config = {  
             title: "<span style=\"padding:5px;border-radius: 8px 0px 8px 0px;background:#dddddd;color:red\">Mutualists</span> and <span style=\"color: blue\">Cheaters</span>",
             maxtime: 100000000,
-            ncol : 200,            
-            nrow : 200,		                                        // dimensions of the grid to build
-            sleep : 0,
+            ncol : 100,            
+            nrow : 100,		                                        // dimensions of the grid to build
             seed : 101,
             targetfps : 60,                                          
             throttlefps : true,                                     // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
@@ -37,7 +36,7 @@ function setup()
     
     model.makeGrid("cheater");         
     
-    model.initialGrid(model.cheater,'species',0,1,0.33,2,0.33,3,0.33)
+    model.initialGrid(model.cheater,'species',0,1,0.33,2,0.33,3,0.33)            
 
     model.cheater.nextState = function(i,j)                         // Define the next-state function. This example is game of life
     {           
@@ -100,6 +99,7 @@ function setup()
             [2,3],
             "My custom XY plot (X/Y vs Y/Z)", {drawPoints: true, strokeWidth:1, pointSize:2, strokePattern: [2,2]})
     }  
+
     
     model.start()  
 }
@@ -108,7 +108,7 @@ function setup()
 
 
 
-<body onload="setup()">
+<body onload="setup()">        
     <div class="header" id="header"><h2>ModelJS - </h2></div>
     <div class="content" id="canvas_holder">  </div>
     <div class="content" id="graph_holder"> </div>
