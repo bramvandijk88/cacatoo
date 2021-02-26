@@ -107,7 +107,6 @@ class Model
             let tempcanv = document.createElement("canvas")
             let tempctx = tempcanv.getContext('2d')
             var tempimg = new Image();                        
-            
             tempimg.onload = function() 
             {                               
                 tempcanv.width = tempimg.width
@@ -122,7 +121,7 @@ class Model
                 }                
                 ca.display()              
             }                
-            tempimg.src=image_path            
+            tempimg.src=image_path   
         }
         else
         {

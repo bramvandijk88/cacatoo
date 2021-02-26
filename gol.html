@@ -13,17 +13,17 @@ function setup()
     let config = {
             title: "Game of Life",
             maxtime: 10000,
-            ncol : 120,            
-            nrow : 120,		            // dimensions of the grid to build
+            ncol : 200,            
+            nrow : 200,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]   
-            scale : 4,				    // scale of the grid (nxn pixels per CA cell)
+            scale : 2,				    // scale of the grid (nxn pixels per CA cell)
             statecolours: {'bg':0,'alive':1}
     }
 
     model = new Model(config)
 
     model.makeGrid("gol");    
-    model.initialPattern(model.gol, 'alive', 'patterns/glider.png', 10, 10)
+    //model.initialPattern(model.gol, 'alive', 'patterns/glider.png', 10, 10)
     //model.initialGrid(model.gol,'alive',0,1,0.5)        
 
     model.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life

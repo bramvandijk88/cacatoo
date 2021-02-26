@@ -23,7 +23,7 @@ function setup()
     model = new Model(config)
 
     model.makeGrid("gol");    
-    model.initialGlidergun(model.gol,'alive',3,3)
+    model.initialGrid(model.gol,'alive',0,1,0.1)        
 
     model.makeGrid("vote");
     model.initialGrid(model.vote,'left',2,1,0.5)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0

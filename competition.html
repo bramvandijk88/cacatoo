@@ -19,7 +19,7 @@ function setup()
 {
 
     let config = {  
-            title: "Jeroen",
+            title: "competition",
             maxtime: 100000000,
             ncol : 300,            
             nrow : 300,		                                        // dimensions of the grid to build
@@ -32,19 +32,19 @@ function setup()
 
     model = new Model(config)             // Initialise a new Model instance with configuration given above
     
-    model.makeGrid("jeroen");         
+    model.makeGrid("competition");         
     
-    model.initialGrid(model.jeroen,'species',0,1,0.2,2,0.2)            
+    model.initialGrid(model.competition,'species',0,1,0.2,2,0.2)            
 
-    model.jeroen.nextState = function(i,j)                         // Define the next-state function. This example is game of life
+    model.competition.nextState = function(i,j)                         // Define the next-state function. This example is game of life
     {           
         let state = this.grid[i][j].species;
         
         if (state==0)                               // If there is no species here
         {
             // Count the number of species 1 (mutualist x), 2 (mutualist y), and 3 (cheater z)
-            sumx= model.jeroen.countMoore8(this,i,j,1,'species');
-            sumy= model.jeroen.countMoore8(this,i,j,2,'species');
+            sumx= model.competition.countMoore8(this,i,j,1,'species');
+            sumy= model.competition.countMoore8(this,i,j,2,'species');
 
             if(sumx>sumy)
                 this.grid[i][j].species = 1
@@ -59,7 +59,7 @@ function setup()
     }
 
 
-    model.jeroen.update = function()
+    model.competition.update = function()
     {
         this.synchronous()
         this.display()
