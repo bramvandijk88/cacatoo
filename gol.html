@@ -24,7 +24,7 @@ function setup()
 
     model.makeGrid("gol");    
     //model.initialPattern(model.gol, 'alive', 'patterns/glider.png', 10, 10)
-    //model.initialGrid(model.gol,'alive',0,1,0.5)        
+    model.initialGrid(model.gol,'alive',0,1,0.5)        
 
     model.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
