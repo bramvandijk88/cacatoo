@@ -5,3 +5,4 @@
 > Fvals / diffuse Fvals
 > ODE solver for Fvals
 > Pause / run functionality 
+> Refactor display / grid copy functions to waste less time on copying identical states
