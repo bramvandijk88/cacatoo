@@ -1,8 +1,7 @@
 (rollup src/cash.js -o dist/cash-bundle.js -f cjs  -w)
 > Pattern-reading display bug (when reading, it cant display because of onload event happening at the same time as the display)
-> Andere / custom neighbourhood retrieval functions
+> Custom neighbourhood retrieval functions
 > Asynchrone updating
 > Fvals / diffuse Fvals
 > ODE solver for Fvals
 > Pause / run functionality 
-> En... vast meer. :)
