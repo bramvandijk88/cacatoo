@@ -11,4 +11,5 @@ in your HTML file and begin building CA's.
 
 The bundle was made with rollup:
 > rollup src/model.js -o dist/cacatoo.js -f cjs  -w
+Note that the default output of rollup will throw a warning in the dev console: "Module not defined", but will otherwise work. You can comment the last line from cacatoo.js to get rid of the warning. 
 

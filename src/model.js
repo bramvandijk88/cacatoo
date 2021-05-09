@@ -13,6 +13,7 @@ class Model
         this.throttlefps = true
         if(opts.throttlefps==false) this.throttlefps = false                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
         this.CAs = []
+        this.time=0
         
     }
 
@@ -24,63 +25,77 @@ class Model
     }
 
     step()
-    {
-        
+    {        
         for(let ca of this.CAs)
             ca.update()
+    }
+    
+    stop()
+    {
+        model.pause=true
     }
 
     display()
     {
         for(let ca of this.CAs)
-        {
-            ca.display()
-        }
+            ca.displaygrid()
     }
 
     start()
     {        
-        let time = 0
         let model = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
-        model.display()        
-
-
-        if(typeof window != undefined)
+        if(typeof window != 'undefined')
         {
-            let meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:30})
+            let meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:20})
 
             document.title = `Cacatoo - ${this.options.title}`
-            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}`
+            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}</h2><font size=3>${this.options.description}</font size>`
             document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cashjs\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>"
 
             async function animate()
             {   
-                meter.tickStart()
-                if(model.sleep>0) await pause(model.sleep)                                
-                
-                let t = 0;              // Will track cumulative time per step in microseconds 
-
-                while(t<16.67*60/model.targetfps)          //(t < 16.67) results in 60 fps if possible
+                if(model.options.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
-                    let startTime = performance.now();
-                    model.step();
-                    let endTime = performance.now();            
-                    t += (endTime - startTime);                    
-                    time++    
-                    if(!model.throttlefps) break        
-                }      
-                model.display()
-                meter.tick()
+                    if(model.sleep>0) await pause(model.sleep)                                
+                    
+                    let t = 0;              // Will track cumulative time per step in microseconds 
+
+                    while(t<16.67*60/model.targetfps)          //(t < 16.67) results in 60 fps if possible
+                    {
+                        let startTime = performance.now();
+                        model.step();
+                        let endTime = performance.now();            
+                        t += (endTime - startTime);                    
+                        model.time++    
+                        if(!model.throttlefps) break        
+                    }      
+                    model.display()
+                    meter.tick()                   
+                }
+                else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
+                {
+                    meter.tickStart()
+                    model.step();                                    
+                    model.display()
+                    meter.tick()
+                    model.time++  
+                }
                 
                 let frame = requestAnimationFrame(animate);        
-                if(time>model.options.maxtime) cancelAnimationFrame(frame)
+                if(model.time>=model.options.maxtime) cancelAnimationFrame(frame)
+                if(model.pause==true) { model.pause=false;cancelAnimationFrame(frame) }
                 
             }
+            
             requestAnimationFrame(animate);
         }
         else
         {
-            // NODE CODE HERE 
+            while(true)
+            {
+                model.step();   
+                model.time++
+            }
         }
     }
 
@@ -119,7 +134,7 @@ class Model
                 {                       
                     ca.grid[x+i][y+j][property] = grid_data[j][i]
                 }                
-                ca.display()              
+                ca.displaygrid()              
             }                
             tempimg.src=image_path   
         }

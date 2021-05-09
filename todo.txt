@@ -1,5 +1,8 @@
 (rollup src/cash.js -o dist/cash-bundle.js -f cjs  -w)
-> Pattern-reading display bug (when reading, it cant display because of onload event happening at the same time as the display)
+
+CHECK > Pattern-reading display bug (when reading, it cant display because of onload event happening at the same time as the display)
+CHECK > Working out speed issues. 
+> Work out better ways to control FPS / with better names than "throttle". Use prime as a testbed!
 > Custom neighbourhood retrieval functions
 > Asynchrone updating
 > Fvals / diffuse Fvals

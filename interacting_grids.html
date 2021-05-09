@@ -13,7 +13,8 @@ function setup()
     let config = {
             title: "Interacting grids",
             maxtime: 10000,
-            ncol : 100,            
+            ncol : 100,    
+            fastmode : true,        
             nrow : 100,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]
             scale : 3,				    // scale of the grid (nxn pixels per CA cell)
@@ -61,7 +62,6 @@ function setup()
         ca.update = function() // Give each CA the same update steps (update grid, then display)
         {
             this.synchronous()
-            this.display()
         }
     }
 
