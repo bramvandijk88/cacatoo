@@ -25,8 +25,8 @@ class CA
         this.graphs = {}
     }
 
-    display()
-    {                   
+    displaygrid()
+    {           
         let ctx = this.canvas.ctx
         let scale = this.canvas.scale
         let ncol = this.nc
@@ -39,7 +39,6 @@ class CA
         ctx.fillRect(0, 0, ncol*scale, nrow*scale);
         var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
         var pixels = id.data;        
-        
 
         for(let i=0;i<ncol;i++)         // i are cols
         {
@@ -47,8 +46,10 @@ class CA
             {               
                 for(let prop in this.statecolours)
                 {   
+                    let x = i*scale;
+                    let y = j*scale;
+                    let state = this.statecolours[prop]                            
                     
-                    let state = this.statecolours[prop]        
                     if (!(prop in this.grid[i][j])) continue
                     
                     let value = this.grid[i][j][prop]
@@ -107,7 +108,7 @@ class CA
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
-    synchronous()  // Do one step (synchronous) of this CA
+    synchronous()                                               // Do one step (synchronous) of this CA
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
@@ -321,7 +322,7 @@ class CA
 
     getPopsizes(property,values)
     {        
-        let sum = Array(values.length).fill(0)        
+        let sum = Array(values.length).fill(0)
         for(let i = 0; i< this.nc; i++)
         {            
             for(let j=0;j<this.nr;j++)

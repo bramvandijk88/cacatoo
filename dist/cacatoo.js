@@ -27,18 +27,20 @@ class Canvas
             this.elem.height = this.height*this.scale;   
             // document.body.appendChild(this.elem)         
             document.getElementById("canvas_holder").appendChild(this.elem);
+            this.ctx = this.elem.getContext("2d");
+	    	this.ctx.lineWidth = 1;
+            this.ctx.fillStyle = "#AAAAAA";
+            this.ctx.fillRect(0, 0, cols*scale, rows*scale);
+            this.ctx.strokeRect(0, 0, cols*scale, rows*scale);
         } 
         else 
         {                                            // In nodejs, use canvas package, FIXING THIS LATER, FIRST STUDENT BROWSER-VERSION
-			const {createCanvas} = require("canvas");
-			this.elem = createCanvas( this.width*this.scale, this.height*this.scale);
-			//this.fs = require("fs")
+			//const {createCanvas} = require("canvas")
+			//this.elem = createCanvas( this.width*this.scale, this.height*this.scale)
+            //this.fs = require("fs")
+            console.log("WARNING: No canvas available in NodeJS-mode (yet)");
 		}
-		this.ctx = this.elem.getContext("2d");
-		this.ctx.lineWidth = 1;
-        this.ctx.fillStyle = "#AAAAAA";
-        this.ctx.fillRect(0, 0, cols*scale, rows*scale);
-        this.ctx.strokeRect(0, 0, cols*scale, rows*scale);
+		
     }
 }
 
@@ -137,8 +139,8 @@ class CA
         this.graphs = {};
     }
 
-    display()
-    {                   
+    displaygrid()
+    {           
         let ctx = this.canvas.ctx;
         let scale = this.canvas.scale;
         let ncol = this.nc;
@@ -150,7 +152,6 @@ class CA
         ctx.fillRect(0, 0, ncol*scale, nrow*scale);
         var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
         var pixels = id.data;        
-        
 
         for(let i=0;i<ncol;i++)         // i are cols
         {
@@ -158,8 +159,8 @@ class CA
             {               
                 for(let prop in this.statecolours)
                 {   
+                    let state = this.statecolours[prop];                            
                     
-                    let state = this.statecolours[prop];        
                     if (!(prop in this.grid[i][j])) continue
                     
                     let value = this.grid[i][j][prop];
@@ -218,7 +219,7 @@ class CA
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
-    synchronous()  // Do one step (synchronous) of this CA
+    synchronous()                                               // Do one step (synchronous) of this CA
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
@@ -432,7 +433,7 @@ class CA
 
     getPopsizes(property,values)
     {        
-        let sum = Array(values.length).fill(0);        
+        let sum = Array(values.length).fill(0);
         for(let i = 0; i< this.nc; i++)
         {            
             for(let j=0;j<this.nr;j++)
@@ -712,6 +713,7 @@ class Model
         this.throttlefps = true;
         if(opts.throttlefps==false) this.throttlefps = false;                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
         this.CAs = [];
+        this.time=0;
         
     }
 
@@ -723,59 +725,77 @@ class Model
     }
 
     step()
-    {
-        
+    {        
         for(let ca of this.CAs)
             ca.update();
+    }
+    
+    stop()
+    {
+        model.pause=true;
     }
 
     display()
     {
         for(let ca of this.CAs)
-        {
-            ca.display();
-        }
+            ca.displaygrid();
     }
 
     start()
     {        
-        let time = 0;
         let model = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
-        model.display();        
-
-
-        if(typeof window != undefined)
+        if(typeof window != 'undefined')
         {
-            let meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:30});
+            let meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:20});
 
             document.title = `Cacatoo - ${this.options.title}`;
-            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}`;
+            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}</h2><font size=3>${this.options.description}</font size>`;
             document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cashjs\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
 
             async function animate()
             {   
-                meter.tickStart();
-                if(model.sleep>0) await pause(model.sleep);                                
-                
-                let t = 0;              // Will track cumulative time per step in microseconds 
-
-                while(t<16.67*60/model.targetfps)          //(t < 16.67) results in 60 fps if possible
+                if(model.options.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
-                    let startTime = performance.now();
-                    model.step();
-                    let endTime = performance.now();            
-                    t += (endTime - startTime);                    
-                    time++;    
-                    if(!model.throttlefps) break        
-                }      
-                model.display();
-                meter.tick();
+                    if(model.sleep>0) await pause(model.sleep);                                
+                    
+                    let t = 0;              // Will track cumulative time per step in microseconds 
+
+                    while(t<16.67*60/model.targetfps)          //(t < 16.67) results in 60 fps if possible
+                    {
+                        let startTime = performance.now();
+                        model.step();
+                        let endTime = performance.now();            
+                        t += (endTime - startTime);                    
+                        model.time++;    
+                        if(!model.throttlefps) break        
+                    }      
+                    model.display();
+                    meter.tick();                   
+                }
+                else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
+                {
+                    meter.tickStart();
+                    model.step();                                    
+                    model.display();
+                    meter.tick();
+                    model.time++;  
+                }
                 
                 let frame = requestAnimationFrame(animate);        
-                if(time>model.options.maxtime) cancelAnimationFrame(frame);
+                if(model.time>=model.options.maxtime) cancelAnimationFrame(frame);
+                if(model.pause==true) { model.pause=false;cancelAnimationFrame(frame); }
                 
             }
+            
             requestAnimationFrame(animate);
+        }
+        else
+        {
+            while(true)
+            {
+                model.step();   
+                model.time++;
+            }
         }
     }
 
@@ -802,7 +822,6 @@ class Model
             let tempcanv = document.createElement("canvas");
             let tempctx = tempcanv.getContext('2d');
             var tempimg = new Image();                        
-            
             tempimg.onload = function() 
             {                               
                 tempcanv.width = tempimg.width;
@@ -815,9 +834,9 @@ class Model
                 {                       
                     ca.grid[x+i][y+j][property] = grid_data[j][i];
                 }                
-                ca.display();              
+                ca.displaygrid();              
             };                
-            tempimg.src=image_path;            
+            tempimg.src=image_path;   
         }
         else
         {

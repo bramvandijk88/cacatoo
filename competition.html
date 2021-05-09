@@ -9,7 +9,7 @@ let model;
 
 let X2Y =1.7;
 let Y2X =1.7;
-let Y2Z =1.0;
+let Y2Z =1.7;
 let NON=0.0;
 let d=0.05;
 let mdif_interval = 5;
@@ -62,7 +62,6 @@ function setup()
     model.competition.update = function()
     {
         this.synchronous()
-        this.display()
         this.plotPopsizes('species',[1,2])         
     }  
     // Adds a pattern load button
