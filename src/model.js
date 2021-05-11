@@ -136,7 +136,10 @@ class Model
                 }                
                 ca.displaygrid()              
             }                
+            
             tempimg.src=image_path   
+            tempimg.crossOrigin="anonymous"
+            
         }
         else
         {
@@ -184,7 +187,7 @@ class Model
                     {                                     
                         ca.grid[Math.floor(i+ca.nc/2-img.width/2)][Math.floor(j+ca.nr/2-img.height/2)][property] = grid_data[j][i]
                     }
-                    ca.display()                
+                    ca.displaygrid()                
                 }
                 img.src = event.target.result;
             }              

@@ -1,6 +1,6 @@
 <html>
 <head><title> Cacatoo </title> </head>
-<script src="dist/cacatoo.js"></script>
+<script src="dist/cacatoo.js" ></script>
 <script src="lib/dygraphs-combined-dev.js"></script>
 <script src="lib/fpsmeter.js"></script>
 <link rel="stylesheet" href="style/cacatoo.css">
@@ -15,6 +15,7 @@ function setup()
 
     let config = {  
             title: "Modulo prime",
+            description: "Update rule: next_state = n_neighbours % 2",
             maxtime: 100000000,
             ncol : 150,            
             nrow : 150,		                                        // dimensions of the grid to build
@@ -31,7 +32,8 @@ function setup()
     
     model.makeGrid("prime");         
     
-    model.initialPattern(model.prime, 'alive', 'patterns/elephant_cacatoo.png', 39, 45)
+    // Note to user: initialPattern may have issues with your browser security. If so, either select your own pattern using the pattern button (which is added in this example below), or start a local webserver (most browsers have free plugins for this)    
+    model.initialPattern(model.prime, 'alive', './patterns/elephant_cacatoo.png', 39, 45)
     
     model.prime.nextState = function(i,j)                         // Define the next-state function. This example is game of life
     {

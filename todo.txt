@@ -3,6 +3,7 @@
 CHECK > Pattern-reading display bug (when reading, it cant display because of onload event happening at the same time as the display)
 CHECK > Working out speed issues. 
 > Work out better ways to control FPS / with better names than "throttle". Use prime as a testbed!
+> Make sure I explain that the initial-pattern shit doesn't work without a server. 
 > Custom neighbourhood retrieval functions
 > Asynchrone updating
 > Fvals / diffuse Fvals

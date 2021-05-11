@@ -4,6 +4,8 @@
 <script src="lib/dygraphs-combined-dev.js"></script> 
 <script src="lib/fpsmeter.js"></script>
  <link rel="stylesheet" href="style/cacatoo.css">
+
+ 
 <script>
 
 /*-----------------------Start user-defined code ---------------------*/
@@ -17,9 +19,12 @@ function setup()
             title: "Game of Life",
             description: "Conway's Game of Life",
             maxtime: 100000,
-            fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. (note: only useful/recommended if the model can readily run at 60FPS without fast-mode)
-            ncol : 100,            
-            nrow : 100,		            // dimensions of the grid to build
+            fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. 
+                                        // Note: fastmode is only useful/recommended if the model can readily run 
+                                        // at 60FPS without fast-mode, and may actually reduce the reported FPS
+                                        // Nevertheless, the final state of the CA is reaches sooner in real time. 
+            ncol : 200,            
+            nrow : 200,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]   
             scale : 3,				    // scale of the grid (nxn pixels per CA cell)
             statecolours: {'alive':1}   // The background state '0' is never drawn
