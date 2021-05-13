@@ -51,7 +51,8 @@ class Model
             document.title = `Cacatoo - ${this.options.title}`
             document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}</h2><font size=3>${this.options.description}</font size>`
             document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cashjs\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>"
-
+            let simStartTime = performance.now();
+      
             async function animate()
             {   
                 if(model.options.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
@@ -82,7 +83,12 @@ class Model
                 }
                 
                 let frame = requestAnimationFrame(animate);        
-                if(model.time>=model.options.maxtime) cancelAnimationFrame(frame)
+                if(model.time>=model.options.maxtime)
+                { 
+                    let simStopTime = performance.now();
+                    console.log(simStopTime-simStartTime)
+                    cancelAnimationFrame(frame)                
+                }
                 if(model.pause==true) { model.pause=false;cancelAnimationFrame(frame) }
                 
             }
