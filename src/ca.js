@@ -125,6 +125,32 @@ class CA
         this.time++          
     }   
 
+    asynchronous()
+    {
+        this.set_update_order()
+        for (let n = 0; n < this.nc*this.nr; n++) 
+        {            
+            let m = this.upd_order[n]
+            let i = m%this.nc 
+            let j = Math.floor(m/this.nr)            
+            this.nextState(i,j)
+        }
+        // Don't have to copy the grid here. Just cycle through i,j in random order and apply nextState :)
+    }
+
+    set_update_order()
+    {
+        if (typeof this.upd_order === 'undefined')  // "Static" variable, only create this array once and reuse it
+        {
+            this.upd_order = []
+            for (let n = 0; n < this.nc*this.nr; n++) 
+            {
+                this.upd_order.push(n)
+            }            
+        }
+        shuffle(this.upd_order,this.rng)            // Shuffle the update order
+    }
+
     update()
     {
         throw 'Update function of \'' + this.name + '\' undefined';
@@ -180,8 +206,13 @@ class CA
     }
 
     
-    margolusDiffusion()
+    MargolusDiffusion()
     {
+        if(!this.wrap[0] || !this.wrap[1]) 
+        {
+            console.log("Current implementation of Margolus diffusion requires wrapped boundaries.")
+            throw new Error("Current implementation of Margolus diffusion requires wrapped boundaries.")
+        }
         //   
         //   A  B
         //   D  C
@@ -222,6 +253,7 @@ class CA
             }
         }        
     }
+
     perfectMix()
     {
         let all_gridpoints = [];

@@ -18,11 +18,9 @@ function setup()
     let config = {
             title: "Game of Life",
             description: "Conway's Game of Life",
-            maxtime: 100,
-            fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. 
-                                        // Note: fastmode is only useful/recommended if the model can readily run 
-                                        // at 60FPS without fast-mode, and may actually reduce the reported FPS
-                                        // Nevertheless, the final state of the CA is reaches sooner in real time. 
+            maxtime: 1000000,
+            fastmode: true,             // If possible, fast-mode will update the model with more than once before displaying the grid
+                                        // (note, the actualy FPS may drop below 60 fps when using fast mode)
             ncol : 200,            
             nrow : 200,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]   

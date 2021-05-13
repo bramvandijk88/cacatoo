@@ -17,14 +17,12 @@ function setup()
             title: "Modulo prime",
             description: "Update rule: next_state = n_neighbours % 2",
             maxtime: 100000000,
-            ncol : 150,            
-            nrow : 150,		                                        // dimensions of the grid to build
-            sleep: 800,
-            fastmode: true,                                         // Ironically, to slow down the FPS, you have to be in fast mode :D
-            throttlefps : true,
-            targetfps:60,
+            ncol : 300,            
+            nrow : 300,		                                        // dimensions of the grid to build
+            sleep: 200,
+            fastmode: true,                                         // Ironically, to slow down the FPS, you have to be in fast mode :D            
             wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
-            scale : 3,				                                // scale of the grid (nxn pixels per CA cell)
+            scale : 2,				                                // scale of the grid (nxn pixels per CA cell)
             statecolours: {'alive':1}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
     }
 
@@ -33,7 +31,7 @@ function setup()
     model.makeGrid("prime");         
     
     // Note to user: initialPattern may have issues with your browser security. If so, either select your own pattern using the pattern button (which is added in this example below), or start a local webserver (most browsers have free plugins for this)    
-    model.initialPattern(model.prime, 'alive', './patterns/elephant_cacatoo.png', 39, 45)
+    model.initialPattern(model.prime, 'alive', './patterns/elephant_cacatoo.png', 115, 115)
     
     model.prime.nextState = function(i,j)                         // Define the next-state function. This example is game of life
     {
