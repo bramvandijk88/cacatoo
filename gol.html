@@ -18,7 +18,7 @@ function setup()
     let config = {
             title: "Game of Life",
             description: "Conway's Game of Life",
-            maxtime: 100000,
+            maxtime: 100,
             fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. 
                                         // Note: fastmode is only useful/recommended if the model can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
@@ -55,9 +55,10 @@ function setup()
     
     model.gol.update = function()
     {
+        
+                        
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
     }
-
     model.start()
 }
 
