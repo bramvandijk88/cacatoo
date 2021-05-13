@@ -1,0 +1,82 @@
+<html>
+<head><title> Cacatoo </title> </head>
+<script src="dist/cacatoo.js"></script> 
+<script src="lib/dygraphs-combined-dev.js"></script> 
+<script src="lib/fpsmeter.js"></script>
+ <link rel="stylesheet" href="style/cacatoo.css">
+
+ 
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let model;
+
+function setup()
+{
+
+    let config = {
+            title: "Spirals",
+            description: "8 colours with cyclical dominance <br> (stare at your own risk)",
+            maxtime: 100000,
+            fastmode: true,             
+            ncol : 200,            
+            nrow : 200,		            // dimensions of the grid to build
+            wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
+            scale : 2,				    // scale of the grid (nxn pixels per CA cell)
+            statecolours: {'colour':{0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8}}   // The background state '0' is never drawn
+    }
+
+    model = new Model(config)
+
+    model.makeGrid("colours"); 
+    let n_species = 8
+    
+    
+    // model.initialGrid(model.colours,'colour',0,2,0.01)        
+    for(let i=0;i<model.colours.nc;i++)                          // i are columns
+        for(let j=0;j<model.colours.nr;j++)                      // j are rows
+        {
+            model.colours.grid[i][j]['colour'] = Math.round(model.rng.genrand_real1()*n_species)           
+        }
+    
+    // throw new Error("Manual break");
+
+    model.colours.nextState = function(i,j)       // Define the next-state function. This example is game of life
+    {   
+        let state = this.grid[i][j].colour  // Colour of current pixel
+        let pred = (this.grid[i][j].colour%n_species)+1 // Colour it is predated by
+
+        let neighbours = model.colours.countMoore8(this,i,j,pred,'colour') // Count the no. predators
+        // Red will spread
+        if(model.rng.genrand_real1() < 0.3*neighbours)  // Grow. 
+        {
+            this.grid[i][j].colour = pred;
+        }
+    }
+    
+    model.colours.update = function()
+    {
+        this.synchronous()         // Applied as many times as it can in 1/60th of a second
+        //this.asynchronous()
+        this.plotPopsizes('colour',[1,2,3,4,5,6,7,8]) 
+        if(model.time%2==0)this.MargolusDiffusion()
+    }
+
+    model.start()
+}
+
+
+/*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="setup()">
+    <div class="header" id="header"></div>
+    <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+</html>
