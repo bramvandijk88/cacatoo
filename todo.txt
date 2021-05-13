@@ -6,9 +6,7 @@ CHECK > Working out speed issues.
 
 > Make sure I explain that the initial-pattern shit doesn't work without a server.... maybe I can still look into fixing this but I don't think it's worth it
 
-> Custom neighbourhood retrieval functions
 > Asynchrone updating
 > Fvals / diffuse Fvals
 > ODE solver for Fvals
 > Pause / run functionality 
-> Refactor display / grid copy functions to waste less time on copying identical states

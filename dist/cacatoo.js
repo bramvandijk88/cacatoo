@@ -236,6 +236,32 @@ class CA
         this.time++;          
     }   
 
+    asynchronous()
+    {
+        this.set_update_order();
+        for (let n = 0; n < this.nc*this.nr; n++) 
+        {            
+            let m = this.upd_order[n];
+            let i = m%this.nc; 
+            let j = Math.floor(m/this.nr);            
+            this.nextState(i,j);
+        }
+        // Don't have to copy the grid here. Just cycle through i,j in random order and apply nextState :)
+    }
+
+    set_update_order()
+    {
+        if (typeof this.upd_order === 'undefined')  // "Static" variable, only create this array once and reuse it
+        {
+            this.upd_order = [];
+            for (let n = 0; n < this.nc*this.nr; n++) 
+            {
+                this.upd_order.push(n);
+            }            
+        }
+        shuffle(this.upd_order,this.rng);            // Shuffle the update order
+    }
+
     update()
     {
         throw 'Update function of \'' + this.name + '\' undefined';
@@ -291,8 +317,13 @@ class CA
     }
 
     
-    margolusDiffusion()
+    MargolusDiffusion()
     {
+        if(!this.wrap[0] || !this.wrap[1]) 
+        {
+            console.log("Current implementation of Margolus diffusion requires wrapped boundaries.");
+            throw new Error("Current implementation of Margolus diffusion requires wrapped boundaries.")
+        }
         //   
         //   A  B
         //   D  C
@@ -333,6 +364,7 @@ class CA
             }
         }        
     }
+
     perfectMix()
     {
         let all_gridpoints = [];
@@ -709,12 +741,11 @@ class Model
         this.options = opts;
         this.rng = new MersenneTwister(opts.seed || 53);
         this.sleep = opts.sleep || 0;
-        this.targetfps = opts.targetfps || 60;
-        this.throttlefps = true;
-        if(opts.throttlefps==false) this.throttlefps = false;                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
+        this.fps = opts.fps || 60;
+        this.limitfps = true;
+        if(opts.limitfps==false) this.limitfps = false;                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
         this.CAs = [];
         this.time=0;
-        
     }
 
     makeGrid(name)
@@ -746,11 +777,11 @@ class Model
         let model = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
         if(typeof window != 'undefined')
         {
-            let meter = new FPSMeter({left:"auto", top:"80px",right:"30px",graph:1,history:20});
+            let meter = new FPSMeter({show:'fps',left:"auto", top:"80px",right:"30px",graph:1,history:20});
 
             document.title = `Cacatoo - ${this.options.title}`;
             document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}</h2><font size=3>${this.options.description}</font size>`;
-            document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cashjs\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
+            document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
             let simStartTime = performance.now();
       
             async function animate()
@@ -761,14 +792,14 @@ class Model
                     
                     let t = 0;              // Will track cumulative time per step in microseconds 
 
-                    while(t<16.67*60/model.targetfps)          //(t < 16.67) results in 60 fps if possible
+                    while(t<16.67*60/model.fps)          //(t < 16.67) results in 60 fps if possible
                     {
                         let startTime = performance.now();
                         model.step();
                         let endTime = performance.now();            
                         t += (endTime - startTime);                    
                         model.time++;    
-                        if(!model.throttlefps) break        
+                        if(!model.limitfps) break        
                     }      
                     model.display();
                     meter.tick();                   
@@ -786,7 +817,7 @@ class Model
                 if(model.time>=model.options.maxtime)
                 { 
                     let simStopTime = performance.now();
-                    console.log(simStopTime-simStartTime);
+                    console.log("Cacatoo completed after",Math.round(simStopTime-simStartTime)/1000,"seconds");
                     cancelAnimationFrame(frame);                
                 }
                 if(model.pause==true) { model.pause=false;cancelAnimationFrame(frame); }
