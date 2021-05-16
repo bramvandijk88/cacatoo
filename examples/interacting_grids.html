@@ -1,0 +1,83 @@
+<html>
+<script src="../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="../style/cacatoo.css">        <!-- Set style sheet -->
+
+<script>
+/*-----------------------Start user-defined code ---------------------*/
+
+let model;
+
+function setup()
+{
+
+    let config = {
+            title: "Interacting grids",
+            maxtime: 10000,
+            ncol : 100,    
+            fastmode : true,        
+            nrow : 100,		            // dimensions of the grid to build
+            wrap : [true, true],        // Wrap boundary [COLS, ROWS]
+            scale : 3,				    // scale of the grid (nxn pixels per CA cell)
+            statecolours: {'alive':{0:'black',1:'#FF00AA'},'left':{1:'blue',2:'red'}}
+            }
+
+    model = new Model(config)
+
+    model.makeGrid("gol");    
+    model.initialGrid(model.gol,'alive',0,1,0.1)        
+
+    model.makeGrid("vote");
+    model.initialGrid(model.vote,'left',2,1,0.5)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+
+    model.gol.nextState = function(i,j)                 // Define the next-state function. This example is game of life + vote
+    {   
+        // Count living neighbours
+        let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+        // Get own state
+        let state = this.grid[i][j].alive;            
+        // Apply the three rules of GoL
+        if(state == 0 && neighbours == 3)
+        {
+            this.grid[i][j].alive = 1;
+        }
+        else if(state == 1 && (neighbours < 2 || neighbours > 3))
+            this.grid[i][j].alive = 0;
+        else
+            this.grid[i][j].alive = state;
+    }
+        
+    model.vote.nextState = function(i,j)       // Define the next-state function. This example is game of shmife
+    {           
+        //Count living neighbours. countMoore9 is self-inclusive
+        let neighbours = model.vote.countMoore9(this,i,j,1,'left')
+        let gol_neighbours = model.vote.countMoore9(model.gol,i,j,1,'alive')
+        if(neighbours+gol_neighbours > 4)
+            this.grid[i][j].left = 1    // If majority votes left, this position also votes left
+        else
+            this.grid[i][j].left = 2    // If majority votes right, this position also votes right
+    }
+
+    for(ca of model.CAs)
+    {
+        ca.update = function() // Give each CA the same update steps (update grid, then display)
+        {
+            this.synchronous()
+        }
+    }
+
+    
+    model.start()
+}
+
+</script>
+
+
+
+<body onload="setup()">
+    <div class="header" id="header"></div>
+    <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="graph_holder">  </div>
+    <div class="footer" id="footer"></div>
+</body>
+</html>

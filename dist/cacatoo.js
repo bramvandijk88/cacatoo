@@ -6,15 +6,17 @@ class Gridpoint
     {        
         // This class only contains a copy-constructor, meaning that a new gridpoint will be made based on the passed template gridpoint
         // If no template is given, the object is empty (for initialisation, this is true)
-        for (var prop in template) {
-            this[prop] = template[prop];
+        for (var prop in template) 
+        {
+            this[prop] = template[prop];             // Shallow copy. It's fast, but be careful with syncronous updating!
+            // this[prop] = copy(template[prop])    // Deep copy. Takes much more time, but sometimes you may need this*** 
         }
     }
 }
 
 class Canvas
 {
-    constructor(cols,rows,scale)
+    constructor(cols,rows,scale,title)
     {        
         this.height = rows;
         this.width = cols;
@@ -22,11 +24,18 @@ class Canvas
 
         if( typeof document !== "undefined" ){              // In browser, crease a new HTML canvas-element to draw on 
             this.elem = document.createElement("canvas");
+            this.titlediv = document.createElement("div");
+            this.titlediv.innerHTML = "<font size = 1>"+title+"</font>";
+            this.canvasdiv = document.createElement("div");
+            this.canvasdiv.className="grid-holder";
             this.elem.className="grid-holder";
             this.elem.width = this.width*this.scale;
             this.elem.height = this.height*this.scale;   
+            this.canvasdiv.appendChild(this.elem);
+            this.canvasdiv.appendChild(this.titlediv);
             // document.body.appendChild(this.elem)         
-            document.getElementById("canvas_holder").appendChild(this.elem);
+            document.getElementById("canvas_holder").appendChild(this.canvasdiv);
+            
             this.ctx = this.elem.getContext("2d");
 	    	this.ctx.lineWidth = 1;
             this.ctx.fillStyle = "#AAAAAA";
@@ -72,8 +81,8 @@ class Graph
             title: this.title,
             showRoller: false,
             ylabel: this.labels.length == 2 ? this.labels[1]: "",
-            width: 600,
-            height: 300,
+            width: 400,
+            height: 250,
             xlabel: this.labels[0],    
             drawPoints: opts && opts.drawPoints || false,
             pointSize: opts ? (opts.pointSize ? opts.pointSize : 0): 0,
@@ -159,20 +168,34 @@ class ODE
 class CA
 {
     // Constructor
-    constructor(name, config, rng)
+    constructor(name, config, rng, show_gridname)
     {
         // Make empty grid      
         this.name = name;
         this.time = 0;
         this.grid = MakeGrid(config.ncol,config.nrow);                 // Grid        
         this.nc = config.ncol || 200;
-        this.nr = config.nrow || 200;
+        this.nr = config.nrow || 200;        
         this.wrap = config.wrap || [true, true]; 
         this.rng = rng;
         this.statecolours = this.setupColours(config.statecolours);
         this.scale = config.scale || 1;
-        this.canvas = new Canvas(this.nc,this.nr,this.scale);  
+        let grid_name = ""; 
+        if(show_gridname) grid_name = this.name;
+        this.canvas = new Canvas(this.nc,this.nr,this.scale,grid_name);  
         this.graphs = {};
+        this.graph_update = config.graph_update; 
+        this.graph_interval = config.graph_interval;
+        this.moore = [[0,0],         // SELF            _____________
+             [0,-1],        // NORTH           | 5 | 1 | 6 |
+             [1,0],         // EAST            | 4 | 0 | 2 |
+             [0,1],         // SOUTH           | 7 | 3 | 8 |
+             [-1,0],        // WEST            _____________
+             [-1,-1],       // NW
+             [1,-1],        // NE
+             [-1,1],        // SW
+             [1,1]          // SE
+            ];
     }
 
     displaygrid()
@@ -307,7 +330,23 @@ class CA
         }
         this.grid = newstate;      
         this.time++;          
-    }   
+    }
+    
+    apply_sync(func)
+    {
+        let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
+        let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
+        for(let i=0;i<this.nc;i++)
+        {    
+            for(let j=0;j<this.nr;j++)
+            {
+                func(i,j);                           // Update this.grid
+                newstate[i][j] = this.grid[i][j];                // Set this.grid to newstate
+                this.grid[i][j] = oldstate[i][j];                // Reset this.grid to old state
+            }
+        }
+        this.grid = newstate;      
+    }
 
     asynchronous()
     {
@@ -321,6 +360,18 @@ class CA
         }
         this.time++;
         // Don't have to copy the grid here. Just cycle through i,j in random order and apply nextState :)
+    }
+
+    apply_async(func)
+    {
+        this.set_update_order();
+        for (let n = 0; n < this.nc*this.nr; n++) 
+        {            
+            let m = this.upd_order[n];
+            let i = m%this.nc; 
+            let j = Math.floor(m/this.nr);            
+            func(i,j);
+        }
     }
 
     set_update_order()
@@ -373,8 +424,8 @@ class CA
     randomMoore8(ca,col,row)
     {
         let rand = model.rng.genrand_int(1,8);  
-        let i = moore[rand][0];
-        let j = moore[rand][1];
+        let i = this.moore[rand][0];
+        let j = this.moore[rand][1];
         let neigh = ca.getGridpoint(col+i,row+j);
         while(neigh == undefined) neigh = this.randomMoore8(ca,col,row); 
         return neigh
@@ -486,13 +537,13 @@ class CA
         }
         else 
         {
-            if(this.time%5==0)
+            if(this.time%this.graph_interval==0)
             {  
                 graph_values.unshift(this.time);
                 graph_labels.unshift("Time");
                 this.graphs[title].push_data(graph_values);     
             }
-            if(this.time%20==0)
+            if(this.time%this.graph_update==0)
             {
                 this.graphs[title].update();
             }
@@ -509,11 +560,11 @@ class CA
         }
         else 
         {
-            if(this.time%5==0)
+            if(this.time%this.graph_interval==0)
             {  
                 this.graphs[title].push_data(graph_values);     
             }
-            if(this.time%20==0)
+            if(this.time%this.graph_update==0)
             {
                 this.graphs[title].update();
             }
@@ -709,16 +760,7 @@ function parseColours(cols)
     return return_cols
 }
 
-let moore = [[0,0],         // SELF            _____________
-             [0,-1],        // NORTH           | 5 | 1 | 6 |
-             [1,0],         // EAST            | 4 | 0 | 2 |
-             [0,1],         // SOUTH           | 7 | 3 | 8 |
-             [-1,0],        // WEST            _____________
-             [-1,-1],       // NW
-             [1,-1],        // NE
-             [-1,1],        // SW
-             [1,1]          // SE
-            ];
+
 let default_colours = {
                   0:[0,0,0],            // black
                   1:[255,255,255],      // white
@@ -750,7 +792,7 @@ class Model
 
     makeGrid(name)
     {
-        let ca = new CA(name,this.config,this.rng);
+        let ca = new CA(name,this.config,this.rng,this.config.show_gridname);
         this[name] = ca;
         this.CAs.push(ca);
     }

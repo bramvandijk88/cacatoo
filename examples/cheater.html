@@ -1,0 +1,122 @@
+<html>
+<script src="../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="../style/cacatoo.css">        <!-- Set style sheet -->
+
+<script>
+/*-----------------------Start user-defined code ---------------------*/
+
+let model;
+
+let X2Y =1.0;
+let Y2X =1.0;
+let Y2Z =1.5;
+let NON=1.0;
+let d=0.05;
+let mdif_interval = 5;
+let px, py, pz, psum;
+
+function setup()
+{
+
+    let config = {  
+            title: "<span style=\"padding:5px;border-radius: 8px 0px 8px 0px;background:#dddddd;color:red\">Mutualists</span> and <span style=\"color: blue\">Cheaters</span>",
+            maxtime: 100000000,
+            ncol : 200,            
+            nrow : 200,		                                        // dimensions of the grid to build
+            seed : 56,
+            fps : 60,         
+            fastmode: true,                                 
+            throttlefps : false,                                     // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
+            wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
+            scale : 2,				                                // scale of the grid (nxn pixels per CA cell)
+            statecolours: {'species':{0:"black",
+                                      1:"#DDDDDD",
+                                      2:"red",
+                                      3:"blue"}}                 // Sets up colours of states. Here, die species state gets 4 colours. Can be a colour name or a hexadecimal colour. 
+    }
+
+    model = new Model(config)             // Initialise a new Model instance with configuration given above
+    
+    model.makeGrid("cheater");         
+    
+    model.initialGrid(model.cheater,'species',0,1,0.33,2,0.33,3,0.33)            
+
+    model.cheater.nextState = function(i,j)                         // Define the next-state function. This example is two mutualists and a cheater
+    {           
+        let state = this.grid[i][j].species;
+        
+        if (state==0)                               // If there is no species here
+        {
+            // Count the number of species 1 (mutualist x), 2 (mutualist y), and 3 (cheater z)
+            sumx= model.cheater.countMoore8(this,i,j,1,'species');  
+            sumy= model.cheater.countMoore8(this,i,j,2,'species');
+            sumz= model.cheater.countMoore8(this,i,j,3,'species');
+
+            px= (Y2X*sumy)*sumx;
+            py= (X2Y*sumx)*sumy;
+            pz= (Y2Z*sumy)*sumz;
+            psum=px+py+pz+NON;
+            ran= model.rng.random();         // TODO REPLACE MATH.RANDOM WITH MERSENNE TWISTER
+
+
+            //console.log(sumx, sumy, sumz)
+
+            if (ran< px/psum)
+                this.grid[i][j].species = 1
+            else if (ran< (px+py)/psum)            
+                this.grid[i][j].species = 2
+            else if (ran< (px+py+pz)/psum)
+                this.grid[i][j].species = 3
+        }
+        else
+        {
+            if (model.rng.random()<d)
+                this.grid[i][j].species = 0
+        }
+    }
+
+
+    model.cheater.update = function()
+    {
+        this.synchronous()
+        this.plotPopsizes('species',[1,2,3]) 
+        //if(model.time%10==0)this.MargolusDiffusion()
+        let sumX = 0
+        let sumY = 0
+        let sumZ = 0
+        for(let i=0;i<this.nc;i++)         // i are columns
+            for(let j=0;j<this.nr;j++)     // j are rows
+            {     
+                if(this.grid[i][j].species==1)  sumX++
+                else if(this.grid[i][j].species==2)  sumY++
+                else if(this.grid[i][j].species==3)  sumZ++
+            }
+        this.plotArray(["Ratio X/Y", "Ratio Y/Z"], 
+                        [sumX/sumY,sumY/sumZ],
+                        ["gold","#FF00AA"],
+                        "My custom plot (X/Y, Y/Z ratio)")
+        
+
+        this.plotXY(["Ratio X/Y", "Ratio Y/Z"], 
+            [sumX/sumY,sumY/sumZ],
+            ["black"],
+            "My custom XY plot (X/Y vs Y/Z)", {drawPoints: true, strokeWidth:1, pointSize:2, strokePattern: [2,2]})
+    }  
+
+    
+    model.start()  
+}
+
+</script>
+
+
+
+<body onload="setup()">        
+    <div class="header" id="header"><h2>ModelJS - </h2></div>
+    <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

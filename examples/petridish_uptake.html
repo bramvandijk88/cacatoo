@@ -1,0 +1,185 @@
+<html>
+<script src="../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<script src="../lib/odex.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="../style/cacatoo.css">        <!-- Set style sheet -->
+
+<script>
+/*-----------------------Start user-defined code ---------------------*/
+
+let model;
+
+function setup()
+{
+
+    let config = {
+            title: "Serial transfer protocol",
+            description: "Rich Lenski, eat your heart out!",
+            maxtime: 100000,
+            fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. 
+                                        // Note: fastmode is only useful/recommended if the model can readily run 
+                                        // at 60FPS without fast-mode, and may actually reduce the reported FPS
+                                        // Nevertheless, the final state of the CA is reaches sooner in real time. 
+            ncol : 76,            
+            nrow : 76,		            // dimensions of the grid to build
+            wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
+            scale : 3,				    // scale of the grid (nxn pixels per CA cell)
+            statecolours: {'alive':{1:'#AAFF00'}},   // The background state '0' is never drawn
+            graph_interval: 1,
+            graph_update: 5,
+            show_gridname: true
+    }
+
+    model = new Model(config)
+
+    let influx = 0.0                // Continuous influx of resource into external environment
+    let uptake = 0.1                // Rate with which resources are taken up by cells
+    let upkeep = 0.02               // Upkeep used to keep the cell alive
+    let refresh_medium_every = 1440  // Interval for refreshing the medium ("minutes", 24h)
+    let refresh_medium_conc = 1.0   // Conc for refreshing the medium
+
+    model.makeGrid("cells"); 
+    model.makeGrid("resource_e"); 
+    model.makeGrid("resource_i"); 
+    model.resource_e.colourRamp('conc',[0,0,0],[64, 224, 208],100)
+    model.resource_i.colourRamp('conc',[0,0,0],[240,200,0],100)
+    
+
+    
+    // Define a basic Lotka Volterra ODE system
+    // dx/dt = a x - b x y
+    // dy/dt = c x y - d y
+    let resource_dynamics = function(i, u, k) { return function(x, y) {
+        return [
+            i - u*y[0],         // y[0] is the external resource concentration
+            u*y[0] - k*y[1]              // y[1] is the internal resource concentration
+        ]}}
+    // Set initial state and parameters
+    let init_state = [refresh_medium_conc,0.0]          // y[0],y[1]
+    let pars = [0.00,0.00,0.00]     // influx, uptake, upkeep
+    
+    // Attaches an ODE to all gridpoints with initial state = [0,0].    
+    // If you want to access it by name, you can give a name as the final variable (here concs)
+    model.cells.attachODE(resource_dynamics,init_state,pars,"concs");
+
+    model.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1
+    model.cells.grid[config.ncol/2][config.nrow/2].concs.pars = [influx,uptake,upkeep]
+    model.cells.grid[config.ncol/2][config.nrow/2].concs.state = [refresh_medium_conc,0.3]
+    
+    
+    model.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
+    {   
+        if(this.time > 0 && this.time%refresh_medium_every==0) 
+        {   
+            this.grid[i][j].concs.state[0] = refresh_medium_conc
+            if(model.rng.genrand_real1() < 0.995) 
+            {
+                this.grid[i][j].alive = 0
+                this.grid[i][j].concs.state[1] = 0.00                                          // Remove internal conc
+                this.grid[i][j].concs.pars = [influx,0.00,upkeep]                                // No more cell here, so no uptake
+                return 
+            }
+        }
+        if(this.grid[i][j].alive == 1)
+        {
+
+            if(this.grid[i][j].concs.state[1] < 0.15)
+            {
+                this.grid[i][j].alive = 0
+                this.grid[i][j].concs.state[0] += this.grid[i][j].concs.state[1]    // Spill internal resources in external pool
+                this.grid[i][j].concs.state[1] = 0.00                               // Remove internal conc
+                this.grid[i][j].concs.pars = [influx,0.00,upkeep]                                // No more cell here, so no uptake
+            }            
+        }
+        else
+        {
+            let neighbour = model.cells.randomMoore8(this,i,j)
+            let food_in_neigh = neighbour.concs.state[1]
+            if(neighbour.alive == 1 && food_in_neigh > 0.5)
+            {
+                this.grid[i][j].alive = 1;
+                this.grid[i][j].concs.state[1] = food_in_neigh / 2
+                neighbour.concs.state[1] = food_in_neigh / 2                
+                this.grid[i][j].concs.pars = [influx,uptake,upkeep]    // Living cells get an influx par                
+            }
+        }
+        this.grid[i][j].concs.solve_timestep(0.1)        
+
+        // Update how this GP is displayed
+        let conc_e = Math.max(0,this.grid[i][j].concs.state[0])       // Amount of prey (continuous variable)
+        let conc_i = Math.max(0,this.grid[i][j].concs.state[1])       // Amount of pred (continuous variable)
+        model.resource_e.grid[i][j].conc = Math.min(Math.floor(conc_e*300),99)
+        model.resource_i.grid[i][j].conc = Math.min(Math.floor(conc_i*200),99)
+        
+        //model.cells.diffuse_ext_resources(i,j,0.05)              // Custom function to diffuse external resources, defined below
+    }
+
+    model.cells.diffuse_ext_resources = function(i,j)
+    {
+        let sum_in = 0.0
+        for(let n=1;n<=4;n++)               // 1 t/m 4 is neuman (North, East, South, West)
+        {            
+            let x = model.cells.moore[n][0]
+            let y = model.cells.moore[n][1]
+            let neigh = model.cells.getGridpoint(x+i,y+j)
+            if(neigh==undefined) continue
+            let neigh_out = neigh.concs.state[0]*0.01
+            neigh.concs.state[0] = neigh.concs.state[0]-neigh_out
+            sum_in += neigh_out
+        
+        }   
+        model.cells.grid[i][j].concs.state[0] += sum_in
+    }
+
+    model.resource_e.nextState = function() {}    // Empty, only for displaying the concentration on a grid
+    model.resource_e.update = function() {}
+    model.resource_i.nextState = function() {}    // Empty, only for displaying the concentration on a grid
+    model.resource_i.update = function() {}
+
+
+    model.cells.update = function()
+    {
+        this.asynchronous()         // Asynchronous because division changes both parent and offspring grid points, so updating can't be synchronous without leading to bugs
+        this.apply_async(this.diffuse_ext_resources)       // Apply a custum function on all gps synchronously
+        this.MargolusDiffusion()
+        if(this.time%refresh_medium_every==0) this.perfectMix()
+        let sum_ext = 0
+        let sum_int = 0
+
+        for(let i=0;i<this.nc;i++)         // i are columns
+            for(let j=0;j<this.nr;j++)     // j are rows
+            {     
+                sum_ext += this.grid[i][j].concs.state[0]
+                sum_int += this.grid[i][j].concs.state[1]                
+            }
+            sum_ext/=this.nc*this.nr
+            sum_int/=this.nc*this.nr
+        this.plotPopsizes('alive',[1]) 
+        this.plotArray(["Resources [external]", "Resources [internal]"], 
+                        [sum_ext,sum_int],
+                        ["turquoise","gold"],
+                        "Average external / internal resources")
+
+    }
+    
+    
+  
+    model.start()
+}
+
+
+/*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+
+<body onload="setup()">        
+    <div class="header" id="header"><h2>ModelJS - </h2></div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>    
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+</html>
