@@ -16,11 +16,11 @@ function setup()
             description: "8 colours with cyclical dominance <br> (stare at your own risk)",
             maxtime: 10000,
             fastmode: true,             
-            ncol : 250,            
-            nrow : 250,		            // dimensions of the grid to build
-            wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale : 2,				    // scale of the grid (nxn pixels per CA cell)
-            statecolours: {'colour':{0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8}}   // The background state '0' is never drawn
+            ncol : 200,            
+            nrow : 200,		                        // dimensions of the grid to build
+            wrap : [true, true],                    // Wrap boundary [COLS, ROWS]   
+            scale : 2,				                // scale of the grid (nxn pixels per CA cell)
+            statecolours: {colour:'default'}        // Default colours if left empty (see variable 'default_colours')
     }
 
     model = new Model(config)
@@ -38,7 +38,7 @@ function setup()
     
     // throw new Error("Manual break");
 
-    model.colours.nextState = function(i,j)       // Define the next-state function. This example is game of life
+    model.colours.nextState = function(i,j)       // Define the next-state function. This example is spirals
     {   
         let state = this.grid[i][j].colour  // Colour of current pixel
         let pred = (this.grid[i][j].colour%n_species)+1 // Colour it is predated by (% because 8 is predated by 1)
@@ -53,8 +53,9 @@ function setup()
     
     model.colours.update = function()
     {
-		if(model.time%2==0) this.MargolusDiffusion()
-        this.synchronous()         // Applied as many times as it can in 1/60th of a second
+		
+        this.synchronous()                              // Applied as many times as it can in 1/60th of a second
+        if(model.time%2==0) this.MargolusDiffusion()    // Every timestep is too much for spirals, so every other timestep :)
         //this.asynchronous()
         this.plotPopsizes('colour',[1,2,3,4,5,6,7,8]) 
 		

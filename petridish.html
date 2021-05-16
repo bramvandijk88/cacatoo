@@ -23,7 +23,7 @@ function setup()
             nrow : 200,		            // dimensions of the grid to build
             wrap : [true, false],       // Wrap boundary [COLS, ROWS]   
             scale : 2,				    // scale of the grid (nxn pixels per CA cell)
-            statecolours: {'alive':{0:0,1:9}}   // The background state '0' is never drawn
+            statecolours: {'alive':{1:'#AAAA00'}}   // The background state '0' is never drawn
     }
 
     model = new Model(config)
@@ -36,7 +36,7 @@ function setup()
     //model.initialGrid(model.cells,'alive',0,1,0.01)
     model.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1
     
-    model.cells.nextState = function(i,j)       // Define the next-state function. This example is game of life
+    model.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
     {   
         if(this.grid[i][j].alive == 1)
         {
