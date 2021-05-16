@@ -1,6 +1,6 @@
 (rollup src/cash.js -o dist/cash-bundle.js -f cjs  -w)
 
-> Fvals / diffuse Fvals
-> ODE solver for Fvals
+> Function to diffuse fvals / diffuse all ODE states deterministically 
+> Fvals / diffuse Fvals 
 > Pause / run functionality 
 > Display grid after pattern-load (now it skips :()
