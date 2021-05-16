@@ -319,6 +319,7 @@ class CA
             let j = Math.floor(m/this.nr);            
             this.nextState(i,j);
         }
+        this.time++;
         // Don't have to copy the grid here. Just cycle through i,j in random order and apply nextState :)
     }
 
@@ -374,7 +375,9 @@ class CA
         let rand = model.rng.genrand_int(1,8);  
         let i = moore[rand][0];
         let j = moore[rand][1];
-        return ca.getGridpoint(col+i,row+j)
+        let neigh = ca.getGridpoint(col+i,row+j);
+        while(neigh == undefined) neigh = this.randomMoore8(ca,col,row); 
+        return neigh
     }
 
     randomMoore9(ca,col,row)
@@ -382,7 +385,9 @@ class CA
         let rand = model.rng.genrand_int(0,8);        
         let i = moore[rand][0];
         let j = moore[rand][1];
-        return ca.getGridpoint(col+i,row+j)
+        let neigh = ca.getGridpoint(col+i,row+j);
+        while(neigh == undefined) neigh = this.randomMoore8(ca,col,row);
+        return neigh
     }
 
 
@@ -392,7 +397,7 @@ class CA
         if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
         let y = j;
         if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
-        if(x<0||y<0||x>=this.nc||y>=this.nr) return {}                      // If sampling neighbour outside of the grid, return empty object
+        if(x<0||y<0||x>=this.nc||y>=this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
         else return this.grid[x][y]
     }
 

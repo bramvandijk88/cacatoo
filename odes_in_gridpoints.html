@@ -15,22 +15,23 @@ function setup()
     let config = {
             title: "ODEs in gridpoints",
             description: "Series of coupled lotka-volterra systems",
-            maxtime: 1000,
+            maxtime: 10000,
             fastmode: false,             
             sleep: 1000,
-            ncol : 10,            
-            nrow : 10,		            // dimensions of the grid to build
-            wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale : 10				    // scale of the grid (nxn pixels per CA cell
+            ncol : 50,            
+            nrow : 50,		            // dimensions of the grid to build
+            wrap : [false, true],       // Wrap boundary [COLS, ROWS]   
+            scale : 3				    // scale of the grid (nxn pixels per CA cell
                    // colourRamp extrapolates a spectrum of colours between the first and second RGB values
     }
 
     model = new Model(config)
 
     model.makeGrid("lotka"); 
-    model.lotka.colourRamp('density',[0,0,0],[240,200,0],100)
+    model.lotka.colourRamp('density',[0,0,0],[240,200,0],100)           // Will contain the ODEs, and show the abundance of PREDATORS
     model.makeGrid("prey")
-    model.prey.colourRamp('density',[0,0,0],[148, 0, 211],100)
+    model.prey.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
+
 
     // Define a basic Lotka Volterra ODE system
     // dx/dt = a x - b x y
@@ -41,29 +42,43 @@ function setup()
             c * y[0] * y[1] - d * y[1]          // y[1] is the predator which consumes prey with rate c, dies naturally with rate d
         ]}}
 
-    let init_state = [1,1]
-    let pars = [0.15,0.1,0.2,0.1]
+    // Set initial state and parameters
+    let init_state = [0,0]          // y[0],y[1]
+    let pars = [0.5,0.5,0.5,0.5]    // a,b,c,d
     
-    // Attaches an ODE to all gridpoints, initial state = [1,1]. As multiple ODEs can be attached, they will be put in an array. 
-    // An optional name (here "lotka") can be given so you can easily access your ODE
+    // Attaches an ODE to all gridpoints with initial state = [0,0]. 
+    // By default, all ODEs are stored in an array in the grid point, but...
+    // If you want to access it by name, you can give a name as the final variable (here lotka)
     model.lotka.attachODE(LotkaVolterra,init_state,pars,"lotka"); 
-    
-    model.initialGrid(model.lotka,'colour',0,2,0.01)        
-    
-    model.lotka.nextState = function(i,j)       // Define the next-state function. 
-    {   
-        let pred = this.grid[i][j].lotka.state[0]       // Amount of pred (continuous variable)
-        let prey = this.grid[i][j].lotka.state[1]       // Amount of prey (continuous variable)
-        this.grid[i][j].density = Math.min(Math.floor(pred*100),99)        
-        model.prey.grid[i][j].density = Math.min(Math.floor(prey*30),99)
 
-        if(model.rng.genrand_real1() < 0.9)
+    // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
+    for(let i=0;i<model.lotka.nc;i++)    
+            for(let j=0;j<model.lotka.nr;j++)
+                if(i<3) model.lotka.grid[i][j].lotka.state = [2,2]
+    
+    // The nextState function does not handle ODE integration 
+    model.lotka.nextState = function(i,j)       // Define the next-state function. 
+    {           
+        this.grid[i][j].lotka.solve_timestep(0.1)
+
+        let prey = Math.max(0,this.grid[i][j].lotka.state[0])       // Amount of prey (continuous variable)
+        let pred = Math.max(0,this.grid[i][j].lotka.state[1])       // Amount of pred (continuous variable)
+        this.grid[i][j].density = Math.min(Math.floor(pred*50),99)
+        model.prey.grid[i][j].density = Math.min(Math.floor(prey*50),99)
+
+        if(model.rng.genrand_real1() < 0.2)         // Freely diffuse into new gridpoints
         {
             neigh = model.lotka.randomMoore8(this,i,j)
-            //neigh_predators = neigh.lotka.state[0]
-            //this.grid[i][j].lotka.state[0] = neigh_predators/2
-            //neigh.lotka.state[0] = neigh_predators/2 + this.grid[i][j].lotka.state[0]/2
-
+            neigh_prey = neigh.lotka.state[0]
+            this.grid[i][j].lotka.state[0] += neigh_prey/50
+            neigh.lotka.state[0] -= neigh_prey/50
+        }
+        if(model.rng.genrand_real1() < 0.2)         // Freely diffuse into new gridpoints
+        {
+            neigh = model.lotka.randomMoore8(this,i,j)
+            neigh_pred = neigh.lotka.state[1]
+            this.grid[i][j].lotka.state[1] += neigh_pred/50
+            neigh.lotka.state[1] -= neigh_pred/50
         }
     }
 
@@ -71,17 +86,19 @@ function setup()
     
     model.lotka.update = function()
     {
-        this.synchronous()                              // Applied as many times as it can in 1/60th of a second
-        this.solve_odes(delta_t=0.5)                    //
+        this.asynchronous()                              // Asynchronous updating due to local diffusion... can be better
+        //this.solve_odes(delta_t=0.1)                    //
         let sumpred = 0
         let sumprey = 0
 
         for(let i=0;i<this.nc;i++)         // i are columns
             for(let j=0;j<this.nr;j++)     // j are rows
             {     
-                sumpred += this.grid[i][j].lotka.state[0]
-                sumprey += this.grid[i][j].lotka.state[1]                
+                sumprey += this.grid[i][j].lotka.state[0]
+                sumpred += this.grid[i][j].lotka.state[1]                
             }
+            sumpred/=this.nc*this.nr
+            sumprey/=this.nc*this.nr
         this.plotArray(["Predators", "Preys"], 
                         [sumpred,sumprey],
                         ["gold","#FF00AA"],

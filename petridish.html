@@ -47,7 +47,6 @@ function setup()
         {
             //let neighbours = model.cells.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
             let neighbour = model.cells.randomMoore8(this,i,j)              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
-            //console.log(this.grid[i][j])            
             if (neighbour.alive == 1 && model.rng.genrand_real1() < birth_rate)                        
                 this.grid[i][j].alive = 1;
         }
