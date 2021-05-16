@@ -369,10 +369,22 @@ class CA
         return count
     }
     
-    randMoore8(ca,col,row)
+    randomMoore8(ca,col,row)
     {
-        
+        let rand = model.rng.genrand_int(1,8);  
+        let i = moore[rand][0];
+        let j = moore[rand][1];
+        return ca.getGridpoint(col+i,row+j)
     }
+
+    randomMoore9(ca,col,row)
+    {
+        let rand = model.rng.genrand_int(0,8);        
+        let i = moore[rand][0];
+        let j = moore[rand][1];
+        return ca.getGridpoint(col+i,row+j)
+    }
+
 
     getGridpoint(i,j)
     {
@@ -380,7 +392,7 @@ class CA
         if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
         let y = j;
         if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
-        if(x<0||y<0||x>=this.nc||y>=this.nr) return undefined               // TODO!!!!!!! Return border-state instead!
+        if(x<0||y<0||x>=this.nc||y>=this.nr) return {}                      // If sampling neighbour outside of the grid, return empty object
         else return this.grid[x][y]
     }
 
@@ -692,7 +704,16 @@ function parseColours(cols)
     return return_cols
 }
 
-
+let moore = [[0,0],         // SELF            _____________
+             [0,-1],        // NORTH           | 5 | 1 | 6 |
+             [1,0],         // EAST            | 4 | 0 | 2 |
+             [0,1],         // SOUTH           | 7 | 3 | 8 |
+             [-1,0],        // WEST            _____________
+             [-1,-1],       // NW
+             [1,-1],        // NE
+             [-1,1],        // SW
+             [1,1]          // SE
+            ];
 let default_colours = {
                   0:[0,0,0],            // black
                   1:[255,255,255],      // white
