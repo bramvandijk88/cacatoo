@@ -14,7 +14,7 @@ function setup()
     let config = {
             title: "Petridish with local growth",
             description: "",
-            maxtime: 15000,
+            maxtime: 1000,
             fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. 
                                         // Note: fastmode is only useful/recommended if the model can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
@@ -31,10 +31,11 @@ function setup()
     model.makeGrid("cells"); 
 
     let birth_rate = 0.25
-    let death_rate = 0.00
+    let death_rate = 0.01
 
     //model.initialGrid(model.cells,'alive',0,1,0.01)
     model.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1
+    
     
     model.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
     {   
@@ -44,8 +45,10 @@ function setup()
         }
         else
         {
-            let neighbours = model.cells.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
-            if (neighbours > 0 && model.rng.genrand_real1() < birth_rate)                        
+            //let neighbours = model.cells.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+            let neighbour = model.cells.randomMoore8(this,i,j)              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+            //console.log(this.grid[i][j])            
+            if (neighbour.alive == 1 && model.rng.genrand_real1() < birth_rate)                        
                 this.grid[i][j].alive = 1;
         }
     }

@@ -57,9 +57,13 @@ function setup()
         this.grid[i][j].density = Math.min(Math.floor(pred*100),99)        
         model.prey.grid[i][j].density = Math.min(Math.floor(prey*30),99)
 
-        if(model.rng.genrand_real1() < 0.1)
+        if(model.rng.genrand_real1() < 0.9)
         {
-            
+            neigh = model.lotka.randomMoore8(this,i,j)
+            //neigh_predators = neigh.lotka.state[0]
+            //this.grid[i][j].lotka.state[0] = neigh_predators/2
+            //neigh.lotka.state[0] = neigh_predators/2 + this.grid[i][j].lotka.state[0]/2
+
         }
     }
 
