@@ -9,7 +9,7 @@ class Model
         this.config = config
         this.rng = new MersenneTwister(config.seed || 53);
         this.sleep = config.sleep || 0
-        this.fps = config.fps || 60
+        this.fps = config.fps || 60 
         this.limitfps = true
         if(config.limitfps==false) this.limitfps = false                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
         this.CAs = []
