@@ -435,7 +435,7 @@ class CA
         }
     }
 
-    solve_odes(delta_t=0.1)
+    solve_all_odes(delta_t=0.1)
     {
         for(let i = 0; i< this.nc; i++)
         {            
