@@ -18,7 +18,7 @@ class Model
 
     makeGrid(name)
     {
-        let ca = new CA(name,this.config,this.rng)
+        let ca = new CA(name,this.config,this.rng,this.config.show_gridname)
         this[name] = ca
         this.CAs.push(ca)
     }
