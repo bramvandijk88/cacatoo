@@ -245,3 +245,4 @@ function get2DFromCanvas(canvas)
     }
     return arr2D
 }
+

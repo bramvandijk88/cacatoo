@@ -21,7 +21,7 @@ function setup()
             fastmode: true,                           // Ironically, to slow down the FPS, you have to be in fast mode :D            
             wrap : [true, true],                      // Wrap boundary [COLS, ROWS]
             scale : 2,				                  // scale of the grid (nxn pixels per CA cell)
-            statecolours: {'alive':1}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
+            statecolours: {'alive':'white'}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
     }
 
     model = new Model(config)             // Initialise a new Model instance with configuration given above
@@ -31,7 +31,7 @@ function setup()
     // Note to user: initialPattern may have issues with your browser security. If so, either select your own pattern using the pattern button (which is added in this example below), or start a local webserver (most browsers have free plugins for this)    
     model.initialPattern(model.prime, 'alive', './patterns/elephant_cacatoo.png', 115, 115)
     
-    model.prime.nextState = function(i,j)                         // Define the next-state function. This example is game of life
+    model.prime.nextState = function(i,j)                         // Define the next-state function. This example is modulo prime
     {
         this.grid[i][j].alive = (this.countMoore8(this,i,j,1,'alive')%2==0 ? 0 : 1)
     }

@@ -19,10 +19,9 @@ class CA
         this.nr = config.nrow || 200
         this.wrap = config.wrap || [true, true] 
         this.rng = rng
-        this.statecolours = dict_reverse(config.statecolours) || {'val':1}
+        this.statecolours = this.setupColours(config.statecolours);
         this.scale = config.scale || 1
         this.canvas = new Canvas(this.nc,this.nr,this.scale);  
-        this.colours = this.setupColours()
         this.graphs = {}
     }
 
@@ -32,7 +31,6 @@ class CA
         let scale = this.canvas.scale
         let ncol = this.nc
         let nrow = this.nr
-        let col = [255,255,255,255]
 
         ctx.clearRect(0,0,scale*ncol,scale*nrow);
 
@@ -50,7 +48,7 @@ class CA
                     let x = i*scale;
                     let y = j*scale;
                     let state = this.statecolours[prop]                            
-                    
+                                     
                     if (!(prop in this.grid[i][j])) continue
                     
                     let value = this.grid[i][j][prop]
@@ -69,9 +67,9 @@ class CA
                             let x = i*scale+n;
                             let y = j*scale+m;                    
                             var off = (y * id.width + x) * 4;
-                            pixels[off] = this.colours[idx][0];
-                            pixels[off + 1] = this.colours[idx][1];
-                            pixels[off + 2] = this.colours[idx][2];
+                            pixels[off] = idx[0];
+                            pixels[off + 1] = idx[1];
+                            pixels[off + 2] = idx[2];
                             //pixels[off + 3] = 255; // Last is always 255
                         }
                     }
@@ -81,23 +79,60 @@ class CA
         }
         ctx.putImageData(id, 0, 0);
     }
-
-    setupColours()
-    {
-        return [ [0,0,0],           // Black     0
-            [255,255,255],          // White     1
-            [255,0,0],              // Red       2
-            [0,0,255],              // Blue      3
-            [0,255,0],              // Green     4
-            [40,40,40],             // Darkgrey  5
-            [180,180,180],          // Lightgrey 6
-            [148, 0, 211],          // Violet    7
-            [64, 224, 208],         // Turquoise  8
-            [255, 165, 0],           // Orange    9
-            [240,200,0],             // Dark yellow 10
-            [200,200,200]             // Light grey 11
-            ]
+    
+    /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
+	*   @param {statecols} object - given object can be in two forms
+    *                             | either {state:colour} tuple (e.g. 'alive':'white', see gol.html) 
+    *                             | or {state:object} where objects are {val:'colour},
+    *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
+    */
+    setupColours(statecols)
+    {        
+       
+        let return_dict = {}
+        if(statecols == null)           // If the user did not define statecols (yet)
+            return return_dict
+        let colours = dict_reverse(statecols) || {'val':1}        
+        
+        
+        for(const [statekey,statedict] of Object.entries(colours))
+        {
+            if(statedict == 'default')
+            {
+                return_dict[statekey]  = default_colours                                 // Defined below
+            }
+            else if(typeof statedict ===  'string' || statedict instanceof String)       // For if 
+            {
+                return_dict[statekey] = stringToRGB(statedict)
+            }
+            else
+            {
+                let c = {}
+                for(const [key,val] of Object.entries(statedict))
+                {
+                    let hex = stringToRGB(val)                
+                    c[key] = hex
+                }
+                return_dict[statekey] = c
+            }                                    
+        }       
+        return return_dict
     }
+
+    colourRamp(property,arr1, arr2, n)
+    {
+        let return_dict = {}
+        return_dict[property] = {}
+        for(let i=0;i<n;i++)
+        {
+            
+            return_dict[property][i] = [Math.floor(arr1[0]+arr2[0]*(i/n)), 
+                                        Math.floor(arr1[1]+arr2[1]*(i/n)), 
+                                        Math.floor(arr1[2]+arr2[2]*(i/n))]
+        }
+        this.statecolours = return_dict
+    }
+    
 
     printgrid()
     {
@@ -184,7 +219,12 @@ class CA
         let minus_this = ca.grid[col][row][property] == val
         if(minus_this) count--
         return count
-    }    
+    }
+    
+    randMoore8(ca,col,row)
+    {
+        
+    }
 
     getGridpoint(i,j)
     {
@@ -270,16 +310,14 @@ class CA
     }
     
     plotArray(graph_labels,graph_values,cols,title)
-    {
+    {        
+        
         if(!(title in this.graphs))
-        {
-            let colours = []
-            
-            for(let c of cols)
-                colours.push(this.colours[c])
+        {     
+            cols = parseColours(cols)            
             graph_values.unshift(this.time)
             graph_labels.unshift("Time")                            
-            this.graphs[title] = new Graph(graph_labels,graph_values,colours,title)                        
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title)
         }
         else 
         {
@@ -301,11 +339,8 @@ class CA
     {
         if(!(title in this.graphs))
         {
-            let colours = []
-            
-            for(let c of cols)
-                colours.push(this.colours[c])                           
-            this.graphs[title] = new Graph(graph_labels,graph_values,colours,title,opts)                        
+            cols = parseColours(cols)                            
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts)                        
         }
         else 
         {
@@ -334,14 +369,15 @@ class CA
         let graph_values = popsizes
 
         // Colours
-        let colours = []        
+        let colours = []
+        
         for(let c of values)
         {
+            //console.log(this.statecolours[property][c])
             if(this.statecolours[property].constructor != Object)
                 colours.push(this.statecolours[property])
             else                        
                 colours.push(this.statecolours[property][c])
-
         }  
         // Title
         let title = "Population sizes ("+this.name+")"
@@ -382,7 +418,7 @@ class CA
         }
     }
 
-    solve_odes()
+    solve_odes(delta_t=0.1)
     {
         for(let i = 0; i< this.nc; i++)
         {            
@@ -390,7 +426,7 @@ class CA
             {
                 for(let ode of this.grid[i][j].ODEs)
                 {                    
-                    ode.solve_timestep(ode.pars)
+                    ode.solve_timestep(delta_t)
                 }
             }
         }
@@ -400,7 +436,6 @@ class CA
     {
         let ncol = this.nc
         let nrow = this.nr
-        console.log(fract)
         
         if(fract != undefined) ncol*=fract, nrow*=fract
         //console.log(fract)
@@ -462,3 +497,68 @@ function shuffle(array,rng) {
     }
     return array;
   }
+
+function stringToRGB(val)
+{
+    if(val[0] != '#') return nameToRGB(val)
+    else return hexToRGB(val)
+}
+function hexToRGB(hex) 
+{
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return [parseInt(result[1],16),parseInt(result[2],16),parseInt(result[3],16)]
+}
+
+function nameToRGB(string)
+{
+    let colours = {'black':      [0,0,0],          
+                   'white':      [255,255,255],    
+                   'red':        [255,0,0],             
+                   'blue':       [0,0,255],              
+                   'green':      [0,255,0],              
+                   'darkgrey':   [40,40,40],           
+                   'lightgrey':  [180,180,180],       
+                   'violet':     [148, 0, 211],          
+                   'turquoise':  [64, 224, 208],      
+                   'orange':     [255, 165, 0],           
+                   'gold':       [240,200,0],             
+                   'nearwhite':  [200,200,200],
+                   'grey':      [125,125,125]}
+    let c = colours[string]
+    if(c==undefined) throw new Error(`Cacatoo has no colour with name '${string}'`)
+    return c
+}
+
+function parseColours(cols)
+{
+    let return_cols = []
+    for(let c of cols)
+    {
+        if(typeof c ===  'string' || c instanceof String) 
+        {
+            return_cols.push(stringToRGB(c))
+        }
+        else
+        {
+            return_cols.push(c)
+        }
+    }
+    return return_cols
+}
+
+
+let default_colours = {
+                  0:[0,0,0],            // black
+                  1:[255,255,255],      // white
+                  2:[255,0,0],          // red
+                  3:[0,0,255],          // blue
+                  4:[0,255,0],          //green      
+                  5:[40,40,40],         //darkgrey    
+                  6:[180,180,180],      //lightgrey   
+                  7:[148, 0, 211],      //violet      
+                  8:[64, 224, 208],     //turquoise   
+                  9:[255, 165, 0],      //orange       
+                  10:[240,200,0],       //gold       
+                  11:[200,200,200],     //nearwhite
+                  12:[125,125,125]}     //grey
+

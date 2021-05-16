@@ -1,0 +1,111 @@
+<html>
+<script src="dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<script src="lib/odex.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="style/cacatoo.css">        <!-- Set style sheet -->
+
+<script>
+/*-----------------------Start user-defined code ---------------------*/
+
+let model;
+
+function setup()
+{
+
+    let config = {
+            title: "ODEs in gridpoints",
+            description: "Series of coupled lotka-volterra systems",
+            maxtime: 1000,
+            fastmode: false,             
+            sleep: 1000,
+            ncol : 10,            
+            nrow : 10,		            // dimensions of the grid to build
+            wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
+            scale : 10				    // scale of the grid (nxn pixels per CA cell
+                   // colourRamp extrapolates a spectrum of colours between the first and second RGB values
+    }
+
+    model = new Model(config)
+
+    model.makeGrid("lotka"); 
+    model.lotka.colourRamp('density',[0,0,0],[240,200,0],100)
+    model.makeGrid("prey")
+    model.prey.colourRamp('density',[0,0,0],[148, 0, 211],100)
+
+    // Define a basic Lotka Volterra ODE system
+    // dx/dt = a x - b x y
+    // dy/dt = c x y - d y
+    let LotkaVolterra = function(a, b, c, d) { return function(x, y) {
+        return [
+            a * y[0] - b * y[0] * y[1],         // y[0] is the prey which replicates with rate a, and gets consumed by the predator with rate b
+            c * y[0] * y[1] - d * y[1]          // y[1] is the predator which consumes prey with rate c, dies naturally with rate d
+        ]}}
+
+    let init_state = [1,1]
+    let pars = [0.15,0.1,0.2,0.1]
+    
+    // Attaches an ODE to all gridpoints, initial state = [1,1]. As multiple ODEs can be attached, they will be put in an array. 
+    // An optional name (here "lotka") can be given so you can easily access your ODE
+    model.lotka.attachODE(LotkaVolterra,init_state,pars,"lotka"); 
+    
+    model.initialGrid(model.lotka,'colour',0,2,0.01)        
+    
+    model.lotka.nextState = function(i,j)       // Define the next-state function. 
+    {   
+        let pred = this.grid[i][j].lotka.state[0]       // Amount of pred (continuous variable)
+        let prey = this.grid[i][j].lotka.state[1]       // Amount of prey (continuous variable)
+        this.grid[i][j].density = Math.min(Math.floor(pred*100),99)        
+        model.prey.grid[i][j].density = Math.min(Math.floor(prey*30),99)
+
+        if(model.rng.genrand_real1() < 0.1)
+        {
+            
+        }
+    }
+
+    model.prey.nextState = function(i,j){}              // Normally needs a next-state function, but I'm using the other one to update the (visual) state of this grid
+    
+    model.lotka.update = function()
+    {
+        this.synchronous()                              // Applied as many times as it can in 1/60th of a second
+        this.solve_odes(delta_t=0.5)                    //
+        let sumpred = 0
+        let sumprey = 0
+
+        for(let i=0;i<this.nc;i++)         // i are columns
+            for(let j=0;j<this.nr;j++)     // j are rows
+            {     
+                sumpred += this.grid[i][j].lotka.state[0]
+                sumprey += this.grid[i][j].lotka.state[1]                
+            }
+        this.plotArray(["Predators", "Preys"], 
+                        [sumpred,sumprey],
+                        ["gold","#FF00AA"],
+                        "Plotting ODE variables")
+
+    }
+
+    model.prey.update = function()
+    {
+        this.synchronous()  // Only updates the colours on the grid for display purposes
+    }
+
+    model.start()
+	
+	
+}
+
+
+/*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="setup()">
+    <div class="header" id="header"></div>
+    <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+</html>
