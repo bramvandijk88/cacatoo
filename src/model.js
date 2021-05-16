@@ -1,24 +1,24 @@
 import CA from "./ca"
 import Graph from './graph'
-import {MersenneTwister} from '../lib/mersenne.js'
+
 
 class Model
 {
-    constructor(opts)
+    constructor(config)
     {                  
-        this.options = opts
-        this.rng = new MersenneTwister(opts.seed || 53);
-        this.sleep = opts.sleep || 0
-        this.fps = opts.fps || 60
+        this.config = config
+        this.rng = new MersenneTwister(config.seed || 53);
+        this.sleep = config.sleep || 0
+        this.fps = config.fps || 60
         this.limitfps = true
-        if(opts.limitfps==false) this.limitfps = false                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
+        if(config.limitfps==false) this.limitfps = false                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
         this.CAs = []
         this.time=0
     }
 
     makeGrid(name)
     {
-        let ca = new CA(name,this.options,this.rng)
+        let ca = new CA(name,this.config,this.rng)
         this[name] = ca
         this.CAs.push(ca)
     }
@@ -47,14 +47,14 @@ class Model
         {
             let meter = new FPSMeter({show:'fps',left:"auto", top:"80px",right:"30px",graph:1,history:20})
 
-            document.title = `Cacatoo - ${this.options.title}`
-            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}</h2><font size=3>${this.options.description}</font size>`
+            document.title = `Cacatoo - ${this.config.title}`
+            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`
             document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>"
             let simStartTime = performance.now();
       
             async function animate()
             {   
-                if(model.options.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
+                if(model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     if(model.sleep>0) await pause(model.sleep)                                
                     
@@ -82,7 +82,7 @@ class Model
                 }
                 
                 let frame = requestAnimationFrame(animate);        
-                if(model.time>=model.options.maxtime)
+                if(model.time>=model.config.maxtime)
                 { 
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after",Math.round(simStopTime-simStartTime)/1000,"seconds")
@@ -153,7 +153,7 @@ class Model
         
     }
     
-    addPatternButton(property)
+    addPatternButton(targetca, property)
     {        
         let imageLoader = document.createElement("input") 
         imageLoader.type  = "file"       
@@ -173,8 +173,8 @@ class Model
         {
             let reader = new FileReader();
             let grid_data
+            
             let ca = e.currentTarget.ca 
-
             reader.onload = function(event)
             {
                 var img = new Image();        
@@ -192,7 +192,8 @@ class Model
                     {                                     
                         ca.grid[Math.floor(i+ca.nc/2-img.width/2)][Math.floor(j+ca.nr/2-img.height/2)][property] = grid_data[j][i]
                     }
-                    ca.displaygrid()                
+                     
+                    
                 }
                 img.src = event.target.result;
             }              
@@ -201,7 +202,7 @@ class Model
     }
 
     imageLoader.addEventListener('change', handleImage, false);
-    imageLoader.ca = model.prime    // Bind a ca to imageLoader 
+    imageLoader.ca = targetca    // Bind a ca to imageLoader 
     imageLoader.property = property
     }    
 }

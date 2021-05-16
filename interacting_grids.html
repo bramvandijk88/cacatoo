@@ -1,8 +1,9 @@
 <html>
-<head><title> Cacatoo </title> </head>
-<script src="dist/cacatoo.js"></script> <script src="lib/dygraphs-combined-dev.js"></script> <script src="lib/fpsmeter.js"></script> <link rel="stylesheet" href="style/cacatoo.css">
-<script>
+<script src="dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="style/cacatoo.css">        <!-- Set style sheet -->
 
+<script>
 /*-----------------------Start user-defined code ---------------------*/
 
 let model;
@@ -13,9 +14,9 @@ function setup()
     let config = {
             title: "Interacting grids",
             maxtime: 10000,
-            ncol : 100,    
+            ncol : 200,    
             fastmode : true,        
-            nrow : 100,		            // dimensions of the grid to build
+            nrow : 200,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]
             scale : 3,				    // scale of the grid (nxn pixels per CA cell)
             statecolours: {'bg':0,'alive':{0:0,1:8},'left':{1:3,2:2}}

@@ -1,13 +1,9 @@
 <html>
-<head><title> Cacatoo </title> </head>
-<script src="dist/cacatoo.js"></script> 
-<script src="lib/dygraphs-combined-dev.js"></script> 
-<script src="lib/fpsmeter.js"></script>
- <link rel="stylesheet" href="style/cacatoo.css">
+<script src="dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="style/cacatoo.css">        <!-- Set style sheet -->
 
- 
 <script>
-
 /*-----------------------Start user-defined code ---------------------*/
 
 let model;
@@ -58,7 +54,7 @@ function setup()
     {
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
     }
-
+  
     model.start()
 }
 
@@ -69,9 +65,11 @@ function setup()
 
 
 
-<body onload="setup()">
-    <div class="header" id="header"></div>
-    <div class="content" id="canvas_holder">  </div>
+
+<body onload="setup()">        
+    <div class="header" id="header"><h2>ModelJS - </h2></div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>    
     <div class="content" id="graph_holder"> </div>
     <div class="footer" id="footer"></div>
 </body>
