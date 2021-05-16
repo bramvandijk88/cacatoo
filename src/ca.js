@@ -1,6 +1,7 @@
 import Gridpoint from "./gridpoint.js"
 import Canvas from "./canvas.js"
 import Graph from './graph.js'
+import ODE from "./ode.js";
 
 let colours;
 
@@ -8,18 +9,18 @@ let colours;
 class CA
 {
     // Constructor
-    constructor(name, opts, rng)
+    constructor(name, config, rng)
     {
         // Make empty grid      
         this.name = name
         this.time = 0
-        this.grid = MakeGrid(opts.ncol,opts.nrow);                 // Grid        
-        this.nc = opts.ncol || 200
-        this.nr = opts.nrow || 200
-        this.wrap = opts.wrap || [true, true] 
+        this.grid = MakeGrid(config.ncol,config.nrow);                 // Grid        
+        this.nc = config.ncol || 200
+        this.nr = config.nrow || 200
+        this.wrap = config.wrap || [true, true] 
         this.rng = rng
-        this.statecolours = dict_reverse(opts.statecolours) || {'val':1}
-        this.scale = opts.scale || 1
+        this.statecolours = dict_reverse(config.statecolours) || {'val':1}
+        this.scale = config.scale || 1
         this.canvas = new Canvas(this.nc,this.nr,this.scale);  
         this.colours = this.setupColours()
         this.graphs = {}
@@ -365,6 +366,36 @@ class CA
         }
         return sum;
     }
+    
+    attachODE(eq,state_vector,pars,odename)
+    {
+        for(let i = 0; i< this.nc; i++)
+        {            
+            for(let j=0;j<this.nr;j++)
+            {
+                let ode = new ODE(eq,state_vector,pars)
+                
+                if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = []   // If list doesnt exist yet                
+                this.grid[i][j].ODEs.push(ode)
+                if(odename) this.grid[i][j][odename] = ode
+            }
+        }
+    }
+
+    solve_odes()
+    {
+        for(let i = 0; i< this.nc; i++)
+        {            
+            for(let j=0;j<this.nr;j++)
+            {
+                for(let ode of this.grid[i][j].ODEs)
+                {                    
+                    ode.solve_timestep(ode.pars)
+                }
+            }
+        }
+    }
+
     printGrid(value, fract)
     {
         let ncol = this.nc

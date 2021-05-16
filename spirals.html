@@ -1,13 +1,9 @@
 <html>
-<head><title> Cacatoo </title> </head>
-<script src="dist/cacatoo.js"></script> 
-<script src="lib/dygraphs-combined-dev.js"></script> 
-<script src="lib/fpsmeter.js"></script>
- <link rel="stylesheet" href="style/cacatoo.css">
+<script src="dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="style/cacatoo.css">        <!-- Set style sheet -->
 
- 
 <script>
-
 /*-----------------------Start user-defined code ---------------------*/
 
 let model;
@@ -18,10 +14,10 @@ function setup()
     let config = {
             title: "Spirals",
             description: "8 colours with cyclical dominance <br> (stare at your own risk)",
-            maxtime: 100000,
+            maxtime: 10000,
             fastmode: true,             
-            ncol : 200,            
-            nrow : 200,		            // dimensions of the grid to build
+            ncol : 250,            
+            nrow : 250,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
             scale : 2,				    // scale of the grid (nxn pixels per CA cell)
             statecolours: {'colour':{0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8}}   // The background state '0' is never drawn
@@ -37,7 +33,7 @@ function setup()
     for(let i=0;i<model.colours.nc;i++)                          // i are columns
         for(let j=0;j<model.colours.nr;j++)                      // j are rows
         {
-            model.colours.grid[i][j]['colour'] = Math.round(model.rng.genrand_real1()*n_species)           
+            model.colours.grid[i][j]['colour'] = Math.ceil(model.rng.genrand_real1()*n_species)           
         }
     
     // throw new Error("Manual break");
@@ -45,11 +41,11 @@ function setup()
     model.colours.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
         let state = this.grid[i][j].colour  // Colour of current pixel
-        let pred = (this.grid[i][j].colour%n_species)+1 // Colour it is predated by
+        let pred = (this.grid[i][j].colour%n_species)+1 // Colour it is predated by (% because 8 is predated by 1)
 
         let neighbours = model.colours.countMoore8(this,i,j,pred,'colour') // Count the no. predators
         // Red will spread
-        if(model.rng.genrand_real1() < 0.3*neighbours)  // Grow. 
+        if(model.rng.genrand_real1() < 0.25*neighbours)  // Grow. 
         {
             this.grid[i][j].colour = pred;
         }
@@ -57,13 +53,24 @@ function setup()
     
     model.colours.update = function()
     {
+		if(model.time%2==0) this.MargolusDiffusion()
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
         //this.asynchronous()
         this.plotPopsizes('colour',[1,2,3,4,5,6,7,8]) 
-        if(model.time%2==0)this.MargolusDiffusion()
+		
+		// change stuff below to model.colours.drawslide("name")
+		//let canvas = model.colours.canvas.elem // Grab the canvas element
+		//let timestamp = model.time.toString()
+		//timestamp = timestamp.padStart(5, "0")
+		//canvas.toBlob(function(blob) 
+		//{
+		//	saveAs(blob, "my_slide"+timestamp+".png");
+		//});
     }
 
     model.start()
+	
+	
 }
 
 

@@ -1,11 +1,9 @@
 <html>
-<head><title> Cacatoo </title> </head>
-<script src="dist/cacatoo.js" ></script>
-<script src="lib/dygraphs-combined-dev.js"></script>
-<script src="lib/fpsmeter.js"></script>
-<link rel="stylesheet" href="style/cacatoo.css">
-<script>
+<script src="dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+<script src="lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="style/cacatoo.css">        <!-- Set style sheet -->
 
+<script>
 /*-----------------------Start user-defined code ---------------------*/
 
 let model;
@@ -17,12 +15,12 @@ function setup()
             title: "Modulo prime",
             description: "Update rule: next_state = n_neighbours % 2",
             maxtime: 100000000,
-            ncol : 300,            
-            nrow : 300,		                                        // dimensions of the grid to build
+            ncol : 300,
+            nrow : 300,		                          // dimensions of the grid to build
             sleep: 200,
-            fastmode: true,                                         // Ironically, to slow down the FPS, you have to be in fast mode :D            
-            wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
-            scale : 2,				                                // scale of the grid (nxn pixels per CA cell)
+            fastmode: true,                           // Ironically, to slow down the FPS, you have to be in fast mode :D            
+            wrap : [true, true],                      // Wrap boundary [COLS, ROWS]
+            scale : 2,				                  // scale of the grid (nxn pixels per CA cell)
             statecolours: {'alive':1}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
     }
 
@@ -45,7 +43,7 @@ function setup()
     }  
 
     // Adds a pattern load button
-    model.addPatternButton('alive')    
+    model.addPatternButton(model.prime,'alive')    
                                
     model.start()  
 }

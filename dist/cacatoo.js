@@ -118,22 +118,50 @@ function rgbToHex(r, g, b) {
 return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
+class ODE 
+{    
+   constructor(eq,state_vector,pars) 
+    {        
+        this.eq = eq;
+        this.state = state_vector;
+        this.pars = pars;
+        this.solver = new Solver(state_vector.length);
+    }
+
+    solve_timestep()
+    {
+        let newstate = this.solver.solve(
+                     this.eq(...this.pars),      // function to solve and its pars (... unlists the array as a list of args)
+                     0,                          // Initial x value
+                     this.state,                  // Initial y value(s)
+                     1                           // Final x value            
+                     ).y;
+        this.state = newstate;
+    }
+
+    print_state()
+    {
+        console.log(this.state);
+    }
+        
+}
+
 // Class definition
 class CA
 {
     // Constructor
-    constructor(name, opts, rng)
+    constructor(name, config, rng)
     {
         // Make empty grid      
         this.name = name;
         this.time = 0;
-        this.grid = MakeGrid(opts.ncol,opts.nrow);                 // Grid        
-        this.nc = opts.ncol || 200;
-        this.nr = opts.nrow || 200;
-        this.wrap = opts.wrap || [true, true]; 
+        this.grid = MakeGrid(config.ncol,config.nrow);                 // Grid        
+        this.nc = config.ncol || 200;
+        this.nr = config.nrow || 200;
+        this.wrap = config.wrap || [true, true]; 
         this.rng = rng;
-        this.statecolours = dict_reverse(opts.statecolours) || {'val':1};
-        this.scale = opts.scale || 1;
+        this.statecolours = dict_reverse(config.statecolours) || {'val':1};
+        this.scale = config.scale || 1;
         this.canvas = new Canvas(this.nc,this.nr,this.scale);  
         this.colours = this.setupColours();
         this.graphs = {};
@@ -476,6 +504,36 @@ class CA
         }
         return sum;
     }
+    
+    attachODE(eq,state_vector,pars,odename)
+    {
+        for(let i = 0; i< this.nc; i++)
+        {            
+            for(let j=0;j<this.nr;j++)
+            {
+                let ode = new ODE(eq,state_vector,pars);
+                
+                if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = [];   // If list doesnt exist yet                
+                this.grid[i][j].ODEs.push(ode);
+                if(odename) this.grid[i][j][odename] = ode;
+            }
+        }
+    }
+
+    solve_odes()
+    {
+        for(let i = 0; i< this.nc; i++)
+        {            
+            for(let j=0;j<this.nr;j++)
+            {
+                for(let ode of this.grid[i][j].ODEs)
+                {                    
+                    ode.solve_timestep(ode.pars);
+                }
+            }
+        }
+    }
+
     printGrid(value, fract)
     {
         let ncol = this.nc;
@@ -541,216 +599,23 @@ function shuffle(array,rng) {
     return array;
   }
 
-/*
-  I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
-  so it's better encapsulated. Now you can have multiple random number generators
-  and they won't stomp all over eachother's state.
-  
-  If you want to use this as a substitute for Math.random(), use the random()
-  method like so:
-  
-  var m = new MersenneTwister();
-  var randomNumber = m.random();
-  
-  You can also call the other genrand_{foo}() methods on the instance.
-  If you want to use a specific seed in order to get a repeatable random
-  sequence, pass an integer into the constructor:
-  var m = new MersenneTwister(123);
-  and that will always produce the same random sequence.
-  Sean McCullough (banksean@gmail.com)
-*/
-
-/* 
-   A C-program for MT19937, with initialization improved 2002/1/26.
-   Coded by Takuji Nishimura and Makoto Matsumoto.
- 
-   Before using, initialize the state by using init_genrand(seed)  
-   or init_by_array(init_key, key_length).
- 
-   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
-   All rights reserved.                          
- 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions
-   are met:
- 
-     1. Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
- 
-     2. Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
- 
-     3. The names of its contributors may not be used to endorse or promote 
-        products derived from this software without specific prior written 
-        permission.
- 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
- 
-   Any feedback is very welcome.
-   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
-   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
-*/
-
-function MersenneTwister(seed) {
-    if (seed == undefined) {
-      seed = new Date().getTime();
-    } 
-    /* Period parameters */  
-    this.N = 624;
-    this.M = 397;
-    this.MATRIX_A = 0x9908b0df;   /* constant vector a */
-    this.UPPER_MASK = 0x80000000; /* most significant w-r bits */
-    this.LOWER_MASK = 0x7fffffff; /* least significant r bits */
-   
-    this.mt = new Array(this.N); /* the array for the state vector */
-    this.mti=this.N+1; /* mti==N+1 means mt[N] is not initialized */
-  
-    this.init_genrand(seed);
-  }  
-   
-  /* initializes mt[N] with a seed */
-  MersenneTwister.prototype.init_genrand = function(s) {
-    this.mt[0] = s >>> 0;
-    for (this.mti=1; this.mti<this.N; this.mti++) {
-        var s = this.mt[this.mti-1] ^ (this.mt[this.mti-1] >>> 30);
-     this.mt[this.mti] = (((((s & 0xffff0000) >>> 16) * 1812433253) << 16) + (s & 0x0000ffff) * 1812433253)
-    + this.mti;
-        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
-        /* In the previous versions, MSBs of the seed affect   */
-        /* only MSBs of the array mt[].                        */
-        /* 2002/01/09 modified by Makoto Matsumoto             */
-        this.mt[this.mti] >>>= 0;
-        /* for >32 bit machines */
-    }
-  };
-   
-  /* initialize by an array with array-length */
-  /* init_key is the array for initializing keys */
-  /* key_length is its length */
-  /* slight change for C++, 2004/2/26 */
-  MersenneTwister.prototype.init_by_array = function(init_key, key_length) {
-    var i, j, k;
-    this.init_genrand(19650218);
-    i=1; j=0;
-    k = (this.N>key_length ? this.N : key_length);
-    for (; k; k--) {
-      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
-      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1664525) << 16) + ((s & 0x0000ffff) * 1664525)))
-        + init_key[j] + j; /* non linear */
-      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
-      i++; j++;
-      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
-      if (j>=key_length) j=0;
-    }
-    for (k=this.N-1; k; k--) {
-      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
-      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1566083941) << 16) + (s & 0x0000ffff) * 1566083941))
-        - i; /* non linear */
-      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
-      i++;
-      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
-    }
-  
-    this.mt[0] = 0x80000000; /* MSB is 1; assuring non-zero initial array */ 
-  };
-   
-  /* generates a random number on [0,0xffffffff]-interval */
-  MersenneTwister.prototype.genrand_int32 = function() {
-    var y;
-    var mag01 = new Array(0x0, this.MATRIX_A);
-    /* mag01[x] = x * MATRIX_A  for x=0,1 */
-  
-    if (this.mti >= this.N) { /* generate N words at one time */
-      var kk;
-  
-      if (this.mti == this.N+1)   /* if init_genrand() has not been called, */
-        this.init_genrand(5489); /* a default initial seed is used */
-  
-      for (kk=0;kk<this.N-this.M;kk++) {
-        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
-        this.mt[kk] = this.mt[kk+this.M] ^ (y >>> 1) ^ mag01[y & 0x1];
-      }
-      for (;kk<this.N-1;kk++) {
-        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
-        this.mt[kk] = this.mt[kk+(this.M-this.N)] ^ (y >>> 1) ^ mag01[y & 0x1];
-      }
-      y = (this.mt[this.N-1]&this.UPPER_MASK)|(this.mt[0]&this.LOWER_MASK);
-      this.mt[this.N-1] = this.mt[this.M-1] ^ (y >>> 1) ^ mag01[y & 0x1];
-  
-      this.mti = 0;
-    }
-  
-    y = this.mt[this.mti++];
-  
-    /* Tempering */
-    y ^= (y >>> 11);
-    y ^= (y << 7) & 0x9d2c5680;
-    y ^= (y << 15) & 0xefc60000;
-    y ^= (y >>> 18);
-  
-    return y >>> 0;
-  };
-   
-  /* generates a random number on [0,0x7fffffff]-interval */
-  MersenneTwister.prototype.genrand_int31 = function() {
-    return (this.genrand_int32()>>>1);
-  };
-   
-  /* generates a random number on [0,1]-real-interval */
-  MersenneTwister.prototype.genrand_real1 = function() {
-    return this.genrand_int32()*(1.0/4294967295.0); 
-    /* divided by 2^32-1 */ 
-  };
-  
-  /* generates a random number on [0,1)-real-interval */
-  MersenneTwister.prototype.random = function() {
-    return this.genrand_int32()*(1.0/4294967296.0); 
-    /* divided by 2^32 */
-  };
-   
-  /* generates a random number on (0,1)-real-interval */
-  MersenneTwister.prototype.genrand_real3 = function() {
-    return (this.genrand_int32() + 0.5)*(1.0/4294967296.0); 
-    /* divided by 2^32 */
-  };
-   
-  /* generates a random number on [0,1) with 53-bit resolution*/
-  MersenneTwister.prototype.genrand_res53 = function() { 
-    var a=this.genrand_int32()>>>5, b=this.genrand_int32()>>>6; 
-    return (a*67108864.0+b)*(1.0/9007199254740992.0); 
-  }; 
-  
-  /* These real versions are due to Isaku Wada, 2002/01/09 added */
-
 class Model
 {
-    constructor(opts)
+    constructor(config)
     {                  
-        this.options = opts;
-        this.rng = new MersenneTwister(opts.seed || 53);
-        this.sleep = opts.sleep || 0;
-        this.fps = opts.fps || 60;
+        this.config = config;
+        this.rng = new MersenneTwister(config.seed || 53);
+        this.sleep = config.sleep || 0;
+        this.fps = config.fps || 60;
         this.limitfps = true;
-        if(opts.limitfps==false) this.limitfps = false;                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
+        if(config.limitfps==false) this.limitfps = false;                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
         this.CAs = [];
         this.time=0;
     }
 
     makeGrid(name)
     {
-        let ca = new CA(name,this.options,this.rng);
+        let ca = new CA(name,this.config,this.rng);
         this[name] = ca;
         this.CAs.push(ca);
     }
@@ -779,14 +644,14 @@ class Model
         {
             let meter = new FPSMeter({show:'fps',left:"auto", top:"80px",right:"30px",graph:1,history:20});
 
-            document.title = `Cacatoo - ${this.options.title}`;
-            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.options.title}</h2><font size=3>${this.options.description}</font size>`;
+            document.title = `Cacatoo - ${this.config.title}`;
+            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`;
             document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
             let simStartTime = performance.now();
       
             async function animate()
             {   
-                if(model.options.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
+                if(model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     if(model.sleep>0) await pause(model.sleep);                                
                     
@@ -814,7 +679,7 @@ class Model
                 }
                 
                 let frame = requestAnimationFrame(animate);        
-                if(model.time>=model.options.maxtime)
+                if(model.time>=model.config.maxtime)
                 { 
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after",Math.round(simStopTime-simStartTime)/1000,"seconds");
@@ -885,7 +750,7 @@ class Model
         
     }
     
-    addPatternButton(property)
+    addPatternButton(targetca, property)
     {        
         let imageLoader = document.createElement("input"); 
         imageLoader.type  = "file";       
@@ -905,8 +770,8 @@ class Model
         {
             let reader = new FileReader();
             let grid_data;
+            
             let ca = e.currentTarget.ca; 
-
             reader.onload = function(event)
             {
                 var img = new Image();        
@@ -924,7 +789,8 @@ class Model
                     {                                     
                         ca.grid[Math.floor(i+ca.nc/2-img.width/2)][Math.floor(j+ca.nr/2-img.height/2)][property] = grid_data[j][i];
                     }
-                    ca.displaygrid();                
+                     
+                    
                 };
                 img.src = event.target.result;
             };              
@@ -933,7 +799,7 @@ class Model
     }
 
     imageLoader.addEventListener('change', handleImage, false);
-    imageLoader.ca = model.prime;    // Bind a ca to imageLoader 
+    imageLoader.ca = targetca;    // Bind a ca to imageLoader 
     imageLoader.property = property;
     }    
 }
