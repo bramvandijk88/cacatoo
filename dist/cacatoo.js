@@ -9,7 +9,7 @@ class Gridpoint
         for (var prop in template) 
         {
             this[prop] = template[prop];             // Shallow copy. It's fast, but be careful with syncronous updating!
-            // this[prop] = copy(template[prop])    // Deep copy. Takes much more time, but sometimes you may need this*** 
+            //this[prop] = copy(template[prop])    // Deep copy. Takes much more time, but sometimes you may need this*** 
         }
     }
 }
@@ -146,7 +146,7 @@ class ODE
         this.solver = new Solver(state_vector.length);
     }
 
-    solve_timestep(delta_t=0.1)
+    solve_timestep(delta_t=0.1,pos=false)
     {
         let newstate = this.solver.solve(
                      this.eq(...this.pars),      // function to solve and its pars (... unlists the array as a list of args)
@@ -154,6 +154,7 @@ class ODE
                      this.state,                  // Initial y value(s)
                      delta_t                           // Final x value            
                      ).y;
+        if(pos) for (var i = 0; i < newstate.length; i++) if(newstate[i] < 0.000001) newstate[i] = 0.0;
         this.state = newstate;
     }
 
@@ -184,8 +185,8 @@ class CA
         if(show_gridname) grid_name = this.name;
         this.canvas = new Canvas(this.nc,this.nr,this.scale,grid_name);  
         this.graphs = {};
-        this.graph_update = config.graph_update; 
-        this.graph_interval = config.graph_interval;
+        this.graph_update = config.graph_update || 20;
+        this.graph_interval = config.graph_interval || 2;
         this.moore = [[0,0],         // SELF            _____________
              [0,-1],        // NORTH           | 5 | 1 | 6 |
              [1,0],         // EAST            | 4 | 0 | 2 |
@@ -224,8 +225,8 @@ class CA
                     
                     let value = this.grid[i][j][prop];
                     
-                    if(value == 0)
-                        continue // Don't draw the background state
+                    //if(value == 0)
+                    //    continue // Don't draw the background state
                     let idx = state;
                     if (state.constructor == Object) {
                         idx = state[value];
@@ -634,7 +635,7 @@ class CA
         }
     }
 
-    solve_all_odes(delta_t=0.1)
+    solve_all_odes(delta_t=0.1, opt_pos=false)
     {
         for(let i = 0; i< this.nc; i++)
         {            
@@ -642,7 +643,7 @@ class CA
             {
                 for(let ode of this.grid[i][j].ODEs)
                 {                    
-                    ode.solve_timestep(delta_t);
+                    ode.solve_timestep(delta_t,opt_pos);
                 }
             }
         }
