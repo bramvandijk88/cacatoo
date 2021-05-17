@@ -1,4 +1,5 @@
-(rollup src/cash.js -o dist/cash-bundle.js -f cjs  -w)
+(rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
+> Bug: Turing oblong grid gives an error (something with rows/cols probably)
 > Pause / run functionality 
 > Display grid after pattern-load (now it skips :()

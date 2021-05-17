@@ -46,9 +46,7 @@ function setup()
     
 
     
-    // Define a basic Lotka Volterra ODE system
-    // dx/dt = a x - b x y
-    // dy/dt = c x y - d y
+    // Define ODEs with basic resource dynamics
     let resource_dynamics = function(i, u, k) { return function(x, y) {
         return [
             i - u*y[0],         // y[0] is the external resource concentration

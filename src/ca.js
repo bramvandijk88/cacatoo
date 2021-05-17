@@ -25,8 +25,8 @@ class CA
         if(show_gridname) grid_name = this.name
         this.canvas = new Canvas(this.nc,this.nr,this.scale,grid_name);  
         this.graphs = {}
-        this.graph_update = config.graph_update 
-        this.graph_interval = config.graph_interval
+        this.graph_update = config.graph_update || 20
+        this.graph_interval = config.graph_interval || 2
         this.moore = [[0,0],         // SELF            _____________
              [0,-1],        // NORTH           | 5 | 1 | 6 |
              [1,0],         // EAST            | 4 | 0 | 2 |
@@ -67,8 +67,8 @@ class CA
                     
                     let value = this.grid[i][j][prop]
                     
-                    if(value == 0)
-                        continue // Don't draw the background state
+                    //if(value == 0)
+                    //    continue // Don't draw the background state
                     let idx = state
                     if (state.constructor == Object) {
                         idx = state[value]
@@ -477,7 +477,7 @@ class CA
         }
     }
 
-    solve_all_odes(delta_t=0.1)
+    solve_all_odes(delta_t=0.1, opt_pos=false)
     {
         for(let i = 0; i< this.nc; i++)
         {            
@@ -485,7 +485,7 @@ class CA
             {
                 for(let ode of this.grid[i][j].ODEs)
                 {                    
-                    ode.solve_timestep(delta_t)
+                    ode.solve_timestep(delta_t,opt_pos)
                 }
             }
         }

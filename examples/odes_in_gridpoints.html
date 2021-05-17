@@ -17,7 +17,6 @@ function setup()
             description: "Lotka-volterra systems coupled by (stochastic) diffusion",
             maxtime: 10000,
             fastmode: false,             
-            sleep: 1000,
             ncol : 64,            
             nrow : 64,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
@@ -99,12 +98,12 @@ function setup()
                 if(i==this.nc/2 && j==this.nr/2) midprey = this.grid[i][j].lotka.state[0]
                 if(i==this.nc/2 && j==this.nr/2) midpred = this.grid[i][j].lotka.state[1]
             }
-            sumpred/=this.nc*this.nr
-            sumprey/=this.nc*this.nr
+            //sumpred/=this.nc*this.nr
+            //sumprey/=this.nc*this.nr
         this.plotArray(["Predators", "Preys"], 
                         [sumpred,sumprey],
                         ["gold","#FF00AA"],
-                        "Average predator/prey abundance")
+                        "Total predator/prey abundance")
         this.plotArray(["Predators", "Preys"], 
                     [midpred,midprey],
                     ["gold","#FF00AA"],
