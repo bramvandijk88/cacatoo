@@ -369,7 +369,7 @@ class CA
         return "Perfectly mixed the grid"
     }
     
-    plotArray(graph_labels,graph_values,cols,title)
+    plotArray(graph_labels,graph_values,cols,title,opts)
     {        
         
         if(!(title in this.graphs))
@@ -377,7 +377,7 @@ class CA
             cols = parseColours(cols)            
             graph_values.unshift(this.time)
             graph_labels.unshift("Time")                            
-            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title)
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts)
         }
         else 
         {
