@@ -16,10 +16,11 @@ class CA
         this.time = 0
         this.grid = MakeGrid(config.ncol,config.nrow);                 // Grid        
         this.nc = config.ncol || 200
-        this.nr = config.nrow || 200        
+        this.nr = config.nrow || 200  
         this.wrap = config.wrap || [true, true] 
         this.rng = rng
         this.statecolours = this.setupColours(config.statecolours);
+        this.skipbg_state = config.skipbg_state || false      
         this.scale = config.scale || 1
         let grid_name = "" 
         if(show_gridname) grid_name = this.name
@@ -67,8 +68,8 @@ class CA
                     
                     let value = this.grid[i][j][prop]
                     
-                    //if(value == 0)
-                    //    continue // Don't draw the background state
+                    if(value == 0 && this.skipbg_state)
+                        continue // Don't draw the background state
                     let idx = state
                     if (state.constructor == Object) {
                         idx = state[value]
@@ -195,10 +196,10 @@ class CA
     {
         this.set_update_order()
         for (let n = 0; n < this.nc*this.nr; n++) 
-        {            
+        {               
             let m = this.upd_order[n]
             let i = m%this.nc 
-            let j = Math.floor(m/this.nr)            
+            let j = Math.floor(m/this.nc)      
             this.nextState(i,j)
         }
         this.time++
@@ -212,7 +213,7 @@ class CA
         {            
             let m = this.upd_order[n]
             let i = m%this.nc 
-            let j = Math.floor(m/this.nr)            
+            let j = Math.floor(m/this.nc)            
             func(i,j)
         }
     }
@@ -464,12 +465,11 @@ class CA
     
     attachODE(eq,state_vector,pars,odename)
     {
-        for(let i = 0; i< this.nc; i++)
+        for(let i=0; i<this.nc; i++)
         {            
             for(let j=0;j<this.nr;j++)
             {
-                let ode = new ODE(eq,state_vector,pars)
-                
+                let ode = new ODE(eq,state_vector,pars)                
                 if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = []   // If list doesnt exist yet                
                 this.grid[i][j].ODEs.push(ode)
                 if(odename) this.grid[i][j][odename] = ode
@@ -479,7 +479,7 @@ class CA
 
     solve_all_odes(delta_t=0.1, opt_pos=false)
     {
-        for(let i = 0; i< this.nc; i++)
+        for(let i=0; i<this.nc; i++)
         {            
             for(let j=0;j<this.nr;j++)
             {

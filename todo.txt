@@ -1,5 +1,14 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
-> Bug: Turing oblong grid gives an error (something with rows/cols probably)
-> Pause / run functionality 
+> Proper ODE state diffusion method (now it's either having edge effects due to sync, or has a random component due to async updating)
+> Add option to deep copy
+> Automate pause / run functionality button (now added manually)
 > Display grid after pattern-load (now it skips :()
+
+Known issues for manual / documentation:
+>> synchronous updating does NOT deep copy by default
+>> asynchronous diffusing models have noise (because... async :P)
+
+
+Common mistake
+>> Cannot read property '0' of undefined >> Grid is trying to display a colour that isnt defined

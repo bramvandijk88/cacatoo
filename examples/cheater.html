@@ -21,7 +21,8 @@ function setup()
 
     let config = {  
             title: "<span style=\"padding:5px;border-radius: 8px 0px 8px 0px;background:#dddddd;color:red\">Mutualists</span> and <span style=\"color: blue\">Cheaters</span>",
-            maxtime: 100,
+            description: "",
+            maxtime: 100000,
             ncol : 200,            
             nrow : 200,		                                        // dimensions of the grid to build
             seed : 56,
@@ -106,6 +107,8 @@ function setup()
 
     
     model.start()  
+    model.addPauseButton()
+
 }
 
 </script>
@@ -115,6 +118,8 @@ function setup()
 <body onload="setup()">        
     <div class="header" id="header"><h2>ModelJS - </h2></div>
     <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="form_holder"></div>
+        <!--<button onclick="model.toggle_play()"> Play / pause</button><br><br>-->
     <div class="content" id="graph_holder"> </div>
     <div class="footer" id="footer"></div>
 </body>

@@ -51,9 +51,7 @@ function setup()
     model.lotka.attachODE(LotkaVolterra,init_state,pars,"lotka"); 
 
     // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
-    for(let i=0;i<model.lotka.nc;i++)    
-            for(let j=0;j<model.lotka.nr;j++)
-                if(i==model.lotka.nc/2 && j == model.lotka.nr/2) model.lotka.grid[i][j].lotka.state = [2,2]
+    model.lotka.grid[model.lotka.nc/2][model.lotka.nr/2].lotka.state = [10,10]
     
     // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
     model.lotka.nextState = function(i,j)       // Define the next-state function. 
