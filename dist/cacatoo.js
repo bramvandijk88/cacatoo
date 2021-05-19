@@ -527,7 +527,7 @@ class CA
         return "Perfectly mixed the grid"
     }
     
-    plotArray(graph_labels,graph_values,cols,title)
+    plotArray(graph_labels,graph_values,cols,title,opts)
     {        
         
         if(!(title in this.graphs))
@@ -535,7 +535,7 @@ class CA
             cols = parseColours(cols);            
             graph_values.unshift(this.time);
             graph_labels.unshift("Time");                            
-            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title);
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);
         }
         else 
         {
@@ -935,23 +935,15 @@ class Model
         }
         
     }
-    alert_me()
-    {
-        console.log("HEY!");
-    }
+
     addPauseButton()
     {
         let button = document.createElement("button"); 
-        button.textContent = 'Play / pause';
-
+        button.innerHTML = 'Pause/continue';
+        button.addEventListener("click", this.toggle_play ,false); 
+        //document.getElementById("form_holder").innerHTML += "<br>"      
+        document.getElementById("form_holder").appendChild(button);   
         
-
-        button.addEventListener("click", this.alert_me ,false);        
-        // button.addEventListener('onclick', function(){
-        //      this.alert_me();
-        // }, false);
-        document.getElementById("form_holder").appendChild(button);
-        document.getElementById("form_holder").innerHTML+="<br><br>";
     }
 
     addPatternButton(targetca, property)
@@ -964,7 +956,7 @@ class Model
         document.getElementById("form_holder").appendChild(imageLoader);
         let label = document.createElement("label");
         label.setAttribute("for","imageLoader");
-        label.style="background-color: rgb(171, 228, 230); border-radius: 10px; border:1px solid grey;padding:5px;width:200px;";
+        label.style="background-color: rgb(171, 228, 230); border-radius: 10px; border:1px solid grey;padding:4px;margin:5px;width:200px;";
         label.innerHTML="<font size=2>Select your own initial state</font>";
         document.getElementById("form_holder").appendChild(label);
         let canvas = document.createElement('canvas');
