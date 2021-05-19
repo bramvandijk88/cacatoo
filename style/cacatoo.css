@@ -10,6 +10,7 @@ button {
   border-radius: 10px; 
   border:1px solid grey;
   padding:5px;
+  margin:10px;
   width:200px;
 }
 /* Style the header */
