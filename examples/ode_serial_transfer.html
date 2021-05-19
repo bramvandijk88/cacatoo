@@ -20,14 +20,16 @@ function setup()
                                         // Note: fastmode is only useful/recommended if the model can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
                                         // Nevertheless, the final state of the CA is reaches sooner in real time. 
-            ncol : 76,            
-            nrow : 76,		            // dimensions of the grid to build
+            ncol : 64,            
+            nrow : 64,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
             scale : 3,				    // scale of the grid (nxn pixels per CA cell)
             statecolours: {'alive':{1:'#AAFF00'}},   // The background state '0' is never drawn
+            skipbg_state: true,                      // Don't draw 0-state on grid (faster)
             graph_interval: 1,
             graph_update: 5,
-            show_gridname: true
+            show_gridname: true,
+            
     }
 
     model = new Model(config)
@@ -66,18 +68,7 @@ function setup()
     
     
     model.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
-    {   
-        if(this.time > 0 && this.time%refresh_medium_every==0) 
-        {   
-            this.grid[i][j].concs.state[0] = refresh_medium_conc
-            if(model.rng.genrand_real1() < 0.995) 
-            {
-                this.grid[i][j].alive = 0
-                this.grid[i][j].concs.state[1] = 0.00                                          // Remove internal conc
-                this.grid[i][j].concs.pars = [influx,0.00,upkeep]                                // No more cell here, so no uptake
-                return 
-            }
-        }
+    {                   
         if(this.grid[i][j].alive == 1)
         {
 
@@ -106,7 +97,7 @@ function setup()
         // Update how this GP is displayed
         let conc_e = Math.max(0,this.grid[i][j].concs.state[0])       // Amount of prey (continuous variable)
         let conc_i = Math.max(0,this.grid[i][j].concs.state[1])       // Amount of pred (continuous variable)
-        model.resource_e.grid[i][j].conc = Math.min(Math.floor(conc_e*300),99)
+        model.resource_e.grid[i][j].conc = Math.min(Math.floor(conc_e*100),99)
         model.resource_i.grid[i][j].conc = Math.min(Math.floor(conc_i*200),99)
         
         //model.cells.diffuse_ext_resources(i,j,0.05)              // Custom function to diffuse external resources, defined below
@@ -121,7 +112,7 @@ function setup()
             let y = model.cells.moore[n][1]
             let neigh = model.cells.getGridpoint(x+i,y+j)
             if(neigh==undefined) continue
-            let neigh_out = neigh.concs.state[0]*0.01
+            let neigh_out = neigh.concs.state[0]*0.025
             neigh.concs.state[0] = neigh.concs.state[0]-neigh_out
             sum_in += neigh_out
         
@@ -134,13 +125,31 @@ function setup()
     model.resource_i.nextState = function() {}    // Empty, only for displaying the concentration on a grid
     model.resource_i.update = function() {}
 
-
+    model.cells.transfer = function () // custom defined function for serial passage
+    {
+        for(let i=0;i<this.nc;i++)         // i are columns
+            for(let j=0;j<this.nr;j++)     // j are rows
+            {
+                if(this.time > 0 && this.time%refresh_medium_every==0) 
+                {   
+                    this.grid[i][j].concs.state[0] = refresh_medium_conc
+                    if(model.rng.genrand_real1() < 0.99) 
+                    {
+                        this.grid[i][j].alive = 0
+                        this.grid[i][j].concs.state[1] = 0.00                                          // Remove internal conc
+                        this.grid[i][j].concs.pars = [influx,0.00,upkeep]                                // No more cell here, so no uptake                    
+                    }
+                }
+            }
+        this.perfectMix()
+    }
     model.cells.update = function()
     {
         this.asynchronous()         // Asynchronous because division changes both parent and offspring grid points, so updating can't be synchronous without leading to bugs
         this.apply_async(this.diffuse_ext_resources)       // Apply a custum function on all gps synchronously
         this.MargolusDiffusion()
-        if(this.time%refresh_medium_every==0) this.perfectMix()
+        if(this.time%refresh_medium_every==0) this.transfer()
+
         let sum_ext = 0
         let sum_int = 0
 

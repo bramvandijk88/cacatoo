@@ -176,10 +176,11 @@ class CA
         this.time = 0;
         this.grid = MakeGrid(config.ncol,config.nrow);                 // Grid        
         this.nc = config.ncol || 200;
-        this.nr = config.nrow || 200;        
+        this.nr = config.nrow || 200;  
         this.wrap = config.wrap || [true, true]; 
         this.rng = rng;
         this.statecolours = this.setupColours(config.statecolours);
+        this.skipbg_state = config.skipbg_state || false;      
         this.scale = config.scale || 1;
         let grid_name = ""; 
         if(show_gridname) grid_name = this.name;
@@ -225,8 +226,8 @@ class CA
                     
                     let value = this.grid[i][j][prop];
                     
-                    //if(value == 0)
-                    //    continue // Don't draw the background state
+                    if(value == 0 && this.skipbg_state)
+                        continue // Don't draw the background state
                     let idx = state;
                     if (state.constructor == Object) {
                         idx = state[value];
@@ -353,10 +354,10 @@ class CA
     {
         this.set_update_order();
         for (let n = 0; n < this.nc*this.nr; n++) 
-        {            
+        {               
             let m = this.upd_order[n];
             let i = m%this.nc; 
-            let j = Math.floor(m/this.nr);            
+            let j = Math.floor(m/this.nc);      
             this.nextState(i,j);
         }
         this.time++;
@@ -370,7 +371,7 @@ class CA
         {            
             let m = this.upd_order[n];
             let i = m%this.nc; 
-            let j = Math.floor(m/this.nr);            
+            let j = Math.floor(m/this.nc);            
             func(i,j);
         }
     }
@@ -622,12 +623,11 @@ class CA
     
     attachODE(eq,state_vector,pars,odename)
     {
-        for(let i = 0; i< this.nc; i++)
+        for(let i=0; i<this.nc; i++)
         {            
             for(let j=0;j<this.nr;j++)
             {
-                let ode = new ODE(eq,state_vector,pars);
-                
+                let ode = new ODE(eq,state_vector,pars);                
                 if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = [];   // If list doesnt exist yet                
                 this.grid[i][j].ODEs.push(ode);
                 if(odename) this.grid[i][j][odename] = ode;
@@ -637,7 +637,7 @@ class CA
 
     solve_all_odes(delta_t=0.1, opt_pos=false)
     {
-        for(let i = 0; i< this.nc; i++)
+        for(let i=0; i<this.nc; i++)
         {            
             for(let j=0;j<this.nr;j++)
             {
@@ -809,6 +809,14 @@ class Model
         model.pause=true;
     }
 
+    toggle_play()
+    {
+        console.log("Pause");
+        if(model.pause)  model.pause=false;         
+        else model.pause = true;
+        if(!model.pause)model.start();
+    }
+
     display()
     {
         for(let ca of this.CAs)
@@ -863,7 +871,7 @@ class Model
                     console.log("Cacatoo completed after",Math.round(simStopTime-simStartTime)/1000,"seconds");
                     cancelAnimationFrame(frame);                
                 }
-                if(model.pause==true) { model.pause=false;cancelAnimationFrame(frame); }
+                if(model.pause==true) {cancelAnimationFrame(frame); }
                 
             }
             
@@ -927,7 +935,25 @@ class Model
         }
         
     }
-    
+    alert_me()
+    {
+        console.log("HEY!");
+    }
+    addPauseButton()
+    {
+        let button = document.createElement("button"); 
+        button.textContent = 'Play / pause';
+
+        
+
+        button.addEventListener("click", this.alert_me ,false);        
+        // button.addEventListener('onclick', function(){
+        //      this.alert_me();
+        // }, false);
+        document.getElementById("form_holder").appendChild(button);
+        document.getElementById("form_holder").innerHTML+="<br><br>";
+    }
+
     addPatternButton(targetca, property)
     {        
         let imageLoader = document.createElement("input"); 
@@ -939,7 +965,7 @@ class Model
         let label = document.createElement("label");
         label.setAttribute("for","imageLoader");
         label.style="background-color: rgb(171, 228, 230); border-radius: 10px; border:1px solid grey;padding:5px;width:200px;";
-        label.innerHTML="Select your own initial state";
+        label.innerHTML="<font size=2>Select your own initial state</font>";
         document.getElementById("form_holder").appendChild(label);
         let canvas = document.createElement('canvas');
         canvas.name="imageCanvas";

@@ -5,7 +5,13 @@ background-color: #f0f0f0;
 margin:20px;
 }
 
-
+button {
+  background-color: rgb(171, 228, 230);
+  border-radius: 10px; 
+  border:1px solid grey;
+  padding:5px;
+  width:200px;
+}
 /* Style the header */
 .header {
     background-color: #65818a;

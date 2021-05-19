@@ -21,7 +21,8 @@ function setup()
             nrow : 170,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]   
             scale : 2,				    // scale of the grid (nxn pixels per CA cell)
-            statecolours: {'alive':'white'}   // The background state '0' is never drawn
+            statecolours: {'alive':'white'},    // Only defining the "alive" state, while...
+            skipbg_state: true                  // ...not drawing the BG state (0) on the grid
     }
 
     model = new Model(config)
@@ -30,7 +31,7 @@ function setup()
     //model.initialPattern(model.gol, 'alive', 'patterns/glider.png', 10, 10)
     model.initialGrid(model.gol,'alive',0,1,0.5)        
     //model.initialPattern(model.gol, 'alive', './patterns/elephant_cacatoo.png', 115, 115)
-
+    
     model.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
         // Count living neighbours
@@ -53,7 +54,9 @@ function setup()
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
     }
 
+    model.addPauseButton()
     model.addPatternButton(model.gol,'alive')
+    
     model.start()
 
 }
@@ -68,7 +71,8 @@ function setup()
 <body onload="setup()">        
     <div class="header" id="header"><h2>ModelJS - </h2></div>
     <div class="content" id="canvas_holder"></div>
-    <div class="content" id="form_holder"></div>    
+    <div class="content" id="form_holder">
+        <button onclick="model.toggle_play()"> Play / pause</button><br><br></div>    
     <div class="content" id="graph_holder"> </div>
     <div class="footer" id="footer"></div>
 </body>

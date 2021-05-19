@@ -34,6 +34,14 @@ class Model
         model.pause=true
     }
 
+    toggle_play()
+    {
+        console.log("Pause")
+        if(model.pause)  model.pause=false;         
+        else model.pause = true;
+        if(!model.pause)model.start()
+    }
+
     display()
     {
         for(let ca of this.CAs)
@@ -88,7 +96,7 @@ class Model
                     console.log("Cacatoo completed after",Math.round(simStopTime-simStartTime)/1000,"seconds")
                     cancelAnimationFrame(frame)                
                 }
-                if(model.pause==true) { model.pause=false;cancelAnimationFrame(frame) }
+                if(model.pause==true) {cancelAnimationFrame(frame) }
                 
             }
             
@@ -152,7 +160,25 @@ class Model
         }
         
     }
-    
+    alert_me()
+    {
+        console.log("HEY!")
+    }
+    addPauseButton()
+    {
+        let button = document.createElement("button") 
+        button.textContent = 'Play / pause';
+
+        
+
+        button.addEventListener("click", this.alert_me ,false);        
+        // button.addEventListener('onclick', function(){
+        //      this.alert_me();
+        // }, false);
+        document.getElementById("form_holder").appendChild(button)
+        document.getElementById("form_holder").innerHTML+="<br><br>"
+    }
+
     addPatternButton(targetca, property)
     {        
         let imageLoader = document.createElement("input") 
@@ -164,7 +190,7 @@ class Model
         let label = document.createElement("label")
         label.setAttribute("for","imageLoader");
         label.style="background-color: rgb(171, 228, 230); border-radius: 10px; border:1px solid grey;padding:5px;width:200px;"
-        label.innerHTML="Select your own initial state"
+        label.innerHTML="<font size=2>Select your own initial state</font>"
         document.getElementById("form_holder").appendChild(label)
         let canvas = document.createElement('canvas');
         canvas.name="imageCanvas"
