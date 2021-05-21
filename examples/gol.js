@@ -24,7 +24,7 @@ let config = {
         ncol : 200,            
         nrow : 200,		            // dimensions of the grid to build
         wrap : [true, true],        // Wrap boundary [COLS, ROWS]   
-        scale : 3,				    // scale of the grid (nxn pixels per CA cell)
+        scale : 3,				    // scale of the grid (nxn pixels per grid point)
         statecolours: {'alive':1}   // The background state '0' is never drawn
 }
 
@@ -38,7 +38,7 @@ model.initialGrid(model.gol,'alive',0,1,0.5)
 model.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
 {   
     // Count living neighbours
-    let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+    let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
     // Get own state
     let state = this.grid[i][j].alive;            
     // Apply the three rules of GoL

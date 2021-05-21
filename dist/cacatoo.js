@@ -14,45 +14,6 @@ class Gridpoint
     }
 }
 
-class Canvas
-{
-    constructor(cols,rows,scale,title)
-    {        
-        this.height = rows;
-        this.width = cols;
-        this.scale = scale;
-
-        if( typeof document !== "undefined" ){              // In browser, crease a new HTML canvas-element to draw on 
-            this.elem = document.createElement("canvas");
-            this.titlediv = document.createElement("div");
-            this.titlediv.innerHTML = "<font size = 1>"+title+"</font>";
-            this.canvasdiv = document.createElement("div");
-            this.canvasdiv.className="grid-holder";
-            this.elem.className="grid-holder";
-            this.elem.width = this.width*this.scale;
-            this.elem.height = this.height*this.scale;   
-            this.canvasdiv.appendChild(this.elem);
-            this.canvasdiv.appendChild(this.titlediv);
-            // document.body.appendChild(this.elem)         
-            document.getElementById("canvas_holder").appendChild(this.canvasdiv);
-            
-            this.ctx = this.elem.getContext("2d");
-	    	this.ctx.lineWidth = 1;
-            this.ctx.fillStyle = "#AAAAAA";
-            this.ctx.fillRect(0, 0, cols*scale, rows*scale);
-            this.ctx.strokeRect(0, 0, cols*scale, rows*scale);
-        } 
-        else 
-        {                                            // In nodejs, use canvas package, FIXING THIS LATER, FIRST STUDENT BROWSER-VERSION
-			//const {createCanvas} = require("canvas")
-			//this.elem = createCanvas( this.width*this.scale, this.height*this.scale)
-            //this.fs = require("fs")
-            console.log("WARNING: No canvas available in NodeJS-mode (yet)");
-		}
-		
-    }
-}
-
 class Graph
 {
     constructor(labels,values,colours,title,opts)
@@ -69,7 +30,8 @@ class Graph
         
         for(let v in colours)
         {
-             if(v=="Time") continue    
+             if(v=="Time") continue       
+             else if(colours[v] == undefined) this.colours.push("#000000");
              else if(colours[v][0]+colours[v][1]+colours[v][2] == 765) this.colours.push("#dddddd");       
              else this.colours.push(rgbToHex(colours[v][0],colours[v][1],colours[v][2]));        
         }
@@ -166,25 +128,23 @@ class ODE
 }
 
 // Class definition
-class CA
+class Grid
 {
     // Constructor
-    constructor(name, config, rng, show_gridname)
+    constructor(name, config, rng)
     {
         // Make empty grid      
         this.name = name;
         this.time = 0;
-        this.grid = MakeGrid(config.ncol,config.nrow);                 // Grid        
+        this.grid = MakeGrid(config.ncol,config.nrow);           // Grid        
         this.nc = config.ncol || 200;
         this.nr = config.nrow || 200;  
         this.wrap = config.wrap || [true, true]; 
         this.rng = rng;
         this.statecolours = this.setupColours(config.statecolours);
-        this.skipbg_state = config.skipbg_state || false;      
         this.scale = config.scale || 1;
-        let grid_name = ""; 
-        if(show_gridname) grid_name = this.name;
-        this.canvas = new Canvas(this.nc,this.nr,this.scale,grid_name);  
+        
+
         this.graphs = {};
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
@@ -198,59 +158,6 @@ class CA
              [-1,1],        // SW
              [1,1]          // SE
             ];
-    }
-
-    displaygrid()
-    {           
-        let ctx = this.canvas.ctx;
-        let scale = this.canvas.scale;
-        let ncol = this.nc;
-        let nrow = this.nr;
-
-        ctx.clearRect(0,0,scale*ncol,scale*nrow);
-
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, ncol*scale, nrow*scale);
-        var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
-        var pixels = id.data;        
-
-        for(let i=0;i<ncol;i++)         // i are cols
-        {
-            for(let j=0;j<nrow;j++)     // j are rows
-            {               
-                for(let prop in this.statecolours)
-                {   
-                    let state = this.statecolours[prop];                            
-                                     
-                    if (!(prop in this.grid[i][j])) continue
-                    
-                    let value = this.grid[i][j][prop];
-                    
-                    if(value == 0 && this.skipbg_state)
-                        continue // Don't draw the background state
-                    let idx = state;
-                    if (state.constructor == Object) {
-                        idx = state[value];
-                    }
-                    
-                    for(let n=0;n<scale;n++)
-                    {
-                        for(let m=0;m<scale;m++)
-                        {
-                            let x = i*scale+n;
-                            let y = j*scale+m;                    
-                            var off = (y * id.width + x) * 4;
-                            pixels[off] = idx[0];
-                            pixels[off + 1] = idx[1];
-                            pixels[off + 2] = idx[2];
-                            //pixels[off + 3] = 255; // Last is always 255
-                        }
-                    }
-                }
-
-            }
-        }
-        ctx.putImageData(id, 0, 0);
     }
     
     /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
@@ -317,7 +224,7 @@ class CA
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
-    synchronous()                                               // Do one step (synchronous) of this CA
+    synchronous()                                               // Do one step (synchronous) of this grid
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
@@ -394,7 +301,7 @@ class CA
         throw 'Update function of \'' + this.name + '\' undefined';
     }
 
-    countMoore9(ca,col,row,val,property)
+    countMoore9(grid,col,row,val,property)
     {    
         let count = 0;
         
@@ -403,43 +310,43 @@ class CA
             for(let h=-1;h<2;h++) // Check +/-1 horizontally 
             {       
                 let x = col+h;
-                if(ca.wrap[0]) x = (col+h+ca.nc) % ca.nc; // Wraps neighbours left-to-right
+                if(grid.wrap[0]) x = (col+h+grid.nc) % grid.nc; // Wraps neighbours left-to-right
                 let y = row+v;
-                if(ca.wrap[1]) y = (row+v+ca.nr) % ca.nr; // Wraps neighbours top-to-bottom
-                if(x<0||y<0||x>=ca.nc||y>=ca.nr) continue
+                if(grid.wrap[1]) y = (row+v+grid.nr) % grid.nr; // Wraps neighbours top-to-bottom
+                if(x<0||y<0||x>=grid.nc||y>=grid.nr) continue
                 
-                let nval = ca.grid[x][y][property];                
+                let nval = grid.grid[x][y][property];                
                 if(nval == val)
                     count++;      // Add value                
             }
         }
         return count;
     }
-    countMoore8(ca,col,row,val,property)
+    countMoore8(grid,col,row,val,property)
     {
-        let count = this.countMoore9(ca,col,row,val,property);
-        let minus_this = ca.grid[col][row][property] == val;
+        let count = this.countMoore9(grid,col,row,val,property);
+        let minus_this = grid.grid[col][row][property] == val;
         if(minus_this) count--;
         return count
     }
     
-    randomMoore8(ca,col,row)
+    randomMoore8(grid,col,row)
     {
         let rand = model.rng.genrand_int(1,8);  
         let i = this.moore[rand][0];
         let j = this.moore[rand][1];
-        let neigh = ca.getGridpoint(col+i,row+j);
-        while(neigh == undefined) neigh = this.randomMoore8(ca,col,row); 
+        let neigh = grid.getGridpoint(col+i,row+j);
+        while(neigh == undefined) neigh = this.randomMoore8(grid,col,row); 
         return neigh
     }
 
-    randomMoore9(ca,col,row)
+    randomMoore9(grid,col,row)
     {
         let rand = model.rng.genrand_int(0,8);        
         let i = moore[rand][0];
         let j = moore[rand][1];
-        let neigh = ca.getGridpoint(col+i,row+j);
-        while(neigh == undefined) neigh = this.randomMoore8(ca,col,row);
+        let neigh = grid.getGridpoint(col+i,row+j);
+        while(neigh == undefined) neigh = this.randomMoore8(grid,col,row);
         return neigh
     }
 
@@ -777,6 +684,102 @@ let default_colours = {
                   11:[200,200,200],     //nearwhite
                   12:[125,125,125]};     //grey
 
+class Canvas
+{
+    constructor(grid,prop,lab,height,width,scale)
+    {        
+        this.label = lab;
+        this.grid = grid;
+        this.property = prop;
+        this.height = height;
+        this.width = width; 
+        
+        
+        this.scale = scale;
+        
+
+        if( typeof document !== "undefined" ){              // In browser, crease a new HTML canvas-element to draw on 
+            this.elem = document.createElement("canvas");
+            this.titlediv = document.createElement("div");
+            this.titlediv.innerHTML = "<font size = 2>"+this.label+"</font>";
+            this.canvasdiv = document.createElement("div");
+            this.canvasdiv.className="grid-holder";
+            this.elem.className="grid-holder";
+            this.elem.width = this.width*this.scale;
+            this.elem.height = this.height*this.scale;   
+            this.canvasdiv.appendChild(this.elem);
+            this.canvasdiv.appendChild(this.titlediv);
+            // document.body.appendChild(this.elem)         
+            document.getElementById("canvas_holder").appendChild(this.canvasdiv);
+            
+            this.ctx = this.elem.getContext("2d");
+	    	this.ctx.lineWidth = 1;
+            this.ctx.fillStyle = "#AAAAAA";
+            this.ctx.fillRect(0, 0, this.width*this.scale, this.height*this.scale);
+            this.ctx.strokeRect(0, 0, this.width*this.scale, this.height*this.scale);
+        } 
+        else 
+        {                                            // In nodejs, use canvas package. Not yet implemented
+            console.log("WARNING: No canvas available in NodeJS-mode (yet)");
+		}
+		
+    }
+    
+    displaygrid()
+    {
+        let ctx = this.ctx;
+        let scale = this.scale;
+        let ncol = this.width;
+        let nrow = this.height;
+        let prop = this.property;
+        ctx.clearRect(0,0,scale*ncol,scale*nrow);        
+                
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, ncol*scale, nrow*scale);
+        var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
+        var pixels = id.data;        
+        for(let i=0;i<ncol;i++)         // i are cols
+        {
+            for(let j=0;j<nrow;j++)     // j are rows
+            {                             
+                let state = this.grid.statecolours[prop];                            
+                if (!(prop in this.grid.grid[i][j])) continue
+                let value = this.grid.grid[i][j][prop];
+                
+                
+                if(state[value] == undefined)        // Don't draw the background state
+                    continue
+                
+                let idx;
+                if (state.constructor == Object) {
+                    idx = state[value];
+                }
+                else idx = state;
+                
+                for(let n=0;n<scale;n++)
+                {
+                    for(let m=0;m<scale;m++)
+                    {
+                        let x = i*scale+n;
+                        let y = j*scale+m;                    
+                        var off = (y * id.width + x) * 4;
+                        pixels[off] = idx[0];
+                        pixels[off + 1] = idx[1];
+                        pixels[off + 2] = idx[2];
+                    }
+                }
+               
+
+            }
+        }
+        ctx.putImageData(id, 0, 0);
+    }
+}
+
+/**
+ *  Model is the primary Class of Cacatoo, containing the main configuration  
+ *  for making a grid-based model grid and displaying it in either browser or with
+ *  nodejs. */
 class Model
 {
     constructor(config)
@@ -784,24 +787,42 @@ class Model
         this.config = config;
         this.rng = new MersenneTwister(config.seed || 53);
         this.sleep = config.sleep || 0;
-        this.fps = config.fps || 60; 
+        this.fps = config.fps*1.4 || 60; 
         this.limitfps = true;
-        if(config.limitfps==false) this.limitfps = false;                                       // Turbo allows multiple updates of the CA before the screen refreshes. It is faster, but it can be confusing if you see two or more changes happening at once. 
-        this.CAs = [];
+        if(config.limitfps==false) this.limitfps = false;    
+        
+        // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
+        this.grids = [];
+        this.canvases = [];
+        this.graphs = [];
         this.time=0;
     }
 
     makeGrid(name)
     {
-        let ca = new CA(name,this.config,this.rng,this.config.show_gridname);
-        this[name] = ca;
-        this.CAs.push(ca);
+        let grid = new Grid(name,this.config,this.rng,this.config.show_gridname);
+        this[name] = grid;
+        this.grids.push(grid);
+    }
+
+    displayGrid(name,property,height,width,scale)
+    {
+        let label = `${name} (${property})`;
+        let grid = this[name];
+        if(height==undefined) height = grid.nr;
+        if(width==undefined) width = grid.nc;
+        if(scale==undefined) scale = grid.scale;        
+        let cnv = new Canvas(grid,property,label,height,width,scale);  
+        this.canvases.push(cnv);
     }
 
     step()
     {        
-        for(let ca of this.CAs)
-            ca.update();
+        for(let i = 0; i<this.grids.length; i++)
+        {
+            this.grids[i].update();
+            if(this.mix) this.grids[i].perfectMix();
+        }
     }
     
     stop()
@@ -811,16 +832,21 @@ class Model
 
     toggle_play()
     {
-        console.log("Pause");
-        if(model.pause)  model.pause=false;         
-        else model.pause = true;
-        if(!model.pause)model.start();
+        if(this.pause)  this.pause=false;         
+        else this.pause = true;
+        if(!this.pause) this.start();
     }
+    toggle_mix()
+    {
+        if(this.mix)  this.mix=false;         
+        else this.mix = true;
+    }
+
 
     display()
     {
-        for(let ca of this.CAs)
-            ca.displaygrid();
+        for(let i = 0; i<this.canvases.length; i++)
+            this.canvases[i].displaygrid();
     }
 
     start()
@@ -832,7 +858,7 @@ class Model
 
             document.title = `Cacatoo - ${this.config.title}`;
             document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`;
-            document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>ca</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
+            document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>grid</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
             let simStartTime = performance.now();
       
             async function animate()
@@ -887,26 +913,26 @@ class Model
         }
     }
 
-    initialGrid(ca,property,def_state)
+    initialGrid(grid,property,def_state)
     {
         let p = property || 'val';
         let bg = def_state;
         
-        for(let i=0;i<ca.nc;i++)                          // i are columns
-                for(let j=0;j<ca.nr;j++)                  // j are rows
-                    ca.grid[i][j][p] = bg;
+        for(let i=0;i<grid.nc;i++)                          // i are columns
+                for(let j=0;j<grid.nr;j++)                  // j are rows
+                    grid.grid[i][j][p] = bg;
         
         for (let arg=3; arg<arguments.length; arg+=2)       // Parse remaining 2+ arguments to fill the grid           
-            for(let i=0;i<ca.nc;i++)                        // i are columns
-                for(let j=0;j<ca.nr;j++)                    // j are rows
-                    if(this.rng.random() < arguments[arg+1]) ca.grid[i][j][p] = arguments[arg];                    
+            for(let i=0;i<grid.nc;i++)                        // i are columns
+                for(let j=0;j<grid.nr;j++)                    // j are rows
+                    if(this.rng.random() < arguments[arg+1]) grid.grid[i][j][p] = arguments[arg];                    
     }
 
-    initialPattern(ca,property,image_path, x, y)
+    initialPattern(grid,property,image_path, x, y)
     {
         if(typeof window != undefined)
         {
-            for(let i=0;i<ca.nc;i++) for(let j=0;j<ca.nr;j++) ca.grid[i][j][property] = 0;                        
+            for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j][property] = 0;                        
             let tempcanv = document.createElement("canvas");
             let tempctx = tempcanv.getContext('2d');
             var tempimg = new Image();                        
@@ -916,13 +942,13 @@ class Model
                 tempcanv.height = tempimg.height;
                 tempctx.drawImage(tempimg,0,0);
                 let grid_data = get2DFromCanvas(tempcanv);                                                        
-                if(x+tempimg.width >= ca.nc || y+tempimg.height >= ca.nr) throw RangeError("Cannot place pattern outside of the canvas")                
+                if(x+tempimg.width >= grid.nc || y+tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")                
                 for(let i=0;i<grid_data[0].length;i++)         // i are columns
                 for(let j=0;j<grid_data.length;j++)     // j are rows
                 {                       
-                    ca.grid[x+i][y+j][property] = grid_data[j][i];
+                    grid.grid[x+i][y+j][property] = grid_data[j][i];
                 }                
-                ca.displaygrid();              
+                grid.displaygrid();              
             };                
             
             tempimg.src=image_path;   
@@ -936,17 +962,43 @@ class Model
         
     }
 
-    addPauseButton()
+    addButton(text,func)
     {
+        if(typeof window == undefined) console.error("Buttons can't be added in command-line mode.");
         let button = document.createElement("button"); 
-        button.innerHTML = 'Pause/continue';
-        button.addEventListener("click", this.toggle_play ,false); 
-        //document.getElementById("form_holder").innerHTML += "<br>"      
-        document.getElementById("form_holder").appendChild(button);   
-        
+        button.innerHTML = text;
+        button.addEventListener("click", func, true); 
+        document.getElementById("form_holder").appendChild(button);                   
     }
 
-    addPatternButton(targetca, property)
+    addSlider(parameter,min=0.0,max=2.0,step=0.01)
+    {
+        if(typeof window == undefined) console.warn("Sliders can't be added in command-line mode.");
+        if(window[parameter] == undefined) {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
+        let container = document.createElement("div");
+        container.classList.add("form-container");
+        let slider = document.createElement("input"); 
+        let output = document.createElement("output");
+        container.innerHTML += "<div style='width:100%'><b>"+parameter+":</b></div>";
+        output.innerHTML = window[parameter].toFixed(3);
+        slider.type='range';
+        slider.classList.add("slider");
+        slider.min=min;
+        slider.max=max;        
+        slider.step=step;
+        slider.value=window[parameter];
+        slider.oninput = function()
+        {
+            let value = parseFloat(slider.value);
+            output.innerHTML = value.toFixed(3);
+            window[parameter] = parseFloat(value);
+        };        
+        container.appendChild(slider);
+        container.appendChild(output);
+        document.getElementById("form_holder").appendChild(container);                   
+    }
+
+    addPatternButton(targetgrid, property)
     {        
         let imageLoader = document.createElement("input"); 
         imageLoader.type  = "file";       
@@ -967,7 +1019,7 @@ class Model
             let reader = new FileReader();
             let grid_data;
             
-            let ca = e.currentTarget.ca; 
+            let grid = e.currentTarget.grid; 
             reader.onload = function(event)
             {
                 var img = new Image();        
@@ -979,11 +1031,11 @@ class Model
                     
                     grid_data = get2DFromCanvas(canvas);
                     
-                    for(let i=0;i<ca.nc;i++) for(let j=0;j<ca.nr;j++) ca.grid[i][j].alive = 0;
+                    for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j].alive = 0;
                     for(let i=0;i<grid_data[0].length;i++)          // i are columns
                     for(let j=0;j<grid_data.length;j++)             // j are rows
                     {                                     
-                        ca.grid[Math.floor(i+ca.nc/2-img.width/2)][Math.floor(j+ca.nr/2-img.height/2)][property] = grid_data[j][i];
+                        grid.grid[Math.floor(i+grid.nc/2-img.width/2)][Math.floor(j+grid.nr/2-img.height/2)][property] = grid_data[j][i];
                     }
                      
                     
@@ -995,7 +1047,7 @@ class Model
     }
 
     imageLoader.addEventListener('change', handleImage, false);
-    imageLoader.ca = targetca;    // Bind a ca to imageLoader 
+    imageLoader.grid = targetgrid;    // Bind a grid to imageLoader 
     imageLoader.property = property;
     }    
 }

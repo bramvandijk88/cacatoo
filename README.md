@@ -7,7 +7,7 @@ Cacatoo is a Cellular Automaton Toolbox based on Cash (Cellular Automata Simulat
      />
 
 Simply include the cacatoo.js file (and optional other libraries)
-in your HTML file and begin building CA's. 
+in your HTML file and begin building IBMs. 
 
 The bundle was made with rollup:
 > rollup src/model.js -o dist/cacatoo.js -f cjs  -w

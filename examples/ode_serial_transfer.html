@@ -19,11 +19,11 @@ function setup()
             fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. 
                                         // Note: fastmode is only useful/recommended if the model can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
-                                        // Nevertheless, the final state of the CA is reaches sooner in real time. 
+                                        // Nevertheless, the final state of the grid is reaches sooner in real time. 
             ncol : 64,            
             nrow : 64,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale : 3,				    // scale of the grid (nxn pixels per CA cell)
+            scale : 3,				    // scale of the grid (nxn pixels per grid cell)
             statecolours: {'alive':{1:'#AAFF00'}},   // The background state '0' is never drawn
             skipbg_state: true,                      // Don't draw 0-state on grid (faster)
             graph_interval: 1,

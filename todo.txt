@@ -1,5 +1,6 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
+> Spacetime plots
 > Proper ODE state diffusion method (now it's either having edge effects due to sync, or has a random component due to async updating)
 > Add option to deep copy
 > Automate pause / run functionality button (now added manually)
