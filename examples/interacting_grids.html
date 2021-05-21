@@ -18,7 +18,7 @@ function setup()
             fastmode : true,        
             nrow : 100,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]
-            scale : 3,				    // scale of the grid (nxn pixels per CA cell)
+            scale : 3,				    // scale of the grid (nxn pixels per grid cell)
             statecolours: {'alive':{0:'black',1:'#FF00AA'},'left':{1:'blue',2:'red'}}
             }
 
@@ -33,7 +33,7 @@ function setup()
     model.gol.nextState = function(i,j)                 // Define the next-state function. This example is game of life + vote
     {   
         // Count living neighbours
-        let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+        let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
         // Get own state
         let state = this.grid[i][j].alive;            
         // Apply the three rules of GoL
@@ -58,9 +58,9 @@ function setup()
             this.grid[i][j].left = 2    // If majority votes right, this position also votes right
     }
 
-    for(ca of model.CAs)
+    for(grid of model.grids)
     {
-        ca.update = function() // Give each CA the same update steps (update grid, then display)
+        grid.update = function() // Give each grid the same update steps (update grid, then display)
         {
             this.synchronous()
         }

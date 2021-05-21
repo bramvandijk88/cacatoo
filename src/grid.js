@@ -1,30 +1,25 @@
 import Gridpoint from "./gridpoint.js"
-import Canvas from "./canvas.js"
 import Graph from './graph.js'
-import ODE from "./ode.js";
-
-let colours;
+import ODE from "./ode.js"
 
 // Class definition
-class CA
+class Grid
 {
     // Constructor
-    constructor(name, config, rng, show_gridname)
+    constructor(name, config, rng)
     {
         // Make empty grid      
         this.name = name
         this.time = 0
-        this.grid = MakeGrid(config.ncol,config.nrow);                 // Grid        
+        this.grid = MakeGrid(config.ncol,config.nrow)           // Grid        
         this.nc = config.ncol || 200
         this.nr = config.nrow || 200  
         this.wrap = config.wrap || [true, true] 
         this.rng = rng
         this.statecolours = this.setupColours(config.statecolours);
-        this.skipbg_state = config.skipbg_state || false      
         this.scale = config.scale || 1
-        let grid_name = "" 
-        if(show_gridname) grid_name = this.name
-        this.canvas = new Canvas(this.nc,this.nr,this.scale,grid_name);  
+        
+
         this.graphs = {}
         this.graph_update = config.graph_update || 20
         this.graph_interval = config.graph_interval || 2
@@ -38,61 +33,6 @@ class CA
              [-1,1],        // SW
              [1,1]          // SE
             ]
-    }
-
-    displaygrid()
-    {           
-        let ctx = this.canvas.ctx
-        let scale = this.canvas.scale
-        let ncol = this.nc
-        let nrow = this.nr
-
-        ctx.clearRect(0,0,scale*ncol,scale*nrow);
-
-        ctx.fillStyle = 'black'
-        ctx.fillRect(0, 0, ncol*scale, nrow*scale);
-        var id = ctx.getImageData(0, 0,scale*ncol,scale*nrow);
-        var pixels = id.data;        
-
-        for(let i=0;i<ncol;i++)         // i are cols
-        {
-            for(let j=0;j<nrow;j++)     // j are rows
-            {               
-                for(let prop in this.statecolours)
-                {   
-                    let x = i*scale;
-                    let y = j*scale;
-                    let state = this.statecolours[prop]                            
-                                     
-                    if (!(prop in this.grid[i][j])) continue
-                    
-                    let value = this.grid[i][j][prop]
-                    
-                    if(value == 0 && this.skipbg_state)
-                        continue // Don't draw the background state
-                    let idx = state
-                    if (state.constructor == Object) {
-                        idx = state[value]
-                    }
-                    
-                    for(let n=0;n<scale;n++)
-                    {
-                        for(let m=0;m<scale;m++)
-                        {
-                            let x = i*scale+n;
-                            let y = j*scale+m;                    
-                            var off = (y * id.width + x) * 4;
-                            pixels[off] = idx[0];
-                            pixels[off + 1] = idx[1];
-                            pixels[off + 2] = idx[2];
-                            //pixels[off + 3] = 255; // Last is always 255
-                        }
-                    }
-                }
-
-            }
-        }
-        ctx.putImageData(id, 0, 0);
     }
     
     /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
@@ -159,7 +99,7 @@ class CA
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
-    synchronous()                                               // Do one step (synchronous) of this CA
+    synchronous()                                               // Do one step (synchronous) of this grid
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
@@ -236,7 +176,7 @@ class CA
         throw 'Update function of \'' + this.name + '\' undefined';
     }
 
-    countMoore9(ca,col,row,val,property)
+    countMoore9(grid,col,row,val,property)
     {    
         let count = 0;
         
@@ -245,43 +185,43 @@ class CA
             for(let h=-1;h<2;h++) // Check +/-1 horizontally 
             {       
                 let x = col+h
-                if(ca.wrap[0]) x = (col+h+ca.nc) % ca.nc; // Wraps neighbours left-to-right
+                if(grid.wrap[0]) x = (col+h+grid.nc) % grid.nc; // Wraps neighbours left-to-right
                 let y = row+v
-                if(ca.wrap[1]) y = (row+v+ca.nr) % ca.nr; // Wraps neighbours top-to-bottom
-                if(x<0||y<0||x>=ca.nc||y>=ca.nr) continue
+                if(grid.wrap[1]) y = (row+v+grid.nr) % grid.nr; // Wraps neighbours top-to-bottom
+                if(x<0||y<0||x>=grid.nc||y>=grid.nr) continue
                 
-                let nval = ca.grid[x][y][property]                
+                let nval = grid.grid[x][y][property]                
                 if(nval == val)
                     count++;      // Add value                
             }
         }
         return count;
     }
-    countMoore8(ca,col,row,val,property)
+    countMoore8(grid,col,row,val,property)
     {
-        let count = this.countMoore9(ca,col,row,val,property)
-        let minus_this = ca.grid[col][row][property] == val
+        let count = this.countMoore9(grid,col,row,val,property)
+        let minus_this = grid.grid[col][row][property] == val
         if(minus_this) count--
         return count
     }
     
-    randomMoore8(ca,col,row)
+    randomMoore8(grid,col,row)
     {
         let rand = model.rng.genrand_int(1,8)  
         let i = this.moore[rand][0]
         let j = this.moore[rand][1]
-        let neigh = ca.getGridpoint(col+i,row+j)
-        while(neigh == undefined) neigh = this.randomMoore8(ca,col,row); 
+        let neigh = grid.getGridpoint(col+i,row+j)
+        while(neigh == undefined) neigh = this.randomMoore8(grid,col,row); 
         return neigh
     }
 
-    randomMoore9(ca,col,row)
+    randomMoore9(grid,col,row)
     {
         let rand = model.rng.genrand_int(0,8)        
         let i = moore[rand][0]
         let j = moore[rand][1]
-        let neigh = ca.getGridpoint(col+i,row+j)
-        while(neigh == undefined) neigh = this.randomMoore8(ca,col,row)
+        let neigh = grid.getGridpoint(col+i,row+j)
+        while(neigh == undefined) neigh = this.randomMoore8(grid,col,row)
         return neigh
     }
 
@@ -511,7 +451,7 @@ class CA
     }
 }
 
-export default CA
+export default Grid
 
 
 

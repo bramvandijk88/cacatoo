@@ -15,7 +15,8 @@ class Graph
         
         for(let v in colours)
         {
-             if(v=="Time") continue    
+             if(v=="Time") continue       
+             else if(colours[v] == undefined) this.colours.push("#000000")
              else if(colours[v][0]+colours[v][1]+colours[v][2] == 765) this.colours.push("#dddddd")       
              else this.colours.push(rgbToHex(colours[v][0],colours[v][1],colours[v][2]))        
         }
