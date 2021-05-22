@@ -9,7 +9,8 @@
    */
 
 
-let Model = require('./dist/cacatoo.js')
+let Model = require('../dist/cacatoo.js')
+require('../lib/all.js')
 fs = require('fs')
 // ## NPM INSTALL CANVAS?!
 

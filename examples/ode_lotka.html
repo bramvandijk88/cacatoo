@@ -28,6 +28,7 @@ function setup()
 
     model.makeGrid("lotka"); 
     model.lotka.colourRamp('density',[0,0,0],[240,200,0],100)           // Will contain the ODEs, and show the abundance of PREDATORS
+    model.displayGrid('lotka','density')
     model.makeGrid("prey")
     model.prey.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
 

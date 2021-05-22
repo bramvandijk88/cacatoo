@@ -3,7 +3,7 @@ import Graph from './graph.js'
 import ODE from "./ode.js"
 
 // Class definition
-class Grid
+class GridModel
 {
     // Constructor
     constructor(name, config, rng)
@@ -103,6 +103,7 @@ class Grid
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
+        
         for(let i=0;i<this.nc;i++)
         {    
             for(let j=0;j<this.nr;j++)
@@ -112,8 +113,8 @@ class Grid
                 this.grid[i][j] = oldstate[i][j]                // Reset this.grid to old state
             }
         }
-        this.grid = newstate;      
-        this.time++          
+        this.grid = newstate;
+        this.time++
     }
     
     apply_sync(func)
@@ -236,14 +237,14 @@ class Grid
         else return this.grid[x][y]
     }
 
-    setGridpoint(i,j,neigh)
+    setGridpoint(i,j,gp)
     {
         let x = i
         if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
         let y = j
         if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
         if(x<0||y<0||x>=this.nc||y>=this.nr) this.grid[x][y] = undefined    // TODO!!!!!!!! Return border-state instead!
-        else this.grid[x][y] = neigh
+        else this.grid[x][y] = gp
     }
 
     
@@ -295,6 +296,7 @@ class Grid
         }        
     }
 
+
     perfectMix()
     {
         let all_gridpoints = [];
@@ -305,13 +307,13 @@ class Grid
         all_gridpoints = shuffle(all_gridpoints, this.rng)    
                 
         for(let i=0;i<all_gridpoints.length;i++)                
-            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i])                                
+            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i])
         return "Perfectly mixed the grid"
     }
     
     plotArray(graph_labels,graph_values,cols,title,opts)
     {        
-        
+        if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {     
             cols = parseColours(cols)            
@@ -337,6 +339,7 @@ class Grid
 
     plotXY(graph_labels,graph_values,cols,title,opts)
     {
+        if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {
             cols = parseColours(cols)                            
@@ -358,6 +361,7 @@ class Grid
 
     plotPopsizes(property,values)
     {
+        if(typeof window == 'undefined') return
         // Wrapper for plotXY function, which expects labels, values, colours, and a title for the plot:
         // Labels
         let graph_labels = []
@@ -451,7 +455,7 @@ class Grid
     }
 }
 
-export default Grid
+export default GridModel
 
 
 

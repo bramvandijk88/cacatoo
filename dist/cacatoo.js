@@ -128,7 +128,7 @@ class ODE
 }
 
 // Class definition
-class Grid
+class GridModel
 {
     // Constructor
     constructor(name, config, rng)
@@ -228,6 +228,7 @@ class Grid
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc,this.nr);               // New state == empty grid
+        
         for(let i=0;i<this.nc;i++)
         {    
             for(let j=0;j<this.nr;j++)
@@ -237,8 +238,8 @@ class Grid
                 this.grid[i][j] = oldstate[i][j];                // Reset this.grid to old state
             }
         }
-        this.grid = newstate;      
-        this.time++;          
+        this.grid = newstate;
+        this.time++;
     }
     
     apply_sync(func)
@@ -361,14 +362,14 @@ class Grid
         else return this.grid[x][y]
     }
 
-    setGridpoint(i,j,neigh)
+    setGridpoint(i,j,gp)
     {
         let x = i;
         if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
         let y = j;
         if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
         if(x<0||y<0||x>=this.nc||y>=this.nr) this.grid[x][y] = undefined;    // TODO!!!!!!!! Return border-state instead!
-        else this.grid[x][y] = neigh;
+        else this.grid[x][y] = gp;
     }
 
     
@@ -420,6 +421,7 @@ class Grid
         }        
     }
 
+
     perfectMix()
     {
         let all_gridpoints = [];
@@ -430,13 +432,13 @@ class Grid
         all_gridpoints = shuffle(all_gridpoints, this.rng);    
                 
         for(let i=0;i<all_gridpoints.length;i++)                
-            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i]);                                
+            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i]);
         return "Perfectly mixed the grid"
     }
     
     plotArray(graph_labels,graph_values,cols,title,opts)
     {        
-        
+        if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {     
             cols = parseColours(cols);            
@@ -462,6 +464,7 @@ class Grid
 
     plotXY(graph_labels,graph_values,cols,title,opts)
     {
+        if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {
             cols = parseColours(cols);                            
@@ -483,6 +486,7 @@ class Grid
 
     plotPopsizes(property,values)
     {
+        if(typeof window == 'undefined') return
         // Wrapper for plotXY function, which expects labels, values, colours, and a title for the plot:
         // Labels
         let graph_labels = [];
@@ -692,13 +696,11 @@ class Canvas
         this.grid = grid;
         this.property = prop;
         this.height = height;
-        this.width = width; 
-        
-        
-        this.scale = scale;
-        
+        this.width = width;             
+        this.scale = scale;        
 
-        if( typeof document !== "undefined" ){              // In browser, crease a new HTML canvas-element to draw on 
+        if( typeof document !== "undefined" )                       // In browser, crease a new HTML canvas-element to draw on 
+        {              
             this.elem = document.createElement("canvas");
             this.titlediv = document.createElement("div");
             this.titlediv.innerHTML = "<font size = 2>"+this.label+"</font>";
@@ -709,19 +711,9 @@ class Canvas
             this.elem.height = this.height*this.scale;   
             this.canvasdiv.appendChild(this.elem);
             this.canvasdiv.appendChild(this.titlediv);
-            // document.body.appendChild(this.elem)         
-            document.getElementById("canvas_holder").appendChild(this.canvasdiv);
-            
+            document.getElementById("canvas_holder").appendChild(this.canvasdiv);            
             this.ctx = this.elem.getContext("2d");
-	    	this.ctx.lineWidth = 1;
-            this.ctx.fillStyle = "#AAAAAA";
-            this.ctx.fillRect(0, 0, this.width*this.scale, this.height*this.scale);
-            this.ctx.strokeRect(0, 0, this.width*this.scale, this.height*this.scale);
-        } 
-        else 
-        {                                            // In nodejs, use canvas package. Not yet implemented
-            console.log("WARNING: No canvas available in NodeJS-mode (yet)");
-		}
+        }
 		
     }
     
@@ -743,11 +735,10 @@ class Canvas
             for(let j=0;j<nrow;j++)     // j are rows
             {                             
                 let state = this.grid.statecolours[prop];                            
-                if (!(prop in this.grid.grid[i][j])) continue
+                if (!(prop in this.grid.grid[i][j])) continue   // Add warning?
                 let value = this.grid.grid[i][j][prop];
-                
-                
-                if(state[value] == undefined)        // Don't draw the background state
+                                
+                if(state[value] == undefined)                   // Don't draw the background state
                     continue
                 
                 let idx;
@@ -776,52 +767,249 @@ class Canvas
     }
 }
 
+/*
+  I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
+  so it's better encapsulated. Now you can have multiple random number generators
+  and they won't stomp all over eachother's state.
+  
+  If you want to use this as a substitute for Math.random(), use the random()
+  method like so:
+  
+  var m = new MersenneTwister();
+  var randomNumber = m.random();
+  
+  You can also call the other genrand_{foo}() methods on the instance.
+  If you want to use a specific seed in order to get a repeatable random
+  sequence, pass an integer into the constructor:
+  var m = new MersenneTwister(123);
+  and that will always produce the same random sequence.
+  Sean McCullough (banksean@gmail.com)
+*/
+
+/* 
+   A C-program for MT19937, with initialization improved 2002/1/26.
+   Coded by Takuji Nishimura and Makoto Matsumoto.
+ 
+   Before using, initialize the state by using init_genrand(seed)  
+   or init_by_array(init_key, key_length).
+ 
+   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+   All rights reserved.                          
+ 
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+ 
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+ 
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+ 
+     3. The names of its contributors may not be used to endorse or promote 
+        products derived from this software without specific prior written 
+        permission.
+ 
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ 
+   Any feedback is very welcome.
+   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
+   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
+*/
+
+function MersenneTwister(seed) {
+    if (seed == undefined) {
+      seed = new Date().getTime();
+    } 
+    /* Period parameters */  
+    this.N = 624;
+    this.M = 397;
+    this.MATRIX_A = 0x9908b0df;   /* constant vector a */
+    this.UPPER_MASK = 0x80000000; /* most significant w-r bits */
+    this.LOWER_MASK = 0x7fffffff; /* least significant r bits */
+   
+    this.mt = new Array(this.N); /* the array for the state vector */
+    this.mti=this.N+1; /* mti==N+1 means mt[N] is not initialized */
+  
+    this.init_genrand(seed);
+  }  
+   
+  /* initializes mt[N] with a seed */
+  MersenneTwister.prototype.init_genrand = function(s) {
+    this.mt[0] = s >>> 0;
+    for (this.mti=1; this.mti<this.N; this.mti++) {
+        var s = this.mt[this.mti-1] ^ (this.mt[this.mti-1] >>> 30);
+     this.mt[this.mti] = (((((s & 0xffff0000) >>> 16) * 1812433253) << 16) + (s & 0x0000ffff) * 1812433253)
+    + this.mti;
+        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+        /* In the previous versions, MSBs of the seed affect   */
+        /* only MSBs of the array mt[].                        */
+        /* 2002/01/09 modified by Makoto Matsumoto             */
+        this.mt[this.mti] >>>= 0;
+        /* for >32 bit machines */
+    }
+  };
+   
+  /* initialize by an array with array-length */
+  /* init_key is the array for initializing keys */
+  /* key_length is its length */
+  /* slight change for C++, 2004/2/26 */
+  MersenneTwister.prototype.init_by_array = function(init_key, key_length) {
+    var i, j, k;
+    this.init_genrand(19650218);
+    i=1; j=0;
+    k = (this.N>key_length ? this.N : key_length);
+    for (; k; k--) {
+      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
+      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1664525) << 16) + ((s & 0x0000ffff) * 1664525)))
+        + init_key[j] + j; /* non linear */
+      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
+      i++; j++;
+      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
+      if (j>=key_length) j=0;
+    }
+    for (k=this.N-1; k; k--) {
+      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
+      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1566083941) << 16) + (s & 0x0000ffff) * 1566083941))
+        - i; /* non linear */
+      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
+      i++;
+      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
+    }
+  
+    this.mt[0] = 0x80000000; /* MSB is 1; assuring non-zero initial array */ 
+  };
+   
+  /* generates a random number on [0,0xffffffff]-interval */
+  MersenneTwister.prototype.genrand_int32 = function() {
+    var y;
+    var mag01 = new Array(0x0, this.MATRIX_A);
+    /* mag01[x] = x * MATRIX_A  for x=0,1 */
+  
+    if (this.mti >= this.N) { /* generate N words at one time */
+      var kk;
+  
+      if (this.mti == this.N+1)   /* if init_genrand() has not been called, */
+        this.init_genrand(5489); /* a default initial seed is used */
+  
+      for (kk=0;kk<this.N-this.M;kk++) {
+        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
+        this.mt[kk] = this.mt[kk+this.M] ^ (y >>> 1) ^ mag01[y & 0x1];
+      }
+      for (;kk<this.N-1;kk++) {
+        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
+        this.mt[kk] = this.mt[kk+(this.M-this.N)] ^ (y >>> 1) ^ mag01[y & 0x1];
+      }
+      y = (this.mt[this.N-1]&this.UPPER_MASK)|(this.mt[0]&this.LOWER_MASK);
+      this.mt[this.N-1] = this.mt[this.M-1] ^ (y >>> 1) ^ mag01[y & 0x1];
+  
+      this.mti = 0;
+    }
+  
+    y = this.mt[this.mti++];
+  
+    /* Tempering */
+    y ^= (y >>> 11);
+    y ^= (y << 7) & 0x9d2c5680;
+    y ^= (y << 15) & 0xefc60000;
+    y ^= (y >>> 18);
+  
+    return y >>> 0;
+  };
+   
+  /* generates a random number on [0,0x7fffffff]-interval */
+  MersenneTwister.prototype.genrand_int31 = function() {
+    return (this.genrand_int32()>>>1);
+  };
+   
+  /* generates a random number on [0,1]-real-interval */
+  MersenneTwister.prototype.genrand_real1 = function() {
+    return this.genrand_int32()*(1.0/4294967295.0); 
+    /* divided by 2^32-1 */ 
+  };
+
+  /* generates a random int between [min,max] */
+  MersenneTwister.prototype.genrand_int = function(min,max) {
+    return min+Math.floor(this.genrand_real1()*(max));
+  };
+  
+  /* generates a random number on [0,1)-real-interval */
+  MersenneTwister.prototype.random = function() {
+    return this.genrand_int32()*(1.0/4294967296.0); 
+    /* divided by 2^32 */
+  };
+   
+  /* generates a random number on (0,1)-real-interval */
+  MersenneTwister.prototype.genrand_real3 = function() {
+    return (this.genrand_int32() + 0.5)*(1.0/4294967296.0); 
+    /* divided by 2^32 */
+  };
+   
+  /* generates a random number on [0,1) with 53-bit resolution*/
+  MersenneTwister.prototype.genrand_res53 = function() { 
+    var a=this.genrand_int32()>>>5, b=this.genrand_int32()>>>6; 
+    return (a*67108864.0+b)*(1.0/9007199254740992.0); 
+  };
+
 /**
  *  Model is the primary Class of Cacatoo, containing the main configuration  
  *  for making a grid-based model grid and displaying it in either browser or with
  *  nodejs. */
-class Model
+
+class Simulation
 {
     constructor(config)
-    {                  
+    {     
         this.config = config;
         this.rng = new MersenneTwister(config.seed || 53);
         this.sleep = config.sleep || 0;
-        this.fps = config.fps*1.4 || 60; 
+        this.fps = config.fps*1.4 || 60;
         this.limitfps = true;
         if(config.limitfps==false) this.limitfps = false;    
         
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
-        this.grids = [];
-        this.canvases = [];
-        this.graphs = [];
+        this.gridmodels = [];    // modellen?
+        this.canvases = [];          
+        this.graphs = [];   // todo
         this.time=0;
     }
 
-    makeGrid(name)
+    makeGridModel(name)
     {
-        let grid = new Grid(name,this.config,this.rng,this.config.show_gridname);
-        this[name] = grid;
-        this.grids.push(grid);
+        let model = new GridModel(name,this.config,this.rng); // ,this.config.show_gridname weggecomment
+        this[name] = model;           // this = model["cheater"] = CA-obj
+        this.gridmodels.push(model);
     }
 
     displayGrid(name,property,height,width,scale)
     {
-        let label = `${name} (${property})`;
+        let label = `${name} (${property})`; 
         let grid = this[name];
         if(height==undefined) height = grid.nr;
         if(width==undefined) width = grid.nc;
         if(scale==undefined) scale = grid.scale;        
-        let cnv = new Canvas(grid,property,label,height,width,scale);  
+        let cnv = new Canvas(grid,property,label,height,width,scale); 
         this.canvases.push(cnv);
     }
 
     step()
     {        
-        for(let i = 0; i<this.grids.length; i++)
+        for(let i = 0; i<this.gridmodels.length; i++)
         {
-            this.grids[i].update();
-            if(this.mix) this.grids[i].perfectMix();
+            this.gridmodels[i].update();
+            if(this.mix) this.gridmodels[i].perfectMix();            
         }
     }
     
@@ -842,7 +1030,6 @@ class Model
         else this.mix = true;
     }
 
-
     display()
     {
         for(let i = 0; i<this.canvases.length; i++)
@@ -862,7 +1049,7 @@ class Model
             let simStartTime = performance.now();
       
             async function animate()
-            {   
+            {
                 if(model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     if(model.sleep>0) await pause(model.sleep);                                
@@ -875,7 +1062,7 @@ class Model
                         model.step();
                         let endTime = performance.now();            
                         t += (endTime - startTime);                    
-                        model.time++;    
+                        model.time++;
                         if(!model.limitfps) break        
                     }      
                     model.display();
@@ -887,7 +1074,7 @@ class Model
                     model.step();                                    
                     model.display();
                     meter.tick();
-                    model.time++;  
+                    model.time++;
                 }
                 
                 let frame = requestAnimationFrame(animate);        
@@ -913,16 +1100,16 @@ class Model
         }
     }
 
-    initialGrid(grid,property,def_state)
+    initialGrid(grid,property)
     {
         let p = property || 'val';
-        let bg = def_state;
+        let bg = 0;
         
         for(let i=0;i<grid.nc;i++)                          // i are columns
                 for(let j=0;j<grid.nr;j++)                  // j are rows
                     grid.grid[i][j][p] = bg;
         
-        for (let arg=3; arg<arguments.length; arg+=2)       // Parse remaining 2+ arguments to fill the grid           
+        for (let arg=2; arg<arguments.length; arg+=2)         // Parse remaining 2+ arguments to fill the grid           
             for(let i=0;i<grid.nc;i++)                        // i are columns
                 for(let j=0;j<grid.nr;j++)                    // j are rows
                     if(this.rng.random() < arguments[arg+1]) grid.grid[i][j][p] = arguments[arg];                    
@@ -932,11 +1119,11 @@ class Model
     {
         if(typeof window != undefined)
         {
-            for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j][property] = 0;                        
+            for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j][property] = 0;
             let tempcanv = document.createElement("canvas");
             let tempctx = tempcanv.getContext('2d');
-            var tempimg = new Image();                        
-            tempimg.onload = function() 
+            var tempimg = new Image();
+            tempimg.onload = function()
             {                               
                 tempcanv.width = tempimg.width;
                 tempcanv.height = tempimg.height;
@@ -964,7 +1151,7 @@ class Model
 
     addButton(text,func)
     {
-        if(typeof window == undefined) console.error("Buttons can't be added in command-line mode.");
+        if(typeof window == 'undefined') return
         let button = document.createElement("button"); 
         button.innerHTML = text;
         button.addEventListener("click", func, true); 
@@ -973,8 +1160,8 @@ class Model
 
     addSlider(parameter,min=0.0,max=2.0,step=0.01)
     {
-        if(typeof window == undefined) console.warn("Sliders can't be added in command-line mode.");
-        if(window[parameter] == undefined) {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
+        if(typeof window == "undefined") return
+        if(window[parameter] == "undefined") {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
         let container = document.createElement("div");
         container.classList.add("form-container");
         let slider = document.createElement("input"); 
@@ -1089,4 +1276,4 @@ function get2DFromCanvas(canvas)
     return arr2D
 }
 
-module.exports = Model;
+module.exports = Simulation;

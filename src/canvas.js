@@ -6,13 +6,11 @@ class Canvas
         this.grid = grid
         this.property = prop
         this.height = height
-        this.width = width 
-        
-        
-        this.scale = scale
-        
+        this.width = width             
+        this.scale = scale        
 
-        if( typeof document !== "undefined" ){              // In browser, crease a new HTML canvas-element to draw on 
+        if( typeof document !== "undefined" )                       // In browser, crease a new HTML canvas-element to draw on 
+        {              
             this.elem = document.createElement("canvas")
             this.titlediv = document.createElement("div")
             this.titlediv.innerHTML = "<font size = 2>"+this.label+"</font>"
@@ -23,18 +21,12 @@ class Canvas
             this.elem.height = this.height*this.scale   
             this.canvasdiv.appendChild(this.elem)
             this.canvasdiv.appendChild(this.titlediv)
-            // document.body.appendChild(this.elem)         
-            document.getElementById("canvas_holder").appendChild(this.canvasdiv)
-            
+            document.getElementById("canvas_holder").appendChild(this.canvasdiv)            
             this.ctx = this.elem.getContext("2d")
-	    	this.ctx.lineWidth = 1
-            this.ctx.fillStyle = "#AAAAAA";
-            this.ctx.fillRect(0, 0, this.width*this.scale, this.height*this.scale);
-            this.ctx.strokeRect(0, 0, this.width*this.scale, this.height*this.scale);
         } 
         else 
-        {                                            // In nodejs, use canvas package. Not yet implemented
-            console.log("WARNING: No canvas available in NodeJS-mode (yet)")
+        {   // In nodejs, use canvas package. Not yet implemented
+            
 		}
 		
     }
@@ -57,11 +49,10 @@ class Canvas
             for(let j=0;j<nrow;j++)     // j are rows
             {                             
                 let state = this.grid.statecolours[prop]                            
-                if (!(prop in this.grid.grid[i][j])) continue
+                if (!(prop in this.grid.grid[i][j])) continue   // Add warning?
                 let value = this.grid.grid[i][j][prop]
-                
-                
-                if(state[value] == undefined)        // Don't draw the background state
+                                
+                if(state[value] == undefined)                   // Don't draw the background state
                     continue
                 
                 let idx
