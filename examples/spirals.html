@@ -26,6 +26,7 @@ function setup()
     model = new Model(config)
 
     model.makeGrid("colours"); 
+    model.displayGrid("colours","colour")
     let n_species = 8
     
     
@@ -60,13 +61,13 @@ function setup()
         this.plotPopsizes('colour',[1,2,3,4,5,6,7,8]) 
 		
 		// change stuff below to model.colours.drawslide("name")
-		//let canvas = model.colours.canvas.elem // Grab the canvas element
-		//let timestamp = model.time.toString()
-		//timestamp = timestamp.padStart(5, "0")
-		//canvas.toBlob(function(blob) 
-		//{
-		//	saveAs(blob, "my_slide"+timestamp+".png");
-		//});
+		// let canvas = model.colours.canvas.elem // Grab the canvas element
+		// let timestamp = model.time.toString()
+		// timestamp = timestamp.padStart(5, "0")
+		// canvas.toBlob(function(blob) 
+		// {
+		// 	saveAs(blob, "my_slide"+timestamp+".png");
+		// });
     }
 
     model.start()

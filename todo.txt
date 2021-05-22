@@ -1,15 +1,16 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
+> Is grids[] een Object ipv Array maken (met properties "cheater", "prime") langzamer?
+
+> Remove model as overarching class
 > Spacetime plots
+> Over nadenken: alleen changed pixels tekenen? :)
+> Perfectmix via update_order??
+>> populate grid via dict rather than 1,0.33,2,0.33 etc.
 > Proper ODE state diffusion method (now it's either having edge effects due to sync, or has a random component due to async updating)
 > Add option to deep copy
-> Automate pause / run functionality button (now added manually)
 > Display grid after pattern-load (now it skips :()
 
 Known issues for manual / documentation:
 >> synchronous updating does NOT deep copy by default
 >> asynchronous diffusing models have noise (because... async :P)
-
-
-Common mistake
->> Cannot read property '0' of undefined >> Grid is trying to display a colour that isnt defined

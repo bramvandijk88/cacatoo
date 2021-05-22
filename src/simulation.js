@@ -1,52 +1,55 @@
-import GridSystem from "./grid"
-import Canvas from "./canvas";
+import GridModel from "./gridmodel"
+import Canvas from "./canvas"
+import MersenneTwister from '../lib/mersenne'
+
 
 /**
  *  Model is the primary Class of Cacatoo, containing the main configuration  
  *  for making a grid-based model grid and displaying it in either browser or with
  *  nodejs. */
-class Model
+
+class Simulation
 {
     constructor(config)
-    {                  
+    {     
         this.config = config
         this.rng = new MersenneTwister(config.seed || 53);
         this.sleep = config.sleep || 0
-        this.fps = config.fps*1.4 || 60 
+        this.fps = config.fps*1.4 || 60
         this.limitfps = true
         if(config.limitfps==false) this.limitfps = false    
         
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
-        this.grids = []
-        this.canvases = []
-        this.graphs = []
+        this.gridmodels = []    // modellen?
+        this.canvases = []          
+        this.graphs = []   // todo
         this.time=0
     }
 
-    makeGrid(name)
+    makeGridModel(name)
     {
-        let grid = new GridSystem(name,this.config,this.rng,this.config.show_gridname)
-        this[name] = grid
-        this.grids.push(grid)
+        let model = new GridModel(name,this.config,this.rng) // ,this.config.show_gridname weggecomment
+        this[name] = model           // this = model["cheater"] = CA-obj
+        this.gridmodels.push(model)
     }
 
     displayGrid(name,property,height,width,scale)
     {
-        let label = `${name} (${property})`
+        let label = `${name} (${property})` 
         let grid = this[name]
         if(height==undefined) height = grid.nr
         if(width==undefined) width = grid.nc
         if(scale==undefined) scale = grid.scale        
-        let cnv = new Canvas(grid,property,label,height,width,scale);  
+        let cnv = new Canvas(grid,property,label,height,width,scale); 
         this.canvases.push(cnv)
     }
 
     step()
     {        
-        for(let i = 0; i<this.grids.length; i++)
+        for(let i = 0; i<this.gridmodels.length; i++)
         {
-            this.grids[i].update()
-            if(this.mix) this.grids[i].perfectMix()
+            this.gridmodels[i].update()
+            if(this.mix) this.gridmodels[i].perfectMix()            
         }
     }
     
@@ -67,7 +70,6 @@ class Model
         else this.mix = true;
     }
 
-
     display()
     {
         for(let i = 0; i<this.canvases.length; i++)
@@ -87,7 +89,7 @@ class Model
             let simStartTime = performance.now();
       
             async function animate()
-            {   
+            {
                 if(model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     if(model.sleep>0) await pause(model.sleep)                                
@@ -100,7 +102,7 @@ class Model
                         model.step();
                         let endTime = performance.now();            
                         t += (endTime - startTime);                    
-                        model.time++    
+                        model.time++
                         if(!model.limitfps) break        
                     }      
                     model.display()
@@ -109,10 +111,10 @@ class Model
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
                     meter.tickStart()
-                    model.step();                                    
+                    model.step()                                    
                     model.display()
                     meter.tick()
-                    model.time++  
+                    model.time++
                 }
                 
                 let frame = requestAnimationFrame(animate);        
@@ -138,16 +140,16 @@ class Model
         }
     }
 
-    initialGrid(grid,property,def_state)
+    initialGrid(grid,property)
     {
         let p = property || 'val'
-        let bg = def_state
+        let bg = 0
         
         for(let i=0;i<grid.nc;i++)                          // i are columns
                 for(let j=0;j<grid.nr;j++)                  // j are rows
                     grid.grid[i][j][p] = bg
         
-        for (let arg=3; arg<arguments.length; arg+=2)       // Parse remaining 2+ arguments to fill the grid           
+        for (let arg=2; arg<arguments.length; arg+=2)         // Parse remaining 2+ arguments to fill the grid           
             for(let i=0;i<grid.nc;i++)                        // i are columns
                 for(let j=0;j<grid.nr;j++)                    // j are rows
                     if(this.rng.random() < arguments[arg+1]) grid.grid[i][j][p] = arguments[arg];                    
@@ -157,11 +159,11 @@ class Model
     {
         if(typeof window != undefined)
         {
-            for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j][property] = 0                        
+            for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j][property] = 0
             let tempcanv = document.createElement("canvas")
             let tempctx = tempcanv.getContext('2d')
-            var tempimg = new Image();                        
-            tempimg.onload = function() 
+            var tempimg = new Image()
+            tempimg.onload = function()
             {                               
                 tempcanv.width = tempimg.width
                 tempcanv.height = tempimg.height
@@ -189,7 +191,7 @@ class Model
 
     addButton(text,func)
     {
-        if(typeof window == undefined) console.error("Buttons can't be added in command-line mode.")
+        if(typeof window == 'undefined') return
         let button = document.createElement("button") 
         button.innerHTML = text;
         button.addEventListener("click", func, true); 
@@ -198,8 +200,8 @@ class Model
 
     addSlider(parameter,min=0.0,max=2.0,step=0.01)
     {
-        if(typeof window == undefined) console.warn("Sliders can't be added in command-line mode.")
-        if(window[parameter] == undefined) {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
+        if(typeof window == "undefined") return
+        if(window[parameter] == "undefined") {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
         let container = document.createElement("div")
         container.classList.add("form-container")
         let slider = document.createElement("input") 
@@ -277,7 +279,7 @@ class Model
     }    
 }
 
-export default Model
+export default Simulation
 
 /**
 * Delay for a number of milliseconds
