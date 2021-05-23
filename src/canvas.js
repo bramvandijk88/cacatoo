@@ -48,18 +48,19 @@ class Canvas
         {
             for(let j=0;j<nrow;j++)     // j are rows
             {                             
-                let state = this.grid.statecolours[prop]                            
-                if (!(prop in this.grid.grid[i][j])) continue   // Add warning?
-                let value = this.grid.grid[i][j][prop]
-                                
-                if(state[value] == undefined)                   // Don't draw the background state
-                    continue
+                let statecols = this.grid.statecolours[prop]  
                 
+                if (!(prop in this.grid.grid[i][j])) continue   // Add warning?
+
+                let value = this.grid.grid[i][j][prop]
+                
+                if(statecols[value] == undefined)                   // Don't draw the background state
+                    continue
                 let idx
-                if (state.constructor == Object) {
-                    idx = state[value]
+                if (statecols.constructor == Object) {
+                    idx = statecols[value]
                 }
-                else idx = state
+                else idx = statecols
                 
                 for(let n=0;n<scale;n++)
                 {

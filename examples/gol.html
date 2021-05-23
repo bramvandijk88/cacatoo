@@ -6,7 +6,7 @@
 <script>
 /*-----------------------Start user-defined code ---------------------*/
 
-let model;
+let sim;
 
 function setup()
 {
@@ -21,21 +21,20 @@ function setup()
             nrow : 170,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]   
             scale : 2,				    // scale of the grid (nxn pixels per CA cell)
-            statecolours: {'alive':'white'},    // Only defining the "alive" state, while...
-            skipbg_state: true                  // ...not drawing the BG state (0) on the grid
+            statecolours: {'alive':{1:'white'}},    // Only defining the "alive" state, while...
     }
 
-    model = new Model(config)
+    sim = new Simulation(config)
 
-    model.makeGrid("gol");    
-    //model.initialPattern(model.gol, 'alive', 'patterns/glider.png', 10, 10)
-    model.initialGrid(model.gol,'alive',0,1,0.5)        
-    //model.initialPattern(model.gol, 'alive', './patterns/elephant_cacatoo.png', 115, 115)
+    sim.makeGridModel("gol");  
+        
+    sim.initialGrid(sim.gol,'alive',1,0.5)        
+    sim.displayGrid("gol","alive")
     
-    model.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
+    sim.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
         // Count living neighbours
-        let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
+        let neighbours = sim.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this CA count # of 1's for the 'alive' property        
         // Get own state
         let state = this.grid[i][j].alive;            
         // Apply the three rules of GoL
@@ -49,15 +48,15 @@ function setup()
             this.grid[i][j].alive = state;
     }
     
-    model.gol.update = function()
+    sim.gol.update = function()
     {                                
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
     }
 
-    model.addPauseButton()
-    model.addPatternButton(model.gol,'alive')
-    
-    model.start()
+    sim.addPatternButton(sim.gol,'alive')
+    sim.addButton("pause/continue",function() { sim.toggle_play()})
+    sim.addButton("step",function() { sim.step(); sim.display()})
+    sim.start()
 
 }
 
@@ -69,7 +68,7 @@ function setup()
 
 
 <body onload="setup()">        
-    <div class="header" id="header"><h2>ModelJS - </h2></div>
+    <div class="header" id="header"><h2>Cacatoo </h2></div>
     <div class="content" id="canvas_holder"></div>
     <div class="content" id="form_holder"></div>
     <div class="content" id="graph_holder"> </div>
