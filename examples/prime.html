@@ -1,3 +1,12 @@
+<!-- 
+This file shows the most easy use-case for the Cacatoo library. 
+It simply load the library and other dependencies using <script>
+tags, load some CSS-stylesheets for the GUI, and than starts 
+with defining the sim. 
+-->
+
+<!--  ---------------Do not change the part below ------------------  -->
+
 <html>
 <script src="../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
 <script src="../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
@@ -6,7 +15,7 @@
 <script>
 /*-----------------------Start user-defined code ---------------------*/
 
-let model;
+let simulation;
 
 function setup()
 {
@@ -21,31 +30,34 @@ function setup()
             fastmode: true,                           // Ironically, to slow down the FPS, you have to be in fast mode :D            
             wrap : [true, true],                      // Wrap boundary [COLS, ROWS]
             scale : 2,				                  // scale of the grid (nxn pixels per grid cell)
-            statecolours: {'alive':'white'}                 // States as shown on coloured pixels on canvas, can be either a single value or a dictionary of key,value pairs
+            statecolours: {'alive':{1:'white'}},    // Only defining the "alive" state, while...
     }
 
-    model = new Model(config)             // Initialise a new Model instance with configuration given above
+    sim = new Simulation(config)             // Initialise a new sim instance with configuration given above
     
-    model.makeGrid("prime");         
+    sim.makeGridModel("prime");         
+    sim.createDisplay("prime","alive")
     
-    // Note to user: initialPattern may have issues with your browser security. If so, either select your own pattern using the pattern button (which is added in this example below), or start a local webserver (most browsers have free plugins for this)    
-    model.initialPattern(model.prime, 'alive', '../patterns/elephant_cacatoo.png', 115, 115)
+    // Note to user: initialPattern is disabled, as it requirs a webserver for security reasons. Use the pattern button instead. 
+    // sim.initialPattern(sim.prime, 'alive', '../patterns/elephant_cacatoo.png', 115, 115)
     
-    model.prime.nextState = function(i,j)                         // Define the next-state function. This example is modulo prime
+    sim.prime.nextState = function(i,j)                         // Define the next-state function. This example is modulo prime
     {
         this.grid[i][j].alive = (this.countMoore8(this,i,j,1,'alive')%2==0 ? 0 : 1)
     }
 
 
-    model.prime.update = function()
+    sim.prime.update = function()
     {        
         this.synchronous()        
     }  
 
     // Adds a pattern load button
-    model.addPatternButton(model.prime,'alive')    
-                               
-    model.start()  
+    sim.addPatternButton(sim.prime,'alive')    
+    sim.addButton("pause/continue",function() { sim.toggle_play()})    
+    sim.addButton("step",function() { sim.step(); sim.display()})
+    sim.pause = true
+    sim.start()
 }
 
 </script>
@@ -53,7 +65,7 @@ function setup()
 
 
 <body onload="setup()">        
-    <div class="header" id="header"><h2>ModelJS - </h2></div>
+    <div class="header" id="header"><h2>Cacatoo</h2></div>
 
     <div class="content" id="canvas_holder"></div>
     <div class="content" id="form_holder"></div>    

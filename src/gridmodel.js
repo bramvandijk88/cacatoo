@@ -18,8 +18,6 @@ class GridModel
         this.rng = rng
         this.statecolours = this.setupColours(config.statecolours);
         this.scale = config.scale || 1
-        
-
         this.graphs = {}
         this.graph_update = config.graph_update || 20
         this.graph_interval = config.graph_interval || 2

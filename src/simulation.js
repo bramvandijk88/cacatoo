@@ -4,12 +4,17 @@ import MersenneTwister from '../lib/mersenne'
 
 
 /**
- *  Model is the primary Class of Cacatoo, containing the main configuration  
+ *  Simulation is the global Class of Cacatoo, containing the main configuration  
  *  for making a grid-based model grid and displaying it in either browser or with
- *  nodejs. */
-
+ *  nodejs. 
+ */
 class Simulation
 {
+    /**
+    *  The constructor function for a @Simulation object. Takes a config dictionary.
+    *  and sets options accordingly.  
+    *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo simulation. 
+    */
     constructor(config)
     {     
         this.config = config
@@ -20,20 +25,33 @@ class Simulation
         if(config.limitfps==false) this.limitfps = false    
         
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
-        this.gridmodels = []    // modellen?
-        this.canvases = []          
+        this.gridmodels = []
+        this.canvases = []
         this.graphs = []   // todo
         this.time=0
     }
 
+    /**
+    *  Generate a new GridModel within this simulation.  
+    *  @param {string} name The name of your new model, e.g. "gol" for game of life. Cannot contain whitespaces. 
+    */
     makeGridModel(name)
     {
+        if(name.indexOf(' ') >= 0) throw new Error("The name of a gridmodel cannot contain whitespaces.")
         let model = new GridModel(name,this.config,this.rng) // ,this.config.show_gridname weggecomment
         this[name] = model           // this = model["cheater"] = CA-obj
         this.gridmodels.push(model)
     }
 
-    displayGrid(name,property,height,width,scale)
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} property The name of the property to display
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+    createDisplay(name,property,height,width,scale)
     {
         let label = `${name} (${property})` 
         let grid = this[name]
@@ -41,41 +59,46 @@ class Simulation
         if(width==undefined) width = grid.nc
         if(scale==undefined) scale = grid.scale        
         let cnv = new Canvas(grid,property,label,height,width,scale); 
+        cnv.displaygrid()
         this.canvases.push(cnv)
     }
 
+    /**
+    * Update all the grid models one step. Apply optional mixing
+    */
     step()
     {        
         for(let i = 0; i<this.gridmodels.length; i++)
-        {
             this.gridmodels[i].update()
+    }
+
+    /**
+    * Apply global events to all grids in the model. 
+    * (only perfectmix currently... :D)
+    */
+    events()
+    {        
+        for(let i = 0; i<this.gridmodels.length; i++)
+        {
             if(this.mix) this.gridmodels[i].perfectMix()            
         }
     }
-    
-    stop()
-    {
-        model.pause=true
-    }
 
-    toggle_play()
-    {
-        if(this.pause)  this.pause=false;         
-        else this.pause = true;
-        if(!this.pause) this.start()
-    }
-    toggle_mix()
-    {
-        if(this.mix)  this.mix=false;         
-        else this.mix = true;
-    }
-
+    /**
+     *  Display all the canvases linked to this simulation
+     */
     display()
     {
         for(let i = 0; i<this.canvases.length; i++)
             this.canvases[i].displaygrid()
     }
 
+    /**
+     *  Start the simulation. start() detects whether the user is running the code from the browser of
+     *  in nodejs. In the browser, a GUI is provided to interact with the model. In nodejs the 
+     *  programmer can simply wait for the result without wasting time on displaying intermediate stuff 
+     *  (which can be slow)
+     */
     start()
     {        
         let model = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
@@ -99,7 +122,8 @@ class Simulation
                     while(t<16.67*60/model.fps)          //(t < 16.67) results in 60 fps if possible
                     {
                         let startTime = performance.now();
-                        model.step();
+                        model.step()
+                        model.events()
                         let endTime = performance.now();            
                         t += (endTime - startTime);                    
                         model.time++
@@ -140,6 +164,17 @@ class Simulation
         }
     }
 
+    /**
+     *  initialGrid populates a grid with states. The number of arguments 
+     *  is flexible and defined the percentage of every state. For example,
+     *  initialGrid('grid','species',1,0.5,2,0.25) populates the grid with 
+     *  two species (1 and 2), where species 1 occupies 50% of the grid, and
+     *  species 2 25%. 
+     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+     *  @param {String} property The name of the state to be set 
+     *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
+     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
+     */
     initialGrid(grid,property)
     {
         let p = property || 'val'
@@ -155,40 +190,12 @@ class Simulation
                     if(this.rng.random() < arguments[arg+1]) grid.grid[i][j][p] = arguments[arg];                    
     }
 
-    initialPattern(grid,property,image_path, x, y)
-    {
-        if(typeof window != undefined)
-        {
-            for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j][property] = 0
-            let tempcanv = document.createElement("canvas")
-            let tempctx = tempcanv.getContext('2d')
-            var tempimg = new Image()
-            tempimg.onload = function()
-            {                               
-                tempcanv.width = tempimg.width
-                tempcanv.height = tempimg.height
-                tempctx.drawImage(tempimg,0,0);
-                let grid_data = get2DFromCanvas(tempcanv)                                                        
-                if(x+tempimg.width >= grid.nc || y+tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")                
-                for(let i=0;i<grid_data[0].length;i++)         // i are columns
-                for(let j=0;j<grid_data.length;j++)     // j are rows
-                {                       
-                    grid.grid[x+i][y+j][property] = grid_data[j][i]
-                }                
-                grid.displaygrid()              
-            }                
-            
-            tempimg.src=image_path   
-            tempimg.crossOrigin="anonymous"
-            
-        }
-        else
-        {
-            console.error("initialPattern currently only supported in browser-mode")
-        }
-        
-    }
-
+    
+    /**
+     *  addButton adds a HTML button which can be linked to a function by the user. 
+     *  @param {string} text Text displayed on the button
+     *  @param {function} func Function to be linked to the button
+     */
     addButton(text,func)
     {
         if(typeof window == 'undefined') return
@@ -197,7 +204,15 @@ class Simulation
         button.addEventListener("click", func, true); 
         document.getElementById("form_holder").appendChild(button)                   
     }
-
+    
+    /**
+     *  addSlider adds a HTML slider to the DOM-environment which allows the user
+     *  to modify a model parameter at runtime. 
+     *  @param {string} parameter The name of the (global!) parameter to link to the slider
+     *  @param {float} [min] Minimal value of the slider
+     *  @param {float} [max] Maximum value of the slider
+     *  @param {float} [step] Step-size when modifying
+     */
     addSlider(parameter,min=0.0,max=2.0,step=0.01)
     {
         if(typeof window == "undefined") return
@@ -225,11 +240,19 @@ class Simulation
         document.getElementById("form_holder").appendChild(container)                   
     }
 
-    addPatternButton(targetgrid, property)
+    /**
+     *  addPatternButton adds a pattern button to the HTML environment which allows the user
+     *  to load a PNG which then sets the state of 'proparty' for the @GridModel. 
+     *  (currently only supports black and white image)
+     *  @param {@GridModel} targetgrid The gridmodel containing the grid to be modified. 
+     *  @param {String} property The name of the state to be set 
+     */
+    addPatternButton(targetgrid,property)
     {        
         let imageLoader = document.createElement("input") 
         imageLoader.type  = "file"       
         imageLoader.id = "imageLoader"
+        let sim = this
         imageLoader.style="display:none"
         imageLoader.name="imageLoader"
         document.getElementById("form_holder").appendChild(imageLoader)
@@ -264,28 +287,92 @@ class Simulation
                     {                                     
                         grid.grid[Math.floor(i+grid.nc/2-img.width/2)][Math.floor(j+grid.nr/2-img.height/2)][property] = grid_data[j][i]
                     }
-                     
+                    sim.display()
                     
                 }
                 img.src = event.target.result;
+                
             }              
             reader.readAsDataURL(e.target.files[0]);
             document.getElementById("imageLoader").value = "";
-    }
-
+        }
     imageLoader.addEventListener('change', handleImage, false);
     imageLoader.grid = targetgrid    // Bind a grid to imageLoader 
-    imageLoader.property = property
-    }    
+    }   
+
+    /**
+     *  initialPattern takes a @GridModel and loads a pattern from a PNG file. Note that this
+     *  will only work when Cacatoo is ran on a server due to security issues. If you want to
+     *  use this feature locally, there are plugins for most browser to host a simple local
+     *  webserver. 
+     *  (currently only supports black and white image)
+     */
+     initialPattern(grid,property,image_path, x, y)
+     {
+         let sim = this
+         if(typeof window != undefined)
+         {
+             for(let i=0;i<grid.nc;i++) for(let j=0;j<grid.nr;j++) grid.grid[i][j][property] = 0
+             let tempcanv = document.createElement("canvas")
+             let tempctx = tempcanv.getContext('2d')
+             var tempimg = new Image()
+             tempimg.onload = function()
+             {                               
+                 tempcanv.width = tempimg.width
+                 tempcanv.height = tempimg.height
+                 tempctx.drawImage(tempimg,0,0);
+                 let grid_data = get2DFromCanvas(tempcanv)                                                        
+                 if(x+tempimg.width >= grid.nc || y+tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")                
+                 for(let i=0;i<grid_data[0].length;i++)         // i are columns
+                 for(let j=0;j<grid_data.length;j++)     // j are rows
+                 {                       
+                     grid.grid[x+i][y+j][property] = grid_data[j][i]
+                 }                
+                 sim.display()         
+             }                
+             
+             tempimg.src=image_path   
+             tempimg.crossOrigin="anonymous"
+             
+         }
+         else
+         {
+             console.error("initialPattern currently only supported in browser-mode")
+         }
+         
+    }
+
+    /**
+     *  Toggle the mix option
+     */
+    toggle_mix()
+    {
+        if(this.mix)  this.mix=false;         
+        else this.mix = true;
+    } 
+
+    /**
+     *  Toggle the pause option. Restart the model if pause is disabled. 
+     */  
+    toggle_play()
+    {
+        if(this.pause)  this.pause=false;         
+        else this.pause = true;
+        if(!this.pause) this.start()
+    }
 }
 
 export default Simulation
 
+
 /**
-* Delay for a number of milliseconds
+* Below are a few global functions that are used by Simulation classes, but not a method of a Simulation instance per se
 */
+
+//Delay for a number of milliseconds
 const pause = (timeoutMsec) => new Promise(resolve => setTimeout(resolve,timeoutMsec))
 
+//Reconstruct a 2D array based on the canvas
 function get2DFromCanvas(canvas)
 {
     let width = canvas.width

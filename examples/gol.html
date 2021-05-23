@@ -1,9 +1,18 @@
+<!-- 
+This file shows the most easy use-case for the Cacatoo library. 
+It simply load the library and other dependencies using <script>
+tags, load some CSS-stylesheets for the GUI, and than starts 
+with defining the model. 
+-->
+
+<!--  ---------------Do not change the part below ------------------  -->
+
 <html>
 <script src="../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
 <script src="../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
 <link rel="stylesheet" href="../style/cacatoo.css">        <!-- Set style sheet -->
-
 <script>
+
 /*-----------------------Start user-defined code ---------------------*/
 
 let sim;
@@ -29,7 +38,7 @@ function setup()
     sim.makeGridModel("gol");  
         
     sim.initialGrid(sim.gol,'alive',1,0.5)        
-    sim.displayGrid("gol","alive")
+    sim.createDisplay("gol","alive")        // Sets up the display to be shown when the model is running
     
     sim.gol.nextState = function(i,j)       // Define the next-state function. This example is game of life
     {   
