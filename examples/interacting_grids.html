@@ -6,34 +6,38 @@
 <script>
 /*-----------------------Start user-defined code ---------------------*/
 
-let model;
+let sim;
 
 function setup()
 {
 
     let config = {
             title: "Interacting grids",
+            description: "An example of how you can make grids interact.<br> GoL (left-hand side, purple) influences vote (right-hand side) to vote blue",
             maxtime: 10000,
-            ncol : 100,    
+            ncol : 200,    
             fastmode : true,        
             nrow : 100,		            // dimensions of the grid to build
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]
             scale : 3,				    // scale of the grid (nxn pixels per grid cell)
-            statecolours: {'alive':{0:'black',1:'#FF00AA'},'left':{1:'blue',2:'red'}}
+            statecolours: {'alive':{0:'black',1:'#FF00AA'},
+                           'left':{1:'blue',2:'red'}}
             }
 
-    model = new Model(config)
+    sim = new Simulation(config)
 
-    model.makeGrid("gol");    
-    model.initialGrid(model.gol,'alive',0,1,0.1)        
+    sim.makeGridModel("gol");    
+    sim.initialGrid(sim.gol,'alive',1,0.1)        
+    sim.createDisplay("gol","alive")
 
-    model.makeGrid("vote");
-    model.initialGrid(model.vote,'left',2,1,0.5)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+    sim.makeGridModel("vote");
+    sim.initialGrid(sim.vote,'left',1,0.5)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+    sim.createDisplay("vote","left")
 
-    model.gol.nextState = function(i,j)                 // Define the next-state function. This example is game of life + vote
+    sim.gol.nextState = function(i,j)                 // Define the next-state function. This example is game of life + vote
     {   
         // Count living neighbours
-        let neighbours = model.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
+        let neighbours = sim.gol.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
         // Get own state
         let state = this.grid[i][j].alive;            
         // Apply the three rules of GoL
@@ -47,27 +51,27 @@ function setup()
             this.grid[i][j].alive = state;
     }
         
-    model.vote.nextState = function(i,j)       // Define the next-state function. This example is game of shmife
+    sim.vote.nextState = function(i,j)       // Define the next-state function. This example is game of shmife
     {           
         //Count living neighbours. countMoore9 is self-inclusive
-        let neighbours = model.vote.countMoore9(this,i,j,1,'left')
-        let gol_neighbours = model.vote.countMoore9(model.gol,i,j,1,'alive')
+        let neighbours = sim.vote.countMoore9(this,i,j,1,'left')
+        let gol_neighbours = sim.vote.countMoore9(sim.gol,i,j,1,'alive')
         if(neighbours+gol_neighbours > 4)
             this.grid[i][j].left = 1    // If majority votes left, this position also votes left
         else
             this.grid[i][j].left = 2    // If majority votes right, this position also votes right
     }
 
-    for(grid of model.grids)
+    for(model of sim.gridmodels)
     {
-        grid.update = function() // Give each grid the same update steps (update grid, then display)
+        model.update = function() // Give each grid the same update steps (update grid, then display)
         {
             this.synchronous()
         }
     }
 
     
-    model.start()
+    sim.start()
 }
 
 </script>

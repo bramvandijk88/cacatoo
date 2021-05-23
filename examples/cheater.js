@@ -4,7 +4,7 @@ if(typeof window == "undefined") Simulation = require('../dist/cacatoo.js') // L
 let sim;
 var X2Y =1.0                    // Using var instead of let, so I can access it with sliders
 var Y2X =1.0                    // Using var instead of let, so I can access it with sliders
-var Y2Z =1.2                    // Using var instead of let, so I can access it with sliders
+var Y2Z =0.8                    // Using var instead of let, so I can access it with sliders
 var NON=1.0                     // Using var instead of let, so I can access it with sliders
 var death=0.2                   // Using var instead of let, so I can access it with sliders
 let mdif_interval=5
@@ -14,11 +14,11 @@ function setup()
 {    
     
     let config = {
-            title: "<span style=\"padding:5px;border-radius: 8px 0px 8px 0px;background:#dddddd;color:red\">Mutualists</span> and <span style=\"color: blue\">Cheaters</span>",
+            title: "Mutualists and cheaters",
             description: "",
             maxtime: 100000,
-            ncol : 200,            
-            nrow : 200,		                                        // dimensions of the grid to build
+            ncol : 150,            
+            nrow : 150,		                                        // dimensions of the grid to build
             seed : 56,  
             fps : 60,                                                // Note: FPS can only be set in fastmode
             fastmode: true,                                                        
@@ -37,9 +37,9 @@ function setup()
     sim.makeGridModel("cheater")                                               // Make a new grid named cheater
     sim.initialGrid(sim.cheater,'species',1,0.33,2,0.33,3,0.33)         // Place 'species' in grid points (one third 1, one third 2, one third 3)            
 
-    sim.displayGrid("cheater","species")                                  // Display the 'species' property of the cheater grid
-    sim.displayGrid("cheater","alive")                                    // Display the 'alive' property of the cheater grid
-    sim.displayGrid("cheater","species",20,20,20)                         // Display the 'species' property of a small bit of the grid
+    sim.createDisplay("cheater","species")                                  // Display the 'species' property of the cheater grid
+    sim.createDisplay("cheater","alive")                                    // Display the 'alive' property of the cheater grid
+    sim.createDisplay("cheater","species",20,20,15)                         // Display the 'species' property of a small bit of the grid
     
 
     sim.cheater.nextState = function(i,j)                                 // Define the next-state function. This example is two mutualists and a cheater

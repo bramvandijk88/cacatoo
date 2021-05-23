@@ -7,7 +7,7 @@
 <script>
 /*-----------------------Start user-defined code ---------------------*/
 
-let model;
+let sim;
 
 function setup()
 {
@@ -24,13 +24,13 @@ function setup()
                    // colourRamp extrapolates a spectrum of colours between the first and second RGB values
     }
 
-    model = new Model(config)
+    sim = new Simulation(config)
 
-    model.makeGrid("lotka"); 
-    model.lotka.colourRamp('density',[0,0,0],[240,200,0],100)           // Will contain the ODEs, and show the abundance of PREDATORS
-    model.displayGrid('lotka','density')
-    model.makeGrid("prey")
-    model.prey.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
+    sim.makeGridModel("lotka"); 
+    sim.lotka.colourRamp('density',[0,0,0],[240,200,0],100)           // Will contain the ODEs, and show the abundance of PREDATORS
+    sim.createDisplay('lotka','density')
+    sim.makeGridModel("prey")
+    sim.prey.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
 
 
     // Define a basic Lotka Volterra ODE system
@@ -49,25 +49,25 @@ function setup()
     // Attaches an ODE to all gridpoints with initial state = [0,0]. 
     // By default, all ODEs are stored in an array in the grid point, but...
     // If you want to access it by name, you can give a name as the final variable (here lotka)
-    model.lotka.attachODE(LotkaVolterra,init_state,pars,"lotka"); 
+    sim.lotka.attachODE(LotkaVolterra,init_state,pars,"lotka"); 
 
     // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
-    model.lotka.grid[model.lotka.nc/2][model.lotka.nr/2].lotka.state = [10,10]
+    sim.lotka.grid[sim.lotka.nc/2][sim.lotka.nr/2].lotka.state = [10,10]
     
     // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
-    model.lotka.nextState = function(i,j)       // Define the next-state function. 
+    sim.lotka.nextState = function(i,j)       // Define the next-state function. 
     {           
         // 1) ODE integration
         this.grid[i][j].lotka.solve_timestep(0.1)
 
         // 2.a) Diffusion of prey
-        neigh = model.lotka.randomMoore8(this,i,j)          // Diffuse to random grid point to give the system a bit of noise (alternatively, you can diffuse to all)
+        neigh = sim.lotka.randomMoore8(this,i,j)          // Diffuse to random grid point to give the system a bit of noise (alternatively, you can diffuse to all)
         neigh_prey = neigh.lotka.state[0]
         this.grid[i][j].lotka.state[0] += neigh_prey/50
         neigh.lotka.state[0] -= neigh_prey/50
         
         // 2.b) Diffusion of predators
-        neigh = model.lotka.randomMoore8(this,i,j)
+        neigh = sim.lotka.randomMoore8(this,i,j)
         neigh_pred = neigh.lotka.state[1]
         this.grid[i][j].lotka.state[1] += neigh_pred/50
         neigh.lotka.state[1] -= neigh_pred/50
@@ -76,11 +76,11 @@ function setup()
         let prey = Math.max(0,this.grid[i][j].lotka.state[0])       // Amount of prey (continuous variable)
         let pred = Math.max(0,this.grid[i][j].lotka.state[1])       // Amount of pred (continuous variable)
         this.grid[i][j].density = Math.min(Math.floor(pred*15),99)
-        model.prey.grid[i][j].density = Math.min(Math.floor(prey*30),99)        
+        sim.prey.grid[i][j].density = Math.min(Math.floor(prey*30),99)        
     }
 
     
-    model.lotka.update = function()
+    sim.lotka.update = function()
     {
         this.asynchronous()                              // Asynchronous updating due to local diffusion... can be better
         //this.solve_odes(delta_t=0.1)                    //
@@ -110,11 +110,11 @@ function setup()
 
     }
 
-    model.prey.nextState = function(i,j){}              // Normally needs a next-state function, but I'm using the other one to update the (visual) state of this grid
-    model.prey.update = function() {}                   // Empty update function, same reason
+    sim.prey.nextState = function(i,j){}              // Normally needs a next-state function, but I'm using the other one to update the (visual) state of this grid
+    sim.prey.update = function() {}                   // Empty update function, same reason
 
 
-    model.start()
+    sim.start()
 	
 	
 }

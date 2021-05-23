@@ -1,13 +1,18 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
-> Display grid after pattern-load (now it skips :()
+> Fix ODEs in gridpoints example.
+> Do with graphs what I did with canvases (i.e. don't link them to the gridmodel)
 > Spacetime plots
 > Over nadenken: alleen changed pixels tekenen? :)
 > Perfectmix via update_order??
 > populate grid via dict rather than 1,0.33,2,0.33 etc.
 > Proper ODE state diffusion method (now it's either having edge effects due to sync, or has a random component due to async updating)
 > Add option to deep copy
+> Many comments in GoL to explain what is done step by step
 
+
+> Add docstrings to all classes and methods. 
+   > Simulation.js is up to date
 
 Known issues for manual / documentation:
 >> synchronous updating does NOT deep copy by default
