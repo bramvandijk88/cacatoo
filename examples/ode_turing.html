@@ -7,7 +7,7 @@
 <script>
 /*-----------------------Start user-defined code ---------------------*/
 
-let model;
+let sim;
 
 function setup()
 {
@@ -15,50 +15,52 @@ function setup()
     let config = {
             title: "Turing patterns",
             description: "Reaction-diffusion system with short-range activation and long-range inhibition",
-            maxtime: 100000,
+            maxtime: 1000,
             fastmode: true,             
-            ncol : 200,            
-            nrow : 100,		            // dimensions of the grid to build
+            ncol : 100,            
+            nrow : 50,		            // dimensions of the grid to build
             wrap : [true,true],       // Wrap boundary [COLS, ROWS]   
-            scale : 1,				    // scale of the grid (nxn pixels per grid cell
+            scale : 3,				    // scale of the grid (nxn pixels per grid cell
             show_gridname: true,
             graph_interval: 1,
             graph_update: 5
                    // colourRamp extrapolates a spectrum of colours between the first and second RGB values
     }
 
-    model = new Model(config)
+    sim = new Simulation(config)
 
-    model.makeGrid("activator"); 
-    model.activator.colourRamp('density',[0,0,0],[240,200,0],100)           // Will contain the ODEs, and show the abundance of PREDATORS
-    model.makeGrid("inhibitor")
-    model.inhibitor.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
+    sim.makeGridModel("turing") 
+    sim.turing.colourViridis("act", 100)
+    sim.createDisplay('turing','act')
+    // sim.makeGrid("inhibitor")
+    // sim.inhibitor.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
 
 
-    // A self-replicating activator, which also produces a second molecule which inhibits the activator
+    // A self-replicating turing, which also produces a second molecule which inhibits the turing
     let Turing = function(a, b, i,d) { return function(x, y) {
         return [
-            a*y[0] - i * y[1] - d*y[0]*y[0],           // y[0] is the prey which replicates with rate a, and gets consumed by the predator with rate b
-            b*y[0] - i * y[1] - d*y[1]*y[1]                        // y[1] is the predator which consumes prey with rate c, dies naturally with rate d
+            a*y[0] - i * y[1] - d*y[0]*y[0],                        // y[0] is the activating molecule
+            b*y[0] - i * y[1] - d*y[1]*y[1]                         // y[1] is the inhibiting molecule, which inhibits both but is produced by the activating molecule, 
         ]}}
 
-    // Set initial state and parameters
-    let init_state = [0,0]          // y[0],y[1]
-    let pars = [0.5,0.5,0.5,0.05]    // a,b,c,d
+        // Configuration object with initial states, parameters, and diffusion rates
+        let ode_config = { ode_name: "turingeq",
+                       init_states: [0,0],    // y[0] and y[1]
+                       parameters: [0.5,0.5,0.5,0.05],               // a,b,i,d
+                       diffusion_rates: [0.1,0.20]}              // resources diffuse through exteral environment, but internal resources stay put
     
     // Attaches an ODE to all gridpoints with initial state = [0,0]. 
     // By default, all ODEs are stored in an array in the grid point, but...
     // If you want to access it by name, you can give a name as the final variable (here lotka)
-    model.activator.attachODE(Turing,init_state,pars,"turingeq"); 
+    sim.turing.attachODE(Turing,ode_config); 
 
     // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
-    for(let i=0;i<model.activator.nc;i++)    
-            for(let j=0;j<model.activator.nr;j++)
-                //model.activator.grid[model.activator.nc/2][model.activator.nr/2].turingeq.state = [1,0]
-                model.activator.grid[i][j].turingeq.state = [model.rng.genrand_real1(),model.rng.genrand_real1()]
+    for(let i=0;i<sim.turing.nc;i++)    
+            for(let j=0;j<sim.turing.nr;j++)
+                sim.turing.grid[i][j].turingeq.state = [sim.rng.genrand_real1(),sim.rng.genrand_real1()]
     
     // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
-    model.activator.nextState = function(i,j)       // Define the next-state function. 
+    sim.turing.nextState = function(i,j)       // Define the next-state function. 
     {           
         // 1) ODE integration
         this.grid[i][j].turingeq.solve_timestep(1.0,opt_pos=true)
@@ -66,35 +68,14 @@ function setup()
         // 3) Update how this GP is displayed
         let act = Math.max(0.001,this.grid[i][j].turingeq.state[0])       // Amount of prey (continuous variable)
         let inh = Math.max(0.001,this.grid[i][j].turingeq.state[1])       // Amount of pred (continuous variable)
-        this.grid[i][j].density = Math.min(Math.floor(act*250),99)
-        model.inhibitor.grid[i][j].density = Math.min(Math.floor(inh*250),99)        
-    }
+        this.grid[i][j].act = Math.min(Math.floor(act*100),99)
+    }   
 
-    model.activator.diffuse_mols = function(i,j)   // Custom function to diffuse inhibitors / activators
-    {
-        let sum_in_act = 0.0
-        let sum_in_inh = 0.0
-        for(let n=1;n<=4;n++)               // 1 t/m 4 is neuman (North, East, South, West)
-        {            
-            let x = model.activator.moore[n][0]
-            let y = model.activator.moore[n][1]
-            let neigh = model.activator.getGridpoint(x+i,y+j)
-            if(neigh==undefined) continue
-            let neigh_out = neigh.turingeq.state[0]*0.1
-            let neigh_out_inh = neigh.turingeq.state[1]*0.2
-            neigh.turingeq.state[0] = neigh.turingeq.state[0]-neigh_out
-            neigh.turingeq.state[1] = neigh.turingeq.state[1]-neigh_out_inh
-            sum_in_act += neigh_out        
-            sum_in_inh += neigh_out_inh
-        }   
-        model.activator.grid[i][j].turingeq.state[0] += sum_in_act
-        model.activator.grid[i][j].turingeq.state[1] += sum_in_inh
-    }
-
-    model.activator.update = function()
-    {
+    sim.turing.update = function()
+    {        
         this.asynchronous()                              // Asynchronous updating due to local diffusion... can be better
-        this.apply_sync(this.diffuse_mols)               // Note: Synchronous doesnt make deep copies of ODEs (yet), so there's some edge effects
+        this.diffuse_ode_states()
+        // this.apply_sync(this.diffuse_mols)               // Note: Synchronous doesnt make deep copies of ODEs (yet), so there's some edge effects
         let sumact = 0
         let suminh = 0
         let midact = 0
@@ -130,13 +111,8 @@ function setup()
 
     }
 
-    
-
-    model.inhibitor.nextState = function(i,j){}              // Normally needs a next-state function, but I'm using the other one to update the (visual) state of this grid
-    model.inhibitor.update = function() {}                   // Empty update function, same reason
-
-
-    model.start()
+    sim.addButton("mix grid",function() { sim.turing.perfectMix()})
+    sim.start()
 	
 	
 }
@@ -151,6 +127,7 @@ function setup()
 <body onload="setup()">
     <div class="header" id="header"></div>
     <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="form_holder">  </div>
     <div class="content" id="graph_holder"> </div>
     <div class="footer" id="footer"></div>
 </body>

@@ -6,7 +6,7 @@
 <script>
 /*-----------------------Start user-defined code ---------------------*/
 
-let model;
+let sim;
 
 function setup()
 {
@@ -15,8 +15,8 @@ function setup()
             title: "Petridish with local growth",
             description: "",
             maxtime: 1000,
-            fastmode: true,             // If possible, fast-mode will update the model with more than 60 FPS. 
-                                        // Note: fastmode is only useful/recommended if the model can readily run 
+            fastmode: true,             // If possible, fast-mode will update the sim with more than 60 FPS. 
+                                        // Note: fastmode is only useful/recommended if the sim can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
                                         // Nevertheless, the final state of the grid is reaches sooner in real time. 
             ncol : 200,            
@@ -26,38 +26,39 @@ function setup()
             statecolours: {'alive':{1:'#AAAA00'}}   // The background state '0' is never drawn
     }
 
-    model = new Model(config)
+    sim = new Simulation(config)
 
-    model.makeGrid("cells"); 
+    sim.makeGridModel("cells"); 
+    sim.createDisplay("cells","alive")
 
     let birth_rate = 0.25
     let death_rate = 0.01
 
     
-    model.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1
+    sim.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1
     
     
-    model.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
+    sim.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
     {   
         if(this.grid[i][j].alive == 1)
         {
-            if(model.rng.random() < death_rate) this.grid[i][j].alive = 0
+            if(sim.rng.random() < death_rate) this.grid[i][j].alive = 0
         }
         else
         {
-            //let neighbours = model.cells.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
-            let neighbour = model.cells.randomMoore8(this,i,j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
-            if (neighbour.alive == 1 && model.rng.genrand_real1() < birth_rate)                        
+            //let neighbours = sim.cells.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
+            let neighbour = sim.cells.randomMoore8(this,i,j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
+            if (neighbour.alive == 1 && sim.rng.genrand_real1() < birth_rate)                        
                 this.grid[i][j].alive = 1;
         }
     }
     
-    model.cells.update = function()
+    sim.cells.update = function()
     {
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
     }
   
-    model.start()
+    sim.start()
 }
 
 
