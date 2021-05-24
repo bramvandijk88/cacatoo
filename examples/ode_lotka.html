@@ -14,24 +14,24 @@ function setup()
 
     let config = {
             title: "ODEs in gridpoints",
-            description: "Lotka-volterra systems coupled by (stochastic) diffusion",
-            maxtime: 10000,
+            description: "Lotka-volterra systems coupled by diffusion",
+            maxtime: 100000,
             fastmode: false,             
             ncol : 64,            
             nrow : 64,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale : 3				    // scale of the grid (nxn pixels per grid cell
-                   // colourRamp extrapolates a spectrum of colours between the first and second RGB values
+            scale : 3,				    // scale of the grid (nxn pixels per grid cell
     }
-
+    
     sim = new Simulation(config)
-
+    
     sim.makeGridModel("lotka"); 
-    sim.lotka.colourRamp('density',[0,0,0],[240,200,0],100)           // Will contain the ODEs, and show the abundance of PREDATORS
-    sim.createDisplay('lotka','density')
-    sim.makeGridModel("prey")
-    sim.prey.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
-
+        
+    sim.lotka.colourRamp('numpred',200,[0,0,0],[240,200,0])                         // Will contain the ODEs, and show the abundance of PREDATORS
+    sim.lotka.colourRamp('numprey',200,[0,0,0],[148,0,211])                         // Will contain the ODEs, and show the abundance of PREDATORS
+    
+    sim.createDisplay('lotka','numpred')
+    sim.createDisplay('lotka','numprey')
 
     // Define a basic Lotka Volterra ODE system
     // dx/dt = a x - b x y
@@ -42,14 +42,16 @@ function setup()
             c * y[0] * y[1] - d * y[1]          // y[1] is the predator which consumes prey with rate c, dies naturally with rate d
         ]}}
 
-    // Set initial state and parameters
-    let init_state = [0,0]          // y[0],y[1]
-    let pars = [1.5,0.5,0.5,0.5]    // a,b,c,d
-    
+    // Configuration object with initial states, parameters, and diffusion rates
+    let ode_config = { ode_name: "lotka",
+                       init_states: [0,0],               // y[0] and y[1]
+                       parameters: [1.5,0.5,0.5,0.5],    // a, b, c, d
+                       diffusion_rates: [0.1,0.1]}       // diffusion of y[0] and y[1]
+
     // Attaches an ODE to all gridpoints with initial state = [0,0]. 
     // By default, all ODEs are stored in an array in the grid point, but...
     // If you want to access it by name, you can give a name as the final variable (here lotka)
-    sim.lotka.attachODE(LotkaVolterra,init_state,pars,"lotka"); 
+    sim.lotka.attachODE(LotkaVolterra,ode_config); 
 
     // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
     sim.lotka.grid[sim.lotka.nc/2][sim.lotka.nr/2].lotka.state = [10,10]
@@ -59,30 +61,20 @@ function setup()
     {           
         // 1) ODE integration
         this.grid[i][j].lotka.solve_timestep(0.1)
-
-        // 2.a) Diffusion of prey
-        neigh = sim.lotka.randomMoore8(this,i,j)          // Diffuse to random grid point to give the system a bit of noise (alternatively, you can diffuse to all)
-        neigh_prey = neigh.lotka.state[0]
-        this.grid[i][j].lotka.state[0] += neigh_prey/50
-        neigh.lotka.state[0] -= neigh_prey/50
         
-        // 2.b) Diffusion of predators
-        neigh = sim.lotka.randomMoore8(this,i,j)
-        neigh_pred = neigh.lotka.state[1]
-        this.grid[i][j].lotka.state[1] += neigh_pred/50
-        neigh.lotka.state[1] -= neigh_pred/50
        
         // 3) Update how this GP is displayed
         let prey = Math.max(0,this.grid[i][j].lotka.state[0])       // Amount of prey (continuous variable)
         let pred = Math.max(0,this.grid[i][j].lotka.state[1])       // Amount of pred (continuous variable)
-        this.grid[i][j].density = Math.min(Math.floor(pred*15),99)
-        sim.prey.grid[i][j].density = Math.min(Math.floor(prey*30),99)        
+        this.grid[i][j].numpred = Math.min(Math.floor(pred*30),199)
+        this.grid[i][j].numprey = Math.min(Math.floor(prey*30),199)        
     }
 
     
     sim.lotka.update = function()
     {
         this.asynchronous()                              // Asynchronous updating due to local diffusion... can be better
+        this.diffuse_ode_states()       
         //this.solve_odes(delta_t=0.1)                    //
         let sumpred = 0
         let sumprey = 0
@@ -109,10 +101,6 @@ function setup()
                     "ODE states in central grid point")
 
     }
-
-    sim.prey.nextState = function(i,j){}              // Normally needs a next-state function, but I'm using the other one to update the (visual) state of this grid
-    sim.prey.update = function() {}                   // Empty update function, same reason
-
 
     sim.start()
 	
