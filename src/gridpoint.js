@@ -7,7 +7,7 @@ class Gridpoint
         for (var prop in template) 
         {
             this[prop] = template[prop]             // Shallow copy. It's fast, but be careful with syncronous updating!
-            //this[prop] = copy(template[prop])    // Deep copy. Takes much more time, but sometimes you may need this*** 
+            // else this[prop] = copy(template[prop])    // Deep copy. Takes much more time, but sometimes you may need this*** 
         }
     }
 }

@@ -1,6 +1,6 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
-> Fix ODEs in gridpoints example.
+> Fix ODEs in gridpoints example. (halfway, busy with Colourramp fixing)
 > Do with graphs what I did with canvases (i.e. don't link them to the gridmodel)
 > Spacetime plots
 > Over nadenken: alleen changed pixels tekenen? :)

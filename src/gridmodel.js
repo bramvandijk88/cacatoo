@@ -71,19 +71,48 @@ class GridModel
         }       
         return return_dict
     }
-
-    colourRamp(property,arr1, arr2, n)
+    
+    colourViridis(property,n,rev=false)
     {
-        let return_dict = {}
-        return_dict[property] = {}
-        for(let i=0;i<n;i++)
-        {
-            
-            return_dict[property][i] = [Math.floor(arr1[0]+arr2[0]*(i/n)), 
-                                        Math.floor(arr1[1]+arr2[1]*(i/n)), 
-                                        Math.floor(arr1[2]+arr2[2]*(i/n))]
+        if(!rev) this.colourRamp(property,n,[68,1,84],[59,82,139],[33,144,140],[93,201,99],[253,231,37])         // Viridis
+        else this.colourRamp(property,n,[253,231,37],[93,201,99],[33,144,140],[59,82,139],[68,1,84])             // Viridis
+    }
+    // property, n, arr_1, arr_2, ..., arr_n
+    colourRamp(property,n)
+    {
+        let n_arrays = arguments.length-2
+        if(n_arrays <= 1) throw new Error ("colourRamp needs at least 2 arrays")
+        
+        let segment_len = n/(n_arrays-1)
+
+        let color_dict = this.statecolours[property]
+        let total = 0
+        if(typeof color_dict != 'undefined')
+            total = Object.keys(this.statecolours[property]).length
+        else 
+            color_dict = {}
+
+        for(let arr=0;arr<n_arrays-1;arr++)
+        {   
+            let arr1 = arguments[2+arr]
+            let arr2 = arguments[2+arr+1]
+            /// HIER BEN IK MEE BEZIG!!!
+            for(let i=0;i<segment_len;i++)
+            {            
+                let r,g,b
+                if(arr2[0]>arr1[0]) r = Math.floor(arr1[0] + (arr2[0]-arr1[0])*(i/(segment_len-1)))                
+                else r = Math.floor(arr1[0] - (arr1[0]-arr2[0])*(i/(segment_len-1)))
+                if(arr2[1]>arr1[1]) g = Math.floor(arr1[1] + (arr2[1]-arr1[1])*(i/(segment_len-1)))                
+                else g = Math.floor(arr1[0] - (arr1[1]-arr2[1])*(i/(segment_len-1)))
+                if(arr2[2]>arr1[2]) b = Math.floor(arr1[2] + (arr2[2]-arr1[2])*(i/(segment_len-1)))                
+                else b = Math.floor(arr1[2] - (arr1[2]-arr2[2])*(i/(segment_len-1)))
+                
+                color_dict[i+arr*segment_len+total] = [ r, g, b ]
+            }
+            // total += segment_len
         }
-        this.statecolours = return_dict
+
+        this.statecolours[property] = color_dict
     }
     
 
@@ -206,7 +235,7 @@ class GridModel
     
     randomMoore8(grid,col,row)
     {
-        let rand = model.rng.genrand_int(1,8)  
+        let rand = this.rng.genrand_int(1,8)  
         let i = this.moore[rand][0]
         let j = this.moore[rand][1]
         let neigh = grid.getGridpoint(col+i,row+j)
@@ -224,6 +253,15 @@ class GridModel
         return neigh
     }
 
+    getNeighXY(i,j)
+    {
+        let x = i
+        if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = j
+        if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+        if(x<0||y<0||x>=this.nc||y>=this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
+        else return [x,y]
+    }
 
     getGridpoint(i,j)
     {
@@ -245,6 +283,43 @@ class GridModel
         else this.grid[x][y] = gp
     }
 
+    diffuse_ode_states()
+    {                
+        let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid)    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state of variable)    
+
+        for(let i=0;i<this.nc;i+=1) // every column
+        {    
+            for(let j=0;j<this.nr;j+=1) // every row
+            {
+                for(let o=0;o<this.grid[i][j].ODEs.length;o++) // every ode
+                {
+                    for(let s=0;s<this.grid[i][j].ODEs[o].state.length;s++) // every state
+                    {                        
+                        let rate = this.grid[i][j].ODEs[o].diff_rates[s]
+                        let sum_in = 0.0                       
+                        for(let n=1;n<=4;n++)   // Every neighbour (neumann)
+                        {
+                            let moore = this.moore[n]                                                        
+                            let xy = this.getNeighXY(i+moore[0],j+moore[1])
+                            let neigh = this.grid[xy[0]][xy[1]]
+                            if(neigh=="undefined") continue                            
+                            sum_in += neigh.ODEs[o].state[s]*rate   
+                            // sum_in += 0.1
+                            newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s]*rate                                                                            
+                        }
+                        newstates_2[i][j][o][s] += sum_in
+                    }
+                }               
+            }
+        }
+
+        for(let i=0;i<this.nc;i+=1) // every column
+            for(let j=0;j<this.nr;j+=1) // every row
+                for(let o=0;o<this.grid[i][j].ODEs.length;o++)
+                    for(let s=0;s<this.grid[i][j].ODEs[o].state.length;s++)
+                        this.grid[i][j].ODEs[o].state[s] = newstates_2[i][j][o][s]
+        
+    }
     
     MargolusDiffusion()
     {
@@ -405,16 +480,16 @@ class GridModel
         return sum;
     }
     
-    attachODE(eq,state_vector,pars,odename)
-    {
+    attachODE(eq,conf)
+    {        
         for(let i=0; i<this.nc; i++)
         {            
             for(let j=0;j<this.nr;j++)
             {
-                let ode = new ODE(eq,state_vector,pars)                
+                let ode = new ODE(eq,conf.init_states,conf.parameters,conf.diffusion_rates,conf.ode_name)                
                 if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = []   // If list doesnt exist yet                
                 this.grid[i][j].ODEs.push(ode)
-                if(odename) this.grid[i][j][odename] = ode
+                if(conf.ode_name) this.grid[i][j][conf.ode_name] = ode
             }
         }
     }
@@ -432,6 +507,7 @@ class GridModel
             }
         }
     }
+    
 
     printGrid(value, fract)
     {
@@ -465,7 +541,7 @@ function MakeGrid(cols,rows,template)
         grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
         for(let j=0;j<rows;j++)
         {
-            if(template) grid[i][j] = new Gridpoint(template[i][j]); // Make real copy constructor for this, not just val!!
+            if(template) grid[i][j] = new Gridpoint(template[i][j]);  // Make a deep or shallow copy of the GP 
             else grid[i][j] = new Gridpoint();
         }
     }
@@ -473,7 +549,27 @@ function MakeGrid(cols,rows,template)
     return grid;
 }
 
-
+function CopyGridODEs(cols,rows,template)
+{
+    let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
+    for(let i = 0; i< cols; i++)
+    {
+        grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
+        for(let j=0;j<rows;j++)
+        {            
+            for(let o=0;o<template[i][j].ODEs.length;o++) // every ode
+            {
+                grid[i][j] = []
+                let states = []
+                for(let s=0;s<template[i][j].ODEs[o].state.length;s++) // every state
+                    states.push(template[i][j].ODEs[o].state[s])
+                grid[i][j][o] = states;
+            }     
+        }
+    }
+    
+    return grid;
+}
 
 // for(let i = 0; i < 100; i++)
 // {

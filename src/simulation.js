@@ -55,6 +55,7 @@ class Simulation
     {
         let label = `${name} (${property})` 
         let grid = this[name]
+        if(grid == undefined) throw new Error(`There is no GridModel with the name ${name}`)
         if(height==undefined) height = grid.nr
         if(width==undefined) width = grid.nc
         if(scale==undefined) scale = grid.scale        
@@ -359,6 +360,26 @@ class Simulation
         if(this.pause)  this.pause=false;         
         else this.pause = true;
         if(!this.pause) this.start()
+    }
+
+    /**
+     *  colourRamp interpolates between two arrays to get a smooth colour scale. 
+     *  @param {array} arr1 Array of R,G,B values to start fromtargetgrid The gridmodel containing the grid to be modified. 
+     *  @param {array} arr2 Array of R,B,B values to transition towards
+     *  @param {integer} n number of steps taken
+     *  @return {dict} A dictionary (i.e. named JS object) of colours
+     */    
+    colourRamp(arr1, arr2, n)
+    {
+        let return_dict = {}
+        for(let i=0;i<n;i++)
+        {
+            
+            return_dict[i] = [Math.floor(arr1[0]+arr2[0]*(i/n)), 
+                              Math.floor(arr1[1]+arr2[1]*(i/n)), 
+                              Math.floor(arr1[2]+arr2[2]*(i/n))]
+        }
+        return return_dict
     }
 }
 

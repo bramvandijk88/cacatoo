@@ -1,9 +1,11 @@
 class ODE 
 {    
-   constructor(eq,state_vector,pars) 
+   constructor(eq,state_vector,pars,diff_rates,ode_name) 
     {        
+        this.name = ode_name
         this.eq = eq
         this.state = state_vector
+        this.diff_rates = diff_rates
         this.pars = pars
         this.solver = new Solver(state_vector.length)
     }
