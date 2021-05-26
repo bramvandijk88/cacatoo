@@ -3,12 +3,11 @@ class Canvas
     constructor(grid,prop,lab,height,width,scale)
     {        
         this.label = lab
-        this.grid = grid
+        this.grid = grid        
         this.property = prop
         this.height = height
         this.width = width             
         this.scale = scale        
-
         if( typeof document !== "undefined" )                       // In browser, crease a new HTML canvas-element to draw on 
         {              
             this.elem = document.createElement("canvas")

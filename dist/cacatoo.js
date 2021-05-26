@@ -14,7 +14,7 @@ class Gridpoint
     }
 }
 
-class Graph
+class Graph$1
 {
     constructor(labels,values,colours,title,opts)
     {
@@ -138,16 +138,20 @@ class GridModel
         // Make empty grid      
         this.name = name;
         this.time = 0;
-        this.grid = MakeGrid(config.ncol,config.nrow);           // Grid        
+        this.grid = MakeGrid(config.ncol,config.nrow);           // Grid
+        
         this.nc = config.ncol || 200;
         this.nr = config.nrow || 200;  
         this.wrap = config.wrap || [true, true]; 
         this.rng = rng;
         this.statecolours = this.setupColours(config.statecolours);
+        
         this.scale = config.scale || 1;
-        this.graphs = {};
+        this.graphs = {};                // Graphs belonging to this model
+        this.canvases = {};              // Canvases belonging to this model
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
+        this.margolus_phase = 0;
         this.moore = [[0,0],         // SELF            _____________
              [0,-1],        // NORTH           | 5 | 1 | 6 |
              [1,0],         // EAST            | 4 | 0 | 2 |
@@ -167,8 +171,7 @@ class GridModel
     *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
     */
     setupColours(statecols)
-    {        
-       
+    {
         let return_dict = {};
         if(statecols == null)           // If the user did not define statecols (yet)
             return return_dict
@@ -198,7 +201,7 @@ class GridModel
         }       
         return return_dict
     }
-    
+
     colourViridis(property,n,rev=false)
     {
         if(!rev) this.colourRamp(property,n,[68,1,84],[59,82,139],[33,144,140],[93,201,99],[253,231,37]);         // Viridis
@@ -410,7 +413,7 @@ class GridModel
         else this.grid[x][y] = gp;
     }
 
-    diffuse_ode_states()
+    diffuseOdeStates()
     {                
         let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid);    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state of variable)    
 
@@ -428,11 +431,11 @@ class GridModel
                         {
                             let moore = this.moore[n];                                                        
                             let xy = this.getNeighXY(i+moore[0],j+moore[1]);
-                            let neigh = this.grid[xy[0]][xy[1]];
-                            if(neigh=="undefined") continue                            
-                            sum_in += neigh.ODEs[o].state[s]*rate;   
+                            if(typeof xy=="undefined") continue                            
+                            let neigh = this.grid[xy[0]][xy[1]];                            
+                            sum_in += neigh.ODEs[o].state[s]*rate; 
                             // sum_in += 0.1
-                            newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s]*rate;                                                                            
+                            newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s]*rate;
                         }
                         newstates_2[i][j][o][s] += sum_in;
                     }
@@ -460,7 +463,7 @@ class GridModel
         //   D  C
         //   a = backup of A 
         //   rotate cw or ccw randomly
-        let even = this.time%2==0;
+        let even = this.margolus_phase%2==0;
         if((this.nc%2 + this.nr%2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
 
         for(let i=0+even;i<this.nc;i+=2)
@@ -494,6 +497,7 @@ class GridModel
                 this.setGridpoint(i,j+1,D);                
             }
         }        
+        this.margolus_phase++;
     }
 
 
@@ -516,10 +520,10 @@ class GridModel
         if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {     
-            cols = parseColours(cols);            
+            cols = parseColours$1(cols);            
             graph_values.unshift(this.time);
             graph_labels.unshift("Time");                            
-            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);
+            this.graphs[title] = new Graph$1(graph_labels,graph_values,cols,title,opts);
         }
         else 
         {
@@ -533,8 +537,7 @@ class GridModel
             {
                 this.graphs[title].update();
             }
-        }
-        
+        }        
     }
 
     plotXY(graph_labels,graph_values,cols,title,opts)
@@ -542,8 +545,8 @@ class GridModel
         if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {
-            cols = parseColours(cols);                            
-            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);                        
+            cols = parseColours$1(cols);                            
+            this.graphs[title] = new Graph$1(graph_labels,graph_values,cols,title,opts);                        
         }
         else 
         {
@@ -696,12 +699,6 @@ function CopyGridODEs(cols,rows,template)
     return grid;
 }
 
-// for(let i = 0; i < 100; i++)
-// {
-//     let f = 1-(i/100)
-//     colours.push([f*255,f*255,255,255]) // Blue to white gradient
-// }
-
 function dict_reverse(obj) {
     let new_obj= {};
     let rev_obj = Object.keys(obj).reverse();
@@ -751,7 +748,7 @@ function nameToRGB(string)
     return c
 }
 
-function parseColours(cols)
+function parseColours$1(cols)
 {
     let return_cols = [];
     for(let c of cols)
@@ -789,12 +786,11 @@ class Canvas
     constructor(grid,prop,lab,height,width,scale)
     {        
         this.label = lab;
-        this.grid = grid;
+        this.grid = grid;        
         this.property = prop;
         this.height = height;
         this.width = width;             
         this.scale = scale;        
-
         if( typeof document !== "undefined" )                       // In browser, crease a new HTML canvas-element to draw on 
         {              
             this.elem = document.createElement("canvas");
@@ -1082,9 +1078,9 @@ class Simulation
         if(config.limitfps==false) this.limitfps = false;    
         
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
-        this.gridmodels = [];
-        this.canvases = [];
-        this.graphs = [];   // todo
+        this.gridmodels = [];            // All gridmodels in this simulation
+        this.canvases = [];              // Array with refs to all canvases (from all models) from this simulation
+        this.graphs = [];                // All graphs
         this.time=0;
     }
 
@@ -1110,15 +1106,47 @@ class Simulation
     */
     createDisplay(name,property,height,width,scale)
     {
-        let label = `${name} (${property})`; 
+        let label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
         let grid = this[name];
         if(grid == undefined) throw new Error(`There is no GridModel with the name ${name}`)
         if(height==undefined) height = grid.nr;
         if(width==undefined) width = grid.nc;
         if(scale==undefined) scale = grid.scale;        
         let cnv = new Canvas(grid,property,label,height,width,scale); 
+        grid.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         cnv.displaygrid();
-        this.canvases.push(cnv);
+        
+    }
+
+    /**
+    * Create a dygraphs XY graph, showing an arbitrary number of
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} property The name of the property to display
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+    plotXY(graph_labels,graph_values,cols,title,opts)
+    {
+        if(typeof window == 'undefined') return
+        if(!(title in this.graphs))
+        {
+            cols = parseColours(cols);                            
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);                        
+        }
+        else 
+        {
+            if(this.time%this.graph_interval==0)
+            {  
+                this.graphs[title].push_data(graph_values);     
+            }
+            if(this.time%this.graph_update==0)
+            {
+                this.graphs[title].update();
+            }
+        }
+        
     }
 
     /**

@@ -11,16 +11,20 @@ class GridModel
         // Make empty grid      
         this.name = name
         this.time = 0
-        this.grid = MakeGrid(config.ncol,config.nrow)           // Grid        
+        this.grid = MakeGrid(config.ncol,config.nrow)           // Grid
+        
         this.nc = config.ncol || 200
         this.nr = config.nrow || 200  
         this.wrap = config.wrap || [true, true] 
         this.rng = rng
         this.statecolours = this.setupColours(config.statecolours);
+        
         this.scale = config.scale || 1
-        this.graphs = {}
+        this.graphs = {}                // Graphs belonging to this model
+        this.canvases = {}              // Canvases belonging to this model
         this.graph_update = config.graph_update || 20
         this.graph_interval = config.graph_interval || 2
+        this.margolus_phase = 0
         this.moore = [[0,0],         // SELF            _____________
              [0,-1],        // NORTH           | 5 | 1 | 6 |
              [1,0],         // EAST            | 4 | 0 | 2 |
@@ -40,8 +44,7 @@ class GridModel
     *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
     */
     setupColours(statecols)
-    {        
-       
+    {
         let return_dict = {}
         if(statecols == null)           // If the user did not define statecols (yet)
             return return_dict
@@ -71,7 +74,7 @@ class GridModel
         }       
         return return_dict
     }
-    
+
     colourViridis(property,n,rev=false)
     {
         if(!rev) this.colourRamp(property,n,[68,1,84],[59,82,139],[33,144,140],[93,201,99],[253,231,37])         // Viridis
@@ -283,7 +286,7 @@ class GridModel
         else this.grid[x][y] = gp
     }
 
-    diffuse_ode_states()
+    diffuseOdeStates()
     {                
         let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid)    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state of variable)    
 
@@ -301,11 +304,11 @@ class GridModel
                         {
                             let moore = this.moore[n]                                                        
                             let xy = this.getNeighXY(i+moore[0],j+moore[1])
-                            let neigh = this.grid[xy[0]][xy[1]]
-                            if(neigh=="undefined") continue                            
-                            sum_in += neigh.ODEs[o].state[s]*rate   
+                            if(typeof xy=="undefined") continue                            
+                            let neigh = this.grid[xy[0]][xy[1]]                            
+                            sum_in += neigh.ODEs[o].state[s]*rate 
                             // sum_in += 0.1
-                            newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s]*rate                                                                            
+                            newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s]*rate
                         }
                         newstates_2[i][j][o][s] += sum_in
                     }
@@ -333,7 +336,7 @@ class GridModel
         //   D  C
         //   a = backup of A 
         //   rotate cw or ccw randomly
-        let even = this.time%2==0
+        let even = this.margolus_phase%2==0
         if((this.nc%2 + this.nr%2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
 
         for(let i=0+even;i<this.nc;i+=2)
@@ -367,6 +370,7 @@ class GridModel
                 this.setGridpoint(i,j+1,D)                
             }
         }        
+        this.margolus_phase++
     }
 
 
@@ -406,8 +410,7 @@ class GridModel
             {
                 this.graphs[title].update()
             }
-        }
-        
+        }        
     }
 
     plotXY(graph_labels,graph_values,cols,title,opts)
@@ -570,12 +573,6 @@ function CopyGridODEs(cols,rows,template)
     
     return grid;
 }
-
-// for(let i = 0; i < 100; i++)
-// {
-//     let f = 1-(i/100)
-//     colours.push([f*255,f*255,255,255]) // Blue to white gradient
-// }
 
 function dict_reverse(obj) {
     let new_obj= {}

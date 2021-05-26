@@ -33,50 +33,28 @@ function setup()
     // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        
     for(let i=0;i<sim.spirals.nc;i++)                          // i are columns
         for(let j=0;j<sim.spirals.nr;j++)                      // j are rows
-        {
             sim.spirals.grid[i][j]['colour'] = Math.ceil(sim.rng.genrand_real1()*n_species)           
-        }
-    
-    // throw new Error("Manual break");
 
-    sim.spirals.nextState = function(i,j)       // Define the next-state function. This example is spirals
+    sim.spirals.nextState = function(i,j)           // Define the next-state function. This example is spirals
     {   
-        let state = this.grid[i][j].colour  // Colour of current pixel
-        let pred = (this.grid[i][j].colour%n_species)+1 // Colour it is predated by (% because 8 is predated by 1)
+        let state = this.grid[i][j].colour               // Colour of current pixel
+        let pred = (this.grid[i][j].colour%n_species)+1  // Colour it is predated by (% because 8 is predated by 1)
 
-        let neighbours = sim.spirals.countMoore8(this,i,j,pred,'colour') // Count the no. predators
+        let neighbours = sim.spirals.countMoore8(this,i,j,pred,'colour') // Count the nr of predators
         // Red will spread
-        if(sim.rng.genrand_real1() < 0.25*neighbours)  // Grow. 
-        {
+        if(sim.rng.genrand_real1() < 0.25*neighbours)   // Let "predator" grow over the current pixel
             this.grid[i][j].colour = pred;
-        }
-    }
-    
+    }    
+
     sim.spirals.update = function()
-    {
-		
+    {	
         this.synchronous()                              // Applied as many times as it can in 1/60th of a second
-        if(sim.time%2==0) this.MargolusDiffusion()    // Every timestep is too much for spirals, so every other timestep :)
-        //this.asynchronous()
         this.plotPopsizes('colour',[1,2,3,4,5,6,7,8]) 
-		
-		// change stuff below to sim.spirals.drawslide("name")
-		// let canvas = sim.spirals.canvas.elem // Grab the canvas element
-		// let timestamp = sim.time.toString()
-		// timestamp = timestamp.padStart(5, "0")
-		// canvas.toBlob(function(blob) 
-		// {
-		// 	saveAs(blob, "my_slide"+timestamp+".png");
-		// });
     }
 
     sim.addButton("mix grid",function() { sim.spirals.perfectMix()})
-
     sim.start()
-	
-	
 }
-
 
 /*-------------------------End user-defined code ---------------------*/
 

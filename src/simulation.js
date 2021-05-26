@@ -25,9 +25,9 @@ class Simulation
         if(config.limitfps==false) this.limitfps = false    
         
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
-        this.gridmodels = []
-        this.canvases = []
-        this.graphs = []   // todo
+        this.gridmodels = []            // All gridmodels in this simulation
+        this.canvases = []              // Array with refs to all canvases (from all models) from this simulation
+        this.graphs = []                // All graphs
         this.time=0
     }
 
@@ -53,15 +53,47 @@ class Simulation
     */
     createDisplay(name,property,height,width,scale)
     {
-        let label = `${name} (${property})` 
+        let label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
         let grid = this[name]
         if(grid == undefined) throw new Error(`There is no GridModel with the name ${name}`)
         if(height==undefined) height = grid.nr
         if(width==undefined) width = grid.nc
         if(scale==undefined) scale = grid.scale        
         let cnv = new Canvas(grid,property,label,height,width,scale); 
+        grid.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         cnv.displaygrid()
-        this.canvases.push(cnv)
+        
+    }
+
+    /**
+    * Create a dygraphs XY graph, showing an arbitrary number of
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} property The name of the property to display
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+    plotXY(graph_labels,graph_values,cols,title,opts)
+    {
+        if(typeof window == 'undefined') return
+        if(!(title in this.graphs))
+        {
+            cols = parseColours(cols)                            
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts)                        
+        }
+        else 
+        {
+            if(this.time%this.graph_interval==0)
+            {  
+                this.graphs[title].push_data(graph_values)     
+            }
+            if(this.time%this.graph_update==0)
+            {
+                this.graphs[title].update()
+            }
+        }
+        
     }
 
     /**

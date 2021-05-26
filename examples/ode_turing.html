@@ -15,12 +15,12 @@ function setup()
     let config = {
             title: "Turing patterns",
             description: "Reaction-diffusion system with short-range activation and long-range inhibition",
-            maxtime: 1000,
-            fastmode: true,             
-            ncol : 100,            
-            nrow : 50,		            // dimensions of the grid to build
-            wrap : [true,true],       // Wrap boundary [COLS, ROWS]   
-            scale : 3,				    // scale of the grid (nxn pixels per grid cell
+            maxtime: 100000,
+            fastmode: true,   
+            ncol : 320,            
+            nrow : 320,		            // dimensions of the grid to build
+            wrap : [true,true],         // Wrap boundary [COLS, ROWS]   
+            scale : 1,				    // scale of the grid (nxn pixels per grid cell
             show_gridname: true,
             graph_interval: 1,
             graph_update: 5
@@ -30,11 +30,8 @@ function setup()
     sim = new Simulation(config)
 
     sim.makeGridModel("turing") 
-    sim.turing.colourViridis("act", 100)
-    sim.createDisplay('turing','act')
-    // sim.makeGrid("inhibitor")
-    // sim.inhibitor.colourRamp('density',[0,0,0],[148, 0, 211],100)          // Will be empty, but the grid will show the abundance of PREY
-
+    sim.turing.colourViridis("activator", 100)
+    sim.createDisplay('turing','activator')
 
     // A self-replicating turing, which also produces a second molecule which inhibits the turing
     let Turing = function(a, b, i,d) { return function(x, y) {
@@ -47,7 +44,7 @@ function setup()
         let ode_config = { ode_name: "turingeq",
                        init_states: [0,0],    // y[0] and y[1]
                        parameters: [0.5,0.5,0.5,0.05],               // a,b,i,d
-                       diffusion_rates: [0.1,0.20]}              // resources diffuse through exteral environment, but internal resources stay put
+                       diffusion_rates: [0.1,0.2]}              // resources diffuse through exteral environment, but internal resources stay put
     
     // Attaches an ODE to all gridpoints with initial state = [0,0]. 
     // By default, all ODEs are stored in an array in the grid point, but...
@@ -57,7 +54,7 @@ function setup()
     // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
     for(let i=0;i<sim.turing.nc;i++)    
             for(let j=0;j<sim.turing.nr;j++)
-                sim.turing.grid[i][j].turingeq.state = [sim.rng.genrand_real1(),sim.rng.genrand_real1()]
+                sim.turing.grid[i][j].turingeq.state = [1+sim.rng.genrand_real1(),1]
     
     // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
     sim.turing.nextState = function(i,j)       // Define the next-state function. 
@@ -68,13 +65,13 @@ function setup()
         // 3) Update how this GP is displayed
         let act = Math.max(0.001,this.grid[i][j].turingeq.state[0])       // Amount of prey (continuous variable)
         let inh = Math.max(0.001,this.grid[i][j].turingeq.state[1])       // Amount of pred (continuous variable)
-        this.grid[i][j].act = Math.min(Math.floor(act*100),99)
+        this.grid[i][j].activator = Math.min(Math.floor(act*80),99)
     }   
 
     sim.turing.update = function()
     {        
         this.asynchronous()                              // Asynchronous updating due to local diffusion... can be better
-        this.diffuse_ode_states()
+        this.diffuseOdeStates()
         // this.apply_sync(this.diffuse_mols)               // Note: Synchronous doesnt make deep copies of ODEs (yet), so there's some edge effects
         let sumact = 0
         let suminh = 0
