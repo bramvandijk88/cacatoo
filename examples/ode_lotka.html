@@ -45,7 +45,7 @@ function setup()
     // Configuration object with initial states, parameters, and diffusion rates
     let ode_config = { ode_name: "lotka",
                        init_states: [0,0],               // y[0] and y[1]
-                       parameters: [1.5,0.5,0.5,0.5],    // a, b, c, d
+                       parameters: [2.5,0.5,0.5,0.5],    // a, b, c, d
                        diffusion_rates: [0.1,0.1]}       // diffusion of y[0] and y[1]
 
     // Attaches an ODE to all gridpoints with initial state = [0,0]. 
@@ -60,7 +60,7 @@ function setup()
     sim.lotka.nextState = function(i,j)       // Define the next-state function. 
     {           
         // 1) ODE integration
-        this.grid[i][j].lotka.solve_timestep(0.1)
+        this.grid[i][j].lotka.solve_timestep(0.1,opt_pos=true)
         
        
         // 3) Update how this GP is displayed
@@ -70,38 +70,36 @@ function setup()
         this.grid[i][j].numprey = Math.min(Math.floor(prey*30),199)        
     }
 
-    
-    sim.lotka.update = function()
-    {
-        this.asynchronous()                              // Asynchronous updating due to local diffusion... can be better
-        this.diffuse_ode_states()       
-        //this.solve_odes(delta_t=0.1)                    //
+    // Custom function to count the sum of predators / preys in the grid (used in update below)
+    sim.lotka.sumStates = function()   
+    {        
         let sumpred = 0
         let sumprey = 0
-        let midpred = 0
-        let midprey = 0
 
         for(let i=0;i<this.nc;i++)         // i are columns
             for(let j=0;j<this.nr;j++)     // j are rows
             {     
                 sumprey += this.grid[i][j].lotka.state[0]
-                sumpred += this.grid[i][j].lotka.state[1]                
-                if(i==this.nc/2 && j==this.nr/2) midprey = this.grid[i][j].lotka.state[0]
-                if(i==this.nc/2 && j==this.nr/2) midpred = this.grid[i][j].lotka.state[1]
+                sumpred += this.grid[i][j].lotka.state[1]                                
             }
-            //sumpred/=this.nc*this.nr
-            //sumprey/=this.nc*this.nr
+        return [sumpred,sumprey]
+    }
+
+    sim.lotka.update = function()
+    {
+        this.asynchronous()                              // Asynchronous updating due to local diffusion... can be better
+        this.diffuseOdeStates()      
         this.plotArray(["Predators", "Preys"], 
-                        [sumpred,sumprey],
+                         [sim.lotka.sumStates()[0],sim.lotka.sumStates()[1]],
                         ["gold","#FF00AA"],
                         "Total predator/prey abundance")
         this.plotArray(["Predators", "Preys"], 
-                    [midpred,midprey],
-                    ["gold","#FF00AA"],
-                    "ODE states in central grid point")
-
+                        [this.grid[this.nc/2][this.nr/2].lotka.state[1],
+                        this.grid[this.nc/2][this.nr/2].lotka.state[0],],
+                        ["gold","#FF00AA"],
+                        "ODE states in central grid point")
     }
-
+    
     sim.start()
 	
 	

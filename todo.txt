@@ -1,15 +1,27 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
-> Fix ODEs in gridpoints example. (halfway, busy with Colourramp fixing)
-> Do with graphs what I did with canvases (i.e. don't link them to the gridmodel)
 > Spacetime plots
+> Add a custom printing function which either prints in a div, or to the console when in JS mode
+> Make the usage of canvases and graphs consistent (attach Graphs to the sim, and add a reference to the Graph in the GridModel-object)
+
+> Clicking the canvas to grab a gridpoint
+> Add colour bar? Or not?
+> MargolusDiffusion mistake: takes global time for direction, rather than # calls to the function. So if MDiff every 2 timesteps, it's always the same dir!
+
 > Over nadenken: alleen changed pixels tekenen? :)
 > Perfectmix via update_order??
 > populate grid via dict rather than 1,0.33,2,0.33 etc.
-> Proper ODE state diffusion method (now it's either having edge effects due to sync, or has a random component due to async updating)
-> Add option to deep copy
 > Many comments in GoL to explain what is done step by step
 
+> Options to save PNGs:
+		// change stuff below to sim.spirals.drawslide("name")
+		// let canvas = sim.spirals.canvas.elem // Grab the canvas element
+		// let timestamp = sim.time.toString()
+		// timestamp = timestamp.padStart(5, "0")
+		// canvas.toBlob(function(blob) 
+		// {
+		// 	saveAs(blob, "my_slide"+timestamp+".png");
+		// });
 
 > Add docstrings to all classes and methods. 
    > Simulation.js is up to date
