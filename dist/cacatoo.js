@@ -43,8 +43,8 @@ class Graph$1
             title: this.title,
             showRoller: false,
             ylabel: this.labels.length == 2 ? this.labels[1]: "",
-            width: 400,
-            height: 250,
+            width: 500,
+            height: 200,
             xlabel: this.labels[0],    
             drawPoints: opts && opts.drawPoints || false,
             pointSize: opts ? (opts.pointSize ? opts.pointSize : 0): 0,
@@ -1304,11 +1304,13 @@ class Simulation
         if(typeof window == "undefined") return
         if(window[parameter] == "undefined") {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
         let container = document.createElement("div");
-        container.classList.add("form-container");
+        container.classList.add("form-container");            
+
         let slider = document.createElement("input"); 
-        let output = document.createElement("output");
+        let numeric = document.createElement("input"); 
         container.innerHTML += "<div style='width:100%'><b>"+parameter+":</b></div>";
-        output.innerHTML = window[parameter].toFixed(3);
+
+        // Setting slider variables / handler
         slider.type='range';
         slider.classList.add("slider");
         slider.min=min;
@@ -1318,14 +1320,43 @@ class Simulation
         slider.oninput = function()
         {
             let value = parseFloat(slider.value);
-            output.innerHTML = value.toFixed(3);
             window[parameter] = parseFloat(value);
-        };        
-        container.appendChild(slider);
-        container.appendChild(output);
-        document.getElementById("form_holder").appendChild(container);                   
-    }
+            numeric.value = value; 
+        };  
 
+        // Setting number variables / handler
+        numeric.type='number';
+        numeric.classList.add("number");
+        numeric.min=min;
+        numeric.max=max;
+        numeric.step=step;
+        numeric.value=window[parameter];
+        numeric.onchange = function()
+        {            
+            let value = parseFloat(numeric.value);        
+            if(value > this.max) value = this.max;
+            if(value < this.min) value = this.min;
+            window[parameter] = parseFloat(value);
+            numeric.value=value;
+            slider.value = value;            
+        }; 
+        container.appendChild(slider);        
+        container.appendChild(numeric);        
+        document.getElementById("form_holder").appendChild(container);                                              
+    }
+    addHTML(div,html)
+    {
+        if(typeof window == "undefined") return
+        let container = document.createElement("div");
+        container.innerHTML += html;
+        document.getElementById(div).appendChild(container);
+    }
+    log(msg,target)
+    {        
+        if(typeof window == "undefined") console.log(msg);
+        else if(typeof target == "undefined") console.log(msg);
+        else document.getElementById(target).innerHTML += `${msg}<br>`;
+    }
     /**
      *  addPatternButton adds a pattern button to the HTML environment which allows the user
      *  to load a PNG which then sets the state of 'proparty' for the @GridModel. 
