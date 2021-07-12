@@ -5,9 +5,9 @@ let sim;
 // Using var instead of let, so I can access it with sliders
 var A2B =1.0                    // Mutualist species A giving help to reproduce B
 var B2A =1.0                    // Mutualist species B giving help to reproduce A
-var B2C =0.8                    // Mutualist species B giving help to reproduce C ("cheater")
-var p_nothing=0.1               // Probability that nothing happens when competing for empty grid point
-var death=0.2                   // Death rate of individuals
+var B2C =0.9                    // Mutualist species B giving help to reproduce C ("cheater")
+var stay_empty=1.0               // Constant which scales the probability that nothing happens when competing for empty grid point, iow "stay empty"
+var death=0.1                  // Death rate of individuals
 let mdif_interval=0
 
 
@@ -18,8 +18,8 @@ function setup()
             title: "Mutualists and cheaters",
             description: "",
             maxtime: 100000,
-            ncol : 200,            
-            nrow : 200,		                                        // dimensions of the grid to build
+            ncol : 250,            
+            nrow : 150,		                                        // dimensions of the grid to build
             seed : 56,  
             fps : 60,                                               // Note: FPS can only be set in fastmode
             fastmode: true,
@@ -28,8 +28,7 @@ function setup()
             scale : 2,				                                // scale of the grid (nxn pixels per grid point)            
             statecolours: {'species':{1:"#DDDDDD",                  // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
                                       2:"red",                      // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
-                                      3:"blue"},
-                           'alive':{1:"#CCCCCC"}}                 
+                                      3:"blue"}}                 
     }
 
     
@@ -39,15 +38,12 @@ function setup()
     sim.initialGrid(sim.cheater,'species',1,0.33,2,0.33,3,0.33)             // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
 
     sim.createDisplay("cheater","species")                                  // Display the 'species' property of the cheater grid
-    // sim.createDisplay("cheater","alive")                                    // Display the 'alive' property of the cheater grid
-    sim.createDisplay("cheater","species",20,20,20)                         // Display the 'species' property of a small bit of the grid
+    sim.createDisplay("cheater","species",20,20,15)                         // Display the 'species' property of a small bit of the grid
     
     sim.cheater.nextState = function(i,j)                                    // Define the next-state function. This example is two mutualists and a cheater
     {         
         // let pA, pB, pC, psum             
-        
         let state = this.grid[i][j].species;
-        
         if (state==0)                               // If there is no species here
         {
             // Count the number of species 1 (mutualist A), 2 (mutualist B), and 3 (cheater C)
@@ -58,7 +54,7 @@ function setup()
             pA= (B2A*sumB)*sumA;                // Chance that A wins
             pB= (A2B*sumA)*sumB;                // Chance that B wins
             pC= (B2C*sumB)*sumC;                // Chance that C wins
-            psum=pA+pB+pC+p_nothing;            // Total = pA+pB+pC+p_nothing (scales the chance that nothing happens during competition)
+            psum=pA+pB+pC+stay_empty;                      // Total = pA+pB+pC+p_nothing (scales the chance that nothing happens during competition)
 
             ran= this.rng.random();             // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
                                                             
@@ -71,12 +67,9 @@ function setup()
                                                 //                        <-----ran----->      (no winner)
                                                 // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
         }
-        else
-        {
-            if (this.rng.random()<death*(1-p_nothing))
-                this.grid[i][j].species = 0
-        }
-        this.grid[i][j].alive = state > 0 ? 1: 0    // If state is greater than 0, than set alive to 1
+        
+        if (this.rng.random()<death)
+            this.grid[i][j].species = 0
     }
 
 
@@ -99,17 +92,17 @@ function setup()
         this.plotArray(["Ratio A/B", "Ratio B/C"], 
                         [sumA/sumB,sumB/sumC],
                         ["gold","#FF00AA"],
-                        "My custom plot (X/Y, Y/Z ratio)")
+                        "My custom plot (A/B, B/C ratio)")
         
 
         this.plotXY(["Ratio A/B", "Ratio B/C"], 
             [sumA/sumB,sumB/sumC],
             ["black"],
             "My custom XY plot (X/Y vs Y/Z)", {drawPoints: true, strokeWidth:1, pointSize:2, strokePattern: [2,2]})        
-        if (this.time%10==0)       // Otherwise, just print some numbers (e.g. popsizes)
-        {
-            sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species',[1,2,3])}`, "output")    
-        }
+        // if (this.time%1000==0)       // Otherwise, just print some numbers (e.g. popsizes)
+        // {
+        //     sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species',[1,2,3])}`, "output")    
+        // }
     }  
         
     sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
@@ -118,7 +111,7 @@ function setup()
     sim.addSlider("A2B")
     sim.addSlider("B2A")
     sim.addSlider("B2C")
-    sim.addSlider("p_nothing",0.00,1.00,0.01)
+    sim.addSlider("stay_empty",0.00,20.00,0.01)
     sim.addSlider("death", 0.00, 1.00, 0.001)
 
     sim.start()
