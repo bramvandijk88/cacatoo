@@ -1,30 +1,40 @@
 import Gridpoint from "./gridpoint.js"
 import Graph from './graph.js'
 import ODE from "./ode.js"
+import MersenneTwister from "../lib/mersenne.js"
 
-// Class definition
+/**
+ *  GridModel is the main (currently only) type of model in Cacatoo. Most of these models
+ *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
+ *  them more like PDEs. 
+ */
+
 class GridModel
 {
-    // Constructor
+    /**
+    *  The constructor function for a @GridModel object. Takes the same config dictionary as used in @Simulation
+    *  @param {string} name The name of your model. This is how it will be listed in @Simulation 's properties
+    *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo GridModel. 
+    *  @param {MersenneTwister} rng A random number generator (MersenneTwister object)
+    */
     constructor(name, config, rng)
     {
-        // Make empty grid      
         this.name = name
-        this.time = 0
-        this.grid = MakeGrid(config.ncol,config.nrow)           // Grid
-        
+        this.time = 0        
+        this.grid = MakeGrid(config.ncol,config.nrow)       // Initialises an (empty) grid
         this.nc = config.ncol || 200
         this.nr = config.nrow || 200
         this.wrap = config.wrap || [true, true]
         this.rng = rng
-        this.statecolours = this.setupColours(config.statecolours);
-        
+        this.statecolours = this.setupColours(config.statecolours) // Makes sure the statecolours in the config dict are parsed (see below)
         this.scale = config.scale || 1
 
         this.graph_update = config.graph_update || 20
         this.graph_interval = config.graph_interval || 2
+        
         this.margolus_phase = 0
-        this.moore = [[0,0],         // SELF            _____________
+        // Store a simple array to get neighbours from the N, E, S, W, NW, NE, SW, SE (analogous to Cash2.1)
+        this.moore = [[0,0],         // SELF   _____________
              [0,-1],        // NORTH           | 5 | 1 | 6 |
              [1,0],         // EAST            | 4 | 0 | 2 |
              [0,1],         // SOUTH           | 7 | 3 | 8 |
@@ -35,8 +45,8 @@ class GridModel
              [1,1]          // SE
             ]
 
-        this.graphs = {}                // Graphs belonging to this model
-        this.canvases = {}              // Canvases belonging to this model
+        this.graphs = {}                // Object containing all graphs belonging to this model (HTML usage only)
+        this.canvases = {}              // Object containing all Canvases belonging to this model (HTML usage only)
     }
     
     /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
@@ -77,16 +87,16 @@ class GridModel
         return return_dict
     }
 
-    colourViridis(property,n,rev=false)
-    {
-        if(!rev) this.colourRamp(property,n,[68,1,84],[59,82,139],[33,144,140],[93,201,99],[253,231,37])         // Viridis
-        else this.colourRamp(property,n,[253,231,37],[93,201,99],[33,144,140],[59,82,139],[68,1,84])             // Viridis
-    }
-    // property, n, arr_1, arr_2, ..., arr_n
-    colourRamp(property,n)
+    
+    /** Initiate a gradient of colours for a property. 
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * For example usage, see colourViridis below
+    */ 
+    colourGradient(property,n)
     {
         let n_arrays = arguments.length-2
-        if(n_arrays <= 1) throw new Error ("colourRamp needs at least 2 arrays")
+        if(n_arrays <= 1) throw new Error ("colourGradient needs at least 2 arrays")
         
         let segment_len = n/(n_arrays-1)
 
@@ -120,17 +130,38 @@ class GridModel
         this.statecolours[property] = color_dict
     }
     
+    /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) 
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * @param {bool} rev Reverse the viridis colour gradient
+    */ 
+     colourViridis(property,n,rev=false)
+     {
+         if(!rev) this.colourGradient(property,n,[68,1,84],[59,82,139],[33,144,140],[93,201,99],[253,231,37])         // Viridis
+         else this.colourGradient(property,n,[253,231,37],[93,201,99],[33,144,140],[59,82,139],[68,1,84])             // Viridis
+     }
 
+    /** Print the entire grid to the console */
     printgrid()
     {
         console.table(this.grid);
     }
 
-
+    /** The most important function in GridModel: how to determine the next state of a gridpoint?
+     * By default, nextState is empty. It should be defined by the user (see examples)
+    * @param {int} i Position of grid point to update (column)
+    * @param {int} j Position of grid point to update (row)
+    */ 
     nextState(i,j){
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
+    /** Synchronously apply the nextState function (defined by user) to the entire grid
+     *  Synchronous means that all grid points will be updated simultaneously. This is ensured
+     *  by making a back-up grid, which will serve as a reference to know the state in the previous
+     *  time step. First all grid points are updated based on the back-up. Only then will the 
+     *  actual grid be changed. 
+    */ 
     synchronous()                                               // Do one step (synchronous) of this grid
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
@@ -149,6 +180,10 @@ class GridModel
         this.time++
     }
     
+    /** Like the synchronous function above, but can not take a custom user-defined function rather
+     *  than the default next-state function. Technically one should be able to refarctor this by making
+     *  the default function of synchronous "nextstate". But this works. :)
+    */ 
     apply_sync(func)
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
@@ -165,6 +200,12 @@ class GridModel
         this.grid = newstate;      
     }
 
+    /** Asynchronously apply the nextState function (defined by user) to the entire grid
+     *  Asynchronous means that all grid points will be updated in a random order. For this
+     *  first the update_order will be determined (this.set_update_order). Afterwards, the nextState
+     *  will be applied in that order. This means that some cells may update while all their neighours 
+     *  are still un-updated, and other cells will update while all their neighbours are already done. 
+    */ 
     asynchronous()
     {
         this.set_update_order()
@@ -179,6 +220,7 @@ class GridModel
         // Don't have to copy the grid here. Just cycle through i,j in random order and apply nextState :)
     }
 
+    /** Analogous to apply_sync(func), but asynchronous */
     apply_async(func)
     {
         this.set_update_order()
@@ -191,6 +233,7 @@ class GridModel
         }
     }
 
+    /** If called for the first time, make an update order (list of ints), otherwise just shuffle it. */
     set_update_order()
     {
         if (typeof this.upd_order === 'undefined')  // "Static" variable, only create this array once and reuse it
@@ -204,11 +247,32 @@ class GridModel
         shuffle(this.upd_order,this.rng)            // Shuffle the update order
     }
 
+    /** The update is, like nextState, user-defined (hence, empty by default).
+     *  It should contains all functions that one wants to apply every time step
+     *  (e.g. grid manipulations and printing statistics) 
+     *  For example, and update function could look like:
+     *  this.synchronous()         // Update all cells  
+     *  this.MargolusDiffusion()   // Apply Toffoli Margolus diffusion algorithm
+     *  this.plotPopsizes('species',[1,2,3]) // Plot the population sizes
+        */          
     update()
     {
         throw 'Update function of \'' + this.name + '\' undefined';
     }
 
+    /** Count the number of grid points in the Moore (9) neighbourhood which have
+     *  a certain value (val) for a certain property. 
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     *  @param {int} val what value should the GP have to be counted
+     *  @param {string} property the property that is counted
+     * 
+     *  For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js,
+     *  one needs to look for value '3' in the property 'species':
+     *  this.countMoore9(this,10,10,3,'species');  
+     */ 
     countMoore9(grid,col,row,val,property)
     {    
         let count = 0;
@@ -230,6 +294,20 @@ class GridModel
         }
         return count;
     }
+
+    /** Count the number of grid points in the Moore (8) neighbourhood which have
+     *  a certain value (val) for a certain property. 
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     *  @param {int} val what value should the GP have to be counted
+     *  @param {string} property the property that is counted
+     * 
+     *  For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js,
+     *  one needs to look for value '3' in the property 'species':
+     *  this.countMoore8(this,10,10,3,'species');  
+     */ 
     countMoore8(grid,col,row,val,property)
     {
         let count = this.countMoore9(grid,col,row,val,property)
@@ -237,7 +315,13 @@ class GridModel
         if(minus_this) count--
         return count
     }
-    
+
+    /** Return a random neighbour from the Moore (8) neighbourhood
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     */ 
     randomMoore8(grid,col,row)
     {
         let rand = this.rng.genrand_int(1,8)  
@@ -248,6 +332,12 @@ class GridModel
         return neigh
     }
 
+    /** Return a random neighbour from the Moore (9) neighbourhood (self inclusive)
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     */ 
     randomMoore9(grid,col,row)
     {
         let rand = model.rng.genrand_int(0,8)        
@@ -258,16 +348,13 @@ class GridModel
         return neigh
     }
 
-    getNeighXY(i,j)
-    {
-        let x = i
-        if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
-        let y = j
-        if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
-        if(x<0||y<0||x>=this.nc||y>=this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
-        else return [x,y]
-    }
 
+
+    /** Get the gridpoint at coordinates i,j 
+     *  Makes sure wrapping is applied if necessary
+     *  @param {int} i position (column) for the focal gridpoint
+     *  @param {int} j position (row) for the focal gridpoint
+     */ 
     getGridpoint(i,j)
     {
         let x = i
@@ -278,6 +365,12 @@ class GridModel
         else return this.grid[x][y]
     }
 
+    /** Change the gridpoint at position i,j into gp
+         *  Makes sure wrapping is applied if necessary
+         *  @param {int} i position (column) for the focal gridpoint
+         *  @param {int} j position (row) for the focal gridpoint
+         *  @param {Gridpoint} @Gridpoint object to set the gp to
+    */ 
     setGridpoint(i,j,gp)
     {
         let x = i
@@ -288,12 +381,26 @@ class GridModel
         else this.grid[x][y] = gp
     }
 
+    /** Get the x,y coordinates of a neighbour in an array. 
+     *  Makes sure wrapping is applied if necessary
+     */ 
+    getNeighXY(i,j)
+    {
+        let x = i
+        if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = j
+        if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+        if(x<0||y<0||x>=this.nc||y>=this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
+        else return [x,y]
+    }
 
-    
-
+    /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
+     *  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
+     *  which is then used to update the grid.
+     */ 
     diffuseOdeStates()
     {                
-        let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid)    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state of variable)    
+        let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid)    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state-vector)    
 
         for(let i=0;i<this.nc;i+=1) // every column
         {    
@@ -328,7 +435,29 @@ class GridModel
                         this.grid[i][j].ODEs[o].state[s] = newstates_2[i][j][o][s]
         
     }
-    
+
+    /** Assign each gridpoint a new random position on the grid. This simulated mixing,
+     *  but does not guarantee a "well-mixed" system per se (interactions are still)
+     *  calculated based on neighbourhoods. 
+     */ 
+    perfectMix()
+    {
+        let all_gridpoints = [];
+        for(let i=0;i<this.nc;i++)
+            for(let j=0;j<this.nr;j++)
+                all_gridpoints.push(this.getGridpoint(i,j))
+                
+        all_gridpoints = shuffle(all_gridpoints, this.rng)    
+                
+        for(let i=0;i<all_gridpoints.length;i++)                
+            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i])
+        return "Perfectly mixed the grid"
+    }
+     /** Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines"
+      *  The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles
+      *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
+      *  CCW in odd iterations)
+     */ 
     MargolusDiffusion()
     {
         if(!this.wrap[0] || !this.wrap[1]) 
@@ -355,16 +484,16 @@ class GridModel
                 let C = this.getGridpoint(i+1,j+1)
                 let D = this.getGridpoint(i,j+1)
                 
-                if(this.rng.random() < 0.5)
+                if(this.rng.random() < 0.5)             // CW = clockwise rotation
                 {
-                    A = D                           // cw
+                    A = D                           
                     D = C 
                     C = B
                     B = old_A
                 }
                 else
                 {
-                    A = B
+                    A = B                               // CCW = counter clockwise rotation      
                     B = C
                     C = D
                     D = old_A
@@ -378,20 +507,7 @@ class GridModel
         this.margolus_phase++
     }
 
-
-    perfectMix()
-    {
-        let all_gridpoints = [];
-        for(let i=0;i<this.nc;i++)
-            for(let j=0;j<this.nr;j++)
-                all_gridpoints.push(this.getGridpoint(i,j))
-                
-        all_gridpoints = shuffle(all_gridpoints, this.rng)    
-                
-        for(let i=0;i<all_gridpoints.length;i++)                
-            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i])
-        return "Perfectly mixed the grid"
-    }
+ 
     
     plotArray(graph_labels,graph_values,cols,title,opts)
     {        

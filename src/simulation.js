@@ -70,6 +70,12 @@ class Simulation
         
     }
 
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {canvas} canvas A (constant) canvas object
+    * @param {event-handler} event Event handler (mousedown)
+    * @param {scale} scale The zoom (scale) of the grid to grab the correct grid point
+    */
     getCursorPosition(canvas,event,scale) {
         const rect = canvas.getBoundingClientRect()
         const x = Math.floor(Math.max(0,event.clientX - rect.left)/scale)

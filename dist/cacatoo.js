@@ -129,29 +129,234 @@ class ODE
         
 }
 
-// Class definition
+/*
+  I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
+  so it's better encapsulated. Now you can have multiple random number generators
+  and they won't stomp all over eachother's state.
+  
+  If you want to use this as a substitute for Math.random(), use the random()
+  method like so:
+  
+  var m = new MersenneTwister();
+  var randomNumber = m.random();
+  
+  You can also call the other genrand_{foo}() methods on the instance.
+  If you want to use a specific seed in order to get a repeatable random
+  sequence, pass an integer into the constructor:
+  var m = new MersenneTwister(123);
+  and that will always produce the same random sequence.
+  Sean McCullough (banksean@gmail.com)
+*/
+
+/* 
+   A C-program for MT19937, with initialization improved 2002/1/26.
+   Coded by Takuji Nishimura and Makoto Matsumoto.
+ 
+   Before using, initialize the state by using init_genrand(seed)  
+   or init_by_array(init_key, key_length).
+ 
+   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+   All rights reserved.                          
+ 
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+ 
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+ 
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+ 
+     3. The names of its contributors may not be used to endorse or promote 
+        products derived from this software without specific prior written 
+        permission.
+ 
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ 
+   Any feedback is very welcome.
+   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
+   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
+*/
+
+function MersenneTwister(seed) {
+    if (seed == undefined) {
+      seed = new Date().getTime();
+    } 
+    /* Period parameters */  
+    this.N = 624;
+    this.M = 397;
+    this.MATRIX_A = 0x9908b0df;   /* constant vector a */
+    this.UPPER_MASK = 0x80000000; /* most significant w-r bits */
+    this.LOWER_MASK = 0x7fffffff; /* least significant r bits */
+   
+    this.mt = new Array(this.N); /* the array for the state vector */
+    this.mti=this.N+1; /* mti==N+1 means mt[N] is not initialized */
+  
+    this.init_genrand(seed);
+  }  
+   
+  /* initializes mt[N] with a seed */
+  MersenneTwister.prototype.init_genrand = function(s) {
+    this.mt[0] = s >>> 0;
+    for (this.mti=1; this.mti<this.N; this.mti++) {
+        var s = this.mt[this.mti-1] ^ (this.mt[this.mti-1] >>> 30);
+     this.mt[this.mti] = (((((s & 0xffff0000) >>> 16) * 1812433253) << 16) + (s & 0x0000ffff) * 1812433253)
+    + this.mti;
+        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+        /* In the previous versions, MSBs of the seed affect   */
+        /* only MSBs of the array mt[].                        */
+        /* 2002/01/09 modified by Makoto Matsumoto             */
+        this.mt[this.mti] >>>= 0;
+        /* for >32 bit machines */
+    }
+  };
+   
+  /* initialize by an array with array-length */
+  /* init_key is the array for initializing keys */
+  /* key_length is its length */
+  /* slight change for C++, 2004/2/26 */
+  MersenneTwister.prototype.init_by_array = function(init_key, key_length) {
+    var i, j, k;
+    this.init_genrand(19650218);
+    i=1; j=0;
+    k = (this.N>key_length ? this.N : key_length);
+    for (; k; k--) {
+      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
+      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1664525) << 16) + ((s & 0x0000ffff) * 1664525)))
+        + init_key[j] + j; /* non linear */
+      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
+      i++; j++;
+      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
+      if (j>=key_length) j=0;
+    }
+    for (k=this.N-1; k; k--) {
+      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
+      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1566083941) << 16) + (s & 0x0000ffff) * 1566083941))
+        - i; /* non linear */
+      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
+      i++;
+      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
+    }
+  
+    this.mt[0] = 0x80000000; /* MSB is 1; assuring non-zero initial array */ 
+  };
+   
+  /* generates a random number on [0,0xffffffff]-interval */
+  MersenneTwister.prototype.genrand_int32 = function() {
+    var y;
+    var mag01 = new Array(0x0, this.MATRIX_A);
+    /* mag01[x] = x * MATRIX_A  for x=0,1 */
+  
+    if (this.mti >= this.N) { /* generate N words at one time */
+      var kk;
+  
+      if (this.mti == this.N+1)   /* if init_genrand() has not been called, */
+        this.init_genrand(5489); /* a default initial seed is used */
+  
+      for (kk=0;kk<this.N-this.M;kk++) {
+        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
+        this.mt[kk] = this.mt[kk+this.M] ^ (y >>> 1) ^ mag01[y & 0x1];
+      }
+      for (;kk<this.N-1;kk++) {
+        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
+        this.mt[kk] = this.mt[kk+(this.M-this.N)] ^ (y >>> 1) ^ mag01[y & 0x1];
+      }
+      y = (this.mt[this.N-1]&this.UPPER_MASK)|(this.mt[0]&this.LOWER_MASK);
+      this.mt[this.N-1] = this.mt[this.M-1] ^ (y >>> 1) ^ mag01[y & 0x1];
+  
+      this.mti = 0;
+    }
+  
+    y = this.mt[this.mti++];
+  
+    /* Tempering */
+    y ^= (y >>> 11);
+    y ^= (y << 7) & 0x9d2c5680;
+    y ^= (y << 15) & 0xefc60000;
+    y ^= (y >>> 18);
+  
+    return y >>> 0;
+  };
+   
+  /* generates a random number on [0,0x7fffffff]-interval */
+  MersenneTwister.prototype.genrand_int31 = function() {
+    return (this.genrand_int32()>>>1);
+  };
+   
+  /* generates a random number on [0,1]-real-interval */
+  MersenneTwister.prototype.genrand_real1 = function() {
+    return this.genrand_int32()*(1.0/4294967295.0); 
+    /* divided by 2^32-1 */ 
+  };
+
+  /* generates a random int between [min,max] */
+  MersenneTwister.prototype.genrand_int = function(min,max) {
+    return min+Math.floor(this.genrand_real1()*(max));
+  };
+  
+  /* generates a random number on [0,1)-real-interval */
+  MersenneTwister.prototype.random = function() {
+    return this.genrand_int32()*(1.0/4294967296.0); 
+    /* divided by 2^32 */
+  };
+   
+  /* generates a random number on (0,1)-real-interval */
+  MersenneTwister.prototype.genrand_real3 = function() {
+    return (this.genrand_int32() + 0.5)*(1.0/4294967296.0); 
+    /* divided by 2^32 */
+  };
+   
+  /* generates a random number on [0,1) with 53-bit resolution*/
+  MersenneTwister.prototype.genrand_res53 = function() { 
+    var a=this.genrand_int32()>>>5, b=this.genrand_int32()>>>6; 
+    return (a*67108864.0+b)*(1.0/9007199254740992.0); 
+  };
+
+/**
+ *  GridModel is the main (currently only) type of model in Cacatoo. Most of these models
+ *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
+ *  them more like PDEs. 
+ */
+
 class GridModel
 {
-    // Constructor
+    /**
+    *  The constructor function for a @GridModel object. Takes the same config dictionary as used in @Simulation
+    *  @param {string} name The name of your model. This is how it will be listed in @Simulation 's properties
+    *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo GridModel. 
+    *  @param {MersenneTwister} rng A random number generator (MersenneTwister object)
+    */
     constructor(name, config, rng)
     {
-        // Make empty grid      
         this.name = name;
-        this.time = 0;
-        this.grid = MakeGrid(config.ncol,config.nrow);           // Grid
-        
+        this.time = 0;        
+        this.grid = MakeGrid(config.ncol,config.nrow);       // Initialises an (empty) grid
         this.nc = config.ncol || 200;
         this.nr = config.nrow || 200;
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
-        this.statecolours = this.setupColours(config.statecolours);
-        
+        this.statecolours = this.setupColours(config.statecolours); // Makes sure the statecolours in the config dict are parsed (see below)
         this.scale = config.scale || 1;
 
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
+        
         this.margolus_phase = 0;
-        this.moore = [[0,0],         // SELF            _____________
+        // Store a simple array to get neighbours from the N, E, S, W, NW, NE, SW, SE (analogous to Cash2.1)
+        this.moore = [[0,0],         // SELF   _____________
              [0,-1],        // NORTH           | 5 | 1 | 6 |
              [1,0],         // EAST            | 4 | 0 | 2 |
              [0,1],         // SOUTH           | 7 | 3 | 8 |
@@ -162,8 +367,8 @@ class GridModel
              [1,1]          // SE
             ];
 
-        this.graphs = {};                // Graphs belonging to this model
-        this.canvases = {};              // Canvases belonging to this model
+        this.graphs = {};                // Object containing all graphs belonging to this model (HTML usage only)
+        this.canvases = {};              // Object containing all Canvases belonging to this model (HTML usage only)
     }
     
     /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
@@ -204,16 +409,16 @@ class GridModel
         return return_dict
     }
 
-    colourViridis(property,n,rev=false)
-    {
-        if(!rev) this.colourRamp(property,n,[68,1,84],[59,82,139],[33,144,140],[93,201,99],[253,231,37]);         // Viridis
-        else this.colourRamp(property,n,[253,231,37],[93,201,99],[33,144,140],[59,82,139],[68,1,84]);             // Viridis
-    }
-    // property, n, arr_1, arr_2, ..., arr_n
-    colourRamp(property,n)
+    
+    /** Initiate a gradient of colours for a property. 
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * For example usage, see colourViridis below
+    */ 
+    colourGradient(property,n)
     {
         let n_arrays = arguments.length-2;
-        if(n_arrays <= 1) throw new Error ("colourRamp needs at least 2 arrays")
+        if(n_arrays <= 1) throw new Error ("colourGradient needs at least 2 arrays")
         
         let segment_len = n/(n_arrays-1);
 
@@ -247,17 +452,38 @@ class GridModel
         this.statecolours[property] = color_dict;
     }
     
+    /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) 
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * @param {bool} rev Reverse the viridis colour gradient
+    */ 
+     colourViridis(property,n,rev=false)
+     {
+         if(!rev) this.colourGradient(property,n,[68,1,84],[59,82,139],[33,144,140],[93,201,99],[253,231,37]);         // Viridis
+         else this.colourGradient(property,n,[253,231,37],[93,201,99],[33,144,140],[59,82,139],[68,1,84]);             // Viridis
+     }
 
+    /** Print the entire grid to the console */
     printgrid()
     {
         console.table(this.grid);
     }
 
-
+    /** The most important function in GridModel: how to determine the next state of a gridpoint?
+     * By default, nextState is empty. It should be defined by the user (see examples)
+    * @param {int} i Position of grid point to update (column)
+    * @param {int} j Position of grid point to update (row)
+    */ 
     nextState(i,j){
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
+    /** Synchronously apply the nextState function (defined by user) to the entire grid
+     *  Synchronous means that all grid points will be updated simultaneously. This is ensured
+     *  by making a back-up grid, which will serve as a reference to know the state in the previous
+     *  time step. First all grid points are updated based on the back-up. Only then will the 
+     *  actual grid be changed. 
+    */ 
     synchronous()                                               // Do one step (synchronous) of this grid
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
@@ -276,6 +502,10 @@ class GridModel
         this.time++;
     }
     
+    /** Like the synchronous function above, but can not take a custom user-defined function rather
+     *  than the default next-state function. Technically one should be able to refarctor this by making
+     *  the default function of synchronous "nextstate". But this works. :)
+    */ 
     apply_sync(func)
     {
         let oldstate = MakeGrid(this.nc,this.nr,this.grid);     // Old state based on current grid
@@ -292,6 +522,12 @@ class GridModel
         this.grid = newstate;      
     }
 
+    /** Asynchronously apply the nextState function (defined by user) to the entire grid
+     *  Asynchronous means that all grid points will be updated in a random order. For this
+     *  first the update_order will be determined (this.set_update_order). Afterwards, the nextState
+     *  will be applied in that order. This means that some cells may update while all their neighours 
+     *  are still un-updated, and other cells will update while all their neighbours are already done. 
+    */ 
     asynchronous()
     {
         this.set_update_order();
@@ -306,6 +542,7 @@ class GridModel
         // Don't have to copy the grid here. Just cycle through i,j in random order and apply nextState :)
     }
 
+    /** Analogous to apply_sync(func), but asynchronous */
     apply_async(func)
     {
         this.set_update_order();
@@ -318,6 +555,7 @@ class GridModel
         }
     }
 
+    /** If called for the first time, make an update order (list of ints), otherwise just shuffle it. */
     set_update_order()
     {
         if (typeof this.upd_order === 'undefined')  // "Static" variable, only create this array once and reuse it
@@ -331,11 +569,32 @@ class GridModel
         shuffle(this.upd_order,this.rng);            // Shuffle the update order
     }
 
+    /** The update is, like nextState, user-defined (hence, empty by default).
+     *  It should contains all functions that one wants to apply every time step
+     *  (e.g. grid manipulations and printing statistics) 
+     *  For example, and update function could look like:
+     *  this.synchronous()         // Update all cells  
+     *  this.MargolusDiffusion()   // Apply Toffoli Margolus diffusion algorithm
+     *  this.plotPopsizes('species',[1,2,3]) // Plot the population sizes
+        */          
     update()
     {
         throw 'Update function of \'' + this.name + '\' undefined';
     }
 
+    /** Count the number of grid points in the Moore (9) neighbourhood which have
+     *  a certain value (val) for a certain property. 
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     *  @param {int} val what value should the GP have to be counted
+     *  @param {string} property the property that is counted
+     * 
+     *  For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js,
+     *  one needs to look for value '3' in the property 'species':
+     *  this.countMoore9(this,10,10,3,'species');  
+     */ 
     countMoore9(grid,col,row,val,property)
     {    
         let count = 0;
@@ -357,6 +616,20 @@ class GridModel
         }
         return count;
     }
+
+    /** Count the number of grid points in the Moore (8) neighbourhood which have
+     *  a certain value (val) for a certain property. 
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     *  @param {int} val what value should the GP have to be counted
+     *  @param {string} property the property that is counted
+     * 
+     *  For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js,
+     *  one needs to look for value '3' in the property 'species':
+     *  this.countMoore8(this,10,10,3,'species');  
+     */ 
     countMoore8(grid,col,row,val,property)
     {
         let count = this.countMoore9(grid,col,row,val,property);
@@ -364,7 +637,13 @@ class GridModel
         if(minus_this) count--;
         return count
     }
-    
+
+    /** Return a random neighbour from the Moore (8) neighbourhood
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     */ 
     randomMoore8(grid,col,row)
     {
         let rand = this.rng.genrand_int(1,8);  
@@ -375,6 +654,12 @@ class GridModel
         return neigh
     }
 
+    /** Return a random neighbour from the Moore (9) neighbourhood (self inclusive)
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     */ 
     randomMoore9(grid,col,row)
     {
         let rand = model.rng.genrand_int(0,8);        
@@ -385,16 +670,13 @@ class GridModel
         return neigh
     }
 
-    getNeighXY(i,j)
-    {
-        let x = i;
-        if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
-        let y = j;
-        if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
-        if(x<0||y<0||x>=this.nc||y>=this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
-        else return [x,y]
-    }
 
+
+    /** Get the gridpoint at coordinates i,j 
+     *  Makes sure wrapping is applied if necessary
+     *  @param {int} i position (column) for the focal gridpoint
+     *  @param {int} j position (row) for the focal gridpoint
+     */ 
     getGridpoint(i,j)
     {
         let x = i;
@@ -405,6 +687,12 @@ class GridModel
         else return this.grid[x][y]
     }
 
+    /** Change the gridpoint at position i,j into gp
+         *  Makes sure wrapping is applied if necessary
+         *  @param {int} i position (column) for the focal gridpoint
+         *  @param {int} j position (row) for the focal gridpoint
+         *  @param {Gridpoint} @Gridpoint object to set the gp to
+    */ 
     setGridpoint(i,j,gp)
     {
         let x = i;
@@ -415,12 +703,26 @@ class GridModel
         else this.grid[x][y] = gp;
     }
 
+    /** Get the x,y coordinates of a neighbour in an array. 
+     *  Makes sure wrapping is applied if necessary
+     */ 
+    getNeighXY(i,j)
+    {
+        let x = i;
+        if(this.wrap[0]) x = (i+this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = j;
+        if(this.wrap[1]) y = (j+this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+        if(x<0||y<0||x>=this.nc||y>=this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
+        else return [x,y]
+    }
 
-    
-
+    /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
+     *  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
+     *  which is then used to update the grid.
+     */ 
     diffuseOdeStates()
     {                
-        let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid);    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state of variable)    
+        let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid);    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state-vector)    
 
         for(let i=0;i<this.nc;i+=1) // every column
         {    
@@ -455,7 +757,29 @@ class GridModel
                         this.grid[i][j].ODEs[o].state[s] = newstates_2[i][j][o][s];
         
     }
-    
+
+    /** Assign each gridpoint a new random position on the grid. This simulated mixing,
+     *  but does not guarantee a "well-mixed" system per se (interactions are still)
+     *  calculated based on neighbourhoods. 
+     */ 
+    perfectMix()
+    {
+        let all_gridpoints = [];
+        for(let i=0;i<this.nc;i++)
+            for(let j=0;j<this.nr;j++)
+                all_gridpoints.push(this.getGridpoint(i,j));
+                
+        all_gridpoints = shuffle(all_gridpoints, this.rng);    
+                
+        for(let i=0;i<all_gridpoints.length;i++)                
+            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i]);
+        return "Perfectly mixed the grid"
+    }
+     /** Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines"
+      *  The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles
+      *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
+      *  CCW in odd iterations)
+     */ 
     MargolusDiffusion()
     {
         if(!this.wrap[0] || !this.wrap[1]) 
@@ -482,16 +806,16 @@ class GridModel
                 let C = this.getGridpoint(i+1,j+1);
                 let D = this.getGridpoint(i,j+1);
                 
-                if(this.rng.random() < 0.5)
+                if(this.rng.random() < 0.5)             // CW = clockwise rotation
                 {
-                    A = D;                           // cw
+                    A = D;                           
                     D = C; 
                     C = B;
                     B = old_A;
                 }
                 else
                 {
-                    A = B;
+                    A = B;                               // CCW = counter clockwise rotation      
                     B = C;
                     C = D;
                     D = old_A;
@@ -505,20 +829,7 @@ class GridModel
         this.margolus_phase++;
     }
 
-
-    perfectMix()
-    {
-        let all_gridpoints = [];
-        for(let i=0;i<this.nc;i++)
-            for(let j=0;j<this.nr;j++)
-                all_gridpoints.push(this.getGridpoint(i,j));
-                
-        all_gridpoints = shuffle(all_gridpoints, this.rng);    
-                
-        for(let i=0;i<all_gridpoints.length;i++)                
-            this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i]);
-        return "Perfectly mixed the grid"
-    }
+ 
     
     plotArray(graph_labels,graph_values,cols,title,opts)
     {        
@@ -869,202 +1180,6 @@ class Canvas
     }
 }
 
-/*
-  I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
-  so it's better encapsulated. Now you can have multiple random number generators
-  and they won't stomp all over eachother's state.
-  
-  If you want to use this as a substitute for Math.random(), use the random()
-  method like so:
-  
-  var m = new MersenneTwister();
-  var randomNumber = m.random();
-  
-  You can also call the other genrand_{foo}() methods on the instance.
-  If you want to use a specific seed in order to get a repeatable random
-  sequence, pass an integer into the constructor:
-  var m = new MersenneTwister(123);
-  and that will always produce the same random sequence.
-  Sean McCullough (banksean@gmail.com)
-*/
-
-/* 
-   A C-program for MT19937, with initialization improved 2002/1/26.
-   Coded by Takuji Nishimura and Makoto Matsumoto.
- 
-   Before using, initialize the state by using init_genrand(seed)  
-   or init_by_array(init_key, key_length).
- 
-   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
-   All rights reserved.                          
- 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions
-   are met:
- 
-     1. Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
- 
-     2. Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
- 
-     3. The names of its contributors may not be used to endorse or promote 
-        products derived from this software without specific prior written 
-        permission.
- 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
- 
-   Any feedback is very welcome.
-   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
-   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
-*/
-
-function MersenneTwister(seed) {
-    if (seed == undefined) {
-      seed = new Date().getTime();
-    } 
-    /* Period parameters */  
-    this.N = 624;
-    this.M = 397;
-    this.MATRIX_A = 0x9908b0df;   /* constant vector a */
-    this.UPPER_MASK = 0x80000000; /* most significant w-r bits */
-    this.LOWER_MASK = 0x7fffffff; /* least significant r bits */
-   
-    this.mt = new Array(this.N); /* the array for the state vector */
-    this.mti=this.N+1; /* mti==N+1 means mt[N] is not initialized */
-  
-    this.init_genrand(seed);
-  }  
-   
-  /* initializes mt[N] with a seed */
-  MersenneTwister.prototype.init_genrand = function(s) {
-    this.mt[0] = s >>> 0;
-    for (this.mti=1; this.mti<this.N; this.mti++) {
-        var s = this.mt[this.mti-1] ^ (this.mt[this.mti-1] >>> 30);
-     this.mt[this.mti] = (((((s & 0xffff0000) >>> 16) * 1812433253) << 16) + (s & 0x0000ffff) * 1812433253)
-    + this.mti;
-        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
-        /* In the previous versions, MSBs of the seed affect   */
-        /* only MSBs of the array mt[].                        */
-        /* 2002/01/09 modified by Makoto Matsumoto             */
-        this.mt[this.mti] >>>= 0;
-        /* for >32 bit machines */
-    }
-  };
-   
-  /* initialize by an array with array-length */
-  /* init_key is the array for initializing keys */
-  /* key_length is its length */
-  /* slight change for C++, 2004/2/26 */
-  MersenneTwister.prototype.init_by_array = function(init_key, key_length) {
-    var i, j, k;
-    this.init_genrand(19650218);
-    i=1; j=0;
-    k = (this.N>key_length ? this.N : key_length);
-    for (; k; k--) {
-      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
-      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1664525) << 16) + ((s & 0x0000ffff) * 1664525)))
-        + init_key[j] + j; /* non linear */
-      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
-      i++; j++;
-      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
-      if (j>=key_length) j=0;
-    }
-    for (k=this.N-1; k; k--) {
-      var s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
-      this.mt[i] = (this.mt[i] ^ (((((s & 0xffff0000) >>> 16) * 1566083941) << 16) + (s & 0x0000ffff) * 1566083941))
-        - i; /* non linear */
-      this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
-      i++;
-      if (i>=this.N) { this.mt[0] = this.mt[this.N-1]; i=1; }
-    }
-  
-    this.mt[0] = 0x80000000; /* MSB is 1; assuring non-zero initial array */ 
-  };
-   
-  /* generates a random number on [0,0xffffffff]-interval */
-  MersenneTwister.prototype.genrand_int32 = function() {
-    var y;
-    var mag01 = new Array(0x0, this.MATRIX_A);
-    /* mag01[x] = x * MATRIX_A  for x=0,1 */
-  
-    if (this.mti >= this.N) { /* generate N words at one time */
-      var kk;
-  
-      if (this.mti == this.N+1)   /* if init_genrand() has not been called, */
-        this.init_genrand(5489); /* a default initial seed is used */
-  
-      for (kk=0;kk<this.N-this.M;kk++) {
-        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
-        this.mt[kk] = this.mt[kk+this.M] ^ (y >>> 1) ^ mag01[y & 0x1];
-      }
-      for (;kk<this.N-1;kk++) {
-        y = (this.mt[kk]&this.UPPER_MASK)|(this.mt[kk+1]&this.LOWER_MASK);
-        this.mt[kk] = this.mt[kk+(this.M-this.N)] ^ (y >>> 1) ^ mag01[y & 0x1];
-      }
-      y = (this.mt[this.N-1]&this.UPPER_MASK)|(this.mt[0]&this.LOWER_MASK);
-      this.mt[this.N-1] = this.mt[this.M-1] ^ (y >>> 1) ^ mag01[y & 0x1];
-  
-      this.mti = 0;
-    }
-  
-    y = this.mt[this.mti++];
-  
-    /* Tempering */
-    y ^= (y >>> 11);
-    y ^= (y << 7) & 0x9d2c5680;
-    y ^= (y << 15) & 0xefc60000;
-    y ^= (y >>> 18);
-  
-    return y >>> 0;
-  };
-   
-  /* generates a random number on [0,0x7fffffff]-interval */
-  MersenneTwister.prototype.genrand_int31 = function() {
-    return (this.genrand_int32()>>>1);
-  };
-   
-  /* generates a random number on [0,1]-real-interval */
-  MersenneTwister.prototype.genrand_real1 = function() {
-    return this.genrand_int32()*(1.0/4294967295.0); 
-    /* divided by 2^32-1 */ 
-  };
-
-  /* generates a random int between [min,max] */
-  MersenneTwister.prototype.genrand_int = function(min,max) {
-    return min+Math.floor(this.genrand_real1()*(max));
-  };
-  
-  /* generates a random number on [0,1)-real-interval */
-  MersenneTwister.prototype.random = function() {
-    return this.genrand_int32()*(1.0/4294967296.0); 
-    /* divided by 2^32 */
-  };
-   
-  /* generates a random number on (0,1)-real-interval */
-  MersenneTwister.prototype.genrand_real3 = function() {
-    return (this.genrand_int32() + 0.5)*(1.0/4294967296.0); 
-    /* divided by 2^32 */
-  };
-   
-  /* generates a random number on [0,1) with 53-bit resolution*/
-  MersenneTwister.prototype.genrand_res53 = function() { 
-    var a=this.genrand_int32()>>>5, b=this.genrand_int32()>>>6; 
-    return (a*67108864.0+b)*(1.0/9007199254740992.0); 
-  };
-
 /**
  *  Simulation is the global Class of Cacatoo, containing the main configuration  
  *  for making a grid-based model grid and displaying it in either browser or with
@@ -1132,6 +1247,12 @@ class Simulation
         
     }
 
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {canvas} canvas A (constant) canvas object
+    * @param {event-handler} event Event handler (mousedown)
+    * @param {scale} scale The zoom (scale) of the grid to grab the correct grid point
+    */
     getCursorPosition(canvas,event,scale) {
         const rect = canvas.getBoundingClientRect();
         const x = Math.floor(Math.max(0,event.clientX - rect.left)/scale);

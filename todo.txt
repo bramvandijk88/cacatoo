@@ -3,12 +3,6 @@
 > Spacetime plots
 > Make the usage of canvases and graphs consistent (attach Graphs to the sim, and add a reference to the Graph in the GridModel-object)
 
-> Add colour bar? Or not?
-> MargolusDiffusion mistake: takes global time for direction, rather than # calls to the function. So if MDiff every 2 timesteps, it's always the same dir!
-
-> Over nadenken: alleen changed pixels tekenen? :)
-> Perfectmix via update_order??
-> populate grid via dict rather than 1,0.33,2,0.33 etc.
 > Many comments in GoL to explain what is done step by step
 
 > Options to save PNGs:
