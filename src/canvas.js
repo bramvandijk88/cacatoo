@@ -8,9 +8,10 @@ class Canvas
         this.height = height
         this.width = width             
         this.scale = scale        
+        
         if( typeof document !== "undefined" )                       // In browser, crease a new HTML canvas-element to draw on 
         {              
-            this.elem = document.createElement("canvas")
+            this.elem = document.createElement("canvas")  
             this.titlediv = document.createElement("div")
             this.titlediv.innerHTML = "<font size = 2>"+this.label+"</font>"
             this.canvasdiv = document.createElement("div")
@@ -21,7 +22,7 @@ class Canvas
             this.canvasdiv.appendChild(this.elem)
             this.canvasdiv.appendChild(this.titlediv)
             document.getElementById("canvas_holder").appendChild(this.canvasdiv)            
-            this.ctx = this.elem.getContext("2d")
+            this.ctx = this.elem.getContext("2d")                            
         } 
         else 
         {   // In nodejs, use canvas package. Not yet implemented
@@ -29,7 +30,7 @@ class Canvas
 		}
 		
     }
-    
+
     displaygrid()
     {
         let ctx = this.ctx
@@ -80,4 +81,7 @@ class Canvas
         ctx.putImageData(id, 0, 0);
     }
 }
+
+
+
 export default Canvas

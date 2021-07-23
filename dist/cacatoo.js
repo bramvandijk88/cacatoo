@@ -141,14 +141,13 @@ class GridModel
         this.grid = MakeGrid(config.ncol,config.nrow);           // Grid
         
         this.nc = config.ncol || 200;
-        this.nr = config.nrow || 200;  
-        this.wrap = config.wrap || [true, true]; 
+        this.nr = config.nrow || 200;
+        this.wrap = config.wrap || [true, true];
         this.rng = rng;
         this.statecolours = this.setupColours(config.statecolours);
         
         this.scale = config.scale || 1;
-        this.graphs = {};                // Graphs belonging to this model
-        this.canvases = {};              // Canvases belonging to this model
+
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
         this.margolus_phase = 0;
@@ -162,6 +161,9 @@ class GridModel
              [-1,1],        // SW
              [1,1]          // SE
             ];
+
+        this.graphs = {};                // Graphs belonging to this model
+        this.canvases = {};              // Canvases belonging to this model
     }
     
     /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
@@ -413,6 +415,9 @@ class GridModel
         else this.grid[x][y] = gp;
     }
 
+
+    
+
     diffuseOdeStates()
     {                
         let newstates_2 = CopyGridODEs(this.nc,this.nr,this.grid);    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state of variable)    
@@ -565,6 +570,7 @@ class GridModel
     plotPopsizes(property,values)
     {
         if(typeof window == 'undefined') return
+        if(this.time%this.graph_interval!=0 && this.graphs[`Population sizes (${this.name})`] !== undefined) return
         // Wrapper for plotXY function, which expects labels, values, colours, and a title for the plot:
         // Labels
         let graph_labels = [];
@@ -604,11 +610,13 @@ class GridModel
             for(let j=0;j<this.nr;j++)
             {
                 for(let val in values)
-                    if(this.getGridpoint(i,j)[property] == values[val]) sum[val]++;
+                    if(this.grid[i][j][property] == values[val]) sum[val]++;                    
             }
         }
         return sum;
     }
+
+    
     
     attachODE(eq,conf)
     {        
@@ -791,9 +799,10 @@ class Canvas
         this.height = height;
         this.width = width;             
         this.scale = scale;        
+        
         if( typeof document !== "undefined" )                       // In browser, crease a new HTML canvas-element to draw on 
         {              
-            this.elem = document.createElement("canvas");
+            this.elem = document.createElement("canvas");  
             this.titlediv = document.createElement("div");
             this.titlediv.innerHTML = "<font size = 2>"+this.label+"</font>";
             this.canvasdiv = document.createElement("div");
@@ -804,11 +813,11 @@ class Canvas
             this.canvasdiv.appendChild(this.elem);
             this.canvasdiv.appendChild(this.titlediv);
             document.getElementById("canvas_holder").appendChild(this.canvasdiv);            
-            this.ctx = this.elem.getContext("2d");
+            this.ctx = this.elem.getContext("2d");                            
         }
 		
     }
-    
+
     displaygrid()
     {
         let ctx = this.ctx;
@@ -1115,8 +1124,25 @@ class Simulation
         let cnv = new Canvas(grid,property,label,height,width,scale); 
         grid.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
+
+        const canvas = cnv.elem;
+        canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });        
+
         cnv.displaygrid();
         
+    }
+
+    getCursorPosition(canvas,event,scale) {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor(Math.max(0,event.clientX - rect.left)/scale);
+        const y = Math.floor(Math.max(0,event.clientY - rect.top)/scale);
+        console.log(`You have clicked the grid at position ${x},${y}`);
+        for(let model of this.gridmodels)
+        {
+           console.log(`This corresponds to gridpoint...`);
+           console.log(model.grid[x][y]);
+           console.log(`... in model ${model.name}`);
+        }
     }
 
     /**

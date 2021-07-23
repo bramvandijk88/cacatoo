@@ -1,10 +1,8 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
 > Spacetime plots
-> Add a custom printing function which either prints in a div, or to the console when in JS mode
 > Make the usage of canvases and graphs consistent (attach Graphs to the sim, and add a reference to the Graph in the GridModel-object)
 
-> Clicking the canvas to grab a gridpoint
 > Add colour bar? Or not?
 > MargolusDiffusion mistake: takes global time for direction, rather than # calls to the function. So if MDiff every 2 timesteps, it's always the same dir!
 

@@ -18,14 +18,17 @@ function setup()
             title: "Mutualists and cheaters",
             description: "",
             maxtime: 100000,
-            ncol : 250,            
-            nrow : 150,		                                        // dimensions of the grid to build
+            ncol : 20,            
+            nrow : 20,		                                        // dimensions of the grid to build
             seed : 56,  
             fps : 60,                                               // Note: FPS can only be set in fastmode
             fastmode: true,
             throttlefps : false,                                    // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
+            sleep: 1000,
             wrap : [true, true],                                    // Wrap boundary [COLS, ROWS]
-            scale : 2,				                                // scale of the grid (nxn pixels per grid point)            
+            scale : 20,				                                // scale of the grid (nxn pixels per grid point)            
+            graph_interval: 10,
+            graph_update: 50,
             statecolours: {'species':{1:"#DDDDDD",                  // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
                                       2:"red",                      // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
                                       3:"blue"}}                 
@@ -38,7 +41,7 @@ function setup()
     sim.initialGrid(sim.cheater,'species',1,0.33,2,0.33,3,0.33)             // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
 
     sim.createDisplay("cheater","species")                                  // Display the 'species' property of the cheater grid
-    sim.createDisplay("cheater","species",20,20,15)                         // Display the 'species' property of a small bit of the grid
+    sim.createDisplay("cheater","species",20,20,20)                         // Display the 'species' property of a small bit of the grid (i.e. zoom in)
     
     sim.cheater.nextState = function(i,j)                                    // Define the next-state function. This example is two mutualists and a cheater
     {         
@@ -75,9 +78,12 @@ function setup()
 
     sim.cheater.update = function()
     {
+        
         this.synchronous()
-        this.plotPopsizes('species',[1,2,3]) 
+        
         if(this.time%mdif_interval==0) this.MargolusDiffusion()
+        
+        // Let's count some
         let sumA = 0
         let sumB = 0
         let sumC = 0
@@ -88,25 +94,28 @@ function setup()
                 else if(this.grid[i][j].species==2)  sumB++
                 else if(this.grid[i][j].species==3)  sumC++
             }
-        
+            
+        // Update the plots. If the plot do not yet exist, a new plot will be made
+        this.plotPopsizes('species',[1,2,3]) 
         this.plotArray(["Ratio A/B", "Ratio B/C"], 
                         [sumA/sumB,sumB/sumC],
                         ["gold","#FF00AA"],
                         "My custom plot (A/B, B/C ratio)")
         
-
+    
         this.plotXY(["Ratio A/B", "Ratio B/C"], 
             [sumA/sumB,sumB/sumC],
             ["black"],
-            "My custom XY plot (X/Y vs Y/Z)", {drawPoints: true, strokeWidth:1, pointSize:2, strokePattern: [2,2]})        
-        // if (this.time%1000==0)       // Otherwise, just print some numbers (e.g. popsizes)
-        // {
-        //     sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species',[1,2,3])}`, "output")    
-        // }
+            "My custom XY plot (X/Y vs Y/Z)", {drawPoints: true, strokeWidth:1, pointSize:2, strokePattern: [2,2]})       
+                
+        if (this.time%10==0)       // Otherwise, just print some numbers (e.g. popsizes)
+        {
+            sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species',[1,2,3])}`, "output")    
+        }
     }  
         
     sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
-    sim.addButton("mix grid",function() { sim.cheater.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
+    sim.addButton("mix once",function() { sim.cheater.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
     sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
     sim.addSlider("A2B")
     sim.addSlider("B2A")

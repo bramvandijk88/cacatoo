@@ -62,8 +62,25 @@ class Simulation
         let cnv = new Canvas(grid,property,label,height,width,scale); 
         grid.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
+
+        const canvas = cnv.elem
+        canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })        
+
         cnv.displaygrid()
         
+    }
+
+    getCursorPosition(canvas,event,scale) {
+        const rect = canvas.getBoundingClientRect()
+        const x = Math.floor(Math.max(0,event.clientX - rect.left)/scale)
+        const y = Math.floor(Math.max(0,event.clientY - rect.top)/scale)
+        console.log(`You have clicked the grid at position ${x},${y}`)
+        for(let model of this.gridmodels)
+        {
+           console.log(`This corresponds to gridpoint...`)
+           console.log(model.grid[x][y])
+           console.log(`... in model ${model.name}`)
+        }
     }
 
     /**
