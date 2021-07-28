@@ -4,7 +4,6 @@ Cacatoo is a highly customisable toolkit for designing your own individual-based
 
 <center><img src="images/cacatoo.png" width="400"
      alt="Chillin on the shoulders of giants"
-     style="float:center;width:50%"
 /></center>
 
 
