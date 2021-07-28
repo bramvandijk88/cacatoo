@@ -17,7 +17,7 @@ with defining the sim.
 
 let simulation;
 
-function setup()
+function cacatoo()
 {
 
     let config = {  
@@ -35,7 +35,7 @@ function setup()
 
     sim = new Simulation(config)             // Initialise a new sim instance with configuration given above
     
-    sim.makeGridModel("prime");         
+    sim.makeGridmodel("prime");         
     sim.createDisplay("prime","alive")
     
     // Note to user: initialPattern is disabled, as it requirs a webserver for security reasons. Use the pattern button instead. 
@@ -64,7 +64,7 @@ function setup()
 
 
 
-<body onload="setup()">        
+<body onload="cacatoo()">        
     <div class="header" id="header"><h2>Cacatoo</h2></div>
 
     <div class="content" id="canvas_holder"></div>

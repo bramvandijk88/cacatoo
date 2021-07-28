@@ -4,15 +4,15 @@ import ODE from "./ode.js"
 import MersenneTwister from "../lib/mersenne.js"
 
 /**
- *  GridModel is the main (currently only) type of model in Cacatoo. Most of these models
+ *  Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
  *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
  *  them more like PDEs. 
  */
 
-class GridModel
+class Gridmodel
 {
     /**
-    *  The constructor function for a @GridModel object. Takes the same config dictionary as used in @Simulation
+    *  The constructor function for a @Gridmodel object. Takes the same config dictionary as used in @Simulation
     *  @param {string} name The name of your model. This is how it will be listed in @Simulation 's properties
     *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo GridModel. 
     *  @param {MersenneTwister} rng A random number generator (MersenneTwister object)
@@ -453,11 +453,12 @@ class GridModel
             this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i])
         return "Perfectly mixed the grid"
     }
-     /** Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines"
-      *  The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles
-      *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
-      *  CCW in odd iterations)
-     */ 
+
+    /** Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines"
+     *  The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles
+     *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
+     *  CCW in odd iterations)
+    */ 
     MargolusDiffusion()
     {
         if(!this.wrap[0] || !this.wrap[1]) 
@@ -507,8 +508,14 @@ class GridModel
         this.margolus_phase++
     }
 
- 
-    
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of floats to plot (here plotted over time)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */     
     plotArray(graph_labels,graph_values,cols,title,opts)
     {        
         if(typeof window == 'undefined') return
@@ -534,6 +541,14 @@ class GridModel
         }        
     }
 
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of 2 floats to plot (first value for x-axis, second value for y-axis)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */ 
     plotXY(graph_labels,graph_values,cols,title,opts)
     {
         if(typeof window == 'undefined') return
@@ -556,6 +571,11 @@ class GridModel
         
     }
 
+    /** 
+     * Easy function to add a pop-sizes plot (wrapper for plotArrays)
+     *  @param {String} property What property to plot (needs to exist in your model, e.g. "species" or "alive")
+     *  @param {Array} values Which values are plotted (e.g. [1,3,4,6])     
+    */ 
     plotPopsizes(property,values)
     {
         if(typeof window == 'undefined') return
@@ -591,6 +611,11 @@ class GridModel
         //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
     }
 
+    /** 
+     *  Returns an array with the population sizes of different types
+     *  @param {String} property Return popsizes for this property (needs to exist in your model, e.g. "species" or "alive")
+     *  @param {Array} values Which values are counted and returned (e.g. [1,3,4,6])     
+    */ 
     getPopsizes(property,values)
     {        
         let sum = Array(values.length).fill(0)
@@ -606,7 +631,12 @@ class GridModel
     }
 
     
-    
+  
+    /** 
+     *  Attaches an ODE to all GPs in the model. Each gridpoint has it's own ODE.
+     *  @param {function} eq Function that describes the ODEs, see examples starting with "ode"
+     *  @param {Object} conf dictionary style configuration of your ODEs (initial state, parameters, etc.)
+    */   
     attachODE(eq,conf)
     {        
         for(let i=0; i<this.nc; i++)
@@ -621,6 +651,11 @@ class GridModel
         }
     }
 
+    /** 
+     *  Numerically solve the ODEs for each grid point
+     *  @param {float} delta_t Step size
+     *  @param {bool} opt_pos When enabled, negative values are set to 0 automatically
+    */ 
     solve_all_odes(delta_t=0.1, opt_pos=false)
     {
         for(let i=0; i<this.nc; i++)
@@ -635,31 +670,39 @@ class GridModel
         }
     }
     
-
-    printGrid(value, fract)
+    /** 
+     *  Print the entire grid to the console. Not always recommended, but useful for debugging :D
+     *  @param {float} property What property is printed
+     *  @param {float} fract Subset to be printed (from the top-left)
+    */ 
+    printGrid(property, fract)
     {
         let ncol = this.nc
         let nrow = this.nr
         
-        if(fract != undefined) ncol*=fract, nrow*=fract
-        //console.log(fract)
+        if(fract != undefined) ncol*=fract, nrow*=fract        
         let grid = new Array(nrow);             // Makes a column or <rows> long --> grid[cols]
         for(let i = 0; i< ncol; i++)
-        {
             grid[i] = new Array(ncol);          // Insert a row of <cols> long   --> grid[cols][rows]
-            for(let j=0;j<nrow;j++)
-            {
-                grid[i][j] = this.grid[i][j][value]
-            }
-        }
+                for(let j=0;j<nrow;j++)
+                    grid[i][j] = this.grid[i][j][property]
+
         console.table(grid)
     }
 }
 
-export default GridModel
+export default Gridmodel
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//  The functions below are not methods of grid-model as they are never unique for a particular model. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+/** 
+ *  Make a grid, or when a template is given, a COPY of a grid. 
+ *  @param {int} cols Width of the new grid
+ *  @param {int} rows Height of the new grid
+ *  @param {2DArray} template Template to be used for copying (if not set, a new empty grid is made)
+*/ 
 function MakeGrid(cols,rows,template)
 {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
@@ -676,6 +719,12 @@ function MakeGrid(cols,rows,template)
     return grid;
 }
 
+/** 
+ *  Make a back-up of all the ODE states (for synchronous ODE updating)
+ *  @param {int} cols Width of the grid
+ *  @param {int} rows Height of the grid
+ *  @param {2DArray} template Get ODE states from here
+*/ 
 function CopyGridODEs(cols,rows,template)
 {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
@@ -698,6 +747,10 @@ function CopyGridODEs(cols,rows,template)
     return grid;
 }
 
+/** 
+ *  Reverse dictionary 
+ *  @param {Object} obj dictionary-style object to reverse in order 
+*/ 
 function dict_reverse(obj) {
     let new_obj= {}
     let rev_obj = Object.keys(obj).reverse();
@@ -707,6 +760,11 @@ function dict_reverse(obj) {
     return new_obj;
 }
 
+/** 
+ *  Randomly shuffle an array with custom RNG
+ *  @param {Array} array array to be shuffled
+ *  @param {MersenneTwister} rng MersenneTwister RNG
+*/ 
 function shuffle(array,rng) {
     let i = array.length;
     while (i--) {
@@ -716,17 +774,30 @@ function shuffle(array,rng) {
     return array;
   }
 
-function stringToRGB(val)
+/** 
+ *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
+ *  @param {String} string string to convert to RGB
+*/
+function stringToRGB(string)
 {
-    if(val[0] != '#') return nameToRGB(val)
-    else return hexToRGB(val)
+    if(string[0] != '#') return nameToRGB(string)
+    else return hexToRGB(string)
 }
+
+/** 
+ *  Convert hexadecimal to RGB
+ *  @param {String} hex string to convert to RGB
+*/
 function hexToRGB(hex) 
 {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return [parseInt(result[1],16),parseInt(result[2],16),parseInt(result[3],16)]
 }
 
+/** 
+ *  Convert colour name to RGB
+ *  @param {String} name string to look up in the set of known colours (see below)
+*/
 function nameToRGB(string)
 {
     let colours = {'black':      [0,0,0],          
@@ -739,13 +810,29 @@ function nameToRGB(string)
                    'violet':     [148, 0, 211],          
                    'turquoise':  [64, 224, 208],      
                    'orange':     [255, 165, 0],           
-                   'gold':       [240,200,0],             
-                   'nearwhite':  [200,200,200],
-                   'grey':      [125,125,125]}
+                   'gold':       [240,200,0],                                
+                   'grey':       [125,125,125],
+                   'yellow':     [255,255,0],
+                   'cyan':       [0,255,255],
+                   'aqua':       [0,255,255],
+                   'silver':     [192,192,192],
+                   'nearwhite':  [192,192,192],
+                   'purple':     [128,0,128],
+                   'darkgreen':  [0,128,0],
+                   'olive':      [128,128,0],
+                   'teal':       [0,128,128],
+                   'navy':       [0,0,128]
+
+                }
     let c = colours[string]
     if(c==undefined) throw new Error(`Cacatoo has no colour with name '${string}'`)
     return c
 }
+
+/** 
+ *  Make sure all colours, even when of different types, are stored in the same format (RGB, as cacatoo uses internally)
+ *  @param {Array} cols array of strings, or [R,G,B]-arrays. Only strings are converted, other returned. 
+*/
 
 function parseColours(cols)
 {
@@ -764,7 +851,9 @@ function parseColours(cols)
     return return_cols
 }
 
-
+/** 
+ *  A list of default colours if nothing is given by the user. 
+*/
 let default_colours = {
                   0:[0,0,0],            // black
                   1:[255,255,255],      // white

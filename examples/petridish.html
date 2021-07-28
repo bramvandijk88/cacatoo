@@ -8,7 +8,7 @@
 
 let sim;
 
-function setup()
+function cacatoo()
 {
 
     let config = {
@@ -28,7 +28,7 @@ function setup()
 
     sim = new Simulation(config)
 
-    sim.makeGridModel("cells"); 
+    sim.makeGridmodel("cells"); 
     sim.createDisplay("cells","alive")
 
     let birth_rate = 0.25
@@ -69,7 +69,7 @@ function setup()
 
 
 
-<body onload="setup()">        
+<body onload="cacatoo()">        
     <div class="header" id="header"><h2>ModelJS - </h2></div>
     <div class="content" id="canvas_holder"></div>
     <div class="content" id="form_holder"></div>    

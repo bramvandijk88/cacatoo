@@ -1,6 +1,17 @@
+/**
+ *  Graph is a wrapper-class for a Dygraph element (see https://dygraphs.com/). It is attached to the DOM-windows, and stores all values to be plotted, colours, title, axis names, etc. 
+ */
 
 class Graph
 {
+      /**
+    *  The constructor function for a @Canvas object. 
+    *  @param {Array} labels array of strings containing the labels for datapoints (e.g. for the legend)
+    *  @param {Array} values Array of floats to plot (here plotted over time)
+    * @param {Array} colours Array of colours to use for plotting
+    * @param {String} title Title of the plot
+    * @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
     constructor(labels,values,colours,title,opts)
     {
 
@@ -43,11 +54,17 @@ class Graph
         });
     }
 
+    /** Push data to your graph-element
+    * @param {array} array of floats to be added to the dygraph object (stored in 'data')
+    */
     push_data(data_array)
     {
         this.data.push(data_array)
     }
 
+    /** 
+     * Update the graph axes   
+    */
     update(){
         let max_x = 0
         let min_x = 999999999999
@@ -65,22 +82,16 @@ class Graph
 }
 export default Graph
 
-function componentToHex(c) {
+/* 
+Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
+*/
+function componentToHex(c) 
+{
 var hex = c.toString(16);
 return hex.length == 1 ? "0" + hex : hex;
 }
   
-function rgbToHex(r, g, b) {
-//if(r+g+b==765) return "#cccccc"
-return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+function rgbToHex(r, g, b) 
+{    
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
-
-// function hexToRgb(hex) {
-// var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-// return result ? {
-//     r: parseInt(result[1], 16),
-//     g: parseInt(result[2], 16),
-//     b: parseInt(result[3], 16)
-// } : null;
-// }
-

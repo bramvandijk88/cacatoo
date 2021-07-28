@@ -8,7 +8,7 @@
 
 let sim;
 
-function setup()
+function cacatoo()
 {
 
     let config = {
@@ -26,11 +26,11 @@ function setup()
 
     sim = new Simulation(config)
 
-    sim.makeGridModel("gol");    
+    sim.makeGridmodel("gol");    
     sim.initialGrid(sim.gol,'alive',1,0.1)        
     sim.createDisplay("gol","alive")
 
-    sim.makeGridModel("vote");
+    sim.makeGridmodel("vote");
     sim.initialGrid(sim.vote,'left',1,0.5)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
     sim.createDisplay("vote","left")
 
@@ -78,7 +78,7 @@ function setup()
 
 
 
-<body onload="setup()">
+<body onload="cacatoo()">
     <div class="header" id="header"></div>
     <div class="content" id="canvas_holder">  </div>
     <div class="content" id="graph_holder">  </div>

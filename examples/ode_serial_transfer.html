@@ -9,7 +9,7 @@
 
 let sim;
 
-function setup()
+function cacatoo()
 {
 
     let config = {
@@ -40,7 +40,7 @@ function setup()
     let refresh_medium_every = 1440  // Interval for refreshing the medium ("minutes", 24h)
     let refresh_medium_conc = 0.1   // Conc for refreshing the medium
 
-    sim.makeGridModel("batchculture"); 
+    sim.makeGridmodel("batchculture"); 
     sim.batchculture.colourViridis("external_resources", 100)
     sim.batchculture.colourViridis("internal_resources", 100)
     sim.createDisplay("batchculture","alive")
@@ -169,7 +169,7 @@ function setup()
 
 
 
-<body onload="setup()">        
+<body onload="cacatoo()">        
     <div class="header" id="header"><h2>ModelJS - </h2></div>
     <div class="content" id="canvas_holder"></div>
     <div class="content" id="form_holder"></div>    

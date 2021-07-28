@@ -1,10 +1,6 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
 > Spacetime plots
-> Make the usage of canvases and graphs consistent (attach Graphs to the sim, and add a reference to the Graph in the GridModel-object)
-
-> Many comments in GoL to explain what is done step by step
-
 > Options to save PNGs:
 		// change stuff below to sim.spirals.drawslide("name")
 		// let canvas = sim.spirals.canvas.elem // Grab the canvas element
@@ -14,10 +10,3 @@
 		// {
 		// 	saveAs(blob, "my_slide"+timestamp+".png");
 		// });
-
-> Add docstrings to all classes and methods. 
-   > Simulation.js is up to date
-
-Known issues for manual / documentation:
->> synchronous updating does NOT deep copy by default
->> asynchronous diffusing models have noise (because... async :P)

@@ -1,10 +1,11 @@
-import GridModel from "./gridmodel"
+import Gridmodel from "./gridmodel"
+import Graph from "./graph"
 import Canvas from "./canvas"
 import MersenneTwister from '../lib/mersenne'
 
 
 /**
- *  Simulation is the global Class of Cacatoo, containing the main configuration  
+ *  Simulation is the global class of Cacatoo, containing the main configuration  
  *  for making a grid-based model grid and displaying it in either browser or with
  *  nodejs. 
  */
@@ -35,10 +36,10 @@ class Simulation
     *  Generate a new GridModel within this simulation.  
     *  @param {string} name The name of your new model, e.g. "gol" for game of life. Cannot contain whitespaces. 
     */
-    makeGridModel(name)
+    makeGridmodel(name)
     {
         if(name.indexOf(' ') >= 0) throw new Error("The name of a gridmodel cannot contain whitespaces.")
-        let model = new GridModel(name,this.config,this.rng) // ,this.config.show_gridname weggecomment
+        let model = new Gridmodel(name,this.config,this.rng) // ,this.config.show_gridname weggecomment
         this[name] = model           // this = model["cheater"] = CA-obj
         this.gridmodels.push(model)
     }
@@ -54,13 +55,13 @@ class Simulation
     createDisplay(name,property,height,width,scale)
     {
         let label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
-        let grid = this[name]
-        if(grid == undefined) throw new Error(`There is no GridModel with the name ${name}`)
-        if(height==undefined) height = grid.nr
-        if(width==undefined) width = grid.nc
-        if(scale==undefined) scale = grid.scale        
-        let cnv = new Canvas(grid,property,label,height,width,scale); 
-        grid.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
+        let gridmodel = this[name]
+        if(gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        if(height==undefined) height = gridmodel.nr
+        if(width==undefined) width = gridmodel.nc
+        if(scale==undefined) scale = gridmodel.scale        
+        let cnv = new Canvas(gridmodel,property,label,height,width,scale); 
+        gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
 
         const canvas = cnv.elem
@@ -69,6 +70,7 @@ class Simulation
         cnv.displaygrid()
         
     }
+
 
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
@@ -160,7 +162,7 @@ class Simulation
         let model = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
         if(typeof window != 'undefined')
         {
-            let meter = new FPSMeter({show:'fps',left:"auto", top:"80px",right:"30px",graph:1,history:20})
+            let meter = new FPSMeter({show:'ms',left:"auto", top:"80px",right:"30px",graph:1,history:20})
 
             document.title = `Cacatoo - ${this.config.title}`
             document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`
@@ -231,19 +233,19 @@ class Simulation
      *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
-    initialGrid(grid,property)
+    initialGrid(gridmodel,property)
     {
         let p = property || 'val'
         let bg = 0
         
-        for(let i=0;i<grid.nc;i++)                          // i are columns
-                for(let j=0;j<grid.nr;j++)                  // j are rows
-                    grid.grid[i][j][p] = bg
+        for(let i=0;i<gridmodel.nc;i++)                          // i are columns
+                for(let j=0;j<gridmodel.nr;j++)                  // j are rows
+                    gridmodel.grid[i][j][p] = bg
         
         for (let arg=2; arg<arguments.length; arg+=2)         // Parse remaining 2+ arguments to fill the grid           
-            for(let i=0;i<grid.nc;i++)                        // i are columns
-                for(let j=0;j<grid.nr;j++)                    // j are rows
-                    if(this.rng.random() < arguments[arg+1]) grid.grid[i][j][p] = arguments[arg];                    
+            for(let i=0;i<gridmodel.nc;i++)                        // i are columns
+                for(let j=0;j<gridmodel.nr;j++)                    // j are rows
+                    if(this.rng.random() < arguments[arg+1]) gridmodel.grid[i][j][p] = arguments[arg];                    
     }
 
     
@@ -512,4 +514,21 @@ function get2DFromCanvas(canvas)
     return arr2D
 }
 
+// REMOVE AFTER REFACTOR GRAPHS??
+function parseColours(cols)
+{
+    let return_cols = []
+    for(let c of cols)
+    {
+        if(typeof c ===  'string' || c instanceof String) 
+        {
+            return_cols.push(stringToRGB(c))
+        }
+        else
+        {
+            return_cols.push(c)
+        }
+    }
+    return return_cols
+}
 

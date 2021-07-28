@@ -1,21 +1,39 @@
 'use strict';
 
+/**
+*  Gridpoint is what Gridmodels are made of. Contains everything that may happen in 1 locality. 
+*/
+
 class Gridpoint 
-{    
+{  
+    /**
+    *  The constructor function for a @Gridpoint object. Takes an optional template to copy primitives from. (NOTE!! Other types of objects are NOT deep copied by default)
+    *  If you need synchronous updating with complex objects (for whatever reason), replate line 18 with line 19. This will slow things down quite a bit, so ony use this
+    *  if you really need it. A better option is to use asynchronous updating so you won't have to worry about this at all :)
+    *  @param {Gridpoint} template Optional template to make a new @Gridpoint from
+    */  
    constructor(template) 
     {        
-        // This class only contains a copy-constructor, meaning that a new gridpoint will be made based on the passed template gridpoint
-        // If no template is given, the object is empty (for initialisation, this is true)
         for (var prop in template) 
-        {
-            this[prop] = template[prop];             // Shallow copy. It's fast, but be careful with syncronous updating!
-            // else this[prop] = copy(template[prop])    // Deep copy. Takes much more time, but sometimes you may need this*** 
-        }
+            this[prop] = template[prop];                  // Shallow copy. It's fast, but be careful with syncronous updating!
+            // this[prop] = copy(template[prop])         // Deep copy. Takes much more time, and you'll likely end up copying much more than necessary. Use only if you're sure you need it!
     }
 }
 
-class Graph$1
+/**
+ *  Graph is a wrapper-class for a Dygraph element (see https://dygraphs.com/). It is attached to the DOM-windows, and stores all values to be plotted, colours, title, axis names, etc. 
+ */
+
+class Graph
 {
+      /**
+    *  The constructor function for a @Canvas object. 
+    *  @param {Array} labels array of strings containing the labels for datapoints (e.g. for the legend)
+    *  @param {Array} values Array of floats to plot (here plotted over time)
+    * @param {Array} colours Array of colours to use for plotting
+    * @param {String} title Title of the plot
+    * @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
     constructor(labels,values,colours,title,opts)
     {
 
@@ -58,11 +76,17 @@ class Graph$1
         });
     }
 
+    /** Push data to your graph-element
+    * @param {array} array of floats to be added to the dygraph object (stored in 'data')
+    */
     push_data(data_array)
     {
         this.data.push(data_array);
     }
 
+    /** 
+     * Update the graph axes   
+    */
     update(){
         let max_x = 0;
         let min_x = 999999999999;
@@ -79,27 +103,34 @@ class Graph$1
     }
 }
 
-function componentToHex(c) {
+/* 
+Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
+*/
+function componentToHex(c) 
+{
 var hex = c.toString(16);
 return hex.length == 1 ? "0" + hex : hex;
 }
   
-function rgbToHex(r, g, b) {
-//if(r+g+b==765) return "#cccccc"
-return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+function rgbToHex(r, g, b) 
+{    
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
-// function hexToRgb(hex) {
-// var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-// return result ? {
-//     r: parseInt(result[1], 16),
-//     g: parseInt(result[2], 16),
-//     b: parseInt(result[3], 16)
-// } : null;
-// }
+/**
+*  The ODE class is used to call the odex.js library and numerically solve ODEs
+*/
 
 class ODE 
 {    
+    /**
+    *  The constructor function for a @ODE object. 
+    *  @param {function} eq Function that describes the ODE (see examples starting with ode)
+    *  @param {Array} state_vector Initial state vector
+    *  @param {Array} pars Array of parameters for the ODEs 
+    *  @param {Array} diff_rates Array of rates at which each state diffuses to neighbouring grid point (Has to be less than 0.25!)
+    *  @param {String} ode_name Name of this ODE
+    */  
    constructor(eq,state_vector,pars,diff_rates,ode_name) 
     {        
         this.name = ode_name;
@@ -109,7 +140,11 @@ class ODE
         this.pars = pars;
         this.solver = new Solver(state_vector.length);
     }
-
+    /** 
+     *  Numerically solve the ODE
+     *  @param {float} delta_t Step size
+     *  @param {bool} opt_pos When enabled, negative values are set to 0 automatically
+    */ 
     solve_timestep(delta_t=0.1,pos=false)
     {
         let newstate = this.solver.solve(
@@ -121,12 +156,13 @@ class ODE
         if(pos) for (var i = 0; i < newstate.length; i++) if(newstate[i] < 0.000001) newstate[i] = 0.0;
         this.state = newstate;
     }
-
+    /**
+    * Prints the current state to the console
+    */
     print_state()
     {
         console.log(this.state);
-    }
-        
+    }        
 }
 
 /*
@@ -326,15 +362,15 @@ function MersenneTwister(seed) {
   };
 
 /**
- *  GridModel is the main (currently only) type of model in Cacatoo. Most of these models
+ *  Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
  *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
  *  them more like PDEs. 
  */
 
-class GridModel
+class Gridmodel
 {
     /**
-    *  The constructor function for a @GridModel object. Takes the same config dictionary as used in @Simulation
+    *  The constructor function for a @Gridmodel object. Takes the same config dictionary as used in @Simulation
     *  @param {string} name The name of your model. This is how it will be listed in @Simulation 's properties
     *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo GridModel. 
     *  @param {MersenneTwister} rng A random number generator (MersenneTwister object)
@@ -393,14 +429,14 @@ class GridModel
             }
             else if(typeof statedict ===  'string' || statedict instanceof String)       // For if 
             {
-                return_dict[statekey] = stringToRGB(statedict);
+                return_dict[statekey] = stringToRGB$1(statedict);
             }
             else
             {
                 let c = {};
                 for(const [key,val] of Object.entries(statedict))
                 {
-                    let hex = stringToRGB(val);                
+                    let hex = stringToRGB$1(val);                
                     c[key] = hex;
                 }
                 return_dict[statekey] = c;
@@ -775,11 +811,12 @@ class GridModel
             this.setGridpoint(i%this.nc,Math.floor(i/this.nc),all_gridpoints[i]);
         return "Perfectly mixed the grid"
     }
-     /** Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines"
-      *  The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles
-      *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
-      *  CCW in odd iterations)
-     */ 
+
+    /** Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines"
+     *  The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles
+     *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
+     *  CCW in odd iterations)
+    */ 
     MargolusDiffusion()
     {
         if(!this.wrap[0] || !this.wrap[1]) 
@@ -829,17 +866,23 @@ class GridModel
         this.margolus_phase++;
     }
 
- 
-    
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of floats to plot (here plotted over time)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */     
     plotArray(graph_labels,graph_values,cols,title,opts)
     {        
         if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {     
-            cols = parseColours$1(cols);            
+            cols = parseColours(cols);            
             graph_values.unshift(this.time);
             graph_labels.unshift("Time");                            
-            this.graphs[title] = new Graph$1(graph_labels,graph_values,cols,title,opts);
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);
         }
         else 
         {
@@ -856,13 +899,21 @@ class GridModel
         }        
     }
 
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of 2 floats to plot (first value for x-axis, second value for y-axis)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */ 
     plotXY(graph_labels,graph_values,cols,title,opts)
     {
         if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {
-            cols = parseColours$1(cols);                            
-            this.graphs[title] = new Graph$1(graph_labels,graph_values,cols,title,opts);                        
+            cols = parseColours(cols);                            
+            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);                        
         }
         else 
         {
@@ -878,6 +929,11 @@ class GridModel
         
     }
 
+    /** 
+     * Easy function to add a pop-sizes plot (wrapper for plotArrays)
+     *  @param {String} property What property to plot (needs to exist in your model, e.g. "species" or "alive")
+     *  @param {Array} values Which values are plotted (e.g. [1,3,4,6])     
+    */ 
     plotPopsizes(property,values)
     {
         if(typeof window == 'undefined') return
@@ -913,6 +969,11 @@ class GridModel
         //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
     }
 
+    /** 
+     *  Returns an array with the population sizes of different types
+     *  @param {String} property Return popsizes for this property (needs to exist in your model, e.g. "species" or "alive")
+     *  @param {Array} values Which values are counted and returned (e.g. [1,3,4,6])     
+    */ 
     getPopsizes(property,values)
     {        
         let sum = Array(values.length).fill(0);
@@ -928,7 +989,12 @@ class GridModel
     }
 
     
-    
+  
+    /** 
+     *  Attaches an ODE to all GPs in the model. Each gridpoint has it's own ODE.
+     *  @param {function} eq Function that describes the ODEs, see examples starting with "ode"
+     *  @param {Object} conf dictionary style configuration of your ODEs (initial state, parameters, etc.)
+    */   
     attachODE(eq,conf)
     {        
         for(let i=0; i<this.nc; i++)
@@ -943,6 +1009,11 @@ class GridModel
         }
     }
 
+    /** 
+     *  Numerically solve the ODEs for each grid point
+     *  @param {float} delta_t Step size
+     *  @param {bool} opt_pos When enabled, negative values are set to 0 automatically
+    */ 
     solve_all_odes(delta_t=0.1, opt_pos=false)
     {
         for(let i=0; i<this.nc; i++)
@@ -957,29 +1028,37 @@ class GridModel
         }
     }
     
-
-    printGrid(value, fract)
+    /** 
+     *  Print the entire grid to the console. Not always recommended, but useful for debugging :D
+     *  @param {float} property What property is printed
+     *  @param {float} fract Subset to be printed (from the top-left)
+    */ 
+    printGrid(property, fract)
     {
         let ncol = this.nc;
         let nrow = this.nr;
         
-        if(fract != undefined) ncol*=fract, nrow*=fract;
-        //console.log(fract)
+        if(fract != undefined) ncol*=fract, nrow*=fract;        
         let grid = new Array(nrow);             // Makes a column or <rows> long --> grid[cols]
         for(let i = 0; i< ncol; i++)
-        {
             grid[i] = new Array(ncol);          // Insert a row of <cols> long   --> grid[cols][rows]
-            for(let j=0;j<nrow;j++)
-            {
-                grid[i][j] = this.grid[i][j][value];
-            }
-        }
+                for(let j=0;j<nrow;j++)
+                    grid[i][j] = this.grid[i][j][property];
+
         console.table(grid);
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//  The functions below are not methods of grid-model as they are never unique for a particular model. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+/** 
+ *  Make a grid, or when a template is given, a COPY of a grid. 
+ *  @param {int} cols Width of the new grid
+ *  @param {int} rows Height of the new grid
+ *  @param {2DArray} template Template to be used for copying (if not set, a new empty grid is made)
+*/ 
 function MakeGrid(cols,rows,template)
 {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
@@ -996,6 +1075,12 @@ function MakeGrid(cols,rows,template)
     return grid;
 }
 
+/** 
+ *  Make a back-up of all the ODE states (for synchronous ODE updating)
+ *  @param {int} cols Width of the grid
+ *  @param {int} rows Height of the grid
+ *  @param {2DArray} template Get ODE states from here
+*/ 
 function CopyGridODEs(cols,rows,template)
 {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
@@ -1018,6 +1103,10 @@ function CopyGridODEs(cols,rows,template)
     return grid;
 }
 
+/** 
+ *  Reverse dictionary 
+ *  @param {Object} obj dictionary-style object to reverse in order 
+*/ 
 function dict_reverse(obj) {
     let new_obj= {};
     let rev_obj = Object.keys(obj).reverse();
@@ -1027,6 +1116,11 @@ function dict_reverse(obj) {
     return new_obj;
 }
 
+/** 
+ *  Randomly shuffle an array with custom RNG
+ *  @param {Array} array array to be shuffled
+ *  @param {MersenneTwister} rng MersenneTwister RNG
+*/ 
 function shuffle(array,rng) {
     let i = array.length;
     while (i--) {
@@ -1036,17 +1130,30 @@ function shuffle(array,rng) {
     return array;
   }
 
-function stringToRGB(val)
+/** 
+ *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
+ *  @param {String} string string to convert to RGB
+*/
+function stringToRGB$1(string)
 {
-    if(val[0] != '#') return nameToRGB(val)
-    else return hexToRGB(val)
+    if(string[0] != '#') return nameToRGB(string)
+    else return hexToRGB(string)
 }
+
+/** 
+ *  Convert hexadecimal to RGB
+ *  @param {String} hex string to convert to RGB
+*/
 function hexToRGB(hex) 
 {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return [parseInt(result[1],16),parseInt(result[2],16),parseInt(result[3],16)]
 }
 
+/** 
+ *  Convert colour name to RGB
+ *  @param {String} name string to look up in the set of known colours (see below)
+*/
 function nameToRGB(string)
 {
     let colours = {'black':      [0,0,0],          
@@ -1059,22 +1166,38 @@ function nameToRGB(string)
                    'violet':     [148, 0, 211],          
                    'turquoise':  [64, 224, 208],      
                    'orange':     [255, 165, 0],           
-                   'gold':       [240,200,0],             
-                   'nearwhite':  [200,200,200],
-                   'grey':      [125,125,125]};
+                   'gold':       [240,200,0],                                
+                   'grey':       [125,125,125],
+                   'yellow':     [255,255,0],
+                   'cyan':       [0,255,255],
+                   'aqua':       [0,255,255],
+                   'silver':     [192,192,192],
+                   'nearwhite':  [192,192,192],
+                   'purple':     [128,0,128],
+                   'darkgreen':  [0,128,0],
+                   'olive':      [128,128,0],
+                   'teal':       [0,128,128],
+                   'navy':       [0,0,128]
+
+                };
     let c = colours[string];
     if(c==undefined) throw new Error(`Cacatoo has no colour with name '${string}'`)
     return c
 }
 
-function parseColours$1(cols)
+/** 
+ *  Make sure all colours, even when of different types, are stored in the same format (RGB, as cacatoo uses internally)
+ *  @param {Array} cols array of strings, or [R,G,B]-arrays. Only strings are converted, other returned. 
+*/
+
+function parseColours(cols)
 {
     let return_cols = [];
     for(let c of cols)
     {
         if(typeof c ===  'string' || c instanceof String) 
         {
-            return_cols.push(stringToRGB(c));
+            return_cols.push(stringToRGB$1(c));
         }
         else
         {
@@ -1084,7 +1207,9 @@ function parseColours$1(cols)
     return return_cols
 }
 
-
+/** 
+ *  A list of default colours if nothing is given by the user. 
+*/
 let default_colours = {
                   0:[0,0,0],            // black
                   1:[255,255,255],      // white
@@ -1100,12 +1225,24 @@ let default_colours = {
                   11:[200,200,200],     //nearwhite
                   12:[125,125,125]};     //grey
 
+/**
+ *  Canvas is a wrapper-class for a HTML-canvas element. It is linked to a @Gridmodel object, and stores what from that @Gridmodel should be displayed (width, height, property, scale, etc.)
+ */
+
 class Canvas
 {
-    constructor(grid,prop,lab,height,width,scale)
+    /**
+    *  The constructor function for a @Canvas object. 
+    *  @param {Gridmodel} gridmodel The gridmodel to which this canvas belongs
+    *  @param {string} property the property that should be shown on the canvas
+    *  @param {int} height height of the canvas (in rows)
+    *  @param {int} width width of the canvas (in cols)
+    *  @param {scale} scale of the canvas (width/height of each gridpoint in pixels)
+    */
+    constructor(gridmodel,prop,lab,height,width,scale)
     {        
         this.label = lab;
-        this.grid = grid;        
+        this.gridmodel = gridmodel;        
         this.property = prop;
         this.height = height;
         this.width = width;             
@@ -1129,6 +1266,9 @@ class Canvas
 		
     }
 
+    /**
+    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    */
     displaygrid()
     {
         let ctx = this.ctx;
@@ -1146,11 +1286,11 @@ class Canvas
         {
             for(let j=0;j<nrow;j++)     // j are rows
             {                             
-                let statecols = this.grid.statecolours[prop];  
+                let statecols = this.gridmodel.statecolours[prop];  
                 
-                if (!(prop in this.grid.grid[i][j])) continue   // Add warning?
+                if (!(prop in this.gridmodel.grid[i][j])) continue   // Add warning?
 
-                let value = this.grid.grid[i][j][prop];
+                let value = this.gridmodel.grid[i][j][prop];
                 
                 if(statecols[value] == undefined)                   // Don't draw the background state
                     continue
@@ -1181,7 +1321,7 @@ class Canvas
 }
 
 /**
- *  Simulation is the global Class of Cacatoo, containing the main configuration  
+ *  Simulation is the global class of Cacatoo, containing the main configuration  
  *  for making a grid-based model grid and displaying it in either browser or with
  *  nodejs. 
  */
@@ -1212,10 +1352,10 @@ class Simulation
     *  Generate a new GridModel within this simulation.  
     *  @param {string} name The name of your new model, e.g. "gol" for game of life. Cannot contain whitespaces. 
     */
-    makeGridModel(name)
+    makeGridmodel(name)
     {
         if(name.indexOf(' ') >= 0) throw new Error("The name of a gridmodel cannot contain whitespaces.")
-        let model = new GridModel(name,this.config,this.rng); // ,this.config.show_gridname weggecomment
+        let model = new Gridmodel(name,this.config,this.rng); // ,this.config.show_gridname weggecomment
         this[name] = model;           // this = model["cheater"] = CA-obj
         this.gridmodels.push(model);
     }
@@ -1231,13 +1371,13 @@ class Simulation
     createDisplay(name,property,height,width,scale)
     {
         let label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
-        let grid = this[name];
-        if(grid == undefined) throw new Error(`There is no GridModel with the name ${name}`)
-        if(height==undefined) height = grid.nr;
-        if(width==undefined) width = grid.nc;
-        if(scale==undefined) scale = grid.scale;        
-        let cnv = new Canvas(grid,property,label,height,width,scale); 
-        grid.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        let gridmodel = this[name];
+        if(gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        if(height==undefined) height = gridmodel.nr;
+        if(width==undefined) width = gridmodel.nc;
+        if(scale==undefined) scale = gridmodel.scale;        
+        let cnv = new Canvas(gridmodel,property,label,height,width,scale); 
+        gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
 
         const canvas = cnv.elem;
@@ -1246,6 +1386,7 @@ class Simulation
         cnv.displaygrid();
         
     }
+
 
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
@@ -1279,7 +1420,7 @@ class Simulation
         if(typeof window == 'undefined') return
         if(!(title in this.graphs))
         {
-            cols = parseColours(cols);                            
+            cols = parseColours$1(cols);                            
             this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);                        
         }
         else 
@@ -1337,7 +1478,7 @@ class Simulation
         let model = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
         if(typeof window != 'undefined')
         {
-            let meter = new FPSMeter({show:'fps',left:"auto", top:"80px",right:"30px",graph:1,history:20});
+            let meter = new FPSMeter({show:'ms',left:"auto", top:"80px",right:"30px",graph:1,history:20});
 
             document.title = `Cacatoo - ${this.config.title}`;
             document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`;
@@ -1408,19 +1549,19 @@ class Simulation
      *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
-    initialGrid(grid,property)
+    initialGrid(gridmodel,property)
     {
         let p = property || 'val';
         let bg = 0;
         
-        for(let i=0;i<grid.nc;i++)                          // i are columns
-                for(let j=0;j<grid.nr;j++)                  // j are rows
-                    grid.grid[i][j][p] = bg;
+        for(let i=0;i<gridmodel.nc;i++)                          // i are columns
+                for(let j=0;j<gridmodel.nr;j++)                  // j are rows
+                    gridmodel.grid[i][j][p] = bg;
         
         for (let arg=2; arg<arguments.length; arg+=2)         // Parse remaining 2+ arguments to fill the grid           
-            for(let i=0;i<grid.nc;i++)                        // i are columns
-                for(let j=0;j<grid.nr;j++)                    // j are rows
-                    if(this.rng.random() < arguments[arg+1]) grid.grid[i][j][p] = arguments[arg];                    
+            for(let i=0;i<gridmodel.nc;i++)                        // i are columns
+                for(let j=0;j<gridmodel.nr;j++)                    // j are rows
+                    if(this.rng.random() < arguments[arg+1]) gridmodel.grid[i][j][p] = arguments[arg];                    
     }
 
     
@@ -1685,6 +1826,24 @@ function get2DFromCanvas(canvas)
         rows++;
     }
     return arr2D
+}
+
+// REMOVE AFTER REFACTOR GRAPHS??
+function parseColours$1(cols)
+{
+    let return_cols = [];
+    for(let c of cols)
+    {
+        if(typeof c ===  'string' || c instanceof String) 
+        {
+            return_cols.push(stringToRGB(c));
+        }
+        else
+        {
+            return_cols.push(c);
+        }
+    }
+    return return_cols
 }
 
 module.exports = Simulation;

@@ -1,9 +1,21 @@
+/**
+ *  Canvas is a wrapper-class for a HTML-canvas element. It is linked to a @Gridmodel object, and stores what from that @Gridmodel should be displayed (width, height, property, scale, etc.)
+ */
+
 class Canvas
 {
-    constructor(grid,prop,lab,height,width,scale)
+    /**
+    *  The constructor function for a @Canvas object. 
+    *  @param {Gridmodel} gridmodel The gridmodel to which this canvas belongs
+    *  @param {string} property the property that should be shown on the canvas
+    *  @param {int} height height of the canvas (in rows)
+    *  @param {int} width width of the canvas (in cols)
+    *  @param {scale} scale of the canvas (width/height of each gridpoint in pixels)
+    */
+    constructor(gridmodel,prop,lab,height,width,scale)
     {        
         this.label = lab
-        this.grid = grid        
+        this.gridmodel = gridmodel        
         this.property = prop
         this.height = height
         this.width = width             
@@ -25,12 +37,15 @@ class Canvas
             this.ctx = this.elem.getContext("2d")                            
         } 
         else 
-        {   // In nodejs, use canvas package. Not yet implemented
-            
+        {   
+            // In nodejs, one may use canvas package. Or write the grid to a file to be plotted with R. 
 		}
 		
     }
 
+    /**
+    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    */
     displaygrid()
     {
         let ctx = this.ctx
@@ -48,11 +63,11 @@ class Canvas
         {
             for(let j=0;j<nrow;j++)     // j are rows
             {                             
-                let statecols = this.grid.statecolours[prop]  
+                let statecols = this.gridmodel.statecolours[prop]  
                 
-                if (!(prop in this.grid.grid[i][j])) continue   // Add warning?
+                if (!(prop in this.gridmodel.grid[i][j])) continue   // Add warning?
 
-                let value = this.grid.grid[i][j][prop]
+                let value = this.gridmodel.grid[i][j][prop]
                 
                 if(statecols[value] == undefined)                   // Don't draw the background state
                     continue
@@ -81,7 +96,5 @@ class Canvas
         ctx.putImageData(id, 0, 0);
     }
 }
-
-
 
 export default Canvas

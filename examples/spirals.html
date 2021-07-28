@@ -8,7 +8,7 @@
 
 let sim;
 
-function setup()
+function cacatoo()
 {
 
     let config = {
@@ -25,7 +25,7 @@ function setup()
 
     sim = new Simulation(config)
 
-    sim.makeGridModel("spirals"); 
+    sim.makeGridmodel("spirals"); 
     sim.createDisplay("spirals","colour")
     let n_species = 8
     
@@ -62,7 +62,7 @@ function setup()
 
 
 
-<body onload="setup()">
+<body onload="cacatoo()">
     <div class="header" id="header"></div>
     <div class="content" id="canvas_holder">  </div>
     <div class="content" id="form_holder">  </div>
