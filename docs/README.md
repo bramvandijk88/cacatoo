@@ -2,15 +2,12 @@
 
 Cacatoo is a highly customisable toolkit for designing your own individual-based models. It is roughly based Cash (Cellular Automata Simulated Hardware, RJ de Boer & AD Staritsk), but because it is written in 100% javascript, it requires no installation and works on any machine. 
 
-<img src="patterns/cacatoo.png"
+<img src="../images/cacatoo.png"
      alt="Chillin on the shoulders of giants"
      style="float:center;width=50%"
 />
 
 ## Getting started
-
-To setup Cacatoo, simply type:
-> 
 
 You don't need to install anything, just dowload this repository and start playing!
 If you want help with Javascript / setting up a nice coding environment, check out this [blog post](https://www.bramvandijk.com/blog/2020/11/20/javascript-programming-part-ii-my-setup)
