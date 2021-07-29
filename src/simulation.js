@@ -193,7 +193,8 @@ class Simulation
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
                     meter.tickStart()
-                    model.step()                                    
+                    model.step()   
+                    model.events();                                 
                     model.display()
                     meter.tick()
                     model.time++
