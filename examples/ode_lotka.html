@@ -27,8 +27,8 @@ function cacatoo()
     
     sim.makeGridmodel("lotka"); 
         
-    sim.lotka.colourRamp('numpred',200,[0,0,0],[240,200,0])                         // Will contain the ODEs, and show the abundance of PREDATORS
-    sim.lotka.colourRamp('numprey',200,[0,0,0],[148,0,211])                         // Will contain the ODEs, and show the abundance of PREDATORS
+    sim.lotka.colourGradient('numpred',200,[0,0,0],[240,200,0])                         // Will contain the ODEs, and show the abundance of PREDATORS
+    sim.lotka.colourGradient('numprey',200,[0,0,0],[148,0,211])                         // Will contain the ODEs, and show the abundance of PREDATORS
     
     sim.createDisplay('lotka','numpred')
     sim.createDisplay('lotka','numprey')

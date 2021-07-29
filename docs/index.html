@@ -15,54 +15,110 @@
     <script src="./cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
     <script src="./all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
 
-    <script>        
-        function cacatoo()
-{
+    <script>     
+    let sim;
 
-    let config = {
-            title: "Spirals",
-            description: "",
-            maxtime: 10000,
-            fastmode: true,
-            ncol : 200,
-            nrow : 200,		                        // dimensions of the grid to build
-            wrap : [true, true],                    // Wrap boundary [COLS, ROWS]   
-            scale : 2,				                // scale of the grid (nxn pixels per grid cell)
-            statecolours: {colour:'default'}        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
-    }
-
-    sim = new Simulation(config)
-
-    sim.makeGridmodel("spirals"); 
-    sim.createDisplay("spirals","colour")
-    let n_species = 8
+    var A2B =1.0                    
+    var B2A =1.0                    
+    var B2C =0.9                    
+    var stay_empty=1.0              
+    var death=0.1                  
+    var mdif_interval=0.1   
     
-    
-    // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        
-    for(let i=0;i<sim.spirals.nc;i++)                          // i are columns
-        for(let j=0;j<sim.spirals.nr;j++)                      // j are rows
-            sim.spirals.grid[i][j]['colour'] = Math.ceil(sim.rng.genrand_real1()*n_species)           
+    function cacatoo()
+    {    
+        
+        let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
+                title: "Mutualists and cheaters",
+                description: "",
+                maxtime: 100000,
+                ncol : 200,            
+                nrow : 200,		                                            // dimensions of the grid to build                
+                scale : 2,				                                    // scale of the grid (nxn pixels per grid point)            
+                statecolours: {'species':{1:"#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                        2:"red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                        3:"blue"}}                 
+        }
 
-    sim.spirals.nextState = function(i,j)           // Define the next-state function. This example is spirals
-    {   
-        let state = this.grid[i][j].colour               // Colour of current pixel
-        let pred = (this.grid[i][j].colour%n_species)+1  // Colour it is predated by (% because 8 is predated by 1)
+        
+        sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
+        
+        sim.makeGridmodel("cheater")                                        // Make a new gridmodel named cheater
+        sim.initialGrid(sim.cheater,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+        sim.createDisplay("cheater","species")                              // Display the 'species' property of the cheater grid
 
-        let neighbours = sim.spirals.countMoore8(this,i,j,pred,'colour') // Count the nr of predators
-        // Red will spread
-        if(sim.rng.genrand_real1() < 0.25*neighbours)   // Let "predator" grow over the current pixel
-            this.grid[i][j].colour = pred;
-    }    
+        sim.cheater.nextState = function(i,j)                               // Define the next-state function. This example is two mutualists and a cheater
+        {         
+            // let pA, pB, pC, psum             
+            let state = this.grid[i][j].species;
+            if (state==0)                                                   // If there is no species here
+            {            
+                sumA= this.countMoore8(this,i,j,1,'species');               // Count the number of species 1 (mutualist A)
+                sumB= this.countMoore8(this,i,j,2,'species');               // Count the number of species 2 (mutualist B)
+                sumC= this.countMoore8(this,i,j,3,'species');               // Count the number of species 3 (mutualist C)
 
-    sim.spirals.update = function()
-    {	
-        this.synchronous()                              // Applied as many times as it can in 1/60th of a second        
-        this.plotPopsizes('colour',[1,2,3,4,5,6,7,8]) 
+                pA= (B2A*sumB)*sumA;                                        // Chance that A wins
+                pB= (A2B*sumA)*sumB;                                        // Chance that B wins
+                pC= (B2C*sumB)*sumC;                                        // Chance that C wins
+                psum=pA+pB+pC+stay_empty;                                   // Total = pA+pB+pC+stay_empty (scales the chance that nothing happens during competition)
+
+                ran= this.rng.random();                                     // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
+                                                                
+                if (ran< pA/psum)                                           // <-ran->                                     (A wins)
+                    this.grid[i][j].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                else if (ran< (pA+pB)/psum)                                 //        <-ran->                              (B wins)
+                    this.grid[i][j].species = 2                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                else if (ran< (pA+pB+pC)/psum)                              //               <--ran-->                     (C wins)
+                    this.grid[i][j].species = 3                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                                                                            //                        <-----ran----->      (no winner, spot stays empty for now)
+                                                                            // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
+            }
+            
+            if (this.rng.random()<death)                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
+                this.grid[i][j].species = 0
+        }
+
+       
+        sim.cheater.update = function()
+        {        
+            this.synchronous()                                              // Update all grid points based on the next-state function (defined above)
+            if(this.time%mdif_interval==0) this.MargolusDiffusion()         // Every so often mix individuals a bit
+            this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
+        }
+        
+        sim.cheater.updateGraphs = function()
+        {
+            // Let's count some stuff every update
+            let sumA = 0
+            let sumB = 0
+            let sumC = 0
+            for(let i=0;i<this.nc;i++)          // i are columns
+                for(let j=0;j<this.nr;j++)      // j are rows
+                {     
+                    if(this.grid[i][j].species==1)  sumA++
+                    else if(this.grid[i][j].species==2)  sumB++
+                    else if(this.grid[i][j].species==3)  sumC++
+                }
+                
+            // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
+            this.plotPopsizes('species',[1,2,3]) 
+           
+        }
+            
+        /**
+        * OPTIONAL: add some buttons and sliders so you can play with your model easily
+        */
+        sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
+        sim.addButton("mix once",function() { sim.cheater.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
+        sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addSlider("A2B")
+        sim.addSlider("B2A")
+        sim.addSlider("B2C")
+        sim.addSlider("stay_empty",0.00,20.00,0.01)
+        sim.addSlider("death", 0.00, 1.00, 0.001)
+
+        sim.start()
     }
-
-    sim.addButton("mix grid",function() { sim.spirals.perfectMix()})
-    sim.start()
-}
 
         </script>
 </head>
@@ -76,17 +132,18 @@
 
 <h1 class="page-title">Home</h1>
 
-    This page contains documentation for Cacatoo, a javascript library to build simple IBMs. 
-
+    This page contains documentation for Cacatoo, a javascript library to build simple IBMs. The simulation you see below
+    is fully interactive, and it is very easy to make yourself! To get started, use the menu on the right-hand side to navigate
+    through the manual. 
+    <center>
     <div id="header"><h2>Cacatoo </h2></div>
     <div id="canvas_holder"></div>
     <div id="form_holder"></div>
     <div id="graph_holder"> </div>
     <div id="footer"></div>
+</center>
     <br><br>
-    <img src="cacatoo.png" width="400"
-     alt="Chillin on the shoulders of giants"
-     >
+    
     
 
 
@@ -119,7 +176,18 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Canvas.html">Canvas</a></li><li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB$1">stringToRGB$1</a></li></ul>
+    <h2>  <a href="index.html">Home</a></h2>
+    </h2><h3>Getting started</h3>
+    <ul>
+        <li><a href="">Cacatoo overview</a></li>
+        <li><a href="">Example project</a></li>
+        <li><a href="">Using ODEs</a></li>
+
+    </ul>
+    </h2><h3>Classes</h3>
+        <ul>
+            <li><a href="Canvas.html">Canvas</a></li>
+            <li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB$1">stringToRGB$1</a></li></ul>
 </nav>
 
 <br class="clear">
