@@ -10,3 +10,5 @@
 		// {
 		// 	saveAs(blob, "my_slide"+timestamp+".png");
 		// });
+
+		// Colour map as array rather than as object? Probably faster. 
