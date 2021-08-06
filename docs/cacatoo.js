@@ -1571,6 +1571,29 @@ class Simulation
                     if(this.rng.random() < arguments[arg+1]) gridmodel.grid[i][j][p] = arguments[arg];                    
     }
 
+     /**
+     *  initialSpot populates a grid with states. Grid points close to a certain coordinate are set to state value, while
+     *  other cells are set to the bg-state of 0. 
+     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+     *  @param {String} property The name of the state to be set 
+     *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
+     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
+     */
+      initialSpot(gridmodel,property,value,size,x,y)
+      {
+          let p = property || 'val';
+          
+          // Draw a circle
+          for(let i=0;i<gridmodel.nc;i++)                          // i are columns
+          for(let j=0;j<gridmodel.nr;j++)                           // j are rows
+          {
+            if( (Math.pow((i-x),2) + Math.pow((j-y),2) ) < size)
+                gridmodel.grid[i % gridmodel.nr][j % gridmodel.nc][p] = value;
+            else
+                gridmodel.grid[i % gridmodel.nr][j % gridmodel.nc][p] = 0;
+          }
+      }
+
     
     /**
      *  addButton adds a HTML button which can be linked to a function by the user. 
