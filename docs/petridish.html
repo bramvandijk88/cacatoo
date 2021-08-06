@@ -95,6 +95,10 @@ function cacatoo()
         sim.initialGrid(sim.cells,'age',0,1.0)
         sim.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1   
         sim.time=0  
+
+        sim.initialGrid(sim.cells_wellmixed,'alive',1,0.0)
+        sim.initialGrid(sim.cells_wellmixed,'age',0,1.0)
+        sim.cells_wellmixed.grid[config.ncol/2][config.nrow/2]['alive'] = 1   
     } 
     sim.cells.bottleneck = function()
     {
