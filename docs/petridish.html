@@ -9,7 +9,7 @@
 /*-----------------------Start user-defined code ---------------------*/
 
 let sim;
-var mutationrate = 0.001;
+var mutationrate = 0.0001;
 var cell_diffusion = 0;
 var death_rate_growing = 0.3;
 var mutations_required = 1;
@@ -93,7 +93,7 @@ function cacatoo()
     sim.addButton("bottleneck",function() { sim.cells.bottleneck()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
     sim.addButton("reset",function() { sim.cells.reset()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
     sim.addHTML("form_holder","<br>")
-    sim.addSlider("mutationrate",0.0,0.1,0.001)
+    sim.addSlider("mutationrate",0.0,0.01,0.0001)
     sim.addSlider("death_rate_growing",0.0,1.0,0.01)
     sim.addSlider("cell_diffusion",0,10,1)
     sim.addSlider("mutations_required",0,10,1)
