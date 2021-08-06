@@ -7,7 +7,8 @@
 /*-----------------------Start user-defined code ---------------------*/
 
 let sim;
-
+var mutationrate = 0.001;
+var cell_diffusion = 0;
 function cacatoo()
 {
 
@@ -15,15 +16,15 @@ function cacatoo()
             title: "Petridish with local growth",
             description: "",
             maxtime: 1000,
-            fastmode: true,             // If possible, fast-mode will update the sim with more than 60 FPS. 
+            fastmode: false,             // If possible, fast-mode will update the sim with more than 60 FPS. 
                                         // Note: fastmode is only useful/recommended if the sim can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
                                         // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol : 200,            
-            nrow : 200,		            // dimensions of the grid to build
-            wrap : [true, false],       // Wrap boundary [COLS, ROWS]   
-            scale : 2,				    // scale of the grid (nxn pixels per grid cell)
-            statecolours: {'alive':{1:'#AAAA00'}}   // The background state '0' is never drawn
+            ncol : 400,            
+            nrow : 400,		            // dimensions of the grid to build
+            wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
+            scale : 1,				    // scale of the grid (nxn pixels per grid cell)
+            statecolours: {alive:'default'}   // The background state '0' is never drawn
     }
 
     sim = new Simulation(config)
@@ -31,32 +32,53 @@ function cacatoo()
     sim.makeGridmodel("cells"); 
     sim.createDisplay("cells","alive")
 
-    let birth_rate = 0.25
-    let death_rate = 0.01
-
+    let birth_rate = 0.85
     
-    sim.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1
-    
+    sim.cells.grid[config.ncol/2][config.nrow/2]['alive'] = 1    
     
     sim.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
     {   
-        if(this.grid[i][j].alive == 1)
-        {
-            if(sim.rng.random() < death_rate) this.grid[i][j].alive = 0
-        }
-        else
-        {
-            //let neighbours = sim.cells.countMoore8(this,i,j,1,'alive')              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
+        
+        if(this.grid[i][j].alive === undefined)
+        {                   
             let neighbour = sim.cells.randomMoore8(this,i,j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
-            if (neighbour.alive == 1 && sim.rng.genrand_real1() < birth_rate)                        
-                this.grid[i][j].alive = 1;
-        }
+            if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate)                        
+            {
+                this.grid[i][j].alive = neighbour.alive
+                if(sim.rng.genrand_real1() < mutationrate) this.grid[i][j].alive = (this.grid[i][j].alive+1)%19
+            }
+        } 
     }
     
     sim.cells.update = function()
     {
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
+        for(let i=0; i<cell_diffusion; i++) this.MargolusDiffusion()
+        //this.plotPopsizes('alive',[1,2,3]) 
     }
+
+    sim.cells.reset = function()
+    {
+        for(let i=0; i<this.nc; i++)       
+            for(let j=0;j<this.nr;j++)
+                if(i==config.ncol/2 && j == config.nrow/2) this.grid[i][j].alive = 1
+                else this.grid[i][j].alive=undefined
+    } 
+    sim.cells.bottleneck = function()
+    {
+        for(let i=0; i<this.nc; i++)       
+            for(let j=0;j<this.nr;j++)
+                if(this.rng.genrand_real1() < 0.99) this.grid[i][j].alive = undefined
+    } 
+    
+    sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
+    sim.addButton("mix once",function() { sim.cells.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
+    sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+    sim.addButton("bottleneck",function() { sim.cells.bottleneck()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+    sim.addButton("reset",function() { sim.cells.reset()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+    sim.addHTML("form_holder","<br>")
+    sim.addSlider("mutationrate",0.0,0.1,0.001)
+    sim.addSlider("cell_diffusion",0,10,1)
   
     sim.start()
 }

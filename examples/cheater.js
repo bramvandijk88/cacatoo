@@ -15,7 +15,9 @@ let mdif_interval=0
 */
 function cacatoo()
 {    
-    
+    /*
+        1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+    */   
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
             title: "Mutualists and cheaters",
             description: "",
@@ -35,7 +37,9 @@ function cacatoo()
                                       3:"blue"}}                 
     }
 
-    
+    /*
+        1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+    */
     sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
     
     sim.makeGridmodel("cheater")                                        // Make a new gridmodel named cheater

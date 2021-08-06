@@ -166,7 +166,7 @@ class Simulation
 
             document.title = `Cacatoo - ${this.config.title}`
             document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`
-            document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>grid</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>"
+            document.getElementById("footer").innerHTML = "<h2>Cacatoo is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>"
             let simStartTime = performance.now();
       
             async function animate()

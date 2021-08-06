@@ -1222,8 +1222,14 @@ let default_colours = {
                   8:[64, 224, 208],     //turquoise   
                   9:[255, 165, 0],      //orange       
                   10:[240,200,0],       //gold       
-                  11:[200,200,200],     //nearwhite
-                  12:[125,125,125]};     //grey
+                  11:[125,125,125],
+                  12:[255,255,0], // yellow
+                  13:[0,255,255], // cyan
+                  14:[192,192,192], // silver
+                  15:[0,128,0], //darkgreen
+                  16:[128,128,0], // olive
+                  17:[0,128,128], // teal
+                  18:[0,0,128]}; // navy
 
 /**
  *  Canvas is a wrapper-class for a HTML-canvas element. It is linked to a @Gridmodel object, and stores what from that @Gridmodel should be displayed (width, height, property, scale, etc.)
@@ -1482,7 +1488,7 @@ class Simulation
 
             document.title = `Cacatoo - ${this.config.title}`;
             document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`;
-            document.getElementById("footer").innerHTML = "<h2>Cacatoo (<u>grid</u>sh-like <u>c</u>ellular <u>a</u>utomaton <u>too</u>lkit) is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
+            document.getElementById("footer").innerHTML = "<h2>Cacatoo is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.org/contact/\">very welcome.</a></h2>";
             let simStartTime = performance.now();
       
             async function animate()
@@ -1509,7 +1515,8 @@ class Simulation
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
                     meter.tickStart();
-                    model.step();                                    
+                    model.step();   
+                    model.events();                                 
                     model.display();
                     meter.tick();
                     model.time++;
