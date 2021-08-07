@@ -1877,4 +1877,3 @@ function parseColours$1(cols)
     return return_cols
 }
 
-module.exports = Simulation;
