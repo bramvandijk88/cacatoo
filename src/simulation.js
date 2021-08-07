@@ -296,16 +296,17 @@ class Simulation
      *  @param {float} [max] Maximum value of the slider
      *  @param {float} [step] Step-size when modifying
      */
-    addSlider(parameter,min=0.0,max=2.0,step=0.01)
+    addSlider(parameter,min=0.0,max=2.0,step=0.01,label)
     {
+        let lab = label || parameter
         if(typeof window == "undefined") return
-        if(window[parameter] == "undefined") {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
+        if(window[parameter] === undefined) {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
         let container = document.createElement("div")
         container.classList.add("form-container")            
 
         let slider = document.createElement("input") 
         let numeric = document.createElement("input") 
-        container.innerHTML += "<div style='width:100%'><b>"+parameter+":</b></div>"
+        container.innerHTML += "<div style='width:100%;height:20px;font-size:12px;'><b>"+lab+":</b></div>"
 
         // Setting slider variables / handler
         slider.type='range'

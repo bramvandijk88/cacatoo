@@ -8,9 +8,11 @@
     /*-----------------------Start user-defined code ---------------------*/
     
     let sim;
-    var mutationrate = 0.0005;
+    var mutationrate = 0.001;
     var death_rate_growing = 0.5;
     var mutations_required = 1;
+    var growth_rate_wm = 1.0;
+
     function cacatoo()
     {
     
@@ -38,20 +40,19 @@
         sim.makeGridmodel("cells_wellmixed"); 
         sim.createDisplay("cells_wellmixed","alive")    
         
-        let birth_rate = 0.85
         sim.cells.statecolours.alive[0] = [255,255,255] // Change bg to white
         sim.cells.statecolours.alive[1] = [79,31,154] // Change WT 1 to white
         sim.cells.statecolours.alive[2] = [228,178,36] // Change mutant 1 to gold
         sim.cells.statecolours.alive[3] = [32, 100, 100] // Change mutant 2 to dark-turquoise
-        sim.cells.statecolours.alive[3] = [100, 100, 255] // Change mutant 3 to light blue
+        sim.cells.statecolours.alive[3] = [100, 100, 255] // Change mutant 3 to light blue        
         
         sim.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
         {   
-            
+            let growthrate = this.name == "cells_wellmixed" ? growth_rate_wm : 1.0
             if(this.grid[i][j].alive == 0)
             {                   
                 let neighbour = this.randomMoore8(this,i,j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
-                if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate)                        
+                if (neighbour.alive > 0 && sim.rng.genrand_real1() < growthrate)                        
                 {
                     this.grid[i][j].alive = neighbour.alive
                     this.grid[i][j].age = 0
@@ -60,7 +61,7 @@
             } 
             else
             {
-                if(this.grid[i][j].age < 3 && this.grid[i][j].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
+                if(this.grid[i][j].age < 2 && this.grid[i][j].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
                     this.grid[i][j].alive = 0
                 else 
                     this.grid[i][j].age++
@@ -100,17 +101,21 @@
                     if(this.rng.genrand_real1() < 0.999) this.grid[i][j].alive = 0
                     if(sim.cells_wellmixed.rng.genrand_real1() < 0.999) sim.cells_wellmixed.grid[i][j].alive = 0
                 }
+            sim.cells_wellmixed.perfectMix()
+            this.perfectMix()
         } 
         
-        sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
-        sim.addButton("mix plate once",function() { sim.cells.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
-        sim.addButton("keep plate mixed",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
-        sim.addButton("99.9% bottleneck",function() { sim.cells.bottleneck()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
-        sim.addButton("reset simulation",function() { sim.cells.reset()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addButton("Pause/Continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
+        sim.addButton("Mix plate once",function() { sim.cells.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
+        sim.addButton("Keep plate mixed",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addButton("Bottleneck (99.9%)",function() { sim.cells.bottleneck()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addButton("Reset simulation",function() { sim.cells.reset()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
         sim.addHTML("form_holder","<br>")
-        sim.addSlider("mutationrate",0.0,0.01,0.0001)
-        sim.addSlider("death_rate_growing",0.0,1.0,0.01)
-        sim.addSlider("mutations_required",0,10,1)
+        sim.addSlider("mutationrate",0.0,0.05,0.0001,"Mutation rate")
+        sim.addSlider("death_rate_growing",0.0,1.0,0.01,"Death rate growing cells (wildtype)")
+        sim.addSlider("growth_rate_wm",0.01,1.00,0.01,"Relative well-mixed growth rate")
+        
+        sim.addSlider("mutations_required",0,10,1,"Nr. of mutations required for escape")
       
         sim.start()
     }
