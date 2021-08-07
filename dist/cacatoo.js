@@ -1210,13 +1210,13 @@ function parseColours(cols)
 /** 
  *  A list of default colours if nothing is given by the user. 
 */
-let default_colours = {
+let default_colours = {            
                   0:[0,0,0],            // black
                   1:[255,255,255],      // white
                   2:[255,0,0],          // red
                   3:[0,0,255],          // blue
                   4:[0,255,0],          //green      
-                  5:[40,40,40],         //darkgrey    
+                  5:[60,60,60],         //darkgrey    
                   6:[180,180,180],      //lightgrey   
                   7:[148, 0, 211],      //violet      
                   8:[64, 224, 208],     //turquoise   
