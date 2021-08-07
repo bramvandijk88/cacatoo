@@ -1,7 +1,7 @@
  
 body {
 font-family: Arial, Helvetica, sans-serif;
-background-color: #f0f0f0;
+background-color: #cccccc;
 margin:20px;
 }
 
@@ -22,7 +22,7 @@ margin:20px;
   text-align: center;
   box-shadow: 3px 1px 0px #24242444;
   /*border-bottom: 1px dashed #88888844;*/
-  background-color: #fbfbfb;
+  background-color: #f0f0f0;
   padding: 10px;
 }
 
@@ -42,7 +42,7 @@ margin:20px;
 
 /* Style the footer */
 .footer {
-  background-color: #fbfbfb;
+  background-color: #f0f0f0;
   border: 0px solid #FFFFFF;
   box-shadow: 3px 1px 0px #24242444;
   border-radius: 0px 0px 15px 15px;
