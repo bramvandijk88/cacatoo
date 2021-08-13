@@ -1210,13 +1210,13 @@ function parseColours(cols)
 /** 
  *  A list of default colours if nothing is given by the user. 
 */
-let default_colours = {
+let default_colours = {            
                   0:[0,0,0],            // black
                   1:[255,255,255],      // white
                   2:[255,0,0],          // red
                   3:[0,0,255],          // blue
                   4:[0,255,0],          //green      
-                  5:[40,40,40],         //darkgrey    
+                  5:[60,60,60],         //darkgrey    
                   6:[180,180,180],      //lightgrey   
                   7:[148, 0, 211],      //violet      
                   8:[64, 224, 208],     //turquoise   
@@ -1617,16 +1617,17 @@ class Simulation
      *  @param {float} [max] Maximum value of the slider
      *  @param {float} [step] Step-size when modifying
      */
-    addSlider(parameter,min=0.0,max=2.0,step=0.01)
+    addSlider(parameter,min=0.0,max=2.0,step=0.01,label)
     {
+        let lab = label || parameter;
         if(typeof window == "undefined") return
-        if(window[parameter] == "undefined") {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
+        if(window[parameter] === undefined) {console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return;}
         let container = document.createElement("div");
         container.classList.add("form-container");            
 
         let slider = document.createElement("input"); 
         let numeric = document.createElement("input"); 
-        container.innerHTML += "<div style='width:100%'><b>"+parameter+":</b></div>";
+        container.innerHTML += "<div style='width:100%;height:20px;font-size:12px;'><b>"+lab+":</b></div>";
 
         // Setting slider variables / handler
         slider.type='range';
@@ -1876,4 +1877,3 @@ function parseColours$1(cols)
     return return_cols
 }
 
-module.exports = Simulation;
