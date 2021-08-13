@@ -9,7 +9,7 @@
     Genomes are ordered lists of genes. Genes have a type (essential, nonessential) and
     a function (function 1, function 2, etc.). The fitness of a genome is 1 by default,
     but if an essential gene is missing, fitness is 0. For each non-essential gene function
-    the genome can perform, 0.1 is added to the fitness, making the maximum fitness 2.0.    
+    the genome can perform, 0.05 is added to the fitness, making the maximum fitness 2.0.    
 
 -->
 <html>
@@ -23,31 +23,32 @@
 
 let sim;
 
-let init_es = 10                    // es = essential
-let init_ne = 10
+let init_es = 5                    // es = essential     --- if even a single one is missing = 0.0 fitness
+let init_ne = 20                   // ne = non-essential --- for each non-essential genes gain 0.05 fitness
 
 let death_rate = 0.02
-let gene_deletion_rate = 0.01
-let gene_duplication_rate = 0.01
-let gene_tandem_deletion = 0.01
-let gene_tandem_duplication = 0.01
+let gene_inactivation_rate = 0.001
+let gene_deletion_rate = 0.001
+let gene_duplication_rate = 0.001
+let gene_tandem_deletion = 0.001
+let gene_tandem_duplication = 0.001
 
 
 function cacatoo()
 {
 
     let config = {
-            title: "TEs",
-            description: "",
-            maxtime: 20,
+            title: "Pearls-on-a-string genomes",
+            description: "Carrying essential and non-essential (but useful) genes",
+            maxtime: 10000,
             fastmode: false,             // If possible, fast-mode will update the sim with more than 60 FPS. 
                                         // Note: fastmode is only useful/recommended if the sim can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
                                         // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol : 50,            
-            nrow : 50,		            // dimensions of the grid to build
+            ncol : 100,            
+            nrow : 100,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale : 5,				    // scale of the grid (nxn pixels per grid cell)
+            scale : 2,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
             graph_update: 20,
             statecolours: {alive:{1:'blue'}}   // The background state '0' is never drawn
@@ -58,7 +59,6 @@ function cacatoo()
     sim.makeGridmodel("cells");
     sim.cells.colourViridis("genomesize", 100)
     sim.createDisplay("cells","genomesize")    
-    sim.createDisplay("cells","eDNA")    
 
     sim.cells.initialise = function()
     {
@@ -71,9 +71,9 @@ function cacatoo()
             { 
                 sim.cells.grid[i][j].alive = 1
                 sim.cells.grid[i][j].genome = new Genome()
-                sim.cells.grid[i][j].genome.initialise(init_es,init_ne,10,1)
-                sim.cells.grid[i][j].genomesize = sim.cells.grid[i][j].genome.chromosome.length             // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid
-                sim.cells.grid[i][j].fitness = sim.cells.grid[i][j].genome.fitness                          // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+                sim.cells.grid[i][j].genome.initialise(init_es,init_ne,2)                                                 // Initialise genomes with a number of essential, non-essential, and non-coding genes
+                sim.cells.grid[i][j].genomesize = Math.min(100,sim.cells.grid[i][j].genome.chromosome.length)             // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
+                sim.cells.grid[i][j].fitness = sim.cells.grid[i][j].genome.fitness                                        // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
             }
         }
     }
@@ -87,20 +87,18 @@ function cacatoo()
     {           
         if(this.grid[i][j].alive == 0)
         {                   
-            let neighbour = this.randomMoore8(this,i,j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
             let neighbours = this.getMoore8(this,i,j,1,'alive')
             
             if(neighbours.length > 0) 
             {   
-                this.rouletteWheel(neighbours,'fitness',10.1)
-                // console.log(neighbours)
-            }
-            if (neighbour.alive > 0 && sim.rng.genrand_real1() < neighbour.genome.fitness*0.1)                        
-            {
-                this.grid[i][j].alive = neighbour.alive
-                this.grid[i][j].genome = neighbour.genome.copy(mutate=true)
-                this.grid[i][j].genomesize = neighbour.genome.chromosome.length
-
+                let winner = this.rouletteWheel(neighbours,'fitness',5.0)
+                if(winner!=undefined)
+                {
+                    this.grid[i][j].alive = winner.alive
+                    this.grid[i][j].genome = winner.genome.copy(mutate=true)
+                    this.grid[i][j].genomesize = Math.min(100,this.grid[i][j].genome.chromosome.length)
+                    this.grid[i][j].fitness = this.grid[i][j].genome.fitness
+                }
             }
         } 
         else if(sim.rng.genrand_real1() < death_rate)
@@ -116,7 +114,7 @@ function cacatoo()
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
         this.plotPopsizes('alive',[1]) 
 
-       let num_alive = 0, gsizes=0, hks = 0, nes = 0, non = 0, tra = 0, fitnesses = 0
+       let num_alive = 0, gsizes=0, hks = 0, nes = 0, non = 0, fitnesses = 0
        for(let i=0; i<sim.cells.nc; i++) for(let j=0;j<sim.cells.nr;j++)
        {
            if(this.grid[i][j].alive == 1)
@@ -130,12 +128,11 @@ function cacatoo()
                            case "G": hks++; break;
                            case "g": nes++; break;
                            case ".": non++; break;
-                           case "T": tra++; break;
                    }
            }
        }
-       this.plotArray(["Genome size","Essential","Non-essential","Non-coding","Transposons"], 
-                        [gsizes/num_alive,hks/num_alive,nes/num_alive,non/num_alive,tra/num_alive],
+       this.plotArray(["Genome size","Essential","Non-essential","Non-coding"], 
+                        [gsizes/num_alive,hks/num_alive,nes/num_alive,non/num_alive],
                          ["black","blue","green","grey","red"],
                         "Avg genome size and composition")    
         this.plotArray(["Fitness"], 
@@ -156,12 +153,6 @@ function cacatoo()
     sim.start()
 }
 
-/**
- *  Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
- *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
- *  them more like PDEs. 
- */
-
 
 class Genome
 {
@@ -173,15 +164,14 @@ class Genome
         this.total_num_ne = init_ne  
     }
 
-    initialise(init_hk,init_ne,init_nc,init_tr)
+    initialise(init_hk,init_ne,init_nc)
     {
         this.generation = 1
         this.chromosome = []
               
         for(let i=0;i<init_hk;i++) this.chromosome.push(new Gene("G",i))
         for(let i=0;i<init_ne;i++) this.chromosome.push(new Gene("g",i))
-        for(let i=0;i<init_nc;i++) this.chromosome.push(new Gene(".",0))
-        for(let i=0;i<init_tr;i++) this.chromosome.push(new Gene("T",0,0.85))
+        for(let i=0;i<init_nc;i++) this.chromosome.push(new Gene(".",i))
         shuffle(this.chromosome)
         this.calculate_fitness()
     }
@@ -214,10 +204,10 @@ class Genome
                     nes[gene.func] = 1
             }
         }
-        // console.log(nes)
-        for(let i=0; i<nes.length; i++) if(nes[i]==1) this.fitness+=0.1
+
         let hks_present = 0
-        for(let i=0; i<hks.length; i++)  hks_present += hks[i];         
+        for(let i=0; i<hks.length; i++) if(hks[i]==1) hks_present++       
+        for(let i=0; i<nes.length; i++) if(nes[i]==1) this.fitness+=0.05
         if(hks_present < this.total_num_hk) this.fitness = 0.0
     }
 
@@ -252,20 +242,14 @@ class Genome
                 if(this.chromosome.length > 1000) break                
                 let size = Math.floor(1+sim.rng.genrand_real1()*this.chromosome.length/4)
                 if(size > this.chromosome.length) size = this.chromosome.length
-                // console.log(`Tandem duplication happens at pos ${i} with size ${size}`)
-                // console.log('before',this.chromosome)
                 const strand = [...this.chromosome.slice(i,i+size)]
-                // console.log(strand)
                 this.chromosome.splice(i,0,...strand)
-                // for(let p = 0; p < size; p++)
-                // {
-                //     this.chromosome.splice(i,0,...this.chromosome.slice(i,0,this.chromosome[p+i]))                                                              // Tandem duplication
-                //     i++
-                // }
-                // console.log('after',this.chromosome)
                 i+=size        
                 mutation = true  
-                // throw new Error("KLaar")      
+            }
+            else if(randomnr < gene_deletion_rate+gene_duplication_rate+gene_tandem_deletion+gene_tandem_duplication+gene_inactivation_rate)
+            {
+                this.chromosome[i].type = '.'
             }
         }
         this.calculate_fitness()
@@ -275,12 +259,11 @@ class Genome
 class Gene
 {
     // Gene constructor
-    constructor(type,func,transposition_rate)
+    constructor(type,func)
     {
         this.uid = geneIds.next()                       // Just so it has a unique identifier, no biological function
         this.type = type                        // Here assigned a string to a gene, being either "essential", "non-essential", "non-coding", or "transposon"
         this.func = func                // A number indicating the function of that gene (e.g. 1 type of each function is necessary for absolutely essential, while non-essential yields incremental benefits)
-        this.transposition_rate = transposition_rate || 0.0
     }
 
     copy()
@@ -290,6 +273,7 @@ class Gene
 }
 
 
+
 /**
  * Shuffles array in place.
  * @param {Array} a items An array containing the items.
@@ -297,7 +281,7 @@ class Gene
  function shuffle(a) {
     var j, x, i;
     for (i = a.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
+        j = Math.floor(sim.rng.random() * (i + 1));
         x = a[i];
         a[i] = a[j];
         a[j] = x;
@@ -314,6 +298,7 @@ function* idGenerator()
         id++
     }
 }
+
 const genomeIds = idGenerator()
 const geneIds = idGenerator()
 /*-------------------------End user-defined code ---------------------*/

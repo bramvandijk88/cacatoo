@@ -480,11 +480,10 @@ class Gridmodel
                 if(arr2[2]>arr1[2]) b = Math.floor(arr1[2] + (arr2[2]-arr1[2])*(i/(segment_len-1)));                
                 else b = Math.floor(arr1[2] - (arr1[2]-arr2[2])*(i/(segment_len-1)));
                 
-                color_dict[i+arr*segment_len+total] = [ r, g, b ];
+                color_dict[Math.floor(i+arr*segment_len+total)+1] = [ r, g, b ];
             }
             // total += segment_len
         }
-
         this.statecolours[property] = color_dict;
     }
     
@@ -683,16 +682,13 @@ class Gridmodel
      */ 
     rouletteWheel(gps,property,non=0.0)
     {
-        console.log(`Running rouletteWheel for ${property}`);
         let sum_property = non;
         for(let i=0; i<gps.length; i++) sum_property += gps[i][property];       // Now we have the sum of weight + a constant (non)
         let randomnr = this.rng.genrand_real1()*sum_property;                // Sample a randomnr between 0 and sum_property        
         let cumsum = 0.0;                                                    // This will keep track of the cumulative sum of weights
-        console.log(`Randomnr: ${randomnr}`);
         for(let i=0; i<gps.length; i++) 
         {            
             cumsum += gps[i][property]; 
-            console.log(`Individual ${i}, cumsum ${cumsum}`);
             if(randomnr < cumsum) return gps[i]            
         }
         return
