@@ -1,108 +1,116 @@
  
 body {
-font-family: Arial, Helvetica, sans-serif;
-background-color: #f0f0f0;
-margin:20px;
-}
-
-/* Style the header */
-.header {
-    background-color: #65818a;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #cccccc;
+  margin:20px;
+  }
+  
+  /* Style the header */
+  .header {
+      background-color: rgb(111, 146, 170);;
+      border: 0px solid #FFFFFF;
+      box-shadow: 3px 1px 0px #24242444;
+      border-radius: 15px 15px 0px 0px;
+      padding: 10px;
+      text-align: center;
+      font-size: 20px;
+      color:#ffffff;
+  }
+  
+  /* Content (grid, graphs, sliders) */
+  .content {
+    text-align: center;
+    box-shadow: 3px 1px 0px #24242444;
+    /*border-bottom: 1px dashed #88888844;*/
+    background-color: #e2e2e2;
+    padding: 10px;
+  }
+  
+  /* Output div */
+  .output {
+    border-radius: 8px 8px 8px 8px;
+    margin: 30px;
+    height:300px;
+    overflow-y: scroll;
+    font-size: 11px;
+    text-align: left;
+    background-color: #000000;
+    color: #00FF00;
+    /*border-bottom: 1px dashed #88888844;*/
+    padding: 30px;
+  }
+  
+  /* Style the footer */
+  .footer {
+    background-color: #e2e2e2;
     border: 0px solid #FFFFFF;
     box-shadow: 3px 1px 0px #24242444;
-    border-radius: 15px 15px 0px 0px;
+    border-radius: 0px 0px 15px 15px;
     padding: 10px;
     text-align: center;
-    font-size: 20px;
-    color:#ffffff;
-}
-
-/* Content (grid, graphs, sliders) */
-.content {
-  text-align: center;
-  box-shadow: 3px 1px 0px #24242444;
-  /*border-bottom: 1px dashed #88888844;*/
-  background-color: #fbfbfb;
-  padding: 10px;
-}
-
-/* Output div */
-.output {
-  border-radius: 8px 8px 8px 8px;
-  margin: 30px;
-  height:300px;
-  overflow-y: scroll;
-  font-size: 11px;
-  text-align: left;
-  background-color: #000000;
-  color: #00FF00;
-  /*border-bottom: 1px dashed #88888844;*/
-  padding: 30px;
-}
-
-/* Style the footer */
-.footer {
-  background-color: #fbfbfb;
-  border: 0px solid #FFFFFF;
-  box-shadow: 3px 1px 0px #24242444;
-  border-radius: 0px 0px 15px 15px;
-  padding: 10px;
-  text-align: center;
-  font-size: 8px;
-}
-
-.grid-holder{
-  margin: 10px;
-  display: inline-block;
-}
-
-.form-container{  /* Sliders and buttons */
-  display: inline-block;
-}
-
-.graph-holder{
-  margin: 10px;    
-  display: inline-block;    
-  padding:10px;
-}
-
-/* The button itself */
-button {
-  background-color: rgb(171, 228, 230);
-  border-radius: 10px; 
-  border:1px solid grey;
-  padding:5px;
-  margin:10px;
-  width:128px;
-}
-/* The slider itself */
-.slider {
-  -webkit-appearance: none;  /* Override default CSS styles */
-  appearance: none;
-  width: 50%; /* Full-width */
+    font-size: 8px;
+  }
   
-  height: 10px; /* Specified height */
-  background: #d3d3d3; /* Grey background */
-  outline: none; /* Remove outline */
-  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-  transition: opacity .2s;
-}
-/* The number input */
-.number {
-  -webkit-appearance: none;  /* Override default CSS styles */
-  appearance: none;
-  width: 50%; /* Full-width */
-  margin-top:10px;
-  height: 30px; /* Specified height */
-  background: #FFFFFF; /* Grey background */  
-  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-  transition: opacity .2s;
-}
+  .grid-holder{
+    margin: 10px;
+    display: inline-block;
+  }
+  
+  .form-container{  /* Sliders and buttons */
+    display: inline-block;
+    margin:10px;
+  }
+  
+  .graph-holder{
+    margin: 10px;    
+    display: inline-block;    
+    padding:10px;
+  }
+  
+  /* The button itself */
+  button {
+    background-color: rgb(217, 234, 245);
+    border-radius: 10px; 
+    border: 2px solid rgb(177, 209, 231);;
+    padding:7px;
+    font-size:12px;
+    margin:10px;
+    width:128px;
+  }
 
+/* The numeric form */
+input[type=number] { 
+  background-color: rgb(217, 234, 245);
+  border: 2px solid rgb(177, 209, 231);
+  font-size:12px;
+}
+  /* The slider itself */
+  .slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 50%; /* Full-width */
+    cursor: pointer;
+    height: 8px; /* Specified height */
+    background: rgb(177, 209, 231);
+    outline: none; /* Remove outline */
+    opacity: 0.5; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+  }
+  
+  /* The number input */
+  .number {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 50%; /* Full-width */
+    margin-top:10px;
+    height: 30px; /* Specified height */
+    background: #FFFFFF; /* Grey background */  
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+  }
 /* Mouse-over effects */
 .slider:hover {
   opacity: 1; /* Fully shown on mouse-over */
 }
-

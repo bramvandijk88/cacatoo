@@ -260,6 +260,86 @@ class Gridmodel
         throw 'Update function of \'' + this.name + '\' undefined';
     }
 
+    /** Get all grid points in the Moore (8) neighbourhood which have
+     *  a certain value (val) for a certain property. 
+     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     *  @param {int} val what value should the GP have to be counted
+     *  @param {string} property the property that is counted
+     *  @return {Array} A list of all individuals in the Moore (8) neighbourhood which have "property"
+     *  set to "val"
+     *  For example, if one wants to find all "alive" individuals surrounding a gridpoint,
+     *  one needs to look for value '1' in the property 'alive':
+     *  this.getMoore8(this,10,10,1,'alive');  
+     */ 
+     getMoore8(model,col,row,val,property)
+     {    
+         let gps = [];
+         
+         for(let v=-1;v<2;v++)   // Check +/-1 vertically 
+         {
+             for(let h=-1;h<2;h++) // Check +/-1 horizontally 
+             {       
+                 let x = col+h
+                 if(model.wrap[0]) x = (col+h+model.nc) % model.nc; // Wraps neighbours left-to-right
+                 let y = row+v
+                 if(model.wrap[1]) y = (row+v+model.nr) % model.nr; // Wraps neighbours top-to-bottom
+                 if(x<0||y<0||x>=model.nc||y>=model.nr) continue
+                 
+                 let nval = model.grid[x][y][property]                
+                 if(nval == val)
+                 gps.push(model.grid[x][y]);      // Add value                
+             }
+         }
+         return gps;
+     }
+
+    /** Get all grid points in the Moore (9) neighbourhood which have
+     *  a certain value (val) for a certain property. 
+     *  @param {GridModel} model The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+     *  but can be mixed to make grids interact.
+     *  @param {int} col position (column) for the focal gridpoint
+     *  @param {int} row position (row) for the focal gridpoint
+     *  @param {int} val what value should the GP have to be counted
+     *  @param {string} property the property that is counted
+     *  @return {Array} A list of all individuals in the Moore (8) neighbourhood which have "property"
+     *  set to "val"
+     *  For example, if one wants to find all "alive" individuals surrounding a gridpoint,
+     *  one needs to look for value '1' in the property 'alive':
+     *  this.getMoore9(this,10,10,1,'alive');  
+     */ 
+    getMoore9(model,col,row,val,property)
+    {            
+        let gps = model.getMoore8(model,col,row,val,property)
+        if(model.grid[col][row][property] == val) gps.push(model.grid[col][row])
+        return gps;
+    }
+
+    /** From a list of grid points, sample one weighted by a proparty. This is analogous
+     *  to spinning a "roulette wheel". Also see a hard-coded versino of this in the "cheater" example
+     *  @param {Array} gps Array of gps to sample from (e.g. living individuals in neighbourhood)
+     *  @param {string} property The property used to weigh gps (e.g. fitness)
+     *  @param {float} non Scales the probability of not returning any gp. 
+     */ 
+    rouletteWheel(gps,property,non=0.0)
+    {
+        console.log(`Running rouletteWheel for ${property}`)
+        let sum_property = non
+        for(let i=0; i<gps.length; i++) sum_property += gps[i][property]       // Now we have the sum of weight + a constant (non)
+        let randomnr = this.rng.genrand_real1()*sum_property                // Sample a randomnr between 0 and sum_property        
+        let cumsum = 0.0                                                    // This will keep track of the cumulative sum of weights
+        console.log(`Randomnr: ${randomnr}`)
+        for(let i=0; i<gps.length; i++) 
+        {            
+            cumsum += gps[i][property] 
+            console.log(`Individual ${i}, cumsum ${cumsum}`)
+            if(randomnr < cumsum) return gps[i]            
+        }
+        return
+    }
+
     /** Count the number of grid points in the Moore (9) neighbourhood which have
      *  a certain value (val) for a certain property. 
      *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
@@ -268,7 +348,7 @@ class Gridmodel
      *  @param {int} row position (row) for the focal gridpoint
      *  @param {int} val what value should the GP have to be counted
      *  @param {string} property the property that is counted
-     * 
+     *  @return {int} The number of grid points with "property" set to "val"
      *  For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js,
      *  one needs to look for value '3' in the property 'species':
      *  this.countMoore9(this,10,10,3,'species');  
@@ -294,6 +374,7 @@ class Gridmodel
         }
         return count;
     }
+
 
     /** Count the number of grid points in the Moore (8) neighbourhood which have
      *  a certain value (val) for a certain property. 
@@ -338,9 +419,9 @@ class Gridmodel
      *  @param {int} col position (column) for the focal gridpoint
      *  @param {int} row position (row) for the focal gridpoint
      */ 
-    randomMoore9(grid,col,row)
+    randomMoore9(model,col,row)
     {
-        let rand = model.rng.genrand_int(0,8)        
+        let rand = this.rng.genrand_int(0,8)        
         let i = moore[rand][0]
         let j = moore[rand][1]
         let neigh = grid.getGridpoint(col+i,row+j)
