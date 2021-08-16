@@ -164,7 +164,7 @@
         sim.TE_model.reproduce = function (i, j, winner) {
             this.grid[i][j].alive = winner.alive
             this.grid[i][j].genome = winner.genome.copy(mutate = true)
-            this.grid[i][j].genomesize = Math.min(50, this.grid[i][j].genome.chromosome.length)
+            this.grid[i][j].genomesize = Math.min(100, this.grid[i][j].genome.chromosome.length)
             this.grid[i][j].fitness = this.grid[i][j].genome.fitness
             this.grid[i][j].T_in_genomes = Math.min(50, this.grid[i][j].genome.nr_tra)                          // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
         }
