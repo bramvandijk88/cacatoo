@@ -1972,4 +1972,12 @@ function parseColours$1(cols)
     return return_cols
 }
 
-module.exports = Simulation;
+
+try
+{
+    module.exports = Simulation;
+}
+catch(err)
+{
+    // do nothing
+}

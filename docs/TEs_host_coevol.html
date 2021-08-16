@@ -2,7 +2,7 @@
 <script src="./cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
 <script src="./all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
 <script src="./PoS_classes.js"></script>
-<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<link rel="stylesheet" href="./cacatoo.css"> <!-- Set style sheet -->
 
 <script>
     /*-----------------------Start user-defined code ---------------------*/
@@ -10,10 +10,10 @@
     let sim;
 
     // PARAMETERS FOR FITNESS DEFINITION
-    var init_es = 10                   // es = essential     --- if even a single one is missing = 0.0 fitness
-    var init_ne = 0                   // ne = non-essential --- for each non-essential genes gain "non_essential_gene_boon" fitness
+    var init_es = 10                     // es = essential     --- if even a single one is missing = 0.0 fitness
+    var init_ne = 0                      // ne = non-essential --- for each non-essential genes gain "non_essential_gene_boon" fitness
     var init_nc = 30
-    var init_tra_rate = 0.85
+    var init_tra_rate = 0.85            
     var transposon_fitness_cost = 0.005
     var non_essential_gene_boon = 0.1
 
@@ -33,10 +33,15 @@
     var diff_rate_edna = 0.01
 
     // PARAMETERS FOR TRANSPOSON DYNAMICS
-    var probability_TE_induced_damage = 0.0
+    var probability_TE_induced_damage = 1.0
     var uptake_from_pool = 0.01
     var jump_rate = 0.02
+    var size = 120
 
+    var address_query = {}
+    location.search.substr(1).split("&").forEach(function(item) {address_query[item.split("=")[0]] = item.split("=")[1]})
+    if(address_query.size) size=Math.min(address_query.size,500)
+    
     function cacatoo() {
         let config = {
             title: "TEs and their host",
@@ -46,15 +51,14 @@
             // Note: fastmode is only useful/recommended if the sim can readily run 
             // at 60FPS without fast-mode, and may actually reduce the reported FPS
             // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol: 150,
-            nrow: 150,		            // dimensions of the grid to build
+            ncol: size,
+            nrow: size,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale: 3,				    // scale of the grid (nxn pixels per grid cell)
-            graph_interval: 2,
-            graph_update: 10,
+            scale: 2,				    // scale of the grid (nxn pixels per grid cell)
+            graph_interval: 10,
             statecolours: { alive: { 1: 'blue' } }   // The background state '0' is never drawn
         }
-
+        
         sim = new Simulation(config)
 
         sim.makeGridmodel("TE_model");
@@ -65,13 +69,15 @@
         sim.createDisplay("TE_model", "T_in_genomes")
         sim.TE_model.colourViridis("T_in_genomes", 50)
 
-        sim.createDisplay("TE_model", "T_in_eDNA")
+        sim.createDisplay("TE_model",  "T_in_eDNA")
         sim.TE_model.colourViridis("T_in_eDNA", 50)
 
 
         sim.TE_model.initialise = function () {
             sim.initialGrid(sim.TE_model, "alive", 0, 1.0)
             sim.initialGrid(sim.TE_model, "genomesize", undefined, 1.0)
+            sim.initialGrid(sim.TE_model, "T_in_eDNA", undefined, 1.0)
+            sim.initialGrid(sim.TE_model, "T_in_genomes", undefined, 1.0)
 
             sim.mixDNApool = false
             this.resetPlots()
@@ -80,7 +86,7 @@
                 gp.alive = 1
                 gp.genome = new Genome()
                 gp.genome.initialise(init_es, init_ne, init_nc, init_tra, init_tra_rate)
-                gp.genomesize = Math.min(50, gp.genome.chromosome.length)            // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
+                gp.genomesize = Math.min(100, gp.genome.chromosome.length)            // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
                 gp.fitness = gp.genome.fitness                                       // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
                 gp.T_in_genomes = Math.min(50, gp.genome.nr_tra)                                   // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
             }
@@ -231,41 +237,48 @@
             // return "Perfectly mixed the grid"
         }
 
-        sim.TE_model.update = function () {
+        sim.TE_model.update = function () {       
+            if(sim.time%sim.config.graph_interval==0) this.updateGraphs()            
             this.synchronous()         // Applied as many times as it can in 1/60th of a second
             this.apply_async(this.diffuse_eDNA)
-            this.plotPopsizes('alive', [1])
-            if (sim.mixDNApool == true) this.mixeDNA()
-            let num_alive = 0, gsizes = 0, hks = 0, nes = 0, non = 0, tra = 0, fitnesses = 0, sum_tra_rates = 0
-            for (let i = 0; i < sim.TE_model.nc; i++) for (let j = 0; j < sim.TE_model.nr; j++) {
-                if (this.grid[i][j].alive == 1) {
-                    num_alive++
-                    gsizes += this.grid[i][j].genome.chromosome.length
-                    fitnesses += this.grid[i][j].genome.fitness
-                    for (let p = 0; p < sim.TE_model.grid[i][j].genome.chromosome.length; p++)
-                        switch (sim.TE_model.grid[i][j].genome.chromosome[p].type) {
-                            case "G": hks++; break;
-                            case "g": nes++; break;
-                            case ".": non++; break;
-                            case "T": 
-                                tra++; 
-                                sum_tra_rates += sim.TE_model.grid[i][j].genome.chromosome[p].transposition_rate
-                                break;
-                        }
+            if (sim.mixDNApool == true) this.mixeDNA()            
+        }
+
+        sim.TE_model.updateGraphs = function(){
+                let num_alive = 0, gsizes = 0, hks = 0, nes = 0, non = 0, tra = 0, fitnesses = 0, sum_tra_rates = 0
+                for (let i = 0; i < sim.TE_model.nc; i++) for (let j = 0; j < sim.TE_model.nr; j++) {
+                    if (this.grid[i][j].alive == 1) {
+                        num_alive++
+                        gsizes += this.grid[i][j].genome.chromosome.length
+                        fitnesses += this.grid[i][j].genome.fitness
+                        for (let p = 0; p < sim.TE_model.grid[i][j].genome.chromosome.length; p++)
+                            switch (sim.TE_model.grid[i][j].genome.chromosome[p].type) {
+                                case "G": hks++; break;
+                                case "g": nes++; break;
+                                case ".": non++; break;
+                                case "T": 
+                                    tra++; 
+                                    sum_tra_rates += sim.TE_model.grid[i][j].genome.chromosome[p].transposition_rate
+                                    break;
+                            }
+                    }
                 }
-            }
-            this.plotArray(["Genome size", "Essential", "Non-essential", "Non-coding", "Transposons"],
-                [gsizes / num_alive, hks / num_alive, nes / num_alive, non / num_alive, tra / num_alive],
-                ["black", "blue", "green", "grey", "red"],
-                "Avg genome size and composition")
-            this.plotArray(["Fitness"],
-                [fitnesses / num_alive],
-                ["black"],
-                "Avg fitness")
-            this.plotArray(["TE jump rate (phi)"],
-                [sum_tra_rates / tra],
-                ["red"],
-                "Avg TE jump rate (phi)")
+                this.plotArray(["Population size"],
+                    [num_alive],
+                    ["blue"],
+                    "Population size (nr. of living cells)")
+                this.plotArray(["Genome size", "Essential", "Non-essential", "Non-coding", "Transposons"],
+                    [gsizes / num_alive, hks / num_alive, nes / num_alive, non / num_alive, tra / num_alive],
+                    ["black", "blue", "green", "grey", "red"],
+                    "Avg genome size and composition")
+                this.plotArray(["Fitness"],
+                    [fitnesses / num_alive],
+                    ["black"],
+                    "Avg fitness")
+                this.plotArray(["TE jump rate (phi)"],
+                    [sum_tra_rates / tra],
+                    ["red"],
+                    "Avg TE jump rate (phi)")
         }
 
 
@@ -310,9 +323,15 @@
 
 <body onload="cacatoo()">
     <div class="header" id="header">
-        <h2>ModelJS - </h2>
+        <h2>Cacatoo</h2>
     </div>
-    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="canvas_holder">
+        This is an interactive version of the TE-host coevolution model (derived from van Dijk <i>et al.</i>, 2021)<br>
+        <font size=2><br>
+             Note: when exploring parameters that (may) cause host extinction (e.g. disabling TE-damage), 
+             you may need to increase the system size by appending <i>?size=250</i> to the address bar. <br>
+    </font>
+    </div>
     <div class="content" id="graph_holder"> </div>
     <div class="content" id="form_holder"></div>
     
