@@ -2,7 +2,7 @@
 <script src="./cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
 <script src="./all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
 <script src="./PoS_classes.js"></script>
-<link rel="stylesheet" href="./cacatoo.css"> <!-- Set style sheet -->
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
 
 <script>
     /*-----------------------Start user-defined code ---------------------*/
@@ -33,7 +33,7 @@
     var diff_rate_edna = 0.01
 
     // PARAMETERS FOR TRANSPOSON DYNAMICS
-    var probability_TE_induced_damage = 1.0
+    var probability_TE_induced_damage = 0.0
     var uptake_from_pool = 0.01
     var jump_rate = 0.02
 
@@ -46,8 +46,8 @@
             // Note: fastmode is only useful/recommended if the sim can readily run 
             // at 60FPS without fast-mode, and may actually reduce the reported FPS
             // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol: 100,
-            nrow: 100,		            // dimensions of the grid to build
+            ncol: 150,
+            nrow: 150,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
             scale: 3,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 2,
