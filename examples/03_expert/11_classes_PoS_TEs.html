@@ -238,7 +238,7 @@
         }
 
         sim.TE_model.update = function () {       
-            if(sim.time%sim.config.graph_interval==0) this.updateGraphs()            
+            if(this.time%sim.config.graph_interval==0) this.updateGraphs()            
             this.synchronous()         // Applied as many times as it can in 1/60th of a second
             this.apply_async(this.diffuse_eDNA)
             if (sim.mixDNApool == true) this.mixeDNA()            
