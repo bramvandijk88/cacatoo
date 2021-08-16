@@ -37,10 +37,13 @@
     var uptake_from_pool = 0.01
     var jump_rate = 0.02
     var size = 120
-
+    var scale = 3
     var address_query = {}
+
     location.search.substr(1).split("&").forEach(function(item) {address_query[item.split("=")[0]] = item.split("=")[1]})
     if(address_query.size) size=Math.min(address_query.size,500)
+    if(size > 300) scale = 2
+    else if(size > 400) scale = 1
     
     function cacatoo() {
         let config = {
@@ -54,7 +57,7 @@
             ncol: size,
             nrow: size,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale: 2,				    // scale of the grid (nxn pixels per grid cell)
+            scale: scale,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
             statecolours: { alive: { 1: 'blue' } }   // The background state '0' is never drawn
         }
