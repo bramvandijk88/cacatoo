@@ -688,6 +688,14 @@ class Gridmodel
         //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
     }
 
+    resetPlots()
+    {
+        this.time = 0
+        for(let g in this.graphs)
+        {            
+            this.graphs[g].reset_plot()
+        }
+    }
     /** 
      *  Returns an array with the population sizes of different types
      *  @param {String} property Return popsizes for this property (needs to exist in your model, e.g. "species" or "alive")

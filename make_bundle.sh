@@ -15,3 +15,12 @@ catch(err)
 {
     // do nothing
 }" >> dist/cacatoo.js
+
+cp dist/cacatoo.js docs/cacatoo.js
+cp style/cacatoo.css docs/cacatoo.css
+cp lib/all.js docs
+cp examples/03_expert/PoS_classes.js docs
+cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_host_coevol.html
+sed -i 's/..\/..\/dist\/cacatoo.js/.\/cacatoo.js/g' docs/TEs_host_coevol.html
+sed -i 's/..\/..\/lib\/all.js/.\/all.js/g' docs/TEs_host_coevol.html
+

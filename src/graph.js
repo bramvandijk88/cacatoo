@@ -53,6 +53,7 @@ class Graph
             labels: this.labels            
         });
     }
+    
 
     /** Push data to your graph-element
     * @param {array} array of floats to be added to the dygraph object (stored in 'data')
@@ -60,6 +61,15 @@ class Graph
     push_data(data_array)
     {
         this.data.push(data_array)
+    }
+
+    reset_plot()
+    {
+        this.data = [this.data[0]]
+        this.g.updateOptions(
+        { 
+            'file': [this.data]
+        });
     }
 
     /** 

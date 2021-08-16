@@ -75,6 +75,7 @@ class Graph
             labels: this.labels            
         });
     }
+    
 
     /** Push data to your graph-element
     * @param {array} array of floats to be added to the dygraph object (stored in 'data')
@@ -82,6 +83,15 @@ class Graph
     push_data(data_array)
     {
         this.data.push(data_array);
+    }
+
+    reset_plot()
+    {
+        this.data = [this.data[0]];
+        this.g.updateOptions(
+        { 
+            'file': [this.data]
+        });
     }
 
     /** 
@@ -1046,6 +1056,14 @@ class Gridmodel
         //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
     }
 
+    resetPlots()
+    {
+        this.time = 0;
+        for(let g in this.graphs)
+        {            
+            this.graphs[g].reset_plot();
+        }
+    }
     /** 
      *  Returns an array with the population sizes of different types
      *  @param {String} property Return popsizes for this property (needs to exist in your model, e.g. "species" or "alive")
@@ -1954,4 +1972,12 @@ function parseColours$1(cols)
     return return_cols
 }
 
-module.exports = Simulation;
+
+try
+{
+    module.exports = Simulation;
+}
+catch(err)
+{
+    // do nothing
+}
