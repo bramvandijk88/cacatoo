@@ -1582,8 +1582,9 @@ class Simulation
             let meter = new FPSMeter({show:'ms',left:"auto", top:"80px",right:"30px",graph:1,history:20});
 
             document.title = `Cacatoo - ${this.config.title}`;
-            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`;
-            document.getElementById("footer").innerHTML = "<h2>Cacatoo is a toolbox to explore individual-based model straight in your webbrowser, and is currently <a href=\"https://github.com/bramvandijk88/cacatoo\">under development</a>. Feedback <a href=\"https://www.bramvandijk.com/contact\">very welcome.</a></h2>";
+            document.getElementById("header").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/images/elephant_cacatoo_small.png"></a>`;
+            document.getElementById("header").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/images/gh.png"></a></img><h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`;
+            document.getElementById("footer").innerHTML = "<h2>Cacatoo is a toolbox to explore individual-based models straight from your webbrowser. It is still in development. Feedback <a href=\"https://www.bramvandijk.com/contact\">very welcome.</a></h2>";
             let simStartTime = performance.now();
       
             async function animate()

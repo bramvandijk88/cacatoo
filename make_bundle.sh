@@ -16,12 +16,12 @@ catch(err)
     // do nothing
 }" >> dist/cacatoo.js
 
-cp dist/cacatoo.js docs/cacatoo.js
-cp style/cacatoo.css docs/cacatoo.css
-cp lib/all.js docs
-cp examples/03_expert/PoS_classes.js docs
-cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_host_coevol.html
-sed -i 's/..\/..\/dist\/cacatoo.js/.\/cacatoo.js/g' docs/TEs_host_coevol.html
-sed -i 's/..\/..\/lib\/all.js/.\/all.js/g' docs/TEs_host_coevol.html
-sed -i 's/..\/..\/style\/cacatoo.css/.\/cacatoo.css/g' docs/TEs_host_coevol.html
-
+cp dist/cacatoo.js docs/scripts/cacatoo.js
+cp style/cacatoo.css docs/styles/cacatoo.css
+cp lib/all.js docs/scripts/all.js
+cp images/elephant_cacatoo_small.png docs/images
+cp examples/03_expert/PoS_classes.js docs/TEs_streamlining
+cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
+sed -i 's/..\/..\/dist\/cacatoo.js/..\/scripts\/cacatoo.js/g' docs/TEs_streamlining/index.html
+sed -i 's/..\/..\/lib\/all.js/..\/scripts\/all.js/g' docs/TEs_streamlining/index.html
+sed -i 's/..\/..\/style\/cacatoo.css/..\/styles\/cacatoo.css/g' docs/TEs_streamlining/index.html

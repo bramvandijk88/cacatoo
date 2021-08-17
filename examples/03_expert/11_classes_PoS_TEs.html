@@ -42,10 +42,11 @@
 
     location.search.substr(1).split("&").forEach(function(item) {address_query[item.split("=")[0]] = item.split("=")[1]})
     if(address_query.size) size=Math.min(address_query.size,500)
-    if(size > 300) scale = 2
-    else if(size > 400) scale = 1
     
-    function cacatoo() {
+    if(size > 300) scale = 1
+    else if(size > 200) scale = 2
+    
+    function cacatoo() {        
         let config = {
             title: "TEs and their host",
             description: "",
@@ -329,11 +330,16 @@
         <h2>Cacatoo</h2>
     </div>
     <div class="content" id="canvas_holder">
-        This is an interactive version of the TE-host coevolution model (derived from van Dijk <i>et al.</i>, 2021)<br>
+        <center>
+        <div style="width:40%;">
+        This is an interactive version of the TE-host coevolution model (derived from van Dijk <i>et al.</i>, 2021)
         <font size=2><br>
-             Note: when exploring parameters that (may) cause host extinction (e.g. disabling TE-damage), 
-             you may need to increase the system size by appending <i>?size=250</i> to the address bar. <br>
-    </font>
+             Note: default parameters result in genome streamlining, preventing extinction even in small systems (<a href="?size=120">120x120</a>). 
+              when exploring parameters that (may) cause host extinction (e.g. disabling TE-damage), 
+             you may need to increase the system size to <a href="?size=250">250x250</a> or perhaps even <a href="?size=350">350x350</a>.
+        </font>
+        </center>
+        </div>
     </div>
     <div class="content" id="graph_holder"> </div>
     <div class="content" id="form_holder"></div>
