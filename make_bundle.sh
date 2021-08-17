@@ -19,8 +19,11 @@ catch(err)
 cp dist/cacatoo.js docs/scripts/cacatoo.js
 cp style/cacatoo.css docs/styles/cacatoo.css
 cp lib/all.js docs/scripts/all.js
-cp images/elephant_cacatoo_small.png docs/images
-cp examples/03_expert/PoS_classes.js docs/TEs_streamlining
+cp images/elephant_cacatoo_small.png docs/images/
+cp images/gh.png docs/images/
+
+# // Copy the TE-example to the docs on Github for publication
+cp examples/03_expert/PoS_classes.js docs/TEs_streamlining/
 cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
 sed -i 's/..\/..\/dist\/cacatoo.js/..\/scripts\/cacatoo.js/g' docs/TEs_streamlining/index.html
 sed -i 's/..\/..\/lib\/all.js/..\/scripts\/all.js/g' docs/TEs_streamlining/index.html
