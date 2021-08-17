@@ -68,13 +68,8 @@
         sim.makeGridmodel("TE_model");
 
         sim.createDisplay("TE_model", "genomesize")
-        sim.TE_model.colourViridis("genomesize", 100)
-
         sim.createDisplay("TE_model", "T_in_genomes")
-        sim.TE_model.colourViridis("T_in_genomes", 50)
-
         sim.createDisplay("TE_model",  "T_in_eDNA")
-        sim.TE_model.colourViridis("T_in_eDNA", 50)
 
 
         sim.TE_model.initialise = function () {
@@ -82,6 +77,13 @@
             sim.initialGrid(sim.TE_model, "genomesize", undefined, 1.0)
             sim.initialGrid(sim.TE_model, "T_in_eDNA", undefined, 1.0)
             sim.initialGrid(sim.TE_model, "T_in_genomes", undefined, 1.0)
+            sim.max_g = (init_es+init_nc)*3
+            sim.max_t = (init_es+init_nc)*2
+
+            sim.TE_model.colourViridis("genomesize", sim.max_g)
+            sim.TE_model.colourViridis("T_in_genomes", sim.max_t)
+            sim.TE_model.colourViridis("T_in_eDNA", sim.max_t)
+
 
             sim.mixDNApool = false
             this.resetPlots()
@@ -90,9 +92,9 @@
                 gp.alive = 1
                 gp.genome = new Genome()
                 gp.genome.initialise(init_es, init_ne, init_nc, init_tra, init_tra_rate)
-                gp.genomesize = Math.min(100, gp.genome.chromosome.length)            // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
+                gp.genomesize = Math.min(sim.max_g, gp.genome.chromosome.length)            // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
                 gp.fitness = gp.genome.fitness                                       // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
-                gp.T_in_genomes = Math.min(50, gp.genome.nr_tra)                                   // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+                gp.T_in_genomes = Math.min(sim.max_t, gp.genome.nr_tra)                                   // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
             }
             for (let i = 0; i < sim.TE_model.nc; i++) for (let j = 0; j < sim.TE_model.nr; j++) {
                 this.grid[i][j].eDNA = []        // Initialise empty eDNA pool
@@ -134,7 +136,7 @@
                 for (let k = 0; k < this.grid[i][j].eDNA.length; k++)
                     if (this.rng.genrand_real1() < degr_rate_edna)   // degr
                         this.grid[i][j].eDNA.splice(k, 1)
-                this.grid[i][j].T_in_eDNA = Math.min(50, this.grid[i][j].eDNA.length)   // Track number of TEs for visualisation purposes
+                this.grid[i][j].T_in_eDNA = Math.min(sim.max_t, this.grid[i][j].eDNA.length)   // Track number of TEs for visualisation purposes
             }
             else
                 this.grid[i][j].T_in_eDNA = undefined
@@ -165,9 +167,9 @@
         sim.TE_model.reproduce = function (i, j, winner) {
             this.grid[i][j].alive = winner.alive
             this.grid[i][j].genome = winner.genome.copy(mutate = true)
-            this.grid[i][j].genomesize = Math.min(100, this.grid[i][j].genome.chromosome.length)
+            this.grid[i][j].genomesize = Math.min(sim.max_g, this.grid[i][j].genome.chromosome.length)
             this.grid[i][j].fitness = this.grid[i][j].genome.fitness
-            this.grid[i][j].T_in_genomes = Math.min(50, this.grid[i][j].genome.nr_tra)                          // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+            this.grid[i][j].T_in_genomes = Math.min(sim.max_t, this.grid[i][j].genome.nr_tra)                          // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
         }
 
         // A custom function for killing a gp at position i,j
@@ -311,8 +313,9 @@
         sim.addSlider("gene_inactivation_rate", 0.0, 0.1, 0.0001, "Gene inactivation rate")        
         
 
-        sim.addHTML("form_holder", "<br>Some other options (restart recommended, or hope for the best):")
-        sim.addSlider("init_es", 0.0, 100.0, 1, "Nr. essential genes required")
+        sim.addHTML("form_holder", "<br>Initial conditions (restart required!):")
+        sim.addSlider("init_es", 0.0, 100.0, 1, "Nr. essential genes")
+        sim.addSlider("init_nc", 0.0, 300.0, 1, "Nr. non-coding elements")
         sim.addSlider("init_ne", 0.0, 100.0, 1, "Nr. non-essential functions")
         sim.addSlider("non_essential_gene_boon", 0.0, 1.0, 0.001, "Fitness added per non-essential function")
         sim.addSlider("init_tra_rate", 0.0, 1.0, 0.001, "Initial TE jump rate")
