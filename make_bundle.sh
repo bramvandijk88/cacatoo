@@ -25,8 +25,8 @@ cp images/gh.png docs/images/
 # // Copy the TE-example to the docs on Github for publication
 cp examples/03_expert/PoS_classes.js docs/TEs_streamlining/
 cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
-sed -i 's/..\/..\/lib\/cacatoo.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/cacatoo.js/g' docs/TEs_streamlining/index.html
+sed -i 's/..\/..\/dist\/cacatoo.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/cacatoo.js/g' docs/TEs_streamlining/index.html
 sed -i 's/..\/..\/lib\/all.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/all.js/g' docs/TEs_streamlining/index.html
-sed -i 's/..\/..\/style\/cacatoo.css/..\/https:\/\/bramvandijk88.github.io\/cacatoo\/styles\/cacatoo.css/g' docs/TEs_streamlining/index.html
+sed -i 's/..\/..\/style\/cacatoo.css/https:\/\/bramvandijk88.github.io\/cacatoo\/styles\/cacatoo.css/g' docs/TEs_streamlining/index.html
 sed -i 's/images\/elephant_cacatoo_small.png/https:\/\/bramvandijk88.github.io\/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
 sed -i 's/images\/gh.png/https:\/\/bramvandijk88.github.io\/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js
