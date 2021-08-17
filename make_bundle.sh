@@ -28,3 +28,5 @@ cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
 sed -i 's/..\/..\/dist\/cacatoo.js/..\/scripts\/cacatoo.js/g' docs/TEs_streamlining/index.html
 sed -i 's/..\/..\/lib\/all.js/..\/scripts\/all.js/g' docs/TEs_streamlining/index.html
 sed -i 's/..\/..\/style\/cacatoo.css/..\/styles\/cacatoo.css/g' docs/TEs_streamlining/index.html
+sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
+sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js
