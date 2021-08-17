@@ -19,6 +19,7 @@ catch(err)
 cp dist/cacatoo.js docs/scripts/cacatoo.js
 cp style/cacatoo.css docs/styles/cacatoo.css
 cp lib/all.js docs/scripts/all.js
+cp lib/odex.js docs/scripts/odex.js
 cp images/elephant_cacatoo_small.png docs/images/
 cp images/gh.png docs/images/
 
