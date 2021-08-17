@@ -24,7 +24,7 @@ function cacatoo()
 
     let config = {
             title: "Interacting grids",
-            description: "An example of how you can make grids interact.<br> GoL (left-hand side, purple) influences vote (right-hand side) to vote blue",
+            description: "An example of how you can make grids interact. GoL (left-hand side, purple) influences vote (right-hand side) to vote blue.",
             maxtime: 10000,
             ncol : 200,    
             fastmode : true,        
@@ -32,7 +32,7 @@ function cacatoo()
             wrap : [true, true],        // Wrap boundary [COLS, ROWS]
             scale : 3,				    // scale of the grid (nxn pixels per grid cell)
             statecolours: {'alive':{0:'black',1:'#FF00AA'},
-                           'left':{1:'blue',2:'red'}}
+                           'overlay':{0:'black',1:'blue',2:'red'}}
             }
 
     sim = new Simulation(config)
@@ -43,7 +43,8 @@ function cacatoo()
 
     sim.makeGridmodel("vote");
     sim.initialGrid(sim.vote,'left',1,0.5)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
-    sim.createDisplay("vote","left")
+    sim.initialGrid(sim.vote,'overlay',0,1.0)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+    sim.createDisplay("vote","overlay")
 
     sim.gol.nextState = function(i,j)                 // Define the next-state function. This example is game of life + vote
     {   
@@ -71,6 +72,9 @@ function cacatoo()
             this.grid[i][j].left = 1    // If majority votes left, this position also votes left
         else
             this.grid[i][j].left = 2    // If majority votes right, this position also votes right
+
+        if(sim.gol.grid[i][j].alive) this.grid[i][j].overlay = 0
+        else this.grid[i][j].overlay = this.grid[i][j].left
     }
 
     for(model of sim.gridmodels)

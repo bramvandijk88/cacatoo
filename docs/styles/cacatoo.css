@@ -16,11 +16,31 @@ body {
       color:#ffffff;
   }
   .logos{
-    float:left;
+    z-index: -1;
     vertical-align:middle;    
     display:inline-block;
     padding-left:10px;
     padding-top:10px;
+  }
+
+  .example_card{    
+    width: 180px;
+    height: 202px;
+    background-color: rgb(111, 146, 170);
+    color:#FFFFFF;
+    font-size:15px;        
+    margin: 15px;    
+    padding-top: 5px;
+    border: 2px solid #FFFFFF;
+    border-radius: 10px 0px 10px 0px;
+    display:inline-block;    
+  }
+  .example_card_img{    
+    width: 180px;
+    height: 180px;
+    margin-top: 5px;
+    border: 0px solid #FFFFFF;
+    border-radius: 8px 0px 8px 0px;
   }
   
   /* Content (grid, graphs, sliders) */

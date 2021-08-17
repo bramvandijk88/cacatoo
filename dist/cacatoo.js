@@ -1582,9 +1582,10 @@ class Simulation
             let meter = new FPSMeter({show:'ms',left:"auto", top:"45px",right:"50px",graph:1,history:20, smoothing: 30});
 
             document.title = `Cacatoo - ${this.config.title}`;
-            document.getElementById("header").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/images/elephant_cacatoo_small.png"></a>`;
-            document.getElementById("header").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/images/gh.png"></a></img><h2>Cacatoo - ${this.config.title}</h2><font size=3>${this.config.description}</font size>`;
-            document.getElementById("footer").innerHTML = "<h2>Cacatoo is a toolbox to explore individual-based models straight from your webbrowser. It is still in development. Feedback <a href=\"https://www.bramvandijk.com/contact\">very welcome.</a></h2>";
+            document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/images/elephant_cacatoo_small.png"></a>`;
+            document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/images/gh.png"></a></img>`;
+            document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=2>${this.config.description}</font size>`;
+            document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore individual-based models straight from your webbrowser. It is still in development. Feedback <a href=\"https://www.bramvandijk.com/contact\">very welcome.</a></h2>";
             let simStartTime = performance.now();
       
             async function animate()
@@ -1785,12 +1786,12 @@ class Simulation
         imageLoader.type  = "file";       
         imageLoader.id = "imageLoader";
         let sim = this;
-        imageLoader.style="display:none";
+        imageLoader.style="display:none";        
         imageLoader.name="imageLoader";
         document.getElementById("form_holder").appendChild(imageLoader);
         let label = document.createElement("label");
         label.setAttribute("for","imageLoader");
-        label.style="background-color: rgb(171, 228, 230); border-radius: 10px; border:1px solid grey;padding:4px;margin:5px;width:200px;";
+        label.style="background-color: rgb(217, 234, 245);border-radius: 10px;border: 2px solid rgb(177, 209, 231);padding:7px;font-size:12px;margin:10px;width:128px;";        
         label.innerHTML="<font size=2>Select your own initial state</font>";
         document.getElementById("form_holder").appendChild(label);
         let canvas = document.createElement('canvas');
