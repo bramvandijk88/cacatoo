@@ -1465,6 +1465,7 @@ class Simulation
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {string} name The name of an existing gridmodel to display
     * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
     * @param {integer} height Number of rows to display (default = ALL)
     * @param {integer} width Number of cols to display (default = ALL)
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
@@ -1919,10 +1920,15 @@ class Simulation
 * Below are a few global functions that are used by Simulation classes, but not a method of a Simulation instance per se
 */
 
+
 //Delay for a number of milliseconds
 const pause = (timeoutMsec) => new Promise(resolve => setTimeout(resolve,timeoutMsec));
 
-//Reconstruct a 2D array based on the canvas
+/**
+ *  Reconstruct a 2D array based on a canvas 
+ *  @param {canvas} canvas HTML canvas element to convert to a 2D grid for Cacatoo
+ *  @return {2DArray} Returns a 2D array (i.e. a grid) with the states
+ */
 function get2DFromCanvas(canvas)
 {
     let width = canvas.width;
@@ -1940,7 +1946,7 @@ function get2DFromCanvas(canvas)
         else if(JSON.stringify(num) == JSON.stringify([255,255,255])) state = 1;
         else if(JSON.stringify(num) == JSON.stringify([255,0,0])) state = 2;
         else if(JSON.stringify(num) == JSON.stringify([0,0,255])) state = 3;
-        else throw RangeError("Colour in your pattern does not exist in cash")
+        else throw RangeError("Colour in your pattern does not exist in Cacatoo")
         binary[idx] = state;
         idx++;
     }
@@ -1955,7 +1961,11 @@ function get2DFromCanvas(canvas)
     return arr2D
 }
 
-// REMOVE AFTER REFACTOR GRAPHS??
+/**
+ *  Parse Cacatoo colours, either given as hexadecimal, rgb, or by name
+ *  @param {object} cols Dictionary-style object of int,any_type_of_color pairs
+ *  @return {object} Dictionary-style object of int,Cacatoo-color pairs
+ */
 function parseColours$1(cols)
 {
     let return_cols = [];

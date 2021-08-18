@@ -21,69 +21,160 @@
 <body>
 <div id="main">
 
-    <h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Overview</b> </img></h1>
+    <h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Cacatoo overview</b> </img></h1>
 
 Cacatoo is a javascript-library that simulates discrete individuals, and how they interact, on a grid. Individual-based models are a powerful method to
 explore intractable biological systems and therewith generate new insights or hypotheses. In this tutorial, I will briefly explain:
 
 <ol>
-    <li> Why I made Cacatoo </li>
-    <ul><li>Why grid-based models are awesome</li></ul>
-    <ul><li>The need to upgrade Cash2.1</li></ul>
-    <ul><li>Why Javascript?</li></ul>
+    <li> <a href="#1">Why I made Cacatoo</a> </li>
+    <ul><li><a href="#1.1">Why grid-based models?</a></li></ul>
+    <ul><li><a href="#1.2">A more user-friendly CASH</a></li></ul>
+    <ul><li><a href="#1.3">The new and improved Javascript</a></li></ul>
 
-    <li> How to get Cacatoo </li>
-    <ul><li>Code and explore online (replit)</li></ul>
-    <ul><li>Clone and explore offline</li></ul>    
+    <li> <a href="#2">Getting started with Cacatoo</a> </li>
+    <ul><li><a href="#2.1">Explore Cacatoo online (replit)</a></li></ul>
+    <ul><li><a href="#2.2">Get it on Github</a></li></ul>    
 
-    <li> The basic structure of a Cacatoo model </li>
-    <ul><li>Setup</li></ul>
-    <ul><li>Defining the rules</li></ul>
-    <ul><li>Main simulation loop</li></ul>
+    <li> <a href="#3">The basic structure of a Cacatoo model</a> </li>
+    <ul><li><a href="#3.1">Setup</a></li></ul>
+    <ul><li><a href="#3.2">Defining the rules</a></li></ul>
+    <ul><li><a href="#3.3">Main simulation loop</a></li></ul>
+    <ul><li><a href="#3.4">Example code</a></li></ul>
 
-    <li> The advantage of a dynamic programming language </li>
+    <li> <a href="#4">The advantage of a dynamic programming language</a> </li>
 </ol>
 <br>
 <hr>
+
 <br>
-<h3> Why I made Cacatoo</h3>
+<a id="1"></a><center><h3>Why I made Cacatoo</h3></center>
+<a id="1.1"></a><h4> <b>Why grid-based models?</b></h4>
 
-The first thing you may be wondering is: why would I model biology on a grid? Would a continuous space not be much more realistic, where
-individuals can move freely and interact when they are closeby? Although Cacatoo may include such models in the future, here is why it 
-primarily about grid-based models for now:
+When implementing individual-based models, there are a number of important decisions to make. When the primary interest is spatial structure, the most important decision is
+whether space is continuous or discrete. While modelling individuals in continuous space is very powerful when modeling flocking behaviour (REFS), foraging (REF DANIEL), or 
+biofilm mechanics (REF), it is often computationally infeasible to model large populations. Thus, when one is for example interested in evolution, grid-based models are a 
+much more powerful tool to simulate a continuous process of mutation and selection. Although these grid-based simulations may appear somewhat "unrealistic", it is important
+to note that realism is not what necessarily defines a good model. Instead, a good model of system X, is a model that allows one to learn something about system X (REF?). I
+have published numerous papers that were based primarily on grid-based models, and I can personally testify to having learned a lot through grid-based modelling, no matter How
+weird and pixely they may look! <br><br>
+<center><img src="images/pp.gif"></img></center>
+<br>
+<a id="1.2"></a><h4> <b>A more user-friendly CASH</b></h4>
 
+When working with individual-based models, direct visual feedback is important. Not only are you more likely to detect programming mistakes, but it also greatly helps in 
+exploring parameter space. Over the last decade, most of my models were implemented by using the CASH C-library, which would allow direct visual feedback by means of the X11
+library. This library was originally developed by R.J. de Boer \& A.D. Staritsk) and was then further developed by Nobuto Takeuchi (CASH2s) and myself (CASH2.1). However, as it is 
+based in C, developing models with CASH requires a lot of programming experience, and even an experienced user like myself can sometimes take weeks to track down a simple bug.
+Moreover, sharing your model with other users can be a pain in the neck, as each operating system required a slightly different installation protocol. For this reason, I have 
+been trying to find a new programming language in which to implement something that is reminiscent of CASH. Even though some of the new programming languages (<i>e.g. </i> Ruby, Julia)
+are very fast, creating a display for direct visual feedback slowed everything down tremendously. <br><br>
+
+<a id="1.3"></a><h4> <b>The new and improved Javascript</b></h4>
+After searching for a new programming language for CASH for years, some prior colleagues of mine published <a href="https://artistoo.net/" target="_blank">Artistoo</a>, a toolbox to simulate 
+cell tissues with 100% Javascript (see animation below). They even compared this toolbox with other known C++-libraries, and show their toolbox is not significantly slower. This initially surprised me, as I
+remember Javascript being a language that was mostly use to make websites more annoying, and I did not expect it to be fast. As it turns out, it wasn't always this fast. Google has invested 
+a lot of money in optimising Javascript, especially for their own V8-engine in the Chrome browser. After fiddling around with Javascript a bit myself, I realised this was exactly what I
+needed to make a new-and-improved version of CASH. And because silly acronyms are essential component, the tool is now called Cacatoo: <b>Ca</b>sh-like <b>c</b>ellular <b>a</b>utomaton <b>too</b>lkit 
+(full credits to Jeroen Meijer). <br><br>
+
+<center><img src="images/cellsorting.gif"></img><br>Simple cell-sorting modelled in <a href="https://artistoo.net/" target="_blank">Artistoo</a></center>
 
 <br><br>
+<hr><br>
 
+<a id="2"></a><center><h3> Getting started with Cacatoo</h3></center>
+<a id="2.1"></a><h4> <b>Explore Cacatoo online (replit)</b></h4>
 
-as it avoids having to calculate the distance between two individuals when interations take place
- Grid points can be either empty, or occupied by one or more individuals. Precisely
-how interactions between individuals are implemented, is up to the user. For example, reproduction of individuals can be made dependent on the availabiltiy of
-an empty spot, or individuals may produce public goods that help others in their local neighbourhood thrive. But before we can get into those biological examples,
-let's first consider the basic recipe for a Cacatoo simulation. <br><br>
-
+The easiest way to get started with Cacatoo is to go and visit the <a target="_blank" href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples">online Replit repository</a>. Replit is a 
+free-to-use online coding platform (you may need an account though) which you can use to start playing with Cacatoo without downloading anything!
+<br><br><center><img src="images/replit.gif"></img></center>
 <br>
+
+<a id="2.2"></a><h4> <b>Get it on Github</b></h4>
+
+Another way to get your hands on Cacatoo is to go to the <a href="https://github.com/bramvandijk88/cacatoo">Github page</a> and download the code (either clone it using 'git clone', or click 'Code', and then download the zip) directly
+from Github. 
+<br><br><center><img src="images/github.gif"></img></center>
 <br>
-<h3>1. Setup</h3>
-   <ul>
-       <li>Set the size of the grid, the wrapping of boundaries, the colours to display (if any), etc. <br></li>
-       <li>Populating the grid with individuals<br></li>
-       <li>Adding a display so you can see you grid <br></li>
-</ul>
 
-<h3>2. The next-state function</h3> 
-<ul>
-       <li>All grid points will be updated via this rule<br></li>
-    </ul>   
+<br><br>
+<hr><br>
 
-<h3>3. The update function</h3>
-<ul>
-    <li>Here you define how the grid is updated (synchronously or in a random order)<br></li>
-    <li>Other events that are applied to the entire grid (e.g. mixing or diffusion)<br></li>
- </ul>  
+<a id="3"></a><center><h3> The basic structure of a Cacatoo model </h3></center>
 
-To help you out, these three code-chunks have been annotated in the example "gol.html", which is a simple implementation of Conway's Game of Life:
+The basic structure of a Cacatoo model consists of three blocks of code: <br><br>
 
+<a id="3.1"></a><h4> <b>1. Setup </b></h4>
+In the setup, one defines the basic parameters of the model, including a name, the width/height of the grid, the duration of the simulation, etc. Once that is done, 
+it is time to populate the grid with individuals (or other types of entities) and make sure these are displayed however you want them to be displayed.
+<br><br><center><img src="images/cacatoo_recipe.png" style="width:800px; height:250px; object-fit: cover; object-position:100% 24%"></img></center>
+
+<a id="3.2"></a><h4> <b>2. Defining the rules </b></h4>
+
+In step 2, one defines the actual rules of each grid point. For example, you can allows species to compete for empty spots, individuals
+may die stochastically (or through some deterministic process!), etc. Go nuts!
+
+<br><br><center><img src="images/cacatoo_recipe.png" style="width:800px; height:220px; object-fit: cover; object-position:100% 67%"></img></center>
+<a id="3.3"></a><h4> <b>3. Main simulation loop </b></h4>
+
+Finally, one defines what the main simulation loop is. This includes the updating of the grid (i.e. applying the rules defined in step 2 to the whole grid), mixing the grid,
+occasional bottlenecks, etc. Here, you can also add plots to visualise the results of your simulation in real time!
+
+<br><br><center><img src="images/cacatoo_recipe.png" style="width:800px; height:170px; object-fit: cover; object-position:100% 100%"></img></center>
+<br>
+
+<a id="3.4"></a><h4> <b>Example code </b></h4>
+Then, belowis what steps 1 to 3 will look like for a simple Cacatoo model. It's not that many lines of code!
+<pre><code>
+    // NOTE: For a full version of this code with explanatory comments, see 01_GoL.html in the examples directory.
+    // 1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+    let config = {                                        
+            title: "Cacatoo example",                     
+            description: "My first Cacatoo model",        
+            maxtime: 50000,                                
+            ncol : 200,                                   
+            nrow : 200,		                                  
+            scale : 2,				         
+            statecolours: {'alive':{1:'white'}},          
+    }
+
+    // 1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation    
+    sim = new Simulation(config)                          
+    sim.makeGridmodel("gol")                             
+    sim.initialGrid(sim.gol,'alive',1,0.5)                
+    sim.createDisplay("gol","alive","Game of life (white=alive)")                      
+    
+    // 2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+    sim.gol.nextState = function(i,j)                   
+    {           
+        let neighbours = sim.gol.countMoore8(this,i,j,1,'alive')                   
+        let state = this.grid[i][j].alive;            
+        if(state == 0 && neighbours == 3)
+            this.grid[i][j].alive = 1;
+        else if(state == 1 && (neighbours < 2 || neighbours > 3))
+            this.grid[i][j].alive = 0;
+        else
+            this.grid[i][j].alive = state;
+    }
+    
+    // 3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. 
+    sim.gol.update = function()
+    {                                
+        this.synchronous()         
+    }
+
+    sim.start()</code></pre>
+
+
+<a id="4"></a><center><h3> The advantage of a dynamic programming language </h3></center>
+
+You can use the above scaffolding to start building models right away. However, you are by no means bound to this structure. The best thing about Javascript is that it is a dynamical programming language, meaning
+you can modify functions and data structures on the fly (note: this can also be a downside, be careful not to screw up ;D). Another advantage of Javascript is that all the variables that are defined in Cacatoo 
+are accessible from a developer console, for example the one in Google Chrome (accessed through CTRL+SHIFT+I, or CMD+SHIFT+I on Mac). This makes debugging or interacting with your code so much easier than it could
+have ever been with C. Of course, as your model becomes more complex, it may be that it becomes a bit slower. But hey, now that you have fleshed out all the bugs and explored what your model can do, you are 
+free to still implement it in C if you really want to. 
+<br><br><center><img src="images/console.gif"></img></center>
 
 </div>
 
