@@ -45,8 +45,8 @@ function cacatoo()
     sim.makeGridmodel("cheater")                                        // Make a new gridmodel named cheater
     sim.initialGrid(sim.cheater,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
 
-    sim.createDisplay("cheater","species")                              // Display the 'species' property of the cheater grid
-    sim.createDisplay("cheater","species",20,20,20)                     // Display the 'species' property of a small bit of the grid (i.e. zoom in)
+    sim.createDisplay("cheater","species","Mutualists and cheater")                              // Display the 'species' property of the cheater grid
+    sim.createDisplay("cheater","species","(zoom in on top-left)",20,20,20)                     // Display the 'species' property of a small bit of the grid (i.e. zoom in)
 
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?

@@ -21,10 +21,10 @@
 
     var A2B =1.0                    
     var B2A =1.0                    
-    var B2C =0.9                    
-    var stay_empty=1.0              
+    var B2C =1.5                    
+    var stay_empty=10.0              
     var death=0.1                  
-    var mdif_interval=0.1   
+    var mdif_interval=0  
     
     function cacatoo()
     {    
@@ -36,19 +36,19 @@
                 ncol : 200,            
                 nrow : 200,		                                            // dimensions of the grid to build                
                 scale : 2,				                                    // scale of the grid (nxn pixels per grid point)            
-                statecolours: {'species':{1:"#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
-                                        2:"red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
-                                        3:"blue"}}                 
+                statecolours: {'species':{1:"silver",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                        2:"teal",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                        3:"gold"}}                 
         }
 
         
         sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
         
-        sim.makeGridmodel("cheater")                                        // Make a new gridmodel named cheater
-        sim.initialGrid(sim.cheater,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
-        sim.createDisplay("cheater","species")                              // Display the 'species' property of the cheater grid
+        sim.makeGridmodel("cheaters")                                        // Make a new gridmodel named cheater
+        sim.initialGrid(sim.cheaters,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+        sim.createDisplay("cheaters","species")                              // Display the 'species' property of the cheater grid
 
-        sim.cheater.nextState = function(i,j)                               // Define the next-state function. This example is two mutualists and a cheater
+        sim.cheaters.nextState = function(i,j)                               // Define the next-state function. This example is two mutualists and a cheater
         {         
             // let pA, pB, pC, psum             
             let state = this.grid[i][j].species;
@@ -80,14 +80,14 @@
         }
 
        
-        sim.cheater.update = function()
+        sim.cheaters.update = function()
         {        
             this.synchronous()                                              // Update all grid points based on the next-state function (defined above)
             if(this.time%mdif_interval==0) this.MargolusDiffusion()         // Every so often mix individuals a bit
             this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
         }
         
-        sim.cheater.updateGraphs = function()
+        sim.cheaters.updateGraphs = function()
         {
             // Let's count some stuff every update
             let sumA = 0
@@ -131,14 +131,13 @@
 
     
 
-<h1 class="page-title"><b>Home</b></h1>
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Home</b> </img></h1>
     
-    This page contains tutorials and the documentation for Cacatoo, a javascript library to build simple IBMs. The simulation you see below
+    This page contains tutorials and the documentation for <a href="https://github.com/bramvandijk88/cacatoo"></a>Cacatoo</a>, a javascript library to build simple IBMs. The simulation you see below
     is fully interactive, making it much easier to play with and try different parameters. But perhaps most importantly, it
     is super easy to make yourself! To get started, use the menu on the right-hand side to navigate through the manual.<br><br> 
     
     <center>
-    <div id="header"><h2>Cacatoo </h2></div>
     <table>
         <tr>
             <td>    <div id="canvas_holder"></div>
@@ -150,7 +149,6 @@
             </td>
         </tr>
     </table>
-    <div id="footer"></div>
 </center>
     <br><br>
    
@@ -161,9 +159,9 @@
     </h2><h3>Getting started</h3>
     <ul>
         <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
-        <li><a href="example_project.html">Tutorial 2: Tinkering with examples</a></li>
-        <li><a href="example_project.html">Tutorial 3: Individuals + ODEs</a></li>
-        <li><a href="example_project.html">Tutorial 4: Using classes</a></li>
+        <li><a href="example_project.html">Tutorial 2: Tinkering with the examples</a></li>
+        <li><a href="example_project.html">Tutorial 3: Attaching ODEs to grid points</a></li>
+        <li><a href="example_project.html">Tutorial 4: Using your own classes (OOP)</a></li>
 
     </ul>
     </h2><h3>Classes</h3>

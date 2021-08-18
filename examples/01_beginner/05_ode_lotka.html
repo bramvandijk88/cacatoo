@@ -39,8 +39,8 @@ function cacatoo()
     sim.lotka.colourGradient('numpred',200,[0,0,0],[240,200,0])                         // Will contain the ODEs, and show the abundance of PREDATORS
     sim.lotka.colourGradient('numprey',200,[0,0,0],[148,0,211])                         // Will contain the ODEs, and show the abundance of PREDATORS
     
-    sim.createDisplay('lotka','numpred')
-    sim.createDisplay('lotka','numprey')
+    sim.createDisplay('lotka','numpred',"Local predator density")
+    sim.createDisplay('lotka','numprey',"Local prey density")
 
     // Define a basic Lotka Volterra ODE system
     // dx/dt = a x - b x y

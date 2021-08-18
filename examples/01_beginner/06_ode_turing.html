@@ -40,7 +40,7 @@ function cacatoo()
 
     sim.makeGridmodel("turing") 
     sim.turing.colourViridis("activator", 100)
-    sim.createDisplay('turing','activator')
+    sim.createDisplay('turing','activator',"Concentration of activator")
 
     // A self-replicating turing, which also produces a second molecule which inhibits the turing
     let Turing = function(a, b, i,d) { return function(x, y) {

@@ -67,9 +67,9 @@
 
         sim.makeGridmodel("TE_model");
 
-        sim.createDisplay("TE_model", "genomesize")
-        sim.createDisplay("TE_model", "T_in_genomes")
-        sim.createDisplay("TE_model",  "T_in_eDNA")
+        sim.createDisplay("TE_model", "genomesize", "Genome size of individuals")
+        sim.createDisplay("TE_model", "T_in_genomes", "Nr. transposons in genomes")
+        sim.createDisplay("TE_model",  "T_in_eDNA", "Nr. transposons in eDNA pool")
 
 
         sim.TE_model.initialise = function () {

@@ -1469,9 +1469,10 @@ class Simulation
     * @param {integer} width Number of cols to display (default = ALL)
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
     */
-    createDisplay(name,property,height,width,scale)
+    createDisplay(name,property,customlab,height,width,scale)
     {
-        let label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
+        let label = customlab;
+        if(customlab == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name];
         if(gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
         if(height==undefined) height = gridmodel.nr;
@@ -1480,12 +1481,9 @@ class Simulation
         let cnv = new Canvas(gridmodel,property,label,height,width,scale); 
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
-
         const canvas = cnv.elem;
         canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });        
-
-        cnv.displaygrid();
-        
+        cnv.displaygrid();        
     }
 
 
