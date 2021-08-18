@@ -29,7 +29,7 @@ function cacatoo()
 
     let config = {
             title: "Petridish with local growth",
-            description: "",
+            description: "(mutational rescue of elevated death rate)",
             maxtime: 10000000,
             fastmode: false,             // If possible, fast-mode will update the sim with more than 60 FPS. 
                                         // Note: fastmode is only useful/recommended if the sim can readily run 
@@ -47,9 +47,9 @@ function cacatoo()
     sim = new Simulation(config)
 
     sim.makeGridmodel("cells"); 
-    sim.createDisplay("cells","alive")    
+    sim.createDisplay("cells","alive", "Colony growth")    
     sim.makeGridmodel("cells_wellmixed"); 
-    sim.createDisplay("cells_wellmixed","alive")    
+    sim.createDisplay("cells_wellmixed","alive", "Well-mixed population")    
     
     let birth_rate = 0.85
     

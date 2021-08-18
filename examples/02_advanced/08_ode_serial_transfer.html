@@ -33,7 +33,7 @@ function cacatoo()
             nrow : 120,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
             scale : 3,				    // scale of the grid (nxn pixels per grid cell)
-            statecolours: {'alive':{1:'purple'}},   // The background state '0' is never drawn
+            statecolours: {'alive':{1:'blue'}},   // The background state '0' is never drawn
             skipbg_state: true,                      // Don't draw 0-state on grid (faster)
             graph_interval: 1,
             graph_update: 5,
@@ -52,9 +52,9 @@ function cacatoo()
     sim.makeGridmodel("batchculture"); 
     sim.batchculture.colourViridis("external_resources", 100)
     sim.batchculture.colourViridis("internal_resources", 100)
-    sim.createDisplay("batchculture","alive")
-    sim.createDisplay("batchculture","external_resources")
-    sim.createDisplay("batchculture","internal_resources")
+    sim.createDisplay("batchculture","internal_resources","Internal resources in cells")
+    sim.createDisplay("batchculture","external_resources","External resources")
+    
     // sim.resource_e.colourRamp('resources_e',[0,0,0],[64, 224, 208],100)
     
     

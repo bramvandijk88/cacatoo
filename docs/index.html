@@ -36,9 +36,9 @@
                 ncol : 200,            
                 nrow : 200,		                                            // dimensions of the grid to build                
                 scale : 2,				                                    // scale of the grid (nxn pixels per grid point)            
-                statecolours: {'species':{1:"silver",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
-                                        2:"teal",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
-                                        3:"gold"}}                 
+                statecolours: {'species':{1:"#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                      2:"red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                      3:"#3030ff"}}              
         }
 
         
@@ -46,7 +46,7 @@
         
         sim.makeGridmodel("cheaters")                                        // Make a new gridmodel named cheater
         sim.initialGrid(sim.cheaters,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
-        sim.createDisplay("cheaters","species")                              // Display the 'species' property of the cheater grid
+        sim.createDisplay("cheaters","species","Cacatoo example")                              // Display the 'species' property of the cheater grid
 
         sim.cheaters.nextState = function(i,j)                               // Define the next-state function. This example is two mutualists and a cheater
         {         
@@ -144,11 +144,12 @@
             </td>
             <td>    <div id="form_holder"></div>
             </td>
-            <td>    <br><br><br><br>    <div id="graph_holder"> </div>
+            <td>    <br><br><br><br>    </div>
             </div>
             </td>
         </tr>
     </table>
+    <div id="graph_holder">
 </center>
     <br><br>
    
