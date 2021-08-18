@@ -47,9 +47,9 @@ function cacatoo()
     sim = new Simulation(config)
 
     sim.makeGridmodel("cells"); 
-    sim.createDisplay("cells","alive")    
+    sim.createDisplay("cells","alive", "Colony on petridish")    
     sim.makeGridmodel("cells_wellmixed"); 
-    sim.createDisplay("cells_wellmixed","alive")    
+    sim.createDisplay("cells_wellmixed","alive","Well-mixed population")    
     
     let birth_rate = 0.85
     
@@ -136,7 +136,7 @@ function cacatoo()
 </script>
 
 <body onload="cacatoo()">
-    <div class="header" id="header"><h2>ModelJS - </h2></div>
+    <div class="header" id="header"><h2>Cacatoo</h2></div>
     <div class="content" id="canvas_holder"></div>
     <div class="content" id="form_holder"></div>    
     <div class="content" id="graph_holder"> </div>
