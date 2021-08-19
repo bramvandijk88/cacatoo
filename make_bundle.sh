@@ -34,7 +34,7 @@ cp examples/03_expert/PoS_classes.js docs/TEs_streamlining/
 cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
 fix_libs docs/TEs_streamlining/index.html
 
-cp examples/other/crossfeeding.html docs/crossfeeding.html
+cp examples/04_even_more_examples/crossfeeding.html docs/crossfeeding.html
 fix_libs docs/crossfeeding.html
 
 sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
