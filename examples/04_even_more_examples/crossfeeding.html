@@ -205,6 +205,8 @@ function cacatoo()
     */
     sim.addButton("pause/continue",function() { sim.toggle_play()})
     sim.addButton("step",function() { sim.step(); sim.display()})
+    sim.addButton("mix once",function() { sim.cross.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
+    sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater" 
     sim.start()
 
 }

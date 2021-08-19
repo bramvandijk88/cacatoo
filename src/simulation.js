@@ -90,35 +90,35 @@ class Simulation
         }
     }
 
-    /**
-    * Create a dygraphs XY graph, showing an arbitrary number of
-    * @param {string} name The name of an existing gridmodel to display
-    * @param {string} property The name of the property to display
-    * @param {integer} height Number of rows to display (default = ALL)
-    * @param {integer} width Number of cols to display (default = ALL)
-    * @param {integer} scale Scale of display (default inherited from @Simulation class)
-    */
-    plotXY(graph_labels,graph_values,cols,title,opts)
-    {
-        if(typeof window == 'undefined') return
-        if(!(title in this.graphs))
-        {
-            cols = parseColours(cols)                            
-            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts)                        
-        }
-        else 
-        {
-            if(this.time%this.graph_interval==0)
-            {  
-                this.graphs[title].push_data(graph_values)     
-            }
-            if(this.time%this.graph_update==0)
-            {
-                this.graphs[title].update()
-            }
-        }
+    // /** DEPRECATED?
+    // * Create a dygraphs XY graph, showing an arbitrary number of
+    // * @param {string} name The name of an existing gridmodel to display
+    // * @param {string} property The name of the property to display
+    // * @param {integer} height Number of rows to display (default = ALL)
+    // * @param {integer} width Number of cols to display (default = ALL)
+    // * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    // */
+    // plotXY(graph_labels,graph_values,cols,title,opts)
+    // {
+    //     if(typeof window == 'undefined') return
+    //     if(!(title in this.graphs))
+    //     {
+    //         cols = parseColours(cols)                            
+    //         this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts)                        
+    //     }
+    //     else 
+    //     {
+    //         if(this.time%this.graph_interval==0)
+    //         {  
+    //             this.graphs[title].push_data(graph_values)     
+    //         }
+    //         if(this.time%this.graph_update==0)
+    //         {
+    //             this.graphs[title].update()
+    //         }
+    //     }
         
-    }
+    // }
 
     /**
     * Update all the grid models one step. Apply optional mixing

@@ -78,8 +78,8 @@ class Gridmodel
                 let c = {}
                 for(const [key,val] of Object.entries(statedict))
                 {
-                    let hex = stringToRGB(val)                
-                    c[key] = hex
+                    if(Array.isArray(val)) c[key] = val
+                    else c[key] = stringToRGB(val)                
                 }
                 return_dict[statekey] = c
             }                                    
@@ -687,6 +687,25 @@ class Gridmodel
         //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
     }
 
+    /** 
+     * Easy function to add a ODE states (wrapper for plot array)
+     *  @param {String} ODE name Which ODE to plot the states for
+     *  @param {Array} values Which states are plotted (if undefined, all of them are plotted)
+    */ 
+     plotODEstates(odename,values,colours)
+     {
+         if(typeof window == 'undefined') return
+         if(this.time%this.graph_interval!=0 && this.graphs[`Average ODE states (${this.name})`] !== undefined) return
+         // Labels
+         let graph_labels = []
+         for (let val of values) { graph_labels.push(odename+'_'+val) }     
+         // Values
+         let ode_states = this.getODEstates(odename,values)
+         // Title
+         let title = "Average ODE states ("+this.name+")"
+         this.plotArray(graph_labels, ode_states, colours, title)
+     }
+
     resetPlots()
     {
         this.time = 0
@@ -713,6 +732,21 @@ class Gridmodel
         }
         return sum;
     }
+
+    /** 
+     *  Returns an array with the population sizes of different types
+     *  @param {String} property Return popsizes for this property (needs to exist in your model, e.g. "species" or "alive")
+     *  @param {Array} values Which values are counted and returned (e.g. [1,3,4,6])     
+    */ 
+     getODEstates(odename,values)
+     {        
+         let sum = Array(values.length).fill(0)
+         for(let i = 0; i< this.nc; i++)     
+             for(let j=0;j<this.nr;j++)
+                 for(let val in values)
+                    sum[val] += this.grid[i][j][odename].state[val]/(this.nc*this.nr)
+        return sum;
+     }
 
     
   

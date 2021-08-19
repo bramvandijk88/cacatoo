@@ -141,7 +141,7 @@ class ODE
     *  @param {Array} diff_rates Array of rates at which each state diffuses to neighbouring grid point (Has to be less than 0.25!)
     *  @param {String} ode_name Name of this ODE
     */  
-   constructor(eq,state_vector,pars,diff_rates,ode_name,accaptable_error) 
+   constructor(eq,state_vector,pars,diff_rates,ode_name,acceptable_error) 
     {        
         this.name = ode_name;
         this.eq = eq;
@@ -149,7 +149,7 @@ class ODE
         this.diff_rates = diff_rates;
         this.pars = pars;
         this.solver = new Solver(state_vector.length);
-        this.solver.absoluteTolerance = this.solver.relativeTolerance = accaptable_error;
+        if(acceptable_error !== undefined) this.solver.absoluteTolerance = this.solver.relativeTolerance = acceptable_error;
     }
 
     /** 
@@ -441,15 +441,15 @@ class Gridmodel
             }
             else if(typeof statedict ===  'string' || statedict instanceof String)       // For if 
             {
-                return_dict[statekey] = stringToRGB$1(statedict);
+                return_dict[statekey] = stringToRGB(statedict);
             }
             else
             {
                 let c = {};
                 for(const [key,val] of Object.entries(statedict))
                 {
-                    let hex = stringToRGB$1(val);                
-                    c[key] = hex;
+                    if(Array.isArray(val)) c[key] = val;
+                    else c[key] = stringToRGB(val);                
                 }
                 return_dict[statekey] = c;
             }                                    
@@ -1057,6 +1057,25 @@ class Gridmodel
         //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
     }
 
+    /** 
+     * Easy function to add a ODE states (wrapper for plot array)
+     *  @param {String} ODE name Which ODE to plot the states for
+     *  @param {Array} values Which states are plotted (if undefined, all of them are plotted)
+    */ 
+     plotODEstates(odename,values,colours)
+     {
+         if(typeof window == 'undefined') return
+         if(this.time%this.graph_interval!=0 && this.graphs[`Average ODE states (${this.name})`] !== undefined) return
+         // Labels
+         let graph_labels = [];
+         for (let val of values) { graph_labels.push(odename+'_'+val); }     
+         // Values
+         let ode_states = this.getODEstates(odename,values);
+         // Title
+         let title = "Average ODE states ("+this.name+")";
+         this.plotArray(graph_labels, ode_states, colours, title);
+     }
+
     resetPlots()
     {
         this.time = 0;
@@ -1083,6 +1102,21 @@ class Gridmodel
         }
         return sum;
     }
+
+    /** 
+     *  Returns an array with the population sizes of different types
+     *  @param {String} property Return popsizes for this property (needs to exist in your model, e.g. "species" or "alive")
+     *  @param {Array} values Which values are counted and returned (e.g. [1,3,4,6])     
+    */ 
+     getODEstates(odename,values)
+     {        
+         let sum = Array(values.length).fill(0);
+         for(let i = 0; i< this.nc; i++)     
+             for(let j=0;j<this.nr;j++)
+                 for(let val in values)
+                    sum[val] += this.grid[i][j][odename].state[val]/(this.nc*this.nr);
+        return sum;
+     }
 
     
   
@@ -1230,7 +1264,7 @@ function shuffle(array,rng) {
  *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
  *  @param {String} string string to convert to RGB
 */
-function stringToRGB$1(string)
+function stringToRGB(string)
 {
     if(string[0] != '#') return nameToRGB(string)
     else return hexToRGB(string)
@@ -1293,7 +1327,7 @@ function parseColours(cols)
     {
         if(typeof c ===  'string' || c instanceof String) 
         {
-            return_cols.push(stringToRGB$1(c));
+            return_cols.push(stringToRGB(c));
         }
         else
         {
@@ -1508,35 +1542,35 @@ class Simulation
         }
     }
 
-    /**
-    * Create a dygraphs XY graph, showing an arbitrary number of
-    * @param {string} name The name of an existing gridmodel to display
-    * @param {string} property The name of the property to display
-    * @param {integer} height Number of rows to display (default = ALL)
-    * @param {integer} width Number of cols to display (default = ALL)
-    * @param {integer} scale Scale of display (default inherited from @Simulation class)
-    */
-    plotXY(graph_labels,graph_values,cols,title,opts)
-    {
-        if(typeof window == 'undefined') return
-        if(!(title in this.graphs))
-        {
-            cols = parseColours$1(cols);                            
-            this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts);                        
-        }
-        else 
-        {
-            if(this.time%this.graph_interval==0)
-            {  
-                this.graphs[title].push_data(graph_values);     
-            }
-            if(this.time%this.graph_update==0)
-            {
-                this.graphs[title].update();
-            }
-        }
+    // /** DEPRECATED?
+    // * Create a dygraphs XY graph, showing an arbitrary number of
+    // * @param {string} name The name of an existing gridmodel to display
+    // * @param {string} property The name of the property to display
+    // * @param {integer} height Number of rows to display (default = ALL)
+    // * @param {integer} width Number of cols to display (default = ALL)
+    // * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    // */
+    // plotXY(graph_labels,graph_values,cols,title,opts)
+    // {
+    //     if(typeof window == 'undefined') return
+    //     if(!(title in this.graphs))
+    //     {
+    //         cols = parseColours(cols)                            
+    //         this.graphs[title] = new Graph(graph_labels,graph_values,cols,title,opts)                        
+    //     }
+    //     else 
+    //     {
+    //         if(this.time%this.graph_interval==0)
+    //         {  
+    //             this.graphs[title].push_data(graph_values)     
+    //         }
+    //         if(this.time%this.graph_update==0)
+    //         {
+    //             this.graphs[title].update()
+    //         }
+    //     }
         
-    }
+    // }
 
     /**
     * Update all the grid models one step. Apply optional mixing
@@ -1960,28 +1994,6 @@ function get2DFromCanvas(canvas)
         rows++;
     }
     return arr2D
-}
-
-/**
- *  Parse Cacatoo colours, either given as hexadecimal, rgb, or by name
- *  @param {object} cols Dictionary-style object of int,any_type_of_color pairs
- *  @return {object} Dictionary-style object of int,Cacatoo-color pairs
- */
-function parseColours$1(cols)
-{
-    let return_cols = [];
-    for(let c of cols)
-    {
-        if(typeof c ===  'string' || c instanceof String) 
-        {
-            return_cols.push(stringToRGB(c));
-        }
-        else
-        {
-            return_cols.push(c);
-        }
-    }
-    return return_cols
 }
 
 

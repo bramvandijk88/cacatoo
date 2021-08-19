@@ -29,31 +29,46 @@ function cacatoo()
         1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
     */
     let config = 
-    {                                        
-            title: "Empty project",                        // The name of your cacatoo-simulation
-            description: "",         // And a description if you wish
-            maxtime: 1000000,                             // How many time steps the model continues to run            
-            ncol : 60,                                   // Number of columns (width of your grid)
-            nrow : 60,		                              // Number of rows (height of your grid)
-            wrap : [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
-            scale : 5,				                      // Scale of the grid (nxn pixels per grid point)
-            statecolours: {'state':{1:'white'}},          // Colours for each state. Background (0) defaults to black. 
-    }
+        {                                        
+                title: "Predator prey model",                 // The name of your cacatoo-simulation
+                description: "Yellow are prey. Red are predators. Black is empty.",         // And a description if you wish
+                maxtime: 1000000,                             // How many time steps the model continues to run            
+                ncol : 210,                                   // Number of columns (width of your grid)
+                nrow : 60,		                              // Number of rows (height of your grid)
+                wrap : [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
+                scale : 3,				                      // Scale of the grid (nxn pixels per grid point)
+                statecolours: {'species':{1:[245,245,80],2:[255,0,96]}},          // Colours for each state. Background (0) defaults to black. 
+        }
 
     /*
         1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
     */
     sim = new Simulation(config)                          // Initialise the Cacatoo simulation
     sim.makeGridmodel("model")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-    sim.initialGrid(sim.model,'state',1,0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
-    sim.createDisplay("model","state","")                      // Create a display so we can see our newly made gridmodel
+    sim.initialGrid(sim.model,'species',1,0.2,2,0.2)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
+    sim.createDisplay("model","species","")                      // Create a display so we can see our newly made gridmodel
     
     /*
         2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
     */
+
     sim.model.nextState = function(i,j)                   
     {   
-        // Empty
+        let randomneigh = this.randomMoore8(this,i,j).species   // Random neighbour
+        
+        if(this.grid[i][j].species == 0)                        // If empty
+        {
+            if(randomneigh == 1 && this.rng.genrand_real1() < 0.5)
+                this.grid[i][j].species = 1                     // 1 (prey) reproduces
+        }
+        else if(this.grid[i][j].species == 1)                   // If prey
+        {
+            if(randomneigh == 2 && this.rng.genrand_real1() < 0.3)
+                this.grid[i][j].species = 2                     // 2 (pred) reproduces
+        }
+        
+        if(this.rng.genrand_real1() < 0.05) 
+            this.grid[i][j].species = 0                         // death
     }
 
     /*
@@ -63,12 +78,24 @@ function cacatoo()
     sim.model.update = function()
     {                                
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
+        this.plotPopsizes('species',[1,2])
     }
 
     /*
         OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
     */
    
+    sim.addButton("Play/pause sim",function() {sim.toggle_play()})
+    sim.addButton("Disable/enable mix",function() {sim.toggle_mix()})
+    sim.addButton("Kill prey",function() {sim.my_custom_killprey_function()})
+    sim.my_custom_killprey_function = function()
+    { 
+        for (let i = 0; i < sim.model.nc; i++) for (let j = 0; j < sim.model.nr; j++) 
+        {
+            if(sim.model.grid[i][j].species == 1 && this.rng.genrand_real1() < 0.9) 
+                sim.model.grid[i][j].species = 0
+        }
+    }
     sim.start()
 
 }

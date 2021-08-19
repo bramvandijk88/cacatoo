@@ -423,6 +423,12 @@ function MersenneTwister(seed) {
   
   /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
+
+
+
+
+
+  
   "use strict";
 /**
  * An implementation of ODEX, by E. Hairer and G. Wanner, ported from the Fortran ODEX.F.
