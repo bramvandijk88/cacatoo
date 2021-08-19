@@ -24,10 +24,18 @@ cp images/elephant_cacatoo_small.png docs/images/
 cp images/gh.png docs/images/
 
 # // Copy the TE-example to the docs on Github for publication
+fix_libs() {
+    sed -i 's/..\/..\/dist\/cacatoo.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/cacatoo.js/g' $1
+    sed -i 's/..\/..\/lib\/all.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/all.js/g' $1
+    sed -i 's/..\/..\/style\/cacatoo.css/https:\/\/bramvandijk88.github.io\/cacatoo\/styles\/cacatoo.css/g' $1
+}
+
 cp examples/03_expert/PoS_classes.js docs/TEs_streamlining/
 cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
-sed -i 's/..\/..\/dist\/cacatoo.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/cacatoo.js/g' docs/TEs_streamlining/index.html
-sed -i 's/..\/..\/lib\/all.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/all.js/g' docs/TEs_streamlining/index.html
-sed -i 's/..\/..\/style\/cacatoo.css/https:\/\/bramvandijk88.github.io\/cacatoo\/styles\/cacatoo.css/g' docs/TEs_streamlining/index.html
+fix_libs docs/TEs_streamlining/index.html
+
+cp examples/other/crossfeeding.html docs/crossfeeding.html
+fix_libs docs/crossfeeding.html
+
 sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
 sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js

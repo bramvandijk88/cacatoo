@@ -12,7 +12,7 @@ class ODE
     *  @param {Array} diff_rates Array of rates at which each state diffuses to neighbouring grid point (Has to be less than 0.25!)
     *  @param {String} ode_name Name of this ODE
     */  
-   constructor(eq,state_vector,pars,diff_rates,ode_name) 
+   constructor(eq,state_vector,pars,diff_rates,ode_name,accaptable_error) 
     {        
         this.name = ode_name
         this.eq = eq
@@ -20,7 +20,9 @@ class ODE
         this.diff_rates = diff_rates
         this.pars = pars
         this.solver = new Solver(state_vector.length)
+        this.solver.absoluteTolerance = this.solver.relativeTolerance = accaptable_error
     }
+
     /** 
      *  Numerically solve the ODE
      *  @param {float} delta_t Step size

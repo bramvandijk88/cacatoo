@@ -52,23 +52,24 @@ explore intractable biological systems and therewith generate new insights or hy
 <a id="1.1"></a><h4> <b>Why grid-based models?</b></h4>
 
 When implementing individual-based models, there are a number of important decisions to make. When the primary interest is spatial structure, the most important decision is
-whether space is continuous or discrete. While modelling individuals in continuous space is very powerful when modeling flocking behaviour (REFS), foraging (REF DANIEL), or 
-biofilm mechanics (REF), it is often computationally infeasible to model large populations. Thus, when one is for example interested in evolution, grid-based models are a 
-much more powerful tool to simulate a continuous process of mutation and selection. Although these grid-based simulations may appear somewhat "unrealistic", it is important
-to note that realism is not what necessarily defines a good model. Instead, a good model of system X, is a model that allows one to learn something about system X (REF?). I
+whether space is continuous or discrete. While modelling individuals in continuous space is very powerful when modeling <a href="https://www.biorxiv.org/content/10.1101/2021.07.04.450902v1.abstract">flocking behaviour</a> (Papadopoulou et al, 2021), <a href="https://link.springer.com/article/10.1186/1471-2148-11-335">foraging strategies</a> (van der Post &  Semmann, 2011), or 
+<a href="https://www.microbiologyresearch.org/content/journal/micro/10.1099/00221287-147-11-2897?crawler=true">biofilm mechanics</a>, it is often computationally infeasible to model increasingly large populations. 
+Thus, when one is for example interested in evolution, grid-based models are a much more powerful tool to simulate a continuous process of mutation and selection. 
+Although these grid-based simulations may appear somewhat "unrealistic", it is important to note that realism is not what necessarily defines a good model. Instead,
+ a good model of system X, is a model that allows one to learn something about system X (REF?). I
 have published numerous papers that were based primarily on grid-based models, and I can personally testify to having learned a lot through grid-based modelling, no matter How
 weird and pixely they may look! <br><br>
 <center><img src="images/pp.gif"></img></center>
 <br>
 <a id="1.2"></a><h4> <b>A more user-friendly CASH</b></h4>
 
-When working with individual-based models, direct visual feedback is important. Not only are you more likely to detect programming mistakes, but it also greatly helps in 
-exploring parameter space. Over the last decade, most of my models were implemented by using the CASH C-library, which would allow direct visual feedback by means of the X11
-library. This library was originally developed by R.J. de Boer \& A.D. Staritsk) and was then further developed by Nobuto Takeuchi (CASH2s) and myself (CASH2.1). However, as it is 
+When working with individual-based models, direct visual feedback is important. Not only are you more likely to detect programming mistakes, but it also aids rapid exploration of parameter space.
+Over the last decade, most of my models were implemented by using the <a href="https://www.bramvandijk.com/software/#cash21">CASH C-library</a>, which would allow direct visual feedback by means of the X11
+library. This library was originally developed by R.J. de Boer & A.D. Staritsk) and was then further developed by Nobuto Takeuchi (CASH2s) and myself (CASH2.1). However, as it is 
 based in C, developing models with CASH requires a lot of programming experience, and even an experienced user like myself can sometimes take weeks to track down a simple bug.
 Moreover, sharing your model with other users can be a pain in the neck, as each operating system required a slightly different installation protocol. For this reason, I have 
 been trying to find a new programming language in which to implement something that is reminiscent of CASH. Even though some of the new programming languages (<i>e.g. </i> Ruby, Julia)
-are very fast, creating a display for direct visual feedback slowed everything down tremendously. <br><br>
+are very fast, creating a display for direct visual feedback typically slowed things down tremendously. <br><br>
 
 <a id="1.3"></a><h4> <b>The new and improved Javascript</b></h4>
 After searching for a new programming language for CASH for years, some prior colleagues of mine published <a href="https://artistoo.net/" target="_blank">Artistoo</a>, a toolbox to simulate 
@@ -87,14 +88,15 @@ needed to make a new-and-improved version of CASH. And because silly acronyms ar
 <a id="2.1"></a><h4> <b>Explore Cacatoo online (replit)</b></h4>
 
 The easiest way to get started with Cacatoo is to go and visit the <a target="_blank" href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples">online Replit repository</a>. Replit is a 
-free-to-use online coding platform (you may need an account though) which you can use to start playing with Cacatoo without downloading anything!
+free-to-use online coding platform. After you have made an account (or logged in with an existing account from), you can simply click the "Fork" button, and start playing with Cacatoo. No need to
+download or install anything!
 <br><br><center><img src="images/replit.gif"></img></center>
 <br>
 
 <a id="2.2"></a><h4> <b>Get it on Github</b></h4>
 
-Another way to get your hands on Cacatoo is to go to the <a href="https://github.com/bramvandijk88/cacatoo">Github page</a> and download the code (either clone it using 'git clone', or click 'Code', and then download the zip) directly
-from Github. 
+If you're more interested in developing, you may want to actually get your own copy of the code. If so, then the best way to get your hands on Cacatoo is to go to the <a href="https://github.com/bramvandijk88/cacatoo">Github page</a>
+and download the code (either clone it using 'git clone', or click 'Code', and then download the zip) directly from Github. 
 <br><br><center><img src="images/github.gif"></img></center>
 <br>
 
@@ -132,7 +134,7 @@ Then, belowis what steps 1 to 3 will look like for a simple Cacatoo model. It's 
     // 1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
     let config = {                                        
             title: "Cacatoo example",                     
-            description: "My first Cacatoo model",        
+           description: "My first Cacatoo model",        
             maxtime: 50000,                                
             ncol : 200,                                   
             nrow : 200,		                                  
@@ -173,8 +175,8 @@ Then, belowis what steps 1 to 3 will look like for a simple Cacatoo model. It's 
 You can use the above scaffolding to start building models right away. However, you are by no means bound to this structure. The best thing about Javascript is that it is a dynamical programming language, meaning
 you can modify functions and data structures on the fly (note: this can also be a downside, be careful not to screw up ;D). Another advantage of Javascript is that all the variables that are defined in Cacatoo 
 are accessible from a developer console, for example the one in Google Chrome (accessed through CTRL+SHIFT+I, or CMD+SHIFT+I on OSX, see animation below). This makes debugging or interacting with your code so much easier than it could
-have ever been with C. Of course, as your model becomes more complex, it may be that it becomes a bit slower. But hey, now that you have fleshed out all the bugs and explored what your model can do, you are 
-free to still implement it in C if you really want to. 
+have ever been with C. Of course, as your model becomes more complex, it may be that it becomes a bit slower than C. But hey, now that you have fleshed out all the bugs and explored what your model can do, you are 
+free to still implement it in C if you really want to.
 <br><br><center><img src="images/console.gif"></img></center>
 
 </div>

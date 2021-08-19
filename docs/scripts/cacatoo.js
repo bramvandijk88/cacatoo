@@ -141,7 +141,7 @@ class ODE
     *  @param {Array} diff_rates Array of rates at which each state diffuses to neighbouring grid point (Has to be less than 0.25!)
     *  @param {String} ode_name Name of this ODE
     */  
-   constructor(eq,state_vector,pars,diff_rates,ode_name) 
+   constructor(eq,state_vector,pars,diff_rates,ode_name,accaptable_error) 
     {        
         this.name = ode_name;
         this.eq = eq;
@@ -149,7 +149,9 @@ class ODE
         this.diff_rates = diff_rates;
         this.pars = pars;
         this.solver = new Solver(state_vector.length);
+        this.solver.absoluteTolerance = this.solver.relativeTolerance = accaptable_error;
     }
+
     /** 
      *  Numerically solve the ODE
      *  @param {float} delta_t Step size
@@ -864,7 +866,6 @@ class Gridmodel
                             if(typeof xy=="undefined") continue                            
                             let neigh = this.grid[xy[0]][xy[1]];                            
                             sum_in += neigh.ODEs[o].state[s]*rate; 
-                            // sum_in += 0.1
                             newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s]*rate;
                         }
                         newstates_2[i][j][o][s] += sum_in;
@@ -1096,7 +1097,7 @@ class Gridmodel
         {            
             for(let j=0;j<this.nr;j++)
             {
-                let ode = new ODE(eq,conf.init_states,conf.parameters,conf.diffusion_rates,conf.ode_name);                
+                let ode = new ODE(eq,conf.init_states,conf.parameters,conf.diffusion_rates,conf.ode_name,conf.acceptable_error);                
                 if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = [];   // If list doesnt exist yet                
                 this.grid[i][j].ODEs.push(ode);
                 if(conf.ode_name) this.grid[i][j][conf.ode_name] = ode;

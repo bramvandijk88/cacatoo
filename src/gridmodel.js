@@ -496,7 +496,6 @@ class Gridmodel
                             if(typeof xy=="undefined") continue                            
                             let neigh = this.grid[xy[0]][xy[1]]                            
                             sum_in += neigh.ODEs[o].state[s]*rate 
-                            // sum_in += 0.1
                             newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s]*rate
                         }
                         newstates_2[i][j][o][s] += sum_in
@@ -728,7 +727,7 @@ class Gridmodel
         {            
             for(let j=0;j<this.nr;j++)
             {
-                let ode = new ODE(eq,conf.init_states,conf.parameters,conf.diffusion_rates,conf.ode_name)                
+                let ode = new ODE(eq,conf.init_states,conf.parameters,conf.diffusion_rates,conf.ode_name,conf.acceptable_error)                
                 if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = []   // If list doesnt exist yet                
                 this.grid[i][j].ODEs.push(ode)
                 if(conf.ode_name) this.grid[i][j][conf.ode_name] = ode
