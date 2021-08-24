@@ -12,67 +12,67 @@
 <!--  ---------------Do not change the part below ------------------  -->
 
 <html>
-<script src="../../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
-<script src="../../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
-<link rel="stylesheet" href="../../style/cacatoo.css">        <!-- Set style sheet -->
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
 
 <script>
-/*-----------------------Start user-defined code ---------------------*/
+    /*-----------------------Start user-defined code ---------------------*/
 
-let simulation;
+    let simulation;
 
-function cacatoo()
-{
+    function cacatoo() {
 
-    let config = {  
+        let config = {
             title: "Modulo prime",
             description: "Update rule: next_state = n_neighbours % 2",
             maxtime: 100000000,
-            ncol : 300,
-            nrow : 300,		                          // dimensions of the grid to build
+            ncol: 300,
+            nrow: 300,		                          // dimensions of the grid to build
             sleep: 200,
             fastmode: true,                           // Ironically, to slow down the FPS, you have to be in fast mode :D            
-            wrap : [true, true],                      // Wrap boundary [COLS, ROWS]
-            scale : 2,				                  // scale of the grid (nxn pixels per grid cell)
-            statecolours: {'alive':{1:'white'}},    // Only defining the "alive" state, while...
+            wrap: [true, true],                      // Wrap boundary [COLS, ROWS]
+            scale: 2,				                  // scale of the grid (nxn pixels per grid cell)
+            statecolours: { 'alive': { 1: 'white' } },    // Only defining the "alive" state, while...
+        }
+
+        sim = new Simulation(config)             // Initialise a new sim instance with configuration given above
+
+        sim.makeGridmodel("prime");
+        sim.createDisplay("prime", "alive", "Modulo prime")
+
+        // Note to user: initialPattern is disabled, as it requirs a webserver for security reasons. Use the pattern button instead. 
+        // sim.initialPattern(sim.prime, 'alive', '../patterns/elephant_cacatoo.png', 115, 115)
+
+        sim.prime.nextState = function (i, j)                         // Define the next-state function. This example is modulo prime
+        {
+            this.grid[i][j].alive = (this.countMoore8(this, i, j, 'alive',1) % 2 == 0 ? 0 : 1)
+        }
+
+
+        sim.prime.update = function () {
+            this.synchronous()
+        }
+
+        // Adds a pattern load button
+        sim.addPatternButton(sim.prime, 'alive')
+        sim.addButton("pause/continue", function () { sim.toggle_play() })
+        sim.addButton("step", function () { sim.step(); sim.display() })
+        sim.pause = true
+        sim.start()
     }
-
-    sim = new Simulation(config)             // Initialise a new sim instance with configuration given above
-    
-    sim.makeGridmodel("prime");         
-    sim.createDisplay("prime","alive","Modulo prime")
-    
-    // Note to user: initialPattern is disabled, as it requirs a webserver for security reasons. Use the pattern button instead. 
-    // sim.initialPattern(sim.prime, 'alive', '../patterns/elephant_cacatoo.png', 115, 115)
-    
-    sim.prime.nextState = function(i,j)                         // Define the next-state function. This example is modulo prime
-    {
-        this.grid[i][j].alive = (this.countMoore8(this,i,j,1,'alive')%2==0 ? 0 : 1)
-    }
-
-
-    sim.prime.update = function()
-    {        
-        this.synchronous()        
-    }  
-
-    // Adds a pattern load button
-    sim.addPatternButton(sim.prime,'alive')    
-    sim.addButton("pause/continue",function() { sim.toggle_play()})    
-    sim.addButton("step",function() { sim.step(); sim.display()})
-    sim.pause = true
-    sim.start()
-}
 
 </script>
 
 
 
-<body onload="cacatoo()">        
-    <div class="header" id="header"><h2>Cacatoo</h2></div>
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo</h2>
+    </div>
 
     <div class="content" id="canvas_holder"></div>
-    <div class="content" id="form_holder"></div>    
+    <div class="content" id="form_holder"></div>
     <div class="content" id="graph_holder"> </div>
     <div class="footer" id="footer"></div>
 </body>

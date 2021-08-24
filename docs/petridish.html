@@ -20,9 +20,9 @@
 /*-----------------------Start user-defined code ---------------------*/
 
 let sim;
-var mutationrate = 0.0001;
+var mutationrate = 0.001;
 var cell_diffusion = 0;
-var death_rate_growing = 0.3;
+var death_rate_growing = 0.0;
 var mutations_required = 1;
 function cacatoo()
 {
@@ -35,8 +35,8 @@ function cacatoo()
                                         // Note: fastmode is only useful/recommended if the sim can readily run 
                                         // at 60FPS without fast-mode, and may actually reduce the reported FPS
                                         // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol : 300,            
-            nrow : 300,		            // dimensions of the grid to build
+            ncol : 100,            
+            nrow : 100,		            // dimensions of the grid to build
             wrap : [true, true],       // Wrap boundary [COLS, ROWS]   
             scale : 1,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
@@ -58,6 +58,9 @@ function cacatoo()
     sim.cells.statecolours.alive[2] = [228,178,36] // Change mutant 1 to gold
     sim.cells.statecolours.alive[3] = [32, 100, 100] // Change mutant 2 to dark-turquoise
     sim.cells.statecolours.alive[3] = [100, 100, 255] // Change mutant 3 to light blue 
+    sim.cells.nr_of_mutations = 0
+    sim.cells_wellmixed.nr_of_mutations = 0
+
     
     
     sim.cells.nextState = function(i,j)       // Define the next-state function. This example is stochastic growth in a petri dish
@@ -69,7 +72,11 @@ function cacatoo()
             if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate)                        
             {
                 this.grid[i][j].alive = neighbour.alive
-                if(sim.rng.genrand_real1() < mutationrate) this.grid[i][j].alive = (this.grid[i][j].alive+1)%19
+                if(sim.rng.genrand_real1() < mutationrate){
+                    this.grid[i][j].alive = (this.grid[i][j].alive+1)%19
+                    this.nr_of_mutations++
+                } 
+                    
             }
         } 
         else
@@ -89,14 +96,16 @@ function cacatoo()
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
         for(let i=0; i<cell_diffusion; i++) this.MargolusDiffusion()
         this.plotPopsizes('alive',[1,2,3]) 
+        if(this.time%200==0) sim.cells.reset()
     }
 
     sim.cells_wellmixed.update = function()
     {
         this.synchronous()         // Applied as many times as it can in 1/60th of a second
         for(let i=0; i<cell_diffusion; i++) this.MargolusDiffusion()
-        this.plotPopsizes('alive',[1,2,3]) 
+        this.plotPopsizes('alive',[1,2,3])
         sim.cells_wellmixed.perfectMix()
+        this.plotArray(['Cumulative mut (colony)', 'Cumulative mut (WM)'],[sim.cells.nr_of_mutations,this.nr_of_mutations,],["black","grey"],"Cumulative mutations in both pops",{drawPoints: true, strokeWidth:2, pointSize:2, strokePattern: [1,2]})
     }
 
     sim.cells.reset = function()

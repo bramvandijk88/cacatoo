@@ -57,7 +57,7 @@ class Genome {
         for (let i = 0; i < nes.length; i++) if (nes[i] == 1) this.fitness += 0.1
         this.fitness -= this.nr_tra * transposon_fitness_cost
         if (hks_present < this.total_num_hk) this.fitness = 0.0
-        this.fitness = Math.max(0,Math.min(this.fitness,1.0))
+        this.fitness = Math.max(0, Math.min(this.fitness, 1.0))
     }
 
     mutate() {

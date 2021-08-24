@@ -27,7 +27,8 @@ Now that you know how to make a simple model, see if you can mimic a simple grow
 
 <br><center><img src="images/colony.gif"></center>
 
-For the animation above, I used the very simple code shown below:<br>
+<br>
+For my implementation of colony growth, I used the very simple code shown below:<br>
 
 
 <font color="blue">
@@ -40,11 +41,11 @@ For the animation above, I used the very simple code shown below:<br>
         }
     </xmp></font>       
 
-The above simulations may look like colony growth, as only the cells at the edge can grow. However, the reason only the cells at the edge can grow is because only 
-those cells have access to "empty space". What if we instead want nutrients to be limiting? There's many ways to implement this, but here I show you how to attach 
-a simple ODE to your model to mimick this process. <br><br>
+The above simulations looks like colony growth, because only the cells at the edge can grow. The limiting resource here is "empty space". However, colony growth should also be
+limited by nutrient concentrations. Let's add a simple set of ordinary differential equations (ODEs) to each grid point to simulate that!
 
-First, define the ODE system:<br>
+<br><br><br>
+First, let's define a simply ODE system:<br><br>
 
 Now that you have a basic idea of the structure of a Cacatoo model, let us modify an existing example project into something new! You can either do this by
 modifying one of the examples on the Replit repository, or by cloning the Github repository and using your own favourite editor (I recommend Visual Studio Code, as I

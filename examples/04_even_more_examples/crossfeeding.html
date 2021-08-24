@@ -5,228 +5,225 @@
 -->
 
 <html>
-    <script src="../../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
-    <script src="../../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
-    <link rel="stylesheet" href="../../style/cacatoo.css">        <!-- Set style sheet -->
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
 
-    
 
-    <head>
-        <title>Cacatoo examples</title>
-    </head>
+
+<head>
+    <title>Cacatoo examples</title>
+</head>
 
 
 <script>
 
-/*-----------------------Start user-defined code ---------------------*/
+    /*-----------------------Start user-defined code ---------------------*/
 
-let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+    let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
 
-let influx = 0.6
-let init_uptake = 0.5
-let upkeep = 0.4
-let decay = 0.05
-/**
-* function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
-*/
-function cacatoo()
-{
-    /*
-        1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+    let influx = 0.6
+    let init_uptake = 0.5
+    let upkeep = 0.4
+    let decay = 0.05
+    /**
+    * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
     */
-    let config = 
-    {                                        
+    function cacatoo() {
+        /*
+            1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+        */
+        let config =
+        {
             title: "Crossfeeding",                        // The name of your cacatoo-simulation
             description: "",         // And a description if you wish
             maxtime: 1000000,                             // How many time steps the model continues to run
             fastmode: true,                               // If possible, fast-mode will update the model more than once before displaying the grid
-                                                          // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-            ncol : 50,                                   // Number of columns (width of your grid)
-            nrow : 100,		                              // Number of rows (height of your grid)
-            wrap : [false, false],                          // Wrapped boundary conditions? [COLS, ROWS]   
-            scale : 5,				                      // Scale of the grid (nxn pixels per grid point)
+            // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+            ncol: 50,                                   // Number of columns (width of your grid)
+            nrow: 100,		                              // Number of rows (height of your grid)
+            wrap: [false, false],                          // Wrapped boundary conditions? [COLS, ROWS]   
+            scale: 5,				                      // Scale of the grid (nxn pixels per grid point)
             graph_interval: 5,
             graph_update: 5,
-            statecolours: {'species':{1:'yellow',2:'navy'}},          // Colours for each state. Background (0) defaults to black. 
-    }
-
-    /*
-        1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
-    */
-    sim = new Simulation(config)                          // Initialise the Cacatoo simulation
-    sim.makeGridmodel("cross")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-    sim.initialGrid(sim.cross,'species',1,0.0,2,0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
-    sim.createDisplay("cross","species","Crossfeeding cells")                      // Create a display so we can see our newly made gridmodel
-    
-    sim.createDisplay("cross","R","Resource concentration")
-    sim.cross.colourViridis("R", 100)
-    sim.createDisplay("cross","bb1","Building block 1")
-    sim.cross.colourViridis("bb1", 100)
-    sim.createDisplay("cross","bb2","Building block2")
-    sim.cross.colourViridis("bb2", 100)
-
-    // Define ODEs with some resource dynamics
-    let resource_dynamics = function(i, u, k, d, r2b1, r2b2,bb2product) { return function(x, y) {
-        let R = y[0]            // external resources
-        let I = y[1]            // internal resources
-        let B1 = y[2]           // internal bb1
-        let B2 = y[3]           // internal bb2
-        let P = y[4]            // internal product
-        let B1_e = y[5]         // external bb1
-        let B2_e = y[6]         // external bb2
-        return [
-            i - u*R - d*R,                            // y[0] is the external resource concentration
-            u*R - d*I,                       // y[1] is the internal resource concentration
-            0.1*u*B1_e + r2b1*I - d*B1,                             // y[2]
-            0.1*u*B2_e + r2b2*I - d*B2,
-            B1*B2*bb2product - d*P - k*P,
-            -0.1*u*B1_e - d*B1_e,
-            -0.1*u*B2_e - d*B2_e
-        ]}}
- 
-    // Configuration object with initial states, parameters, and diffusion rates
-    let ode_config = { ode_name: "resources",
-                       init_states: [1.0,0,0,0,0.5,0,0],    // y[0] and y[1]
-                       parameters: [influx,0.0,upkeep,decay,0.0,0.0,0.1],               // i,u,k
-                       diffusion_rates: [0.1,0.0,0.0,0.0,0.0,0.05,0.05],
-                       acceptable_error: 10-3}              // resources diffuse through exteral environment, but internal resources stay put
-    // Attaches an ODE to all gridpoints with initial state = [0,0].    
-    // If you want to access it by name, you can give a name as the final variable (here resources)
-    sim.cross.attachODE(resource_dynamics,ode_config);    
-    for (let i = 0; i < sim.cross.nc; i++) for (let j = 0; j < sim.cross.nr; j++) 
-        if(j>sim.cross.nr/2)
-        {
-            sim.cross.grid[i][j].species = 1
-            sim.cross.grid[i][j].resources.pars = [influx,init_uptake,upkeep,decay,0.0,0.1,0.01]
-        } 
-        else 
-        {
-            sim.cross.grid[i][j].species = 2
-            sim.cross.grid[i][j].resources.pars = [influx,init_uptake,upkeep,decay,0.1,0.0,0.01]
+            statecolours: { 'species': { 1: 'yellow', 2: 'navy' } },          // Colours for each state. Background (0) defaults to black. 
         }
-    /*
-        2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
-    */
-    sim.cross.nextState = function(i,j)                   
-    {   
-        this.grid[i][j].resources.solve_timestep(1)
 
+        /*
+            1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+        */
+        sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+        sim.makeGridmodel("cross")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
+        sim.initialGrid(sim.cross, 'species', 1, 0.0, 2, 0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
+        sim.createDisplay("cross", "species", "Crossfeeding cells")                      // Create a display so we can see our newly made gridmodel
 
-        // So, first we need to know how many cells are alive around a grid point
-        let randomneigh = this.randomMoore8(this,i,j)               
-        // Then, let's see if this cell is dead or alive
-        let state = this.grid[i][j].species;            
-        // Then, apply the rules of game of life shown above
-        if(state == 0 && randomneigh.species != 0)
-        {
-            if(this.rng.genrand_real1() < randomneigh.resources.state[4])
-            {
-                this.grid[i][j].species = randomneigh.species
+        sim.createDisplay("cross", "R", "Resource concentration")
+        sim.cross.colourViridis("R", 100)
+        sim.createDisplay("cross", "bb1", "Building block 1")
+        sim.cross.colourViridis("bb1", 100)
+        sim.createDisplay("cross", "bb2", "Building block2")
+        sim.cross.colourViridis("bb2", 100)
 
-                randomneigh.resources.state[4] = this.grid[i][j].resources.state[4] = randomneigh.resources.state[4]/2      // divide product (e.g. "cell volume" between parent and offspring)
-                this.grid[i][j].resources.state[1] = randomneigh.resources.state[1]       // inherit internal metabolite concentration
-                this.grid[i][j].resources.state[2] = randomneigh.resources.state[2]       // inherit internal metabolite concentration
-                this.grid[i][j].resources.state[3] = randomneigh.resources.state[3]       // inherit internal metabolite concentration
-                this.grid[i][j].resources.state[4] = randomneigh.resources.state[4]       // inherit internal metabolite concentration
-                
-                
-
-                if(this.grid[i][j].species == 1) this.grid[i][j].resources.pars = [influx,init_uptake,upkeep,decay,0.0,0.1,0.1]
-                if(this.grid[i][j].species == 2) this.grid[i][j].resources.pars = [influx,init_uptake,upkeep,decay,0.1,0.0,0.1]
+        // Define ODEs with some resource dynamics
+        let resource_dynamics = function (i, u, k, d, r2b1, r2b2, bb2product) {
+            return function (x, y) {
+                let R = y[0]            // external resources
+                let I = y[1]            // internal resources
+                let B1 = y[2]           // internal bb1
+                let B2 = y[3]           // internal bb2
+                let P = y[4]            // internal product
+                let B1_e = y[5]         // external bb1
+                let B2_e = y[6]         // external bb2
+                return [
+                    i - u * R - d * R,                            // y[0] is the external resource concentration
+                    u * R - d * I,                       // y[1] is the internal resource concentration
+                    0.1 * u * B1_e + r2b1 * I - d * B1,                             // y[2]
+                    0.1 * u * B2_e + r2b2 * I - d * B2,
+                    B1 * B2 * bb2product - d * P - k * P,
+                    -0.1 * u * B1_e - d * B1_e,
+                    -0.1 * u * B2_e - d * B2_e
+                ]
             }
         }
-        else if(this.rng.genrand_real1()<0.01 || this.grid[i][j].resources.state[4] < 0.001)
-        {
-           this.grid[i][j].species = 0
-           this.grid[i][j].resources.pars = [influx,0.0,0.0,decay,0.0,0.0,0.0]
-           this.grid[i][j].resources.state[0] += this.grid[i][j].resources.state[1] // Spill internal resources back into environment
-           this.grid[i][j].resources.state[5] += this.grid[i][j].resources.state[2] // Spill internal resources back into environment
-           this.grid[i][j].resources.state[6] += this.grid[i][j].resources.state[3] // Spill internal resources back into environment
-           this.grid[i][j].resources.state[1] = 0.0 // no internal resources for an empty spot
-           this.grid[i][j].resources.state[2] = 0.0 // no bbs for an empty spot
-           this.grid[i][j].resources.state[3] = 0.0 // no bbs2 for an empty spot
-           this.grid[i][j].resources.state[4] = 0.0 // no product for an empty spot
+
+        // Configuration object with initial states, parameters, and diffusion rates
+        let ode_config = {
+            ode_name: "resources",
+            init_states: [1.0, 0, 0, 0, 0.5, 0, 0],    // y[0] and y[1]
+            parameters: [influx, 0.0, upkeep, decay, 0.0, 0.0, 0.1],               // i,u,k
+            diffusion_rates: [0.1, 0.0, 0.0, 0.0, 0.0, 0.05, 0.05],
+            acceptable_error: 10 - 3
+        }              // resources diffuse through exteral environment, but internal resources stay put
+        // Attaches an ODE to all gridpoints with initial state = [0,0].    
+        // If you want to access it by name, you can give a name as the final variable (here resources)
+        sim.cross.attachODE(resource_dynamics, ode_config);
+        for (let i = 0; i < sim.cross.nc; i++) for (let j = 0; j < sim.cross.nr; j++)
+            if (j > sim.cross.nr / 2) {
+                sim.cross.grid[i][j].species = 1
+                sim.cross.grid[i][j].resources.pars = [influx, init_uptake, upkeep, decay, 0.0, 0.1, 0.01]
+            }
+            else {
+                sim.cross.grid[i][j].species = 2
+                sim.cross.grid[i][j].resources.pars = [influx, init_uptake, upkeep, decay, 0.1, 0.0, 0.01]
+            }
+        /*
+            2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+        */
+        sim.cross.nextState = function (i, j) {
+            this.grid[i][j].resources.solve_timestep(1)
+
+
+            // So, first we need to know how many cells are alive around a grid point
+            let randomneigh = this.randomMoore8(this, i, j)
+            // Then, let's see if this cell is dead or alive
+            let state = this.grid[i][j].species;
+            // Then, apply the rules of game of life shown above
+            if (state == 0 && randomneigh.species != 0) {
+                if (this.rng.genrand_real1() < randomneigh.resources.state[4]) {
+                    this.grid[i][j].species = randomneigh.species
+
+                    randomneigh.resources.state[4] = this.grid[i][j].resources.state[4] = randomneigh.resources.state[4] / 2      // divide product (e.g. "cell volume" between parent and offspring)
+                    this.grid[i][j].resources.state[1] = randomneigh.resources.state[1]       // inherit internal metabolite concentration
+                    this.grid[i][j].resources.state[2] = randomneigh.resources.state[2]       // inherit internal metabolite concentration
+                    this.grid[i][j].resources.state[3] = randomneigh.resources.state[3]       // inherit internal metabolite concentration
+                    this.grid[i][j].resources.state[4] = randomneigh.resources.state[4]       // inherit internal metabolite concentration
+
+
+
+                    if (this.grid[i][j].species == 1) this.grid[i][j].resources.pars = [influx, init_uptake, upkeep, decay, 0.0, 0.1, 0.1]
+                    if (this.grid[i][j].species == 2) this.grid[i][j].resources.pars = [influx, init_uptake, upkeep, decay, 0.1, 0.0, 0.1]
+                }
+            }
+            else if (this.rng.genrand_real1() < 0.01 || this.grid[i][j].resources.state[4] < 0.001) {
+                this.grid[i][j].species = 0
+                this.grid[i][j].resources.pars = [influx, 0.0, 0.0, decay, 0.0, 0.0, 0.0]
+                this.grid[i][j].resources.state[0] += this.grid[i][j].resources.state[1] // Spill internal resources back into environment
+                this.grid[i][j].resources.state[5] += this.grid[i][j].resources.state[2] // Spill internal resources back into environment
+                this.grid[i][j].resources.state[6] += this.grid[i][j].resources.state[3] // Spill internal resources back into environment
+                this.grid[i][j].resources.state[1] = 0.0 // no internal resources for an empty spot
+                this.grid[i][j].resources.state[2] = 0.0 // no bbs for an empty spot
+                this.grid[i][j].resources.state[3] = 0.0 // no bbs2 for an empty spot
+                this.grid[i][j].resources.state[4] = 0.0 // no product for an empty spot
+            }
+
+            // Setting display colours for building block concentrations
+            let bb1 = 5 * Math.max(0, this.grid[i][j].resources.state[5])           // Amount of resources from ODE state variable
+            this.grid[i][j].bb1 = Math.min(Math.floor(bb1), 99)
+            let bb2 = 5 * Math.max(0, this.grid[i][j].resources.state[6])           // Amount of resources from ODE state variable
+            this.grid[i][j].bb2 = Math.min(Math.floor(bb2), 99)
+            let R = 5 * Math.max(0, this.grid[i][j].resources.state[0])           // Amount of resources from ODE state variable
+            this.grid[i][j].R = Math.min(Math.floor(R), 99)
+
         }
 
-        // Setting display colours for building block concentrations
-        let bb1 = 5*Math.max(0,this.grid[i][j].resources.state[5])           // Amount of resources from ODE state variable
-        this.grid[i][j].bb1 = Math.min(Math.floor(bb1),99)
-        let bb2 = 5*Math.max(0,this.grid[i][j].resources.state[6])           // Amount of resources from ODE state variable
-        this.grid[i][j].bb2 = Math.min(Math.floor(bb2),99)
-        let R = 5*Math.max(0,this.grid[i][j].resources.state[0])           // Amount of resources from ODE state variable
-        this.grid[i][j].R = Math.min(Math.floor(R),99)
-        
-    }
-    
-    /*
-        3. MAIN SIMULATION LOOP. Finally, uwe need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
-        applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
-    */
-    sim.cross.update = function()
-    {       
-      
-      this.asynchronous()         // Applied as many times as it can in 1/60th of a second
-      this.diffuseOdeStates()       // Diffusion of external metabolites
-      let sum_ext = sum_int = sum_b1 = sum_b2 = sum_product = sum_alive = sum_s1 = sum_s2 = sum_b1_e = sum_b2_e = 0
-      for(let i=0;i<this.nc;i++)         // i are columns
-              for(let j=0;j<this.nr;j++)     // j are rows
-              {   
-                  sum_ext += this.grid[i][j].resources.state[0]
-                  sum_int += this.grid[i][j].resources.state[1]                
-                  sum_b1 += this.grid[i][j].resources.state[2]                
-                  sum_b2 += this.grid[i][j].resources.state[3]                
-                  sum_b1_e += this.grid[i][j].resources.state[5]                
-                  sum_b2_e += this.grid[i][j].resources.state[6]                
-                  sum_product += this.grid[i][j].resources.state[4]    
-                  if(this.grid[i][j].species > 0) sum_alive++
-                  if(this.grid[i][j].species == 1) sum_s1++
-                  if(this.grid[i][j].species == 2) sum_s2++
-              }
-              sum_ext/=this.nc*this.nr
-              sum_int/=this.nc*this.nr
-              sum_b1/=this.nc*this.nr
-              sum_b2/=this.nc*this.nr
-              sum_b1_e/=this.nc*this.nr
-              sum_b2_e/=this.nc*this.nr
-              sum_product/=this.nc*this.nr
+        /*
+            3. MAIN SIMULATION LOOP. Finally, uwe need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+            applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+        */
+        sim.cross.update = function () {
+
+            this.asynchronous()         // Applied as many times as it can in 1/60th of a second
+            this.diffuseOdeStates()       // Diffusion of external metabolites
+            let sum_ext = sum_int = sum_b1 = sum_b2 = sum_product = sum_alive = sum_s1 = sum_s2 = sum_b1_e = sum_b2_e = 0
+            for (let i = 0; i < this.nc; i++)         // i are columns
+                for (let j = 0; j < this.nr; j++)     // j are rows
+                {
+                    sum_ext += this.grid[i][j].resources.state[0]
+                    sum_int += this.grid[i][j].resources.state[1]
+                    sum_b1 += this.grid[i][j].resources.state[2]
+                    sum_b2 += this.grid[i][j].resources.state[3]
+                    sum_b1_e += this.grid[i][j].resources.state[5]
+                    sum_b2_e += this.grid[i][j].resources.state[6]
+                    sum_product += this.grid[i][j].resources.state[4]
+                    if (this.grid[i][j].species > 0) sum_alive++
+                    if (this.grid[i][j].species == 1) sum_s1++
+                    if (this.grid[i][j].species == 2) sum_s2++
+                }
+            sum_ext /= this.nc * this.nr
+            sum_int /= this.nc * this.nr
+            sum_b1 /= this.nc * this.nr
+            sum_b2 /= this.nc * this.nr
+            sum_b1_e /= this.nc * this.nr
+            sum_b2_e /= this.nc * this.nr
+            sum_product /= this.nc * this.nr
             this.plotArray(["Population size", "Species 1", "Species 2"],
-                    [sum_alive, sum_s1, sum_s2],
-                    ["black","gold","navy"],
-                    "Population sizes")
-          this.plotArray(["Resources [external]", "Resources [internal]", "Building block 1", "Building block 2", "Product","Building block 1 (ext)","Building block 2 (ext)"], 
-                          [sum_ext,sum_int,sum_b1,sum_b2,sum_product,sum_b1_e,sum_b2_e],
-                          ["turquoise","gold","blue", "#3333FF", "green"],
-                          "Metabolite concentrations")
-        
+                [sum_alive, sum_s1, sum_s2],
+                ["black", "gold", "navy"],
+                "Population sizes")
+            this.plotArray(["Resources [external]", "Resources [internal]", "Building block 1", "Building block 2", "Product", "Building block 1 (ext)", "Building block 2 (ext)"],
+                [sum_ext, sum_int, sum_b1, sum_b2, sum_product, sum_b1_e, sum_b2_e],
+                ["turquoise", "gold", "blue", "#3333FF", "green"],
+                "Metabolite concentrations")
+
+        }
+
+        /*
+            OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+        */
+        sim.addButton("pause/continue", function () { sim.toggle_play() })
+        sim.addButton("step", function () { sim.step(); sim.display() })
+        sim.addButton("mix once", function () { sim.cross.perfectMix() })            // Add a button that calls function "perfectMix" in "model.cheater"    
+        sim.addButton("well-mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater" 
+        sim.start()
+
     }
 
-    /*
-        OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
-    */
-    sim.addButton("pause/continue",function() { sim.toggle_play()})
-    sim.addButton("step",function() { sim.step(); sim.display()})
-    sim.addButton("mix once",function() { sim.cross.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
-    sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater" 
-    sim.start()
 
-}
-
-
-/*-------------------------End user-defined code ---------------------*/
+    /*-------------------------End user-defined code ---------------------*/
 
 </script>
 
-<body onload="cacatoo()">        
-    <div class="header" id="header">        
-        <h2>Cacatoo examples</h2>        
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo examples</h2>
     </div>
-      
-    <div class="content" id="canvas_holder">    </div>
+
+    <div class="content" id="canvas_holder"> </div>
     <div class="content" id="graph_holder"> </div>
     <div class="content" id="form_holder"></div>
 
-    
-    
+
+
     <div class="content" id="footer"></div>
 
     </div>
