@@ -16,6 +16,7 @@ catch(err)
     // do nothing
 }" >> dist/cacatoo.js
 
+cp examples/03_expert/legend.png docs/TEs_streamlining
 cp dist/cacatoo.js docs/scripts/cacatoo.js
 cp style/cacatoo.css docs/styles/cacatoo.css
 cp lib/all.js docs/scripts/all.js

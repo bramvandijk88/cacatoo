@@ -77,8 +77,8 @@
             sim.initialGrid(sim.TE_model, "genomesize", undefined, 1.0)
             sim.initialGrid(sim.TE_model, "T_in_eDNA", undefined, 1.0)
             sim.initialGrid(sim.TE_model, "T_in_genomes", undefined, 1.0)
-            sim.max_g = (init_es + init_nc) * 3
-            sim.max_t = (init_es + init_nc) * 2
+            sim.max_g = 100
+            sim.max_t = 100
 
             sim.TE_model.colourViridis("genomesize", sim.max_g)
             sim.TE_model.colourViridis("T_in_genomes", sim.max_t)
@@ -287,7 +287,7 @@
                 "Avg TE jump rate (phi)")
         }
 
-
+        sim.addHTML("canvas_holder", "<img src=\"legend.png\">")
         sim.addButton("Pause/continue", function () { sim.toggle_play() })
         sim.addButton("Well-mix (all)", function () { sim.toggle_mix() })
         sim.addButton("Well-mix (eDNA)", () => { sim.mixDNApool = !sim.mixDNApool })
@@ -298,7 +298,7 @@
         sim.addSlider("non", 0.0, 200.0, 1.00, "No-reproduction constant (eps)")
         sim.addSlider("diff_rate_edna", 0.0, 0.25, 0.001, "eDNA diffusion rate (D)")
         sim.addSlider("degr_rate_edna", 0.0, 1.0, 0.001, "eDNA degradation rate (q)")
-
+        
 
         sim.addHTML("form_holder", "<br>TE options:")
         sim.addSlider("uptake_from_pool", 0.0, 1.0, 0.001, "Uptake rate from eDNA pool (u)")
