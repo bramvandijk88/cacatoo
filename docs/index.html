@@ -48,34 +48,34 @@
         sim.initialGrid(sim.cheaters,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
         sim.createDisplay("cheaters","species","Cacatoo example")                              // Display the 'species' property of the cheater grid
 
-        sim.cheaters.nextState = function(i,j)                               // Define the next-state function. This example is two mutualists and a cheater
-        {         
+        sim.cheaters.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+        {
             // let pA, pB, pC, psum             
             let state = this.grid[i][j].species;
-            if (state==0)                                                   // If there is no species here
-            {            
-                sumA= this.countMoore8(this,i,j,1,'species');               // Count the number of species 1 (mutualist A)
-                sumB= this.countMoore8(this,i,j,2,'species');               // Count the number of species 2 (mutualist B)
-                sumC= this.countMoore8(this,i,j,3,'species');               // Count the number of species 3 (mutualist C)
+            if (state == 0)                                                   // If there is no species here
+            {
+                sumA = this.countMoore8(this, i, j, 'species',1);               // Count the number of species 1 (mutualist A)
+                sumB = this.countMoore8(this, i, j, 'species',2);               // Count the number of species 2 (mutualist B)
+                sumC = this.countMoore8(this, i, j, 'species',3);               // Count the number of species 3 (mutualist C)
 
-                pA= (B2A*sumB)*sumA;                                        // Chance that A wins
-                pB= (A2B*sumA)*sumB;                                        // Chance that B wins
-                pC= (B2C*sumB)*sumC;                                        // Chance that C wins
-                psum=pA+pB+pC+stay_empty;                                   // Total = pA+pB+pC+stay_empty (scales the chance that nothing happens during competition)
+                pA = (B2A * sumB) * sumA;                                        // Chance that A wins
+                pB = (A2B * sumA) * sumB;                                        // Chance that B wins
+                pC = (B2C * sumB) * sumC;                                        // Chance that C wins
+                psum = pA + pB + pC + stay_empty;                                   // Total = pA+pB+pC+stay_empty (scales the chance that nothing happens during competition)
 
-                ran= this.rng.random();                                     // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
-                                                                
-                if (ran< pA/psum)                                           // <-ran->                                     (A wins)
+                ran = this.rng.random();                                     // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
+
+                if (ran < pA / psum)                                           // <-ran->                                     (A wins)
                     this.grid[i][j].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
-                else if (ran< (pA+pB)/psum)                                 //        <-ran->                              (B wins)
+                else if (ran < (pA + pB) / psum)                                 //        <-ran->                              (B wins)
                     this.grid[i][j].species = 2                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
-                else if (ran< (pA+pB+pC)/psum)                              //               <--ran-->                     (C wins)
+                else if (ran < (pA + pB + pC) / psum)                              //               <--ran-->                     (C wins)
                     this.grid[i][j].species = 3                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
-                                                                            //                        <-----ran----->      (no winner, spot stays empty for now)
-                                                                            // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
+                //                        <-----ran----->      (no winner, spot stays empty for now)
+                // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
             }
-            
-            if (this.rng.random()<death)                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
+
+            if (this.rng.random() < death)                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
                 this.grid[i][j].species = 0
         }
 
