@@ -17,7 +17,7 @@ class Canvas {
         this.property = prop
         this.height = height
         this.width = width
-        this.scale = scale
+        this.scale = scale        
         this.bgcolor = 'black'
 
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
@@ -66,6 +66,7 @@ class Canvas {
                 
 
                 let value = this.gridmodel.grid[i][j][prop]
+                if(this.multiplier !== undefined) value *= this.multiplier
                 if(this.maxval && value>this.maxval) value = this.maxval
                 if(this.minval && value<this.minval) value = this.minval
 

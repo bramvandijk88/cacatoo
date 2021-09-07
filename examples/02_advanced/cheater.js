@@ -21,14 +21,14 @@ function cacatoo() {
         title: "Mutualists and cheaters",
         description: "",
         maxtime: 100000,
-        ncol: 200,
-        nrow: 200,		                                            // dimensions of the grid to build
+        ncol: 100,
+        nrow: 100,		                                            // dimensions of the grid to build
         seed: 56,
         fps: 60,                                                   // Note: FPS can only be set in fastmode
         fastmode: true,
         throttlefps: false,                                        // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
-        scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
+        scale: 4,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         graph_update: 50,
         statecolours: {

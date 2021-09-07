@@ -382,6 +382,7 @@ class Gridmodel {
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
         this.statecolours = this.setupColours(config.statecolours); // Makes sure the statecolours in the config dict are parsed (see below)
+        this.lims = {};
         this.scale = config.scale || 1;
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
@@ -446,7 +447,7 @@ class Gridmodel {
         let n_arrays = arguments.length - 2;
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
 
-        let segment_len = n / (n_arrays - 1);
+        let segment_len = n / (n_arrays);
 
         let color_dict = this.statecolours[property];
         let total = 0;
@@ -616,6 +617,7 @@ class Gridmodel {
         if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
         let y = j;
         if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+           
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined;    // TODO!!!!!!!! Return border-state instead!
         else this.grid[x][y] = gp;
     }
@@ -654,19 +656,19 @@ class Gridmodel {
             let i = model.moore[n][0];
             let j = model.moore[n][1];
             let neigh = model.getGridpoint(col + i, row + j);
-            if (neigh[property] == val)
+            if (neigh != undefined && neigh[property] == val)
                     gps.push(neigh);
         }
         return gps;
     }
 
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore8(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,8]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore9(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,8]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getNeumann4(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,4]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getNeumann5(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,4]) }    
 
     /** From a list of grid points, e.g. from getNeighbours(), sample one weighted by a property. This is analogous
@@ -706,7 +708,8 @@ class Gridmodel {
         for (let n = range[0]; n <= range[1]; n++) {
             let i = model.moore[n][0];
             let j = model.moore[n][1];
-            count += model.getGridpoint(col + i, row + j)[property];
+            let gp = model.getGridpoint(col + i, row + j);
+            if(gp != undefined)     count += model.getGridpoint(col + i, row + j)[property];
         }
         return count;
     }
@@ -844,11 +847,7 @@ class Gridmodel {
      *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
      *  CCW in odd iterations)
     */
-    MargolusDiffusion() {
-        if (!this.wrap[0] || !this.wrap[1]) {
-            console.log("Current implementation of Margolus diffusion requires wrapped boundaries.");
-            throw new Error("Current implementation of Margolus diffusion requires wrapped boundaries.")
-        }
+    MargolusDiffusion() {        
         //   
         //   A  B
         //   D  C
@@ -858,7 +857,9 @@ class Gridmodel {
         if ((this.nc % 2 + this.nr % 2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
 
         for (let i = 0 + even; i < this.nc; i += 2) {
+            if(i> this.nc-2) continue
             for (let j = 0 + even; j < this.nr; j += 2) {
+                if(j> this.nr-2) continue
                 // console.log(i,j)
                 let old_A = new Gridpoint(this.grid[i][j]);
                 let A = this.getGridpoint(i, j);
@@ -1276,7 +1277,7 @@ class Canvas {
         this.property = prop;
         this.height = height;
         this.width = width;
-        this.scale = scale;
+        this.scale = scale;        
         this.bgcolor = 'black';
 
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
@@ -1322,6 +1323,7 @@ class Canvas {
                 
 
                 let value = this.gridmodel.grid[i][j][prop];
+                if(this.multiplier !== undefined) value *= this.multiplier;
                 if(this.maxval && value>this.maxval) value = this.maxval;
                 if(this.minval && value<this.minval) value = this.minval;
 
@@ -1397,7 +1399,7 @@ class Simulation {
     * @param {integer} width Number of cols to display (default = ALL)
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
     */
-    createDisplay(name, property, customlab, height, width, scale) {
+    createDisplay(name, property, customlab, height, width, scale, x, y) {
         let label = customlab;
         if (customlab == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name];
@@ -1405,8 +1407,56 @@ class Simulation {
         if (height == undefined) height = gridmodel.nr;
         if (width == undefined) width = gridmodel.nc;
         if (scale == undefined) scale = gridmodel.scale;
+        if (x == undefined) scale = 0;
+        if (y == undefined) scale = 0;
         let cnv = new Canvas(gridmodel, property, label, height, width, scale);
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv);  // Add a reference to the canvas to the sim
+        const canvas = cnv.elem;
+        canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });
+        cnv.displaygrid();
+    }
+
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+    createDisplay_c(config) {  
+    
+        let name = config.model;
+        
+        let property = config.property; 
+        
+        
+        let label = config.label;
+        if (label == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
+        let gridmodel = this[name];
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        
+        let height = config.height || this[name].nr;        
+        let width = config.width || this[name].nc;
+        let scale = config.scale || this[name].scale;
+       
+        
+        let maxval = config.maxval | 100;
+        let minval = config.minval; 
+        let multiplier = config.multiplier; 
+
+        
+        if(config.fill == "viridis") this[name].colourViridis(property, maxval);    
+        else this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 150], [100,100,150]);
+        
+        let cnv = new Canvas(gridmodel, property, label, height, width, scale);
+        gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        if (maxval != undefined) cnv.maxval = maxval;
+        if (minval != undefined) cnv.minval = minval;
+        if (multiplier != undefined) cnv.multiplier = multiplier;
+
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         const canvas = cnv.elem;
         canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });
@@ -1555,6 +1605,36 @@ class Simulation {
     }
 
     /**
+     *  populateGrid populates a grid with custom individuals. 
+     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+     *  @param {Array} individuals The properties for individuals 1..n
+     *  @param {Array} freqs The initial frequency of individuals 1..n
+     */
+    populateGrid(gridmodel,individuals,freqs)
+    {
+        let sumfreqs =0;
+        if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+        for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
+
+        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+            for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
+                let cumsumfreq = 0;                
+                for (const property in individuals[0]) {
+                    gridmodel.grid[i][j][property] = 0;    
+                }
+                for(let n=0; n<individuals.length; n++)
+                {
+                    cumsumfreq += freqs[n];
+                    if(this.rng.random() < cumsumfreq) {
+                        Object.assign(gridmodel.grid[i][j],individuals[n]);
+                        break
+                    }
+                }
+            }
+        
+    }
+
+    /**
     *  initialSpot populates a grid with states. Grid points close to a certain coordinate are set to state value, while
     *  other cells are set to the bg-state of 0. 
     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
@@ -1570,11 +1650,45 @@ class Simulation {
             for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
             {
                 if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
-                    gridmodel.grid[i % gridmodel.nr][j % gridmodel.nc][p] = value;
+                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = value;
                 else
-                    gridmodel.grid[i % gridmodel.nr][j % gridmodel.nc][p] = 0;
+                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = 0;
             }
     }
+
+    /**
+     *  populateSpot populates a spot with custom individuals. 
+     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+     *  @param {Array} individuals The properties for individuals 1..n
+     *  @param {Array} freqs The initial frequency of individuals 1..n
+     */
+     populateSpot(gridmodel,individuals, freqs,size, x, y)
+     {
+        let sumfreqs =0;
+        if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+        for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
+         
+        // Draw a circle
+        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+        for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        {
+            for (const property in individuals[0]) gridmodel.grid[i][j][property] = 0; 
+
+            if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
+            {
+                let cumsumfreq = 0;                
+                for(let n=0; n<individuals.length; n++)
+                {
+                    cumsumfreq += freqs[n];
+                    if(this.rng.random() < cumsumfreq) {
+                        Object.assign(gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr],individuals[n]);
+                        break
+                    }
+                }
+            }
+        }
+         
+     }
 
 
     /**

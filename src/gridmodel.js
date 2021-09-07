@@ -25,6 +25,7 @@ class Gridmodel {
         this.wrap = config.wrap || [true, true]
         this.rng = rng
         this.statecolours = this.setupColours(config.statecolours) // Makes sure the statecolours in the config dict are parsed (see below)
+        this.lims = {}
         this.scale = config.scale || 1
         this.graph_update = config.graph_update || 20
         this.graph_interval = config.graph_interval || 2
@@ -89,7 +90,7 @@ class Gridmodel {
         let n_arrays = arguments.length - 2
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
 
-        let segment_len = n / (n_arrays - 1)
+        let segment_len = n / (n_arrays)
 
         let color_dict = this.statecolours[property]
         let total = 0
@@ -259,6 +260,7 @@ class Gridmodel {
         if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
         let y = j
         if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+           
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined    // TODO!!!!!!!! Return border-state instead!
         else this.grid[x][y] = gp
     }
@@ -297,19 +299,19 @@ class Gridmodel {
             let i = model.moore[n][0]
             let j = model.moore[n][1]
             let neigh = model.getGridpoint(col + i, row + j)
-            if (neigh[property] == val)
+            if (neigh != undefined && neigh[property] == val)
                     gps.push(neigh);
         }
         return gps;
     }
 
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore8(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,8]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore9(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,8]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getNeumann4(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,4]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getNeumann5(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,4]) }    
 
     /** From a list of grid points, e.g. from getNeighbours(), sample one weighted by a property. This is analogous
@@ -349,7 +351,8 @@ class Gridmodel {
         for (let n = range[0]; n <= range[1]; n++) {
             let i = model.moore[n][0]
             let j = model.moore[n][1]
-            count += model.getGridpoint(col + i, row + j)[property]
+            let gp = model.getGridpoint(col + i, row + j)
+            if(gp != undefined)     count += model.getGridpoint(col + i, row + j)[property]
         }
         return count;
     }
@@ -487,11 +490,7 @@ class Gridmodel {
      *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
      *  CCW in odd iterations)
     */
-    MargolusDiffusion() {
-        if (!this.wrap[0] || !this.wrap[1]) {
-            console.log("Current implementation of Margolus diffusion requires wrapped boundaries.")
-            throw new Error("Current implementation of Margolus diffusion requires wrapped boundaries.")
-        }
+    MargolusDiffusion() {        
         //   
         //   A  B
         //   D  C
@@ -501,7 +500,9 @@ class Gridmodel {
         if ((this.nc % 2 + this.nr % 2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
 
         for (let i = 0 + even; i < this.nc; i += 2) {
+            if(i> this.nc-2) continue
             for (let j = 0 + even; j < this.nr; j += 2) {
+                if(j> this.nr-2) continue
                 // console.log(i,j)
                 let old_A = new Gridpoint(this.grid[i][j]);
                 let A = this.getGridpoint(i, j)

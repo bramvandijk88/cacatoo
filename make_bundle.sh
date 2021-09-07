@@ -38,5 +38,11 @@ fix_libs docs/TEs_streamlining/index.html
 cp examples/04_even_more_examples/crossfeeding.html docs/crossfeeding.html
 fix_libs docs/crossfeeding.html
 
+mkdir -p docs/cooperation
+cp examples/04_even_more_examples/cooperation.html docs/cooperation/index.html
+cp images/coop.png docs/images
+fix_libs docs/cooperation/index.html
+sed -i 's/..\/..\/images/..\/images/g' docs/cooperation/index.html
+
 sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
 sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js
