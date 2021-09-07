@@ -32,14 +32,14 @@ function cacatoo() {
     */
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
         title: "Cooperating with your neighbours",
-        description: "<b>Why do individuals cooperate? Let’s take the example where there are two kinds of individuals<br>"+
+        description: "<img src=\"../../images/coop.png\" width=900><b><br><br>Why do individuals cooperate? Let’s take the example where there are two kinds of individuals<br>"+
                      "in a population: one cooperative (green) and one less cooperative (violet). Over time, the<br>"+
                      "population will grow to colonise all of the available space. In order to claim a free spot on<br>"+
                      "the grid, individuals require help. Of course, getting help from a cooperative (green) individual<br>"+
                      "is much better than being helped by a less cooperative individual (violet). The non-cooperatives can<br>"+
                      "get help from the cooperative individuals, and never waste valuable reproduction opportunities by <br>"+
                      "replicating someone else. However, when left by their own devices, they are very bad at replicating.<br>"+
-                     "Who will win, and why? Let's find out!</b>",
+                     "Who will win, and why? Let's find out!</b><br><br>",
         maxtime: 1000000,
         ncol: 300,
         nrow: 100,		                                            // dimensions of the grid to build
@@ -180,12 +180,10 @@ function cacatoo() {
     <div class="header" id="header">
         <h2>Cacatoo </h2>
     </div>
-    <div class="content">
-        <br><b>How the simulation works:</b><br>
-        <br><img src="../../images/coop.png" width=900>
-        <br><br><b>Try and answer the following questions by running the simulation below:</b>
+    <div class="content">        
+        <br><br><b>Experiment with the simulations below. See if you can answer the following questions:</b>
         <center><div style="width:600"><ul>
-            <li>Run the simulation for ~200 steps. Who is 'winning'?</li>
+            <li>After a short time, who appears to be 'winning'?</li>
             <li>Wait for a longer time. Does something change?</li>
             <li>Can you make the cooperators (green) do better?</li>
             <li>Can you make cooperators (green) and cheater (purple) coexist?</li>
