@@ -1407,8 +1407,7 @@ class Simulation {
         if (height == undefined) height = gridmodel.nr;
         if (width == undefined) width = gridmodel.nc;
         if (scale == undefined) scale = gridmodel.scale;
-        if (x == undefined) scale = 0;
-        if (y == undefined) scale = 0;
+        
         let cnv = new Canvas(gridmodel, property, label, height, width, scale);
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
@@ -1939,12 +1938,3 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-
-try
-{
-    module.exports = Simulation;
-}
-catch(err)
-{
-    // do nothing
-}

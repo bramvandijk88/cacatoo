@@ -1407,8 +1407,7 @@ class Simulation {
         if (height == undefined) height = gridmodel.nr;
         if (width == undefined) width = gridmodel.nc;
         if (scale == undefined) scale = gridmodel.scale;
-        if (x == undefined) scale = 0;
-        if (y == undefined) scale = 0;
+        
         let cnv = new Canvas(gridmodel, property, label, height, width, scale);
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
@@ -1524,7 +1523,7 @@ class Simulation {
             document.title = `Cacatoo - ${this.config.title}`;
 
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/cacatoo/images/elephant_cacatoo_small.png"></a>`;
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/cacatoo/images/gh.png"></a></img>`;
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/images/gh.png"></a></img>`;
             if (document.getElementById("header") != null) document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=2>${this.config.description}</font size>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore individual-based models straight from your webbrowser. It is still in development. Feedback <a href=\"https://www.bramvandijk.com/contact\">very welcome.</a></h2>";
             let simStartTime = performance.now();
@@ -1939,12 +1938,3 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-
-try
-{
-    module.exports = Simulation;
-}
-catch(err)
-{
-    // do nothing
-}
