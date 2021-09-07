@@ -1938,3 +1938,12 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
+
+try
+{
+    module.exports = Simulation;
+}
+catch(err)
+{
+    // do nothing
+}
