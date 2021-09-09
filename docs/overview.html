@@ -58,17 +58,17 @@ whether space is continuous or discrete. While modelling individuals in continuo
 Thus, when one is for example interested in evolution, grid-based models are a much more powerful tool to simulate a continuous process of mutation and selection. 
 Although these grid-based simulations may appear somewhat "unrealistic", it is important to note that realism is not what necessarily defines a good model. Instead,
  a good model of system X, is a model that allows one to learn something about system X (REF?). I
-have published numerous papers that were based primarily on grid-based models, and I can personally testify to having learned a lot through grid-based modelling, no matter How
-weird and pixely they may look! <br><br>
+have published numerous papers that were based primarily on grid-based models, and I can personally testify to having learned a lot through grid-based modelling, no matter how
+weird and "pixely" they may look! <br><br>
 <center><img src="images/pp.gif"></img></center>
 <br>
 <a id="1.2"></a><h4> <b>A more user-friendly CASH</b></h4>
 
 When working with individual-based models, direct visual feedback is important. Not only are you more likely to detect programming mistakes, but it also aids rapid exploration of parameter space.
 Over the last decade, most of my models were implemented by using the <a href="https://www.bramvandijk.com/software/#cash21">CASH C-library</a>, which would allow direct visual feedback by means of the X11
-library. This library was originally developed by R.J. de Boer & A.D. Staritsk) and was then further developed by Nobuto Takeuchi (CASH2s) and myself (CASH2.1). However, as it is 
-based in C, developing models with CASH requires a lot of programming experience, and even an experienced user like myself can sometimes take weeks to track down a simple bug.
-Moreover, sharing your model with other users can be a pain in the neck, as each operating system required a slightly different installation protocol. For this reason, I have 
+library. This library was originally developed by R.J. de Boer & A.D. Staritsk, and was then further developed by Nobuto Takeuchi (CASH2s) and myself (CASH2.1). However, as it is 
+based in C, developing models with CASH requires a lot of programming experience, and even an experienced user like myself can sometimes take days to track down a simple bug.
+Moreover, sharing your model with other users can be a pain in the neck, as installation is slightly different depending on the operating system. For this reason, I have 
 been trying to find a new programming language in which to implement something that is reminiscent of CASH. Even though some of the new programming languages (<i>e.g. </i> Ruby, Julia)
 are very fast, creating a display for direct visual feedback typically slowed things down tremendously. <br><br>
 
@@ -77,8 +77,8 @@ After searching for a new programming language for CASH for years, some prior co
 cell tissues with 100% Javascript (see animation below). They even compared this toolbox with other known C++-libraries, and show their toolbox is not significantly slower. This initially surprised me, as I
 remember Javascript being a language that was mostly use to make websites more annoying, and I did not expect it to be fast. As it turns out, it wasn't always this fast. Google has invested 
 a lot of money in optimising Javascript, especially for their own V8-engine in the Chrome browser. After fiddling around with Javascript a bit myself, I realised this was exactly what I
-needed to make a new-and-improved version of CASH. And because silly acronyms are essential component, the tool is now called Cacatoo: <b>Ca</b>sh-like <b>c</b>ellular <b>a</b>utomaton <b>too</b>lkit 
-(full credits to Jeroen Meijer). <br><br>
+needed to make a new-and-improved version of CASH. And because silly acronyms are an essential component of being a good biologist, the tool is now called Cacatoo: <b>Ca</b>sh-like <b>c</b>ellular <b>a</b>utomaton <b>too</b>lkit 
+(full credits for this to Jeroen Meijer). <br><br>
 
 <center><img src="images/cellsorting.gif"></img><br>Simple cell-sorting modelled in <a href="https://artistoo.net/" target="_blank">Artistoo</a></center>
 
@@ -97,7 +97,7 @@ download or install anything!
 <a id="2.2"></a><h4> <b>Get it on Github</b></h4>
 
 If you're more interested in developing, you may want to actually get your own copy of the code. If so, then the best way to get your hands on Cacatoo is to go to the <a href="https://github.com/bramvandijk88/cacatoo">Github page</a>
-and download the code (either clone it using 'git clone', or click 'Code', and then download the zip) directly from Github. 
+and download the code (either clone it using 'git clone', or click 'Code', and then download the zip) directly from Github. Then, you can simply start checking out (and modifying!) the files in the examples directory. 
 <br><br><center><img src="images/github.gif"></img></center>
 <br>
 
@@ -128,7 +128,7 @@ occasional bottlenecks, etc. Here, you can also add plots to visualise the resul
 <br>
 
 <a id="3.4"></a><h4> <b>Example code </b></h4>
-Then, belowis what steps 1 to 3 will look like for a simple Cacatoo model. It's not that many lines of code!
+The code below illustrates what steps 1 through 3 will look like for a simple Cacatoo model. It's not that many lines of code!
 <pre><code>
     <font size =2>
     // NOTE: For a full version of this code with explanatory comments, see 01_GoL.html in the examples directory.
@@ -176,22 +176,23 @@ Then, belowis what steps 1 to 3 will look like for a simple Cacatoo model. It's 
 You can use the above scaffolding to start building models right away. However, you are by no means bound to this structure. The best thing about Javascript is that it is a dynamical programming language, meaning
 you can modify functions and data structures on the fly (note: this can also be a downside, be careful not to screw up ;D). Another advantage of Javascript is that all the variables that are defined in Cacatoo 
 are accessible from a developer console, for example the one in Google Chrome (accessed through CTRL+SHIFT+I, or CMD+SHIFT+I on OSX, see animation below). This makes debugging or interacting with your code so much easier than it could
-have ever been with C. Of course, as your model becomes more complex, it may be that it becomes a bit slower than C. But hey, now that you have fleshed out all the bugs and explored what your model can do, you are 
-free to still implement it in C if you really want to.
+have ever been with C. Of course, as your model becomes more complex, it may be that it becomes a bit slower than C. But hey, now that you have fleshed out all the bugs, your code can still simply 
+be ran from the command line using nodejs. If if perhaps you really want to run thousands of simulations, nobody is stopping you from implementing your tried-and-true code in C, if you really want to ;)
 <br><br><center><img src="images/console.gif"></img></center>
 
 <br><br>
 <center><h4><a href="#top">&uarr; Back to the top</a> | <a href="first_project.html">Next tutorial &rarr;</a></h4></center>
 
 </div>
+
 <nav>
     <h2>  <a href="index.html"><b>Home</b></a></h2>
     </h2><h3>Getting started</h3>
     <ul>
         <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
-<li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>   
-             <li><a href="example_project.html">Tutorial 3: Attaching ODEs to grid points</a></li>
-        <li><a href="example_project.html">Tutorial 4: Using your own classes (OOP)</a></li>
+        <li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>
+                        <li><a href="colony_growth.html">Tutorial 3: Attaching ODEs to grid points</a></li>
+        <!--<li><a href="#">Video tutorial: Using your own classes (OOP)</a></li>-->
 
     </ul>
     </h2><h3>Classes</h3>

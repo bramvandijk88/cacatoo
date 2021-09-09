@@ -124,7 +124,7 @@ website (see animation below) was not made with Cacatoo, let's try and make it l
 <br><br>
 <center><img src="images/pp.gif" style="width:80%"></img></center>
 
-<br> Here are the steps we are going to take:
+<br> Here are the steps we are going to take in this tutorial:
 
 <ol>
     <li> <a href="#1">A first look at the code</a> </li>
@@ -139,7 +139,7 @@ website (see animation below) was not made with Cacatoo, let's try and make it l
 
 Whether you are working on Replit or have your own copy of the code, you should be able to find a file called "empty_project.html". As a first step, 
 simply make a copy of this empty project and take a look at the code. In Replit, you can also directly start editing "index.html", so you'll immediately
-see your progress every time you hit "Run". Try opening your nwely copied HTML file in a browser (I recommend Google Chrome). You should see something like this:<br><br>
+see your progress every time you hit "Run". Try opening your newly copied HTML file in a browser (I recommend Google Chrome or Safari). You should see something like this:<br><br>
 
 <center>
     <img src="images/tut2_img1.PNG" style="width:80%">
@@ -167,8 +167,10 @@ Not very exciting, but that's because we haven't programmed anything yet! Let's 
     
 </xmp></font>
 
-This bit is not particularly interesting, but if you have problems with the libraries loading, this is probably the place to start digging. In
-the next bit of code, a global variable "sim" is declared, and a new function is created called "cacatoo":
+This bit is not particularly interesting, but if you have problems with the libraries loading, this is probably the place to start digging. That reminds me, if you 
+are not seeing anything happening, even though you expect something, try opening the developer console (CTRL/CMD+SHIFT+I in Chrome). It will tell you what went wrong.<br><br>
+
+In the next bit of code, a global variable "sim" is declared, and a new function is created called "cacatoo":
 
 <font color="blue">
 <xmp>
@@ -181,23 +183,23 @@ function cacatoo()
 
 </xmp></font>
 
-This function named "cacatoo" will contain everything Cacatoo needs to know to start simulating, and is called as an onload option for the HTML page:
+This function named "cacatoo" will contain everything Cacatoo needs to know to start simulating, and is later called as an onload option for the HTML page:
 
 <font color="blue">
 <xmp><body onload="cacatoo()">   
      </xmp></font>
 
-Inside this main Cacatoo-function, I have added comments with numbers corresponding to the three steps given in the introductionary tutorial:
+Inside this main Cacatoo-function, I have added many comments*, including numbers which correspond to the three steps given in the introductionary tutorial:
 <ol>
     <li> Setup
         <li> Defining the rules
             <li> Main simulations loop
 </ol>
-    <br>     
+    <br>    * = for this tutorial however, I've chosen to remove some of the comments for clarity. 
 <hr><br>
 <a id="2"></a><center><h3>Setup</h3></center>
 
-First, let's modify the setup-code so that our model has the same name, grid-size, and colours as the predator-prey example we want to mimic:
+First, let's modify the setup-code so that our model has a name, and a grid-size/colours corresponding to the predator-prey example we decided to recreate:
 
 <font color="blue">
     <xmp>
@@ -222,8 +224,8 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
 <xmp>
         sim = new Simulation(config)                          // Initialise the Cacatoo simulation
         sim.makeGridmodel("model")                            // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.initialGrid(sim.model,'state',1,0.0)              // Set half (50%) of the Gridmodel's grid points to 1 (alive)
-        sim.createDisplay("model","state","")                 // Create a display so we can see our newly made gridmodel
+        sim.initialGrid(sim.model, 'species', 1, 0.2, 2, 0.2) // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
+        sim.createDisplay("model","species","")                 // Create a display so we can see our newly made gridmodel
 </xmp></font>  
 
 <br>If you now refresh your web page in the browser, the result should already start looking a lot more like our target:<br><br>
@@ -232,7 +234,7 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     <img src="images/tut2_img2.png" style="width:80%"><br>
     </center>
 
-    <br>... but nothing is heppening yet. This is because the "nextState" function (step 2) is still undefined. In other words, the individuals just
+    <br>Alright, so the colours and the grid-size are good, but nothing is happening yet. This is because the "nextState" function (step 2) is still undefined. In other words, the individuals just
     kind of sit there. So, let's go to step 2!<br><br>
 
     <hr><br>
@@ -251,7 +253,7 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     Let's keep the model as simple as we can, and assume that:
     <ul>
         <li> Predators can only grow where there are prey species
-        <li> Prey can grow where there are no prey or predators (i.e. available niche space)
+        <li> Prey can grow where there are no prey or predators (i.e. available space)
         <li> Both die with a small probability
     </ul>
 
@@ -260,12 +262,12 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     <ul>
         <li> If a grid point is empty, check if there is prey around that can replicate into the spot
         <li> If a grid point contains a prey, check if there is a predator around that can replicate (for simplicity, simply overwriting the prey)
-        <li> If a grid point is not empty, it may become empty with a certain chance.
+        <li> If a grid point is not empty, it may become empty with a certain chance (this represent stochastic death).
     </ul>
 
-    To implement the above rules, I use two functions that are already present in Cacatoo: randomMoore8 (get a random neighbour) and genrand_real1 (generate a pseudorandom number). The former is 
-    used to sample a random grid point from the 8 neighbouring grid points. This we can use to check if there are predators  or prey around, and it also creates a density dependence as it will 
-    naturally have a higher chance to sample a predator, when there are more predators around! The second function simply generates a random number to put some stochasticity on the birth and death events. Here's the code I came up with:
+    To implement the above rules, I use two functions that are already present in Cacatoo: "randomMoore8" and "genrand_real1" (generate a pseudorandom number). 
+    The former is used to sample a random grid point from the "Moore" neighbourhood (8 adjacent grid points). This we can use to check if there are predators or prey around, and it also creates a density dependence as it will 
+    naturally have a higher chance to sample an individual when there are more individuals around! The second function simply generates a random number to put some stochasticity on the birth and death events. Here's the code I came up with:
 
     <font color="blue">
 <xmp>
@@ -307,10 +309,11 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
 
     <br><br>
 
-    The synchronous function updates all grid points according to their nextState fucntion (which you defined above), making sure all of them are updated at the same time. If you want all grid points to be updated 
-    in a random order, simply add an 'a' and use this.asynchronous(). <br><br>
+    The synchronous function updates all grid points according to their nextState fucntion (which you defined above),
+    making sure all of them are updated at the same time. If you want all grid points to be updated 
+    in a random order, try uisng this.asynchronous() instead. <br><br>
     
-    If you want to add more to your main update loop, here's a few things you can try:
+    Of course, there is more we can add to the main update loop, here's a few things you can try:
 
     <ul>
         <li> Diffusion of individuals by adding <b>this.MargolusDiffusion()</b>
@@ -381,8 +384,9 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     </h2><h3>Getting started</h3>
     <ul>
         <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
-        <li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>        <li><a href="example_project.html">Tutorial 3: Attaching ODEs to grid points</a></li>
-        <li><a href="example_project.html">Tutorial 4: Using your own classes (OOP)</a></li>
+        <li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>
+                        <li><a href="colony_growth.html">Tutorial 3: Attaching ODEs to grid points</a></li>
+        <!--<li><a href="#">Video tutorial: Using your own classes (OOP)</a></li>-->
 
     </ul>
     </h2><h3>Classes</h3>

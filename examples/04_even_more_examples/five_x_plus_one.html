@@ -49,11 +49,9 @@
         sim.makeGridmodel("three")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
         sim.initialGrid(sim.three, 'num', 0, 1.0)
         sim.three.grid[100][100].num = 4              // Set half (50%) of the Gridmodel's grid points to 1 (alive)    
-        // sim.three.grid[50][51].num = 9000              // Set half (50%) of the Gridmodel's grid points to 1 (alive)    
-        sim.three.colourViridis("num", 10000)
-        sim.createDisplay("three", "num", "Number")                      // Create a display so we can see our newly made gridmodel, 
-        sim.three.canvases["Number"].maxval = 10000                      // Make sure values larger than 10.000 are drawn as yellow       
+
         
+        sim.createDisplay_continuous({model:"three",property:"num",label:"Number",maxval:10000,fill:"inferno"})                      // Create a display so we can see our newly made gridmodel,                 
 
         /*
             2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 

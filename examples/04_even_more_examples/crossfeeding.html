@@ -57,12 +57,9 @@
         sim.initialGrid(sim.cross, 'species', 1, 0.0, 2, 0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
         sim.createDisplay("cross", "species", "Crossfeeding cells")                      // Create a display so we can see our newly made gridmodel
 
-        sim.createDisplay("cross", "R", "Resource concentration")
-        sim.cross.colourViridis("R", 100)
-        sim.createDisplay("cross", "bb1", "Building block 1")
-        sim.cross.colourViridis("bb1", 100)
-        sim.createDisplay("cross", "bb2", "Building block2")
-        sim.cross.colourViridis("bb2", 100)
+        sim.createDisplay_continuous({model:"cross", property:"R", label:"Resource concentration", minval:0, maxval:100, fill:"viridis"}) 
+        sim.createDisplay_continuous({model:"cross", property:"bb1", label:"Building block 1 concentration", minval:0, maxval:100, fill:"viridis"}) 
+        sim.createDisplay_continuous({model:"cross", property:"bb2", label:"Building block 2 concentration", minval:0, maxval:100, fill:"viridis"})         
 
         // Define ODEs with some resource dynamics
         let resource_dynamics = function (i, u, k, d, r2b1, r2b2, bb2product) {
@@ -224,7 +221,7 @@
 
 
 
-    <div class="content" id="footer"></div>
+    <div class="footer" id="footer">
 
     </div>
 </body>

@@ -63,6 +63,7 @@ class Simulation {
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv.elem
+        cnv.add_legend(cnv.canvasdiv,property)
         canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })
         cnv.displaygrid()
     }
@@ -76,7 +77,7 @@ class Simulation {
     * @param {integer} width Number of cols to display (default = ALL)
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
     */
-    createDisplay_c(config) {  
+    createDisplay_continuous(config) {  
     
         let name = config.model
         
@@ -93,19 +94,31 @@ class Simulation {
         let scale = config.scale || this[name].scale
        
         
-        let maxval = config.maxval | 100
-        let minval = config.minval 
-        let multiplier = config.multiplier 
+        let maxval = config.maxval || 100
+        
+        
+        let minval = config.minval || 0
+        let multiplier = config.multiplier || 1
 
         
         if(config.fill == "viridis") this[name].colourViridis(property, maxval)    
-        else this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 150], [100,100,150])
+        else if(config.fill == "inferno") this[name].colourViridis(property, maxval, false, "inferno")    
+        else if(config.fill == "red") this[name].colourGradient(property, maxval, [0, 0, 0], [255, 0, 0])
+        else if(config.fill == "green") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 255, 0])
+        else if(config.fill == "blue") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255])
+        else if(this[name].statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)
+            this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255])
+        } 
         
-        let cnv = new Canvas(gridmodel, property, label, height, width, scale);
+        let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
+        
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
-        if (maxval != undefined) cnv.maxval = maxval
-        if (minval != undefined) cnv.minval = minval
-        if (multiplier != undefined) cnv.multiplier = multiplier
+        if (maxval !== undefined) cnv.maxval = maxval
+        if (minval !== undefined) cnv.minval = minval
+        if (multiplier !== undefined) cnv.multiplier = multiplier
+        
+        cnv.add_legend(cnv.canvasdiv,property) 
 
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv.elem

@@ -43,6 +43,7 @@
 
         // Note to user: initialPattern is disabled, as it requirs a webserver for security reasons. Use the pattern button instead. 
         // sim.initialPattern(sim.prime, 'alive', '../patterns/elephant_cacatoo.png', 115, 115)
+        sim.prime.grid[150][150].alive=1
 
         sim.prime.nextState = function (i, j)                         // Define the next-state function. This example is modulo prime
         {
@@ -58,7 +59,6 @@
         sim.addPatternButton(sim.prime, 'alive')
         sim.addButton("pause/continue", function () { sim.toggle_play() })
         sim.addButton("step", function () { sim.step(); sim.display() })
-        sim.pause = true
         sim.start()
     }
 

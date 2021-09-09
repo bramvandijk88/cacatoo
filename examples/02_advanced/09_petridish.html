@@ -46,17 +46,18 @@
         sim = new Simulation(config)
 
         sim.makeGridmodel("cells");
-        sim.createDisplay("cells", "alive", "Colony growth")
-        sim.makeGridmodel("cells_wellmixed");
-        sim.createDisplay("cells_wellmixed", "alive", "Well-mixed population")
-
-        let birth_rate = 0.85
-
         sim.cells.statecolours.alive[0] = [255, 255, 255] // Change bg to white
         sim.cells.statecolours.alive[1] = [79, 31, 154] // Change WT 1 to white
         sim.cells.statecolours.alive[2] = [228, 178, 36] // Change mutant 1 to gold
         sim.cells.statecolours.alive[3] = [32, 100, 100] // Change mutant 2 to dark-turquoise
         sim.cells.statecolours.alive[3] = [100, 100, 255] // Change mutant 3 to light blue 
+        sim.createDisplay("cells", "alive", "Colony growth (colours = #mutations)")
+        sim.makeGridmodel("cells_wellmixed");
+        sim.createDisplay("cells_wellmixed", "alive", "Well-mixed population (colours = #mutations)")
+
+        let birth_rate = 0.85
+
+        
 
 
         sim.cells.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish

@@ -33,93 +33,81 @@
             title: "Colony",                 // The name of your cacatoo-simulation
             description: "",         // And a description if you wish
             maxtime: 1000000,                             // How many time steps the model continues to run            
-            ncol: 100,                                   // Number of columns (width of your grid)
-            nrow: 100,		                              // Number of rows (height of your grid)
+            ncol: 200,                                   // Number of columns (width of your grid)
+            nrow: 200,		                              // Number of rows (height of your grid)
             seed: 5,
             wrap: [false, false],                         // Wrapped boundary conditions? [COLS, ROWS]   
-            scale: 3,				                      // Scale of the grid (nxn pixels per grid point)
-            statecolours: { 'alive': { 1: [245, 245, 150] } },          // Colours for each state. Background (0) defaults to black. 
+            scale: 2,				                      // Scale of the grid (nxn pixels per grid point)
+            statecolours: {'species': { 1: "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                        2: "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                        3: "#3030ff"}}
         }
 
         /*
             1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
         */
-        sim = new Simulation(config)                          // Initialise the Cacatoo simulation
-        sim.makeGridmodel("model")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.initialSpot(sim.model, 'alive', 1, 1, sim.model.nr / 2, sim.model.nc / 2)
-        sim.createDisplay("model", "alive", "Living cells")                      // Create a display so we can see our newly made gridmodel
+        
+                       
 
-        sim.createDisplay("model", "external_resources", "External resources")                      // Create a display so we can see our newly made gridmodel
-        sim.model.colourViridis("external_resources", 1000)
-        sim.model.canvases["External resources"].minval = 2
-        sim.model.canvases["External resources"].maxval = 1000
+        
+        sim = new Simulation(config)                            // Initialise the Cacatoo simulation
+        sim.makeGridmodel("growth")                              // Build a new Gridmodel within the simulation called "model"
 
-        sim.createDisplay("model", "internal_resources", "Internal resources")                      // Create a display so we can see our newly made gridmodel
-        sim.model.colourViridis("internal_resources", 1000)
-        sim.model.canvases["Internal resources"].minval = 1
-        sim.model.canvases["Internal resources"].maxval = 1000
+        sim.initialGrid(sim.growth,'external_resources',1000.0,1.0) // Give 100% of grid points external resources (set to 1)
+        let species = [{species:1,uptake_rate:0.5,internal_resources:1},
+                                {species:2,uptake_rate:5.0,internal_resources:1},
+                                {species:3,uptake_rate:50.0,internal_resources:1}]
+        
+        sim.populateSpot(sim.growth, species, [0.33,0.33,0.33], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+        // sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
+
+        sim.createDisplay("growth", "species", "Species")     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
+        
+
+        sim.createDisplay_continuous({model:"growth", property:"external_resources", label:"External resources", // Createa a display for a continuous variable (ODE state for external resources)
+                            minval:0, maxval:1000, fill:"viridis"})                      
+        sim.createDisplay_continuous({model:"growth", property:"internal_resources", label:"Internal resources", // Createa a display for a continuous variable (ODE state for external resources)
+                            minval:0, maxval:1000, fill:"viridis"})                              
         
 
         /*
             2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
         */
+       
 
-        // Define ODEs with basic resource dynamics
-        let resource_dynamics = function (u, k) {
-            return function (x, y) {
-                let external = y[0]
-                let internal = y[1]
-                return [
-                    -u * y[0],                 // y[0] is the external resource concentration, which is taken up with rate u
-                    u * y[0] - k * y[1]          // y[1] is the internal resource concentration, which is used by the cells to divide
-                ]
-            }
-        }
-
-        // Configuration object with initial states, parameters, and diffusion rates
-        let ode_config = {
-            ode_name: "resources",
-            init_states: [1, 0],              // y[0] and y[1]
-            parameters: [0.0, 0.1],           // u and k are set to 0.0 by default, as we will make it dependent on cell presence!
-            diffusion_rates: [0.2, 0.0]
-        }      // resources diffuse through exteral environment, but internal resources stay put
-
-        // Attaches an ODE to all gridpoints with initial state = [0,0].    
-        sim.model.attachODE(resource_dynamics, ode_config);
-
-        sim.model.nextState = function (i, j) {
+        sim.growth.nextState = function (i, j) {
             let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
+            let this_gp = this.grid[i][j]                     // This cell
 
-            if (this.grid[i][j].alive == 0)                        // If empty
+            if (this_gp.species == 0)                        // If empty spot
             {
-                if (randomneigh.alive == 1 && this.rng.genrand_real1() < randomneigh.resources.state[1]) {
-                    this.grid[i][j].alive = 1                     // 1 (cell) reproduces          
-                    randomneigh.resources.state[1] = this.grid[i][j].resources.state[1] = randomneigh.resources.state[1] / 4
+                if (randomneigh.species > 1 && randomneigh.internal_resources > 50) {   // Random neighbour is alive and it has enough resources
+                    this_gp.species = randomneigh.species                               // Empty spot becomes the parent type (reproduction)
+                    this_gp.uptake_rate = randomneigh.uptake_rate                       // Empty spot inherits uptake rate from the parent
+                    randomneigh.internal_resources = this_gp.internal_resources = randomneigh.internal_resources / 2    // Resources are divided between parent and offpsring
                 }
             }
-            else {
-                this.grid[i][j].resources.pars = [10.0, 0.5]  // Living cells take up and have upkeep
-                if (this.rng.genrand_real1() < 0.01) {
-                    this.grid[i][j].alive = 0
-                    this.grid[i][j].resources.state[1] = 0
-                    this.grid[i][j].resources.pars = [0.0, 0.0]
+            else {   
+                if (this.rng.genrand_real1() < 0.01) {                                      // Random death
+                    this_gp.species = 0
+                    this_gp.uptake_rate=0.0
+                    this_gp.internal_resources = 0
+                }
+                else{
+                    let uptake = this_gp.external_resources * (this_gp.uptake_rate/100)     // Living cells can take up a fraction of available resources
+                    this_gp.internal_resources += uptake
+                    this_gp.external_resources -= uptake
+                    this_gp.internal_resources *= 0.9
                 }
             }
-
-            this.grid[i][j].resources.solve_timestep(0.1)
-
-            this.grid[i][j].external_resources = Math.floor(this.grid[i][j].resources.state[0] * 1000)
-            this.grid[i][j].internal_resources = Math.floor(this.grid[i][j].resources.state[1] * 800)
         }
 
         /*
             3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
             applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
         */
-        sim.model.update = function () {
+        sim.growth.update = function () {
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
-            this.diffuseOdeStates()       // Diffusion of external metabolites
-            this.plotODEstates("resources", [0, 1], [[0, 0, 0], [255, 0, 0]])
         }
 
         /*
@@ -128,7 +116,7 @@
 
         sim.addButton("Play/pause sim", function () { sim.toggle_play() })
 
-
+        
         sim.start()
 
     }

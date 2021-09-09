@@ -38,7 +38,9 @@
 
         sim.makeGridmodel("turing")
         sim.turing.colourViridis("activator", 100)
-        sim.createDisplay('turing', 'activator', "Concentration of activator")
+        
+        sim.createDisplay_continuous({model:"turing", property:"activator", label:"Activator density", // Createa a display for a continuous variable (ODE state for external resources)
+                            minval:0, maxval:100}) 
 
         // A self-replicating turing, which also produces a second molecule which inhibits the turing
         let Turing = function (a, b, i, d) {

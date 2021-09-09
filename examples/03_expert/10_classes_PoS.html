@@ -57,7 +57,7 @@
 
         sim.makeGridmodel("cells");
         sim.cells.colourViridis("genomesize", 100)
-        sim.createDisplay("cells", "genomesize", "Genome size of individuals")
+        sim.createDisplay_continuous({model:"cells", property:"genomesize", label:"Genome size", minval:0, maxval:100}) 
 
         sim.cells.initialise = function () {
             sim.initialGrid(sim.cells, "alive", 0, 1.0)

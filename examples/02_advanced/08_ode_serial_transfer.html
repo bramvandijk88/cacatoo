@@ -28,7 +28,7 @@
             // Note: fastmode is only useful/recommended if the sim can readily run 
             // at 60FPS without fast-mode, and may actually reduce the reported FPS
             // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol: 30,
+            ncol: 50,
             nrow: 120,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
             scale: 3,				    // scale of the grid (nxn pixels per grid cell)
@@ -51,8 +51,8 @@
         sim.makeGridmodel("batchculture");
         sim.batchculture.colourViridis("external_resources", 100)
         sim.batchculture.colourViridis("internal_resources", 100)
-        sim.createDisplay("batchculture", "internal_resources", "Internal resources in cells")
-        sim.createDisplay("batchculture", "external_resources", "External resources")
+        sim.createDisplay_continuous({model:"batchculture", property:"internal_resources", label:"Internal resources", minval:0, maxval:100}) 
+        sim.createDisplay_continuous({model:"batchculture", property:"external_resources", label:"External resources", minval:0, maxval:100}) 
 
         // sim.resource_e.colourRamp('resources_e',[0,0,0],[64, 224, 208],100)
 

@@ -33,7 +33,7 @@ function cacatoo() {
         graph_update: 50,
         statecolours: {
             'species': {
-                1: "#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                1: "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
                 2: "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
                 3: "#3030ff"
             }

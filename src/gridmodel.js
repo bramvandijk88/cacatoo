@@ -86,12 +86,12 @@ class Gridmodel {
     * @param {int} n How many colours the gradient consists off
     * For example usage, see colourViridis below
     */
-    colourGradient(property, n) {
+    colourGradient(property, n) {        
         let n_arrays = arguments.length - 2
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
 
-        let segment_len = n / (n_arrays)
-
+        let segment_len = n / (n_arrays-1)
+        
         let color_dict = this.statecolours[property]
         let total = 0
         if (typeof color_dict != 'undefined')
@@ -99,10 +99,11 @@ class Gridmodel {
         else
             color_dict = {}
 
-        for (let arr = 0; arr < n_arrays - 1; arr++) {
+        color_dict[0] = [0, 0, 0]
+        for (let arr = 0; arr < n_arrays -1 ; arr++) {
             let arr1 = arguments[2 + arr]
             let arr2 = arguments[2 + arr + 1]
-            /// HIER BEN IK MEE BEZIG!!!
+            
             for (let i = 0; i < segment_len; i++) {
                 let r, g, b
                 if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0]) * (i / (segment_len - 1)))
@@ -115,18 +116,27 @@ class Gridmodel {
                 color_dict[Math.floor(i + arr * segment_len + total) + 1] = [r, g, b]
             }
             // total += segment_len
+            
         }
+        
         this.statecolours[property] = color_dict
     }
 
-    /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) 
+    /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) or Inferno (black to orange to yellow)
     * @param {string} property The name of the property to which the colour is assigned
     * @param {int} n How many colours the gradient consists off
     * @param {bool} rev Reverse the viridis colour gradient
     */
-    colourViridis(property, n, rev = false) {
-        if (!rev) this.colourGradient(property, n, [68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])         // Viridis
-        else this.colourGradient(property, n, [253, 231, 37], [93, 201, 99], [33, 144, 140], [59, 82, 139], [68, 1, 84])             // Viridis
+    colourViridis(property, n, rev = false, option="viridis") {
+
+        if(option=="viridis"){
+            if (!rev) this.colourGradient(property, n, [68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])         // Viridis
+            else this.colourGradient(property, n, [253, 231, 37], [93, 201, 99], [33, 144, 140], [59, 82, 139], [68, 1, 84])             // Viridis
+        }
+        else if(option=="inferno"){
+            if (!rev) this.colourGradient(property, n, [20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70])         // Inferno
+            else this.colourGradient(property, n, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52])             // Inferno
+        }
     }
 
     /** Print the entire grid to the console */
