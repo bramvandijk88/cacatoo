@@ -146,87 +146,87 @@ see your progress every time you hit "Run". Try opening your newly copied HTML f
 </center>
 
 <br> 
-Not very exciting, but that's because we haven't programmed anything yet! Let's take a look at the code. It starts with a bunch of basic HTML stuff:
+Not very exciting, but that's because we haven't programmed anything yet! Let's take a look at the code. It starts with a bunch of basic HTML stuff:<br><br>
 
-<font color="blue">
+<center><div style="text-align:left;background-color:#EEEEEE;border:1px solid #888888; width: 80%">
+<font color="blue" size=2>
 <xmp>
-<!-- 
-  ###########################################################################################
-    Example (empty) project
-  ###########################################################################################
--->
+    <!-- 
+    ###########################################################################################
+        Example (empty) project
+    ###########################################################################################
+    -->
 
-<html>
-    <script src="../../dist/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
-    <script src="../../lib/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
-    <link rel="stylesheet" href="../../style/cacatoo.css">        <!-- Set style sheet -->
-    <head>
-        <title>Cacatoo</title>
-    </head>
-<script>
+    <html>
+        <script src="../../dist/cacatoo.js"></script>            <!-- Include cacatoo library (compiled with rollup) -->
+        <script src="../../lib/all.js"></script>                 <!-- Include other libraries (concattenated in 1 file) -->
+        <link rel="stylesheet" href="../../style/cacatoo.css">   <!-- Set style sheet -->
+        <head>
+            <title>Cacatoo</title>
+        </head>
+    <script>
     
-</xmp></font>
+</xmp></font></div></center>
 
-This bit is not particularly interesting, but if you have problems with the libraries loading, this is probably the place to start digging. That reminds me, if you 
+<br> The code above is not particularly interesting, but if you have problems with the libraries loading, this is probably the place to start digging. That reminds me, if you 
 are not seeing anything happening, even though you expect something, try opening the developer console (CTRL/CMD+SHIFT+I in Chrome). It will tell you what went wrong.<br><br>
 
 In the next bit of code, a global variable "sim" is declared, and a new function is created called "cacatoo":
 
-<font color="blue">
-<xmp>
-let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+<center>
+<pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
 
 function cacatoo()
 {
  ... (rest of the code)
 }
+</font></code></pre></center>
 
-</xmp></font>
+The function named "cacatoo" will contain everything Cacatoo needs to know to start simulating, and is later called as an onload option for the HTML page:<br><br>
 
-This function named "cacatoo" will contain everything Cacatoo needs to know to start simulating, and is later called as an onload option for the HTML page:
-
-<font color="blue">
-<xmp><body onload="cacatoo()">   
-     </xmp></font>
-
-Inside this main Cacatoo-function, I have added many comments*, including numbers which correspond to the three steps given in the introductionary tutorial:
+<center><div style="text-align:left;background-color:#EEEEEE;border:1px solid #888888; width: 80%">
+ <font color="blue" size=2>
+<xmp><font size =2><body onload="cacatoo()">   
+</xmp></font></div></center>
+<br>
+Inside this main Cacatoo-function, the code is made up of three main blocks (corresponding to the three steps given in the introductionary tutorial):
 <ol>
     <li> Setup
         <li> Defining the rules
             <li> Main simulations loop
 </ol>
-    <br>    * = for this tutorial however, I've chosen to remove some of the comments for clarity. 
+    <br>
+    I have also added numbered comments to the code of the example projects, hopefully helping you to find your way around. For now, let's go through them one by one.<br><br>
+    
 <hr><br>
+
+
+
+
 <a id="2"></a><center><h3>Setup</h3></center>
 
 First, let's modify the setup-code so that our model has a name, and a grid-size/colours corresponding to the predator-prey example we decided to recreate:
 
-<font color="blue">
-    <xmp>
-        let config = 
-        {                                        
-            title: "Predator prey model",                 // The name of your cacatoo-simulation
-            description: "My first model",                // And a description if you wish
-            maxtime: 1000000,                             // How many time steps the model continues to run            
-            ncol : 210,                                   // Number of columns (width of your grid)
-            nrow : 60,		                              // Number of rows (height of your grid)
-            wrap : [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
-            scale : 5,				                      // Scale of the grid (nxn pixels per grid point)
-            statecolours: {'species':{1:[245,245,80],2:[255,0,96]}},   // RGB-colours for each state. Background (0) defaults to black. 
-        }
-</xmp>
+<center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">let config = 
+{                                        
+    title: "Predator prey model",                 // The name of your cacatoo-simulation
+    description: "My first model",                // And a description if you wish
+    maxtime: 1000000,                             // How many time steps the model continues to run            
+    ncol : 210,                                   // Number of columns (width of your grid)
+    nrow : 60,		                              // Number of rows (height of your grid)
+    wrap : [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
+    scale : 5,				                      // Scale of the grid (nxn pixels per grid point)
+    statecolours: {'species':{1:[245,245,80],2:[255,0,96]}},   // RGB-colours for each state. Background (0) defaults to black. 
+}
+    </font></code></pre></center>
 
-</font>       
 
-Then, we initialise the simulation, make a new GridModel inside that simulation, and populate the grid with a small fraction of predators and preys:
+Next, let's initialise the simulation, make a new GridModel inside that simulation, and initialise the grid with a small fraction of predators and preys:
 
-<font color="blue">
-<xmp>
-        sim = new Simulation(config)                          // Initialise the Cacatoo simulation
-        sim.makeGridmodel("model")                            // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.initialGrid(sim.model, 'species', 1, 0.2, 2, 0.2) // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
-        sim.createDisplay("model","species","")                 // Create a display so we can see our newly made gridmodel
-</xmp></font>  
+<center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+sim.makeGridmodel("model")                            // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
+sim.initialGrid(sim.model, 'species', 1, 0.2, 2, 0.2) // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
+sim.createDisplay("model","species","")                 // Create a display so we can see our newly made gridmodel  </font></code></pre></center>
 
 <br>If you now refresh your web page in the browser, the result should already start looking a lot more like our target:<br><br>
 
@@ -234,21 +234,18 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     <img src="images/tut2_img2.png" style="width:80%"><br>
     </center>
 
-    <br>Alright, so the colours and the grid-size are good, but nothing is happening yet. This is because the "nextState" function (step 2) is still undefined. In other words, the individuals just
-    kind of sit there. So, let's go to step 2!<br><br>
+    <br>But of course, not much is happening yet. The colours and the grid-size are good, but we still need to define the "nextState" function (step 2). If we don't, the individuals Just
+    kind of sit there... So let's go to step 2!<br><br>
 
     <hr><br>
 <a id="1"></a><center><h3>Defining the rules</h3></center>
 
-    Now let's define our nextState function, which will decide how every grid point gets updated. For now, this piece of the code looks like this:<br>
+    Let's define our nextState function, which will decide how every grid point gets updated. For now, this piece of the code looks like this:<br>
 
-    <font color="blue">
-<xmp>
-        sim.model.nextState = function(i,j)                   
-        {   
-            // Empty
-        }
-    </xmp></font> 
+    <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.model.nextState = function(i,j)                   
+{   
+    // Empty
+} </font></code></pre></center> 
     
     Let's keep the model as simple as we can, and assume that:
     <ul>
@@ -269,27 +266,25 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     The former is used to sample a random grid point from the "Moore" neighbourhood (8 adjacent grid points). This we can use to check if there are predators or prey around, and it also creates a density dependence as it will 
     naturally have a higher chance to sample an individual when there are more individuals around! The second function simply generates a random number to put some stochasticity on the birth and death events. Here's the code I came up with:
 
-    <font color="blue">
-<xmp>
-    sim.model.nextState = function(i,j)                   
-    {   
-        let randomneigh = this.randomMoore8(this,i,j).species   // Random neighbour
-        
-        if(this.grid[i][j].species == 0)                        // If empty
-        {
-            if(randomneigh == 1 && this.rng.genrand_real1() < 0.5)
-                this.grid[i][j].species = 1                     // 1 (prey) reproduces
-        }
-        else if(this.grid[i][j].species == 1)                   // If prey
-        {
-            if(randomneigh == 2 && this.rng.genrand_real1() < 0.3)
-                this.grid[i][j].species = 2                     // 2 (pred) reproduces
-        }
-        
-        if(this.rng.genrand_real1() < 0.05) 
-            this.grid[i][j].species = 0                         // death
+    <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.model.nextState = function(i,j)                   
+{   
+    let randomneigh = this.randomMoore8(this,i,j).species   // Random neighbour
+    
+    if(this.grid[i][j].species == 0)                        // If empty
+    {
+        if(randomneigh == 1 && this.rng.genrand_real1() < 0.5)
+            this.grid[i][j].species = 1                     // 1 (prey) reproduces
     }
-    </xmp></font> 
+    else if(this.grid[i][j].species == 1)                   // If prey
+    {
+        if(randomneigh == 2 && this.rng.genrand_real1() < 0.3)
+            this.grid[i][j].species = 2                     // 2 (pred) reproduces
+    }
+    
+    if(this.rng.genrand_real1() < 0.05) 
+        this.grid[i][j].species = 0                         // death
+} </font></code></pre></center> 
+    
 
     When you have implemented the code bove, you should now see some action if you open the HTML page:<br><br>
 
@@ -299,13 +294,10 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
 
    <br><br>At this point you may wonder why the code already works, considering we haven't yet done step 3? Well, the main simulation loop in the default (empty) project actually already contains a synchronous update function:
    
-   <font color="blue">
-<xmp>
-        sim.model.update = function()
-        {                                
-            this.synchronous()        
-        }
-    </xmp></font> 
+   <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.model.update = function()
+{                                
+    this.synchronous()        
+}    </font></code></pre></center> 
 
     <br><br>
 
@@ -329,23 +321,20 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     
     Maybe you want to be able to hit pause on your simulation, or hit a button enable mixing. Well, also that is easy with a few lines of code, which you can add before "sim.start()":
 
-    <font color="blue">
-<xmp>
-    sim.addButton("Play/pause sim",function() {sim.toggle_play()})
-    sim.addButton("Disable/enable mix",function() {sim.toggle_mix()})
-    sim.addButton("Kill prey",function() {sim.my_custom_killprey_function()})
-    sim.my_custom_killprey_function = function()
-    { 
-        for (let i = 0; i < sim.model.nc; i++) for (let j = 0; j < sim.model.nr; j++) 
-        {
-            if(sim.model.grid[i][j].species == 1 && this.rng.genrand_real1() < 0.9) 
-                sim.model.grid[i][j].species = 0
-        }
+    <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.addButton("Play/pause sim",function() {sim.toggle_play()})
+sim.addButton("Disable/enable mix",function() {sim.toggle_mix()})
+sim.addButton("Kill prey",function() {sim.my_custom_killprey_function()})
+sim.my_custom_killprey_function = function()
+{ 
+    for (let i = 0; i < sim.model.nc; i++) for (let j = 0; j < sim.model.nr; j++) 
+    {
+        if(sim.model.grid[i][j].species == 1 && this.rng.genrand_real1() < 0.9) 
+            sim.model.grid[i][j].species = 0
     }
-    sim.start()
-    </xmp></font> 
+}
+sim.start()</font></code></pre></center> 
 
-    And now, unless you made any mistakes, your model should run:<br><br>
+    And now, your model should run (see below). If your model does not work, open a developer-tools (CTRL/CMD+SHIFT+I in Google Chrome), and see if there are any errors in the tab "Console". <br><br>
    
 
     <center>
@@ -372,8 +361,8 @@ Then, we initialise the simulation, make a new GridModel inside that simulation,
     </table>
  </center>
     <br>
-    In the next tutorial, I'll show you how to attach ODEs to your grid! <br><br>
-    <center><h4><a href="#top">&uarr; Back to the top</a> | <a href="attaching_odes.html">Next tutorial &rarr;</a></h4></center>
+    In the next tutorial, I'll show you how to model a simple bacterial colony, how to visualise continuous variables, and how to attach ODEs to your grid! <br><br>
+    <center><h4><a href="overview.html">&larr;Previous tutorial </a> | <a href="#top">&uarr; Back to the top</a> | <a href="colony_growth.html">Next tutorial &rarr;</a></h4></center>
 </div>
 
 
