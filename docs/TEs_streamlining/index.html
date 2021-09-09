@@ -67,10 +67,9 @@
 
         sim.makeGridmodel("TE_model");
 
-        sim.createDisplay("TE_model", "genomesize", "Genome size of individuals")
-        sim.createDisplay("TE_model", "T_in_genomes", "Nr. transposons in genomes")
-        sim.createDisplay("TE_model", "T_in_eDNA", "Nr. transposons in eDNA pool")
-
+        sim.createDisplay_continuous({model:"TE_model", property:"genomesize", label:"Genome size", minval:0, maxval:100, fill:"viridis"}) 
+        sim.createDisplay_continuous({model:"TE_model", property:"T_in_genomes", label:"TEs inside genomes", minval:0, maxval:100, fill:"viridis"}) 
+        sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool", minval:0, maxval:100, fill:"viridis"}) 
 
         sim.TE_model.initialise = function () {
             sim.initialGrid(sim.TE_model, "alive", 0, 1.0)
@@ -287,7 +286,7 @@
                 "Avg TE jump rate (phi)")
         }
 
-        sim.addHTML("canvas_holder", "<img src=\"legend.png\">")
+        // sim.addHTML("canvas_holder", "<img src=\"legend.png\">")
         sim.addButton("Pause/continue", function () { sim.toggle_play() })
         sim.addButton("Well-mix (all)", function () { sim.toggle_mix() })
         sim.addButton("Well-mix (eDNA)", () => { sim.mixDNApool = !sim.mixDNApool })
