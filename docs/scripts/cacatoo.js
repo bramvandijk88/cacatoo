@@ -1649,6 +1649,7 @@ class Simulation {
             let simStartTime = performance.now();
 
             async function animate() {
+                if (model.pause == true) { cancelAnimationFrame(frame); }
                 if (model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     if (model.sleep > 0) await pause(model.sleep);
@@ -1684,7 +1685,7 @@ class Simulation {
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
                     cancelAnimationFrame(frame);
                 }
-                if (model.pause == true) { cancelAnimationFrame(frame); }
+                
 
             }
 
