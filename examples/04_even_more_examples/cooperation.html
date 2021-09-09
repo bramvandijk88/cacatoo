@@ -32,14 +32,14 @@ function cacatoo() {
     */
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
         title: "Cooperating with your neighbours",
-        description: "<img src=\"../../images/coop.png\" width=900><b><br><br>Why do individuals cooperate? Let’s take the example where there are two kinds of individuals<br>"+
-                     "in a population: one cooperative (green) and one less cooperative (violet). Over time, the<br>"+
-                     "population will grow to colonise all of the available space. In order to claim a free spot on<br>"+
-                     "the grid, individuals require help. Of course, getting help from a cooperative (green) individual<br>"+
-                     "is much better than being helped by a less cooperative individual (violet). The non-cooperatives can<br>"+
-                     "get help from the cooperative individuals, and never waste valuable reproduction opportunities by <br>"+
-                     "replicating someone else. However, when left by their own devices, they are very bad at replicating.<br>"+
-                     "Who will win, and why? Let's find out!</b><br><br>",
+        description: "<center><div style=\"width:60%\"><img src=\"../../images/coop.png\" width=900><b><br><br>Why do individuals cooperate? Let’s take the example where there are two kinds of individuals"+
+                     "in a population: one cooperative (green) and one less cooperative (violet). Over time, the"+
+                     "population will grow to colonise all of the available space. In order to claim a free spot on"+
+                     "the grid, individuals require help. Of course, getting help from a cooperative (green) individual"+
+                     "is much better than being helped by a less cooperative individual (violet). The non-cooperatives can"+
+                     "get help from the cooperative individuals, and never waste valuable reproduction opportunities by"+
+                     "replicating someone else. However, when left by their own devices, they are very bad at replicating."+
+                     "Who will win, and why? Let's find out!</b><br><br></div></center>",
         maxtime: 1000000,
         ncol: 300,
         nrow: 100,		                                            // dimensions of the grid to build
@@ -69,13 +69,10 @@ function cacatoo() {
         sim.display()
     }
 
-    sim.createDisplay_continuous({model:"coop",  
-                         property:"helping_rate",
-                        label:"Cooperation",
-                        multiplier:100,
-                        maxval:100,                        
-                        fill:"viridis"})
-    
+    sim.coop.colourGradient('helping_rate', 100, [103, 64, 181], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])
+    sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
+                        multiplier:120, maxval:100})
+    sim.coop.canvases["Cooperation"].legend.style.display = "none"  // Hack to remove the legend :)
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
     */

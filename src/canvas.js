@@ -97,23 +97,23 @@ class Canvas {
         ctx.putImageData(id, 0, 0);
     }
 
-    add_legend(div,property,continuous)
+    add_legend(div,property)
     {
         let statecols = this.gridmodel.statecolours[property]            
-        this.legend_bar = document.createElement("canvas")
-        this.legend_bar.className = "legend"
-        this.legend_bar.width = this.width*this.scale
+        this.legend = document.createElement("canvas")
+        this.legend.className = "legend"
+        this.legend.width = this.width*this.scale
         
-        this.legend_bar.height = 40
-        let ctx = this.legend_bar.getContext("2d")
+        this.legend.height = 40
+        let ctx = this.legend.getContext("2d")
         
         if(this.maxval!==undefined) {       
             let bar_width = this.width*this.scale*0.8
-            let offset = 0.1*this.legend_bar.width  
+            let offset = 0.1*this.legend.width  
             let n_ticks = 5
             
             let tick_increment = (this.maxval-this.minval) / n_ticks
-            let step_size =  (this.legend_bar.width / n_ticks)*0.8
+            let step_size =  (this.legend.width / n_ticks)*0.8
             
             
             for(let i=0;i<bar_width;i++)
@@ -147,7 +147,7 @@ class Canvas {
             ctx.strokeStyle = "#000000";
             ctx.stroke();
             ctx.closePath();
-            div.appendChild(this.legend_bar)
+            div.appendChild(this.legend)
         }
         else{                     
             let total_num_values = Object.keys(statecols).length
@@ -155,7 +155,7 @@ class Canvas {
             if(total_num_values < 8) spacing = 0.6
             if(total_num_values < 4) spacing = 0.2
             let bar_width = this.width*this.scale*spacing   
-            let offset = 0.5*(1-spacing)*this.legend_bar.width  
+            let offset = 0.5*(1-spacing)*this.legend.width  
 
             let step_size = Math.ceil(bar_width / total_num_values)
                         
@@ -175,7 +175,7 @@ class Canvas {
                 ctx.textAlign = "center";
                 ctx.fillText(i, pos, 35);
             }
-            div.appendChild(this.legend_bar)
+            div.appendChild(this.legend)
         }
         
     }
