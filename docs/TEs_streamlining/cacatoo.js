@@ -382,6 +382,7 @@ class Gridmodel {
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
         this.statecolours = this.setupColours(config.statecolours); // Makes sure the statecolours in the config dict are parsed (see below)
+        this.lims = {};
         this.scale = config.scale || 1;
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
@@ -442,12 +443,12 @@ class Gridmodel {
     * @param {int} n How many colours the gradient consists off
     * For example usage, see colourViridis below
     */
-    colourGradient(property, n) {
+    colourGradient(property, n) {        
         let n_arrays = arguments.length - 2;
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
 
-        let segment_len = n / (n_arrays - 1);
-
+        let segment_len = n / (n_arrays-1);
+        
         let color_dict = this.statecolours[property];
         let total = 0;
         if (typeof color_dict != 'undefined')
@@ -455,10 +456,11 @@ class Gridmodel {
         else
             color_dict = {};
 
-        for (let arr = 0; arr < n_arrays - 1; arr++) {
+        color_dict[0] = [0, 0, 0];
+        for (let arr = 0; arr < n_arrays -1 ; arr++) {
             let arr1 = arguments[2 + arr];
             let arr2 = arguments[2 + arr + 1];
-            /// HIER BEN IK MEE BEZIG!!!
+            
             for (let i = 0; i < segment_len; i++) {
                 let r, g, b;
                 if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0]) * (i / (segment_len - 1)));
@@ -471,18 +473,27 @@ class Gridmodel {
                 color_dict[Math.floor(i + arr * segment_len + total) + 1] = [r, g, b];
             }
             // total += segment_len
+            
         }
+        
         this.statecolours[property] = color_dict;
     }
 
-    /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) 
+    /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) or Inferno (black to orange to yellow)
     * @param {string} property The name of the property to which the colour is assigned
     * @param {int} n How many colours the gradient consists off
     * @param {bool} rev Reverse the viridis colour gradient
     */
-    colourViridis(property, n, rev = false) {
-        if (!rev) this.colourGradient(property, n, [68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37]);         // Viridis
-        else this.colourGradient(property, n, [253, 231, 37], [93, 201, 99], [33, 144, 140], [59, 82, 139], [68, 1, 84]);             // Viridis
+    colourViridis(property, n, rev = false, option="viridis") {
+
+        if(option=="viridis"){
+            if (!rev) this.colourGradient(property, n, [68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37]);         // Viridis
+            else this.colourGradient(property, n, [253, 231, 37], [93, 201, 99], [33, 144, 140], [59, 82, 139], [68, 1, 84]);             // Viridis
+        }
+        else if(option=="inferno"){
+            if (!rev) this.colourGradient(property, n, [20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]);         // Inferno
+            else this.colourGradient(property, n, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52]);             // Inferno
+        }
     }
 
     /** Print the entire grid to the console */
@@ -616,6 +627,7 @@ class Gridmodel {
         if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
         let y = j;
         if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+           
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined;    // TODO!!!!!!!! Return border-state instead!
         else this.grid[x][y] = gp;
     }
@@ -654,19 +666,19 @@ class Gridmodel {
             let i = model.moore[n][0];
             let j = model.moore[n][1];
             let neigh = model.getGridpoint(col + i, row + j);
-            if (neigh[property] == val)
+            if (neigh != undefined && neigh[property] == val)
                     gps.push(neigh);
         }
         return gps;
     }
 
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore8(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,8]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore9(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,8]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getNeumann4(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,4]) }
-    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function sumNeighbours) */     
+    /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getNeumann5(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,4]) }    
 
     /** From a list of grid points, e.g. from getNeighbours(), sample one weighted by a property. This is analogous
@@ -706,7 +718,8 @@ class Gridmodel {
         for (let n = range[0]; n <= range[1]; n++) {
             let i = model.moore[n][0];
             let j = model.moore[n][1];
-            count += model.getGridpoint(col + i, row + j)[property];
+            let gp = model.getGridpoint(col + i, row + j);
+            if(gp != undefined)     count += model.getGridpoint(col + i, row + j)[property];
         }
         return count;
     }
@@ -844,11 +857,7 @@ class Gridmodel {
      *  simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
      *  CCW in odd iterations)
     */
-    MargolusDiffusion() {
-        if (!this.wrap[0] || !this.wrap[1]) {
-            console.log("Current implementation of Margolus diffusion requires wrapped boundaries.");
-            throw new Error("Current implementation of Margolus diffusion requires wrapped boundaries.")
-        }
+    MargolusDiffusion() {        
         //   
         //   A  B
         //   D  C
@@ -858,7 +867,9 @@ class Gridmodel {
         if ((this.nc % 2 + this.nr % 2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
 
         for (let i = 0 + even; i < this.nc; i += 2) {
+            if(i> this.nc-2) continue
             for (let j = 0 + even; j < this.nr; j += 2) {
+                if(j> this.nr-2) continue
                 // console.log(i,j)
                 let old_A = new Gridpoint(this.grid[i][j]);
                 let A = this.getGridpoint(i, j);
@@ -1270,13 +1281,14 @@ class Canvas {
     *  @param {int} width width of the canvas (in cols)
     *  @param {scale} scale of the canvas (width/height of each gridpoint in pixels)
     */
-    constructor(gridmodel, prop, lab, height, width, scale) {
+    constructor(gridmodel, prop, lab, height, width, scale, continuous) {
         this.label = lab;
         this.gridmodel = gridmodel;
         this.property = prop;
         this.height = height;
         this.width = width;
-        this.scale = scale;
+        this.scale = scale;        
+        this.continuous = continuous;
         this.bgcolor = 'black';
 
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
@@ -1284,13 +1296,16 @@ class Canvas {
             this.elem = document.createElement("canvas");
             this.titlediv = document.createElement("div");
             this.titlediv.innerHTML = "<font size = 2>" + this.label + "</font>";
+
             this.canvasdiv = document.createElement("div");
             this.canvasdiv.className = "grid-holder";
+            
+
             this.elem.className = "grid-holder";
             this.elem.width = this.width * this.scale;
             this.elem.height = this.height * this.scale;
             this.canvasdiv.appendChild(this.elem);
-            this.canvasdiv.appendChild(this.titlediv);
+            this.canvasdiv.appendChild(this.titlediv);            
             document.getElementById("canvas_holder").appendChild(this.canvasdiv);
             this.ctx = this.elem.getContext("2d");
         }
@@ -1318,12 +1333,11 @@ class Canvas {
             {
                 if (!(prop in this.gridmodel.grid[i][j])) continue
                 let statecols = this.gridmodel.statecolours[prop];
-                                
-                
 
                 let value = this.gridmodel.grid[i][j][prop];
-                if(this.maxval && value>this.maxval) value = this.maxval;
-                if(this.minval && value<this.minval) value = this.minval;
+                if(this.multiplier !== undefined) value = Math.floor(value*this.multiplier);
+                if(this.maxval !== undefined && value>=this.maxval) value = this.maxval-1;
+                if(this.minval !== undefined && value<=this.minval) value = this.minval;            
 
                 if (statecols[value] == undefined)                   // Don't draw the background state
                     continue
@@ -1349,6 +1363,101 @@ class Canvas {
         }
         ctx.putImageData(id, 0, 0);
     }
+
+    add_legend(div,property,continuous)
+    {
+        let statecols = this.gridmodel.statecolours[property];            
+        this.legend_bar = document.createElement("canvas");
+        this.legend_bar.className = "legend";
+        this.legend_bar.width = this.width*this.scale;
+        
+        this.legend_bar.height = 40;
+        let ctx = this.legend_bar.getContext("2d");
+        
+        if(this.maxval!==undefined) {       
+            let bar_width = this.width*this.scale*0.8;
+            let offset = 0.1*this.legend_bar.width;  
+            let n_ticks = 5;
+            
+            let tick_increment = (this.maxval-this.minval) / n_ticks;
+            let step_size =  (this.legend_bar.width / n_ticks)*0.8;
+            
+            
+            for(let i=0;i<bar_width;i++)
+            {
+                let val = this.minval+Math.ceil(i*(1/0.8)*this.maxval/bar_width);       
+                         
+                if(val>this.maxval) val = this.maxval;
+                if(statecols[val] == undefined) ctx.fillStyle = "#000000";
+                else ctx.fillStyle = rgbToHex$1(statecols[val]);
+                ctx.fillRect(offset+i, 10, 1, 10);                
+                ctx.closePath();
+                
+            }
+            for(let i = 0; i<n_ticks+1; i++){
+                let tick_position = (i*step_size+offset);
+                ctx.strokeStyle = "#FFFFFF";                        
+                ctx.beginPath();
+                ctx.moveTo(tick_position, 15);
+                ctx.lineTo(tick_position, 20);
+                ctx.lineWidth=2;
+                ctx.stroke();
+                ctx.closePath();
+                ctx.fillStyle = "#000000";
+                ctx.textAlign = "center";
+                ctx.font = '12px helvetica';                
+                ctx.fillText(this.minval+i*tick_increment, tick_position, 35);
+            }
+
+            ctx.beginPath();
+            ctx.rect(offset, 10, bar_width, 10);
+            ctx.strokeStyle = "#000000";
+            ctx.stroke();
+            ctx.closePath();
+            div.appendChild(this.legend_bar);
+        }
+        else{                     
+            let total_num_values = Object.keys(statecols).length;
+            let spacing = 0.8;
+            if(total_num_values < 8) spacing = 0.6;
+            if(total_num_values < 4) spacing = 0.2;
+            let bar_width = this.width*this.scale*spacing;   
+            let offset = 0.5*(1-spacing)*this.legend_bar.width;  
+
+            let step_size = Math.ceil(bar_width / total_num_values);
+                        
+            for(let i=0;i<=total_num_values;i++)
+            {                       
+                let pos = offset+Math.floor(i*step_size);
+                ctx.beginPath();
+                
+                ctx.strokeStyle = "#000000";
+                if(statecols[i] == undefined) ctx.fillStyle = this.bgcolor;
+                else if(i>0) ctx.fillStyle = rgbToHex$1(statecols[i]);
+                else rgbToHex$1(this.bgcolor);
+                ctx.fillRect(pos-4, 10, 10, 10);
+                ctx.closePath();
+                ctx.font = '12px helvetica';
+                ctx.fillStyle = "#000000";
+                ctx.textAlign = "center";
+                ctx.fillText(i, pos, 35);
+            }
+            div.appendChild(this.legend_bar);
+        }
+        
+    }
+}
+
+/* 
+Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
+*/
+function componentToHex$1(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex$1(arr) {
+    return "#" + componentToHex$1(arr[0]) + componentToHex$1(arr[1]) + componentToHex$1(arr[2]);
 }
 
 /**
@@ -1397,7 +1506,7 @@ class Simulation {
     * @param {integer} width Number of cols to display (default = ALL)
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
     */
-    createDisplay(name, property, customlab, height, width, scale) {
+    createDisplay(name, property, customlab, height, width, scale, x, y) {
         let label = customlab;
         if (customlab == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name];
@@ -1405,8 +1514,68 @@ class Simulation {
         if (height == undefined) height = gridmodel.nr;
         if (width == undefined) width = gridmodel.nc;
         if (scale == undefined) scale = gridmodel.scale;
+        
         let cnv = new Canvas(gridmodel, property, label, height, width, scale);
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv);  // Add a reference to the canvas to the sim
+        const canvas = cnv.elem;
+        cnv.add_legend(cnv.canvasdiv,property);
+        canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });
+        cnv.displaygrid();
+    }
+
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+    createDisplay_continuous(config) {  
+    
+        let name = config.model;
+        
+        let property = config.property; 
+        
+        
+        let label = config.label;
+        if (label == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
+        let gridmodel = this[name];
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        
+        let height = config.height || this[name].nr;        
+        let width = config.width || this[name].nc;
+        let scale = config.scale || this[name].scale;
+       
+        
+        let maxval = config.maxval || 100;
+        
+        
+        let minval = config.minval || 0;
+        let multiplier = config.multiplier || 1;
+
+        
+        if(config.fill == "viridis") this[name].colourViridis(property, maxval);    
+        else if(config.fill == "inferno") this[name].colourViridis(property, maxval, false, "inferno");    
+        else if(config.fill == "red") this[name].colourGradient(property, maxval, [0, 0, 0], [255, 0, 0]);
+        else if(config.fill == "green") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 255, 0]);
+        else if(config.fill == "blue") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255]);
+        else if(this[name].statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`);
+            this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255]);
+        } 
+        
+        let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
+        
+        gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        if (maxval !== undefined) cnv.maxval = maxval;
+        if (minval !== undefined) cnv.minval = minval;
+        if (multiplier !== undefined) cnv.multiplier = multiplier;
+        
+        cnv.add_legend(cnv.canvasdiv,property); 
+
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         const canvas = cnv.elem;
         canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });
@@ -1555,6 +1724,36 @@ class Simulation {
     }
 
     /**
+     *  populateGrid populates a grid with custom individuals. 
+     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+     *  @param {Array} individuals The properties for individuals 1..n
+     *  @param {Array} freqs The initial frequency of individuals 1..n
+     */
+    populateGrid(gridmodel,individuals,freqs)
+    {
+        let sumfreqs =0;
+        if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+        for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
+
+        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+            for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
+                let cumsumfreq = 0;                
+                for (const property in individuals[0]) {
+                    gridmodel.grid[i][j][property] = 0;    
+                }
+                for(let n=0; n<individuals.length; n++)
+                {
+                    cumsumfreq += freqs[n];
+                    if(this.rng.random() < cumsumfreq) {
+                        Object.assign(gridmodel.grid[i][j],individuals[n]);
+                        break
+                    }
+                }
+            }
+        
+    }
+
+    /**
     *  initialSpot populates a grid with states. Grid points close to a certain coordinate are set to state value, while
     *  other cells are set to the bg-state of 0. 
     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
@@ -1570,11 +1769,45 @@ class Simulation {
             for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
             {
                 if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
-                    gridmodel.grid[i % gridmodel.nr][j % gridmodel.nc][p] = value;
+                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = value;
                 else
-                    gridmodel.grid[i % gridmodel.nr][j % gridmodel.nc][p] = 0;
+                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = 0;
             }
     }
+
+    /**
+     *  populateSpot populates a spot with custom individuals. 
+     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+     *  @param {Array} individuals The properties for individuals 1..n
+     *  @param {Array} freqs The initial frequency of individuals 1..n
+     */
+     populateSpot(gridmodel,individuals, freqs,size, x, y)
+     {
+        let sumfreqs =0;
+        if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+        for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
+         
+        // Draw a circle
+        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+        for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        {
+            for (const property in individuals[0]) gridmodel.grid[i][j][property] = 0; 
+
+            if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
+            {
+                let cumsumfreq = 0;                
+                for(let n=0; n<individuals.length; n++)
+                {
+                    cumsumfreq += freqs[n];
+                    if(this.rng.random() < cumsumfreq) {
+                        Object.assign(gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr],individuals[n]);
+                        break
+                    }
+                }
+            }
+        }
+         
+     }
 
 
     /**
