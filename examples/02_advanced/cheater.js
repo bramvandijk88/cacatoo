@@ -1,5 +1,5 @@
 
-if (typeof window == "undefined") Simulation = require('../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
+if (typeof window == "undefined") Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
 
 let sim;
 // Using var instead of let, so I can access it with sliders
@@ -121,10 +121,12 @@ function cacatoo() {
             ["black"],
             "My custom XY plot (X/Y vs Y/Z)", { drawPoints: true, strokeWidth: 1, pointSize: 2, strokePattern: [2, 2] })
 
-        if (this.time % 10 == 0)       // Otherwise, just print some numbers (e.g. popsizes)
+        if (this.time % 100 == 0)       // Otherwise, just print some numbers (e.g. popsizes)
         {
             sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species', [1, 2, 3])}`, "output")
+            //if(!sim.inbrowser) sim.write_grid(sim.cheater,'species',`species_at_T${this.time}.dat`,warn=false)    // Example of how to write a grid-property to a file. Currently only works in NODEJS mode (i.e not in browser). 
         }
+        
     }
 
     /**

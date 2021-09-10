@@ -28,6 +28,7 @@ class Simulation {
         this.canvases = []              // Array with refs to all canvases (from all models) from this simulation
         this.graphs = []                // All graphs
         this.time = 0
+        this.inbrowser = (typeof document !== "undefined")
     }
 
     /**
@@ -59,13 +60,17 @@ class Simulation {
         if (width == undefined) width = gridmodel.nc
         if (scale == undefined) scale = gridmodel.scale
         
-        let cnv = new Canvas(gridmodel, property, label, height, width, scale);
-        gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
-        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
-        const canvas = cnv.elem
-        cnv.add_legend(cnv.canvasdiv,property)
-        canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })
-        cnv.displaygrid()
+        if(this.inbrowser)
+        {
+            let cnv = new Canvas(gridmodel, property, label, height, width, scale);
+            gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
+            this.canvases.push(cnv)  // Add a reference to the canvas to the sim
+            const canvas = cnv.elem        
+            cnv.add_legend(cnv.canvasdiv,property)
+            canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })
+            cnv.displaygrid()
+        }
+        
     }
 
     /**
@@ -181,7 +186,7 @@ class Simulation {
      */
     start() {
         let model = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
-        if (typeof window != 'undefined') {
+        if (this.inbrowser) {
             let meter = new FPSMeter({ show: 'ms', left: "auto", top: "45px", right: "50px", graph: 1, history: 20, smoothing: 30 });
 
             document.title = `Cacatoo - ${this.config.title}`
@@ -362,7 +367,7 @@ class Simulation {
      *  @param {function} func Function to be linked to the button
      */
     addButton(text, func) {
-        if (typeof window == 'undefined') return
+        if (!this.inbrowser) return
         let button = document.createElement("button")
         button.innerHTML = text;
         button.addEventListener("click", func, true);
@@ -379,7 +384,7 @@ class Simulation {
      */
     addSlider(parameter, min = 0.0, max = 2.0, step = 0.01, label) {
         let lab = label || parameter
-        if (typeof window == "undefined") return
+        if (!this.inbrowser) return
         if (window[parameter] === undefined) { console.warn(`addSlider: parameter ${parameter} not found. No slider made.`); return; }
         let container = document.createElement("div")
         container.classList.add("form-container")
@@ -420,16 +425,57 @@ class Simulation {
         container.appendChild(numeric)
         document.getElementById("form_holder").appendChild(container)
     }
+
+    /**
+     *  Adds some html to an existing DIV in your web page. 
+     *  @param {String} div Name of DIV to add to
+     *  @param {String} html HTML code to add
+     */
     addHTML(div, html) {
-        if (typeof window == "undefined") return
+        if (!this.inbrowser) return
         let container = document.createElement("div")
         container.innerHTML += html
         document.getElementById(div).appendChild(container)
     }
+    /**
+     *  log a message to either the console, or to a HTML div. 
+     *  @param {String} msg String to write to log
+     *  @param {String} target If defined, write log to HTML div with this name
+     */
     log(msg, target) {
-        if (typeof window == "undefined") console.log(msg)
+        if (!this.inbrowser) console.log(msg)
         else if (typeof target == "undefined") console.log(msg)
         else document.getElementById(target).innerHTML += `${msg}<br>`
+    }
+
+    /**
+     *  Write a gridmodel to a file (only works outside of the browser, useful for running stuff overnight)
+     *  @param {String} msg String to write to log
+     *  @param {String} target If defined, write log to HTML div with this name
+     */
+    write_grid(model,property,filename,warn=true) {
+        if(this.inbrowser){
+            if(warn) console.log("Sorry, writing grid files currently works in NODEJS mode only.")
+            return
+        }
+        else{
+            const fs = require('fs');
+            // fs.writeFile('helloworld.txt', 'Hello World!', function (err) {
+            // if (err) return console.log(err);
+            //     console.log('Hello World > helloworld.txt');
+            // });
+            let string = ""
+            for(let i =0; i<model.nc;i++){
+                let row = []
+                
+                for(let j=0;j<model.nr;j++){
+                    row.push(model.grid[i][j][property])
+                }
+                string += row.join(',')
+                string += "\n"                                
+            }
+            fs.appendFileSync(filename, string)            
+        }
     }
     /**
      *  addPatternButton adds a pattern button to the HTML environment which allows the user
@@ -439,6 +485,7 @@ class Simulation {
      *  @param {String} property The name of the state to be set 
      */
     addPatternButton(targetgrid, property) {
+        if (!this.inbrowser) return
         let imageLoader = document.createElement("input")
         imageLoader.type = "file"
         imageLoader.id = "imageLoader"

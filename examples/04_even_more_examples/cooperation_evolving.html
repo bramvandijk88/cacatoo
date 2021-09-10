@@ -31,7 +31,7 @@ function cacatoo() {
         1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
     */
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
-        title: "Cooperating with your neighbours",
+        title: "Cooperating with your neighbours (evolving!)",
         description: "<center><div style=\"width:60%\"><img src=\"../../images/coop.png\" width=900><b><br><br>Why do individuals cooperate? Let’s take the example where there are two kinds of individuals "+
                      "in a population: one cooperative (green) and one less cooperative (violet). Over time, the "+
                      "population will grow to colonise all of the available space. In order to claim a free spot on "+
@@ -41,7 +41,7 @@ function cacatoo() {
                      "replicating someone else. However, when left by their own devices, they are very bad at replicating. "+
                      "Who will win, and why? Let's find out!</b><br><br></div></center>",
         maxtime: 1000000,
-        ncol: 300,
+        ncol: 100,
         nrow: 100,		                                            // dimensions of the grid to build
         seed: 56,
         fps: 60,                                                   // Note: FPS can only be set in fastmode
@@ -64,28 +64,32 @@ function cacatoo() {
     sim.initialise = function()
     {
         let init_individuals = [{alive:1, helping_rate: helper_rate_cooperator}]                         
-        sim.populateSpot(sim.coop, init_individuals, [1.0], 100, config.ncol/2, config.nrow/2)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
+        sim.populateSpot(sim.coop, init_individuals, [1.0], 10, config.ncol/2, config.nrow/2)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
         sim.display()
     }
 
     sim.coop.colourGradient('helping_rate', 100, [103, 64, 181], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])
     sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
-                        multiplier:120, maxval:100})
-    sim.coop.canvases["Cooperation"].legend.style.display = "none"  // Hack to remove the legend :)
+                        multiplier:100, maxval:100})
+    
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
     */
     sim.coop.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
     {
-        // let pA, pB, pC, psum             
-        if (!this.grid[i][j].alive)                                                   // If there is no living cell here
+        // let pA, pB, pC, psum     
+        let me = this.grid[i][j]
+        if (!me.alive)                                                   // If there is no living cell here
         {
             let neighbours = this.getMoore8(this, i, j,'alive',1)
             let winner = this.rouletteWheel(neighbours, 'fitness', 2.0)
             if (winner != undefined)
             {
-                this.grid[i][j].alive = winner.alive
-                this.grid[i][j].helping_rate = winner.helping_rate
+                me.alive = winner.alive
+                me.helping_rate = winner.helping_rate
+                if(this.rng.random() < 0.01) me.helping_rate += (0.5*this.rng.random()-1)*0.1
+                if(me.helping_rate > 1.0) me.helping_rate = 1.0
+                if(me.helping_rate < 0.0) me.helping_rate = 0.0
             }
         }
 
@@ -135,8 +139,7 @@ function cacatoo() {
         this.plotArray(["Avg helping"],
             [sumhelping / sumalive],
             ["#FF00AA"],
-            "Average helping rate")
-        this.plotArray(["population size", "#cheaters", "#cooperators"], [sumalive,sumcheater,sumcoop], ["black","#5f3ba6","#3dab78"], "Population sizes")
+            "Average helping rate")        
        
     }
     sim.coop.bottleneck = function()
@@ -144,13 +147,14 @@ function cacatoo() {
         console.log(sim)        
         for (let i = 0; i < this.nc; i++) {
             for (let j = 0; j < this.nr; j++) {
-                if(this.rng.genrand_real1() < 0.95){
+                if(this.rng.genrand_real1() < 0.99){
                     this.grid[i][j].alive = 0
                     this.grid[i][j].helping_rate = 0
                 }
             }
         }
     }
+    
     /**
     * OPTIONAL: add some buttons and sliders so you can play with your model easily
     */

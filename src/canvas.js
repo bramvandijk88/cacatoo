@@ -99,6 +99,7 @@ class Canvas {
 
     add_legend(div,property)
     {
+        if (typeof document == "undefined") return
         let statecols = this.gridmodel.statecolours[property]            
         this.legend = document.createElement("canvas")
         this.legend.className = "legend"
