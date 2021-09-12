@@ -24,7 +24,7 @@ class Gridmodel {
         this.nr = config.nrow || 200
         this.wrap = config.wrap || [true, true]
         this.rng = rng
-        this.statecolours = this.setupColours(config.statecolours) // Makes sure the statecolours in the config dict are parsed (see below)
+        this.statecolours = this.setupColours(config.statecolours,config.num_colours) // Makes sure the statecolours in the config dict are parsed (see below)
         this.lims = {}
         this.scale = config.scale || 1
         this.graph_update = config.graph_update || 20
@@ -53,16 +53,18 @@ class Gridmodel {
     *                             | or {state:object} where objects are {val:'colour},
     *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
     */
-    setupColours(statecols) {
+    setupColours(statecols,num_colours=18) {
         let return_dict = {}
         if (statecols == null)           // If the user did not define statecols (yet)
             return return_dict
         let colours = dict_reverse(statecols) || { 'val': 1 }
 
-
         for (const [statekey, statedict] of Object.entries(colours)) {
             if (statedict == 'default') {
-                return_dict[statekey] = default_colours                                 // Defined below
+                return_dict[statekey] = default_colours(num_colours+1)
+            }
+            else if (statedict == 'random') {
+                return_dict[statekey] = random_colours(num_colours+1,this.rng)
             }
             else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
             {
@@ -397,7 +399,8 @@ class Gridmodel {
         for (let n = range[0]; n <= range[1]; n++) {            
             let i = model.moore[n][0]
             let j = model.moore[n][1]
-            if (model.getGridpoint(col + i, row + j)[property]==val) count++
+            let neigh = model.getGridpoint(col + i, row + j)
+            if (neigh !== undefined && neigh[property]==val) count++
         }
         return count;
     }
@@ -889,29 +892,51 @@ function parseColours(cols) {
 }
 
 /** 
+ *  Compile a dict of default colours if nothing is given by the user. Reuses colours if more colours are needed. 
+*/
+let default_colours = function(num_colours)
+{
+    let colour_dict = [
+        [0, 0, 0],            // black
+        [255, 255, 255],      // white
+        [255, 0, 0],          // red
+        [0, 0, 255],          // blue
+        [0, 255, 0],          //green      
+        [60, 60, 60],         //darkgrey    
+        [180, 180, 180],      //lightgrey   
+        [148, 0, 211],      //violet      
+        [64, 224, 208],     //turquoise   
+        [255, 165, 0],      //orange       
+        [240, 200, 0],       //gold       
+        [125, 125, 125],
+        [255, 255, 0], // yellow
+        [0, 255, 255], // cyan
+        [192, 192, 192], // silver
+        [0, 128, 0], //darkgreen
+        [128, 128, 0], // olive
+        [0, 128, 128], // teal
+        [0, 0, 128]] // navy
+
+    let return_dict = {}
+    for(let i = 0; i < num_colours; i++)
+    {
+        return_dict[i] = colour_dict[i%19]
+    }
+    return return_dict
+}
+
+
+/** 
  *  A list of default colours if nothing is given by the user. 
 */
-let default_colours = {
-    0: [0, 0, 0],            // black
-    1: [255, 255, 255],      // white
-    2: [255, 0, 0],          // red
-    3: [0, 0, 255],          // blue
-    4: [0, 255, 0],          //green      
-    5: [60, 60, 60],         //darkgrey    
-    6: [180, 180, 180],      //lightgrey   
-    7: [148, 0, 211],      //violet      
-    8: [64, 224, 208],     //turquoise   
-    9: [255, 165, 0],      //orange       
-    10: [240, 200, 0],       //gold       
-    11: [125, 125, 125],
-    12: [255, 255, 0], // yellow
-    13: [0, 255, 255], // cyan
-    14: [192, 192, 192], // silver
-    15: [0, 128, 0], //darkgreen
-    16: [128, 128, 0], // olive
-    17: [0, 128, 128], // teal
-    18: [0, 0, 128]
-} // navy
-
+let random_colours = function(num_colours,rng)
+{
+    let return_dict = {}
+    for(let i = 0; i < num_colours; i++)
+    {
+        return_dict[i] = [rng.genrand_int(0,255),rng.genrand_int(0,255),rng.genrand_int(0,255)]
+    }
+    return return_dict
+}
 
 

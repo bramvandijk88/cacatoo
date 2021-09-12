@@ -100,7 +100,12 @@ class Canvas {
     add_legend(div,property)
     {
         if (typeof document == "undefined") return
-        let statecols = this.gridmodel.statecolours[property]            
+        let statecols = this.gridmodel.statecolours[property]
+        if(statecols == undefined){
+            console.log(`Warning: no colours setup for canvs "${this.label}"`)
+            return
+        } 
+                    
         this.legend = document.createElement("canvas")
         this.legend.className = "legend"
         this.legend.width = this.width*this.scale
@@ -151,30 +156,35 @@ class Canvas {
             div.appendChild(this.legend)
         }
         else{                     
-            let total_num_values = Object.keys(statecols).length
+            let keys = Object.keys(statecols)
+            let total_num_values = keys.length
             let spacing = 0.8
             if(total_num_values < 8) spacing = 0.6
             if(total_num_values < 4) spacing = 0.2
+            
             let bar_width = this.width*this.scale*spacing   
-            let offset = 0.5*(1-spacing)*this.legend.width  
+            let offset = 0.5*(1-spacing)*this.legend.width
+            let step_size = Math.ceil(bar_width / (total_num_values-1))
 
-            let step_size = Math.ceil(bar_width / total_num_values)
-                        
-            for(let i=0;i<=total_num_values;i++)
-            {                       
+            if(total_num_values==1){
+                step_size=0
+                offset = 0.5*this.legend.width
+            } 
+            
+            for(let i=0;i<total_num_values;i++)
+            {                                       
                 let pos = offset+Math.floor(i*step_size)
-                ctx.beginPath()
-                
+                ctx.beginPath()                
                 ctx.strokeStyle = "#000000"
-                if(statecols[i] == undefined) ctx.fillStyle = this.bgcolor
-                else if(i>0) ctx.fillStyle = rgbToHex(statecols[i])
-                else rgbToHex(this.bgcolor)
+                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor
+                else if(keys[i]>0) ctx.fillStyle = rgbToHex(statecols[keys[i]])
+                else ctx.fillStyle = this.bgcolor
                 ctx.fillRect(pos-4, 10, 10, 10)
                 ctx.closePath()
                 ctx.font = '12px helvetica';
                 ctx.fillStyle = "#000000"
                 ctx.textAlign = "center";
-                ctx.fillText(i, pos, 35);
+                ctx.fillText(keys[i], pos, 35);
             }
             div.appendChild(this.legend)
         }

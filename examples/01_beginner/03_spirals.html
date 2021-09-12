@@ -25,11 +25,13 @@
             description: "8 colours with cyclical dominance (stare at your own risk)",
             maxtime: 10000,
             fastmode: true,
+            seed:1,
             ncol: 200,
             nrow: 200,		                        // dimensions of the grid to build
             wrap: [true, true],                    // Wrap boundary [COLS, ROWS]   
             scale: 2,				                // scale of the grid (nxn pixels per grid cell)
-            statecolours: { colour: 'default' }        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
+            statecolours: { colour: 'default' },        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
+            num_colours: 8
         }
 
         sim = new Simulation(config)
@@ -59,7 +61,8 @@
             this.synchronous()                              // Applied as many times as it can in 1/60th of a second        
             this.plotPopsizes('colour', [1, 2, 3, 4, 5, 6, 7, 8])
         }
-
+        
+        sim.addButton("pause", function () { sim.toggle_play() })
         sim.addButton("mix grid", function () { sim.spirals.perfectMix() })
         sim.start()
     }

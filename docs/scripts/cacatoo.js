@@ -381,7 +381,7 @@ class Gridmodel {
         this.nr = config.nrow || 200;
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
-        this.statecolours = this.setupColours(config.statecolours); // Makes sure the statecolours in the config dict are parsed (see below)
+        this.statecolours = this.setupColours(config.statecolours,config.num_colours); // Makes sure the statecolours in the config dict are parsed (see below)
         this.lims = {};
         this.scale = config.scale || 1;
         this.graph_update = config.graph_update || 20;
@@ -410,16 +410,18 @@ class Gridmodel {
     *                             | or {state:object} where objects are {val:'colour},
     *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
     */
-    setupColours(statecols) {
+    setupColours(statecols,num_colours=18) {
         let return_dict = {};
         if (statecols == null)           // If the user did not define statecols (yet)
             return return_dict
         let colours = dict_reverse(statecols) || { 'val': 1 };
 
-
         for (const [statekey, statedict] of Object.entries(colours)) {
             if (statedict == 'default') {
-                return_dict[statekey] = default_colours;                                 // Defined below
+                return_dict[statekey] = default_colours(num_colours+1);
+            }
+            else if (statedict == 'random') {
+                return_dict[statekey] = random_colours(num_colours+1,this.rng);
             }
             else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
             {
@@ -754,7 +756,8 @@ class Gridmodel {
         for (let n = range[0]; n <= range[1]; n++) {            
             let i = model.moore[n][0];
             let j = model.moore[n][1];
-            if (model.getGridpoint(col + i, row + j)[property]==val) count++;
+            let neigh = model.getGridpoint(col + i, row + j);
+            if (neigh !== undefined && neigh[property]==val) count++;
         }
         return count;
     }
@@ -1244,29 +1247,52 @@ function parseColours(cols) {
 }
 
 /** 
+ *  Compile a dict of default colours if nothing is given by the user. Reuses colours if more colours are needed. 
+*/
+let default_colours = function(num_colours)
+{
+    let colour_dict = [
+        [0, 0, 0],            // black
+        [255, 255, 255],      // white
+        [255, 0, 0],          // red
+        [0, 0, 255],          // blue
+        [0, 255, 0],          //green      
+        [60, 60, 60],         //darkgrey    
+        [180, 180, 180],      //lightgrey   
+        [148, 0, 211],      //violet      
+        [64, 224, 208],     //turquoise   
+        [255, 165, 0],      //orange       
+        [240, 200, 0],       //gold       
+        [125, 125, 125],
+        [255, 255, 0], // yellow
+        [0, 255, 255], // cyan
+        [192, 192, 192], // silver
+        [0, 128, 0], //darkgreen
+        [128, 128, 0], // olive
+        [0, 128, 128], // teal
+        [0, 0, 128]]; // navy
+
+    let return_dict = {};
+    for(let i = 0; i < num_colours; i++)
+    {
+        return_dict[i] = colour_dict[i%19];
+    }
+    return return_dict
+};
+
+
+/** 
  *  A list of default colours if nothing is given by the user. 
 */
-let default_colours = {
-    0: [0, 0, 0],            // black
-    1: [255, 255, 255],      // white
-    2: [255, 0, 0],          // red
-    3: [0, 0, 255],          // blue
-    4: [0, 255, 0],          //green      
-    5: [60, 60, 60],         //darkgrey    
-    6: [180, 180, 180],      //lightgrey   
-    7: [148, 0, 211],      //violet      
-    8: [64, 224, 208],     //turquoise   
-    9: [255, 165, 0],      //orange       
-    10: [240, 200, 0],       //gold       
-    11: [125, 125, 125],
-    12: [255, 255, 0], // yellow
-    13: [0, 255, 255], // cyan
-    14: [192, 192, 192], // silver
-    15: [0, 128, 0], //darkgreen
-    16: [128, 128, 0], // olive
-    17: [0, 128, 128], // teal
-    18: [0, 0, 128]
-}; // navy
+let random_colours = function(num_colours,rng)
+{
+    let return_dict = {};
+    for(let i = 0; i < num_colours; i++)
+    {
+        return_dict[i] = [rng.genrand_int(0,255),rng.genrand_int(0,255),rng.genrand_int(0,255)];
+    }
+    return return_dict
+};
 
 /**
  *  Canvas is a wrapper-class for a HTML-canvas element. It is linked to a @Gridmodel object, and stores what from that @Gridmodel should be displayed (width, height, property, scale, etc.)
@@ -1367,7 +1393,12 @@ class Canvas {
     add_legend(div,property)
     {
         if (typeof document == "undefined") return
-        let statecols = this.gridmodel.statecolours[property];            
+        let statecols = this.gridmodel.statecolours[property];
+        if(statecols == undefined){
+            console.log(`Warning: no colours setup for canvs "${this.label}"`);
+            return
+        } 
+                    
         this.legend = document.createElement("canvas");
         this.legend.className = "legend";
         this.legend.width = this.width*this.scale;
@@ -1418,30 +1449,35 @@ class Canvas {
             div.appendChild(this.legend);
         }
         else{                     
-            let total_num_values = Object.keys(statecols).length;
+            let keys = Object.keys(statecols);
+            let total_num_values = keys.length;
             let spacing = 0.8;
             if(total_num_values < 8) spacing = 0.6;
             if(total_num_values < 4) spacing = 0.2;
+            
             let bar_width = this.width*this.scale*spacing;   
-            let offset = 0.5*(1-spacing)*this.legend.width;  
+            let offset = 0.5*(1-spacing)*this.legend.width;
+            let step_size = Math.ceil(bar_width / (total_num_values-1));
 
-            let step_size = Math.ceil(bar_width / total_num_values);
-                        
-            for(let i=0;i<=total_num_values;i++)
-            {                       
+            if(total_num_values==1){
+                step_size=0;
+                offset = 0.5*this.legend.width;
+            } 
+            
+            for(let i=0;i<total_num_values;i++)
+            {                                       
                 let pos = offset+Math.floor(i*step_size);
-                ctx.beginPath();
-                
+                ctx.beginPath();                
                 ctx.strokeStyle = "#000000";
-                if(statecols[i] == undefined) ctx.fillStyle = this.bgcolor;
-                else if(i>0) ctx.fillStyle = rgbToHex$1(statecols[i]);
-                else rgbToHex$1(this.bgcolor);
+                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;
+                else if(keys[i]>0) ctx.fillStyle = rgbToHex$1(statecols[keys[i]]);
+                else ctx.fillStyle = this.bgcolor;
                 ctx.fillRect(pos-4, 10, 10, 10);
                 ctx.closePath();
                 ctx.font = '12px helvetica';
                 ctx.fillStyle = "#000000";
                 ctx.textAlign = "center";
-                ctx.fillText(i, pos, 35);
+                ctx.fillText(keys[i], pos, 35);
             }
             div.appendChild(this.legend);
         }
@@ -1650,7 +1686,7 @@ class Simulation {
 
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/cacatoo/images/elephant_cacatoo_small.png"></a>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/cacatoo/images/gh.png"></a></img>`;
-            if (document.getElementById("header") != null) document.getElementById("header").innerHTML = `<h2>Cacatoo - ${this.config.title}</h2><font size=2>${this.config.description}</font size>`;
+            if (document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore individual-based models straight from your webbrowser. It is still in development. Feedback <a href=\"https://www.bramvandijk.com/contact\">very welcome.</a></h2>";
             let simStartTime = performance.now();
 

@@ -1,20 +1,25 @@
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   background-color: #cccccc;
-  margin:20px;
+  margin:10px;
+  font-size:13px;
   }
   
   /* Style the header */
   .header {
-      background-color: rgb(111, 146, 170);;
+      background-color: rgb(111, 146, 170);
+      display:block;
       border: 0px solid #FFFFFF;
       box-shadow: 3px 1px 0px #24242444;
       border-radius: 15px 15px 0px 0px;
-      padding: 5px;
+      padding: 10px;
       text-align: center;
       font-size: 20px;
+      font-weight:900;
       color:#ffffff;
   }
+
+
   .logos{
     z-index: -1;
     vertical-align:middle;    
@@ -27,13 +32,16 @@ body {
     width: 180px;
     height: 202px;
     background-color: rgb(111, 146, 170);
+    box-shadow: rgba(100, 100, 111, 0.1) 20px 7px 29px 0px;
+    /* font-weight: bold; */
     color:#FFFFFF;
-    font-size:15px;        
+    font-size:13px;        
     margin: 15px;    
     padding-top: 5px;
     border: 2px solid #FFFFFF;
     border-radius: 10px 0px 10px 0px;
-    display:inline-block;    
+    display:inline-block;   
+    /*transition: all 100ms ease-out 200ms; */
   }
   .example_card_img{    
     width: 180px;
@@ -41,7 +49,21 @@ body {
     margin-top: 5px;
     border: 0px solid #FFFFFF;
     border-radius: 8px 0px 8px 0px;
+
   }
+  .example_card:hover{        
+    background-color: rgb(151, 183, 204);
+    /*color:#000000;*/
+    box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
+  }
+   .example_card:active{        
+    background-color: rgb(151, 183, 204);
+    font-size:11px;
+    padding-top:8px;
+    color: rgb(207, 223, 233);;
+    box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
+  }
+  
   
   /* Content (grid, graphs, sliders) */
   .content {
