@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    
+
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+    <script>
+
+        /*-----------------------Start user-defined code ---------------------*/
+    
+        let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+    
+        /**
+        * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+        */
+        function cacatoo() {
+            /*
+                1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+            */
+            let config =
+            {
+                title: "Predator prey model",                 // The name of your cacatoo-simulation
+                description: "Yellow are prey. Red are predators. Black is empty.",         // And a description if you wish
+                maxtime: 1000000,                             // How many time steps the model continues to run            
+                ncol: 150,                                   // Number of columns (width of your grid)
+                nrow: 150,		                              // Number of rows (height of your grid)
+                wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
+                scale: 3,				                      // Scale of the grid (nxn pixels per grid point)
+                statecolours: { 'species': { 1: "gold", 2: [255, 0, 96] } },          // Colours for each state. Background (0) defaults to black. 
+            }
+    
+            /*
+                1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+            */
+            sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+            sim.makeGridmodel("predprey")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
+            sim.initialGrid(sim.predprey, 'species', 1, 0.2, 2, 0.2)                // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
+            sim.createDisplay("predprey", "species", "")                      // Create a display so we can see our newly made gridmodel
+    
+            /*
+                2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+            */
+    
+            sim.predprey.nextState = function (i, j) {
+                let randomneigh = this.randomMoore8(this, i, j).species   // Random neighbour
+    
+                if (this.grid[i][j].species == 0)                        // If empty
+                {
+                    if (randomneigh == 1 && this.rng.genrand_real1() < 0.5)
+                        this.grid[i][j].species = 1                     // 1 (prey) reproduces
+                }
+                else if (this.grid[i][j].species == 1)                   // If prey
+                {
+                    if (randomneigh == 2 && this.rng.genrand_real1() < 0.3)
+                        this.grid[i][j].species = 2                     // 2 (pred) reproduces
+                }
+    
+                if (this.rng.genrand_real1() < 0.05)
+                    this.grid[i][j].species = 0                         // death
+            }
+    
+            /*
+                3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+                applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+            */
+            sim.predprey.update = function () {
+                this.synchronous()         // Applied as many times as it can in 1/60th of a second
+                this.plotPopsizes('species', [1, 2])
+            }
+    
+            /*
+                OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+            */
+            sim.addHTML("form_holder","<br><br><br><br><br><br>")
+            sim.addButton("Play/pause sim", function () { sim.toggle_play() })
+            sim.addHTML("form_holder","<br>")
+            sim.addButton("Disable/enable mix", function () { sim.toggle_mix() })
+            sim.addHTML("form_holder","<br>")
+            sim.addButton("Kill prey", function () { sim.my_custom_killprey_function() })
+            sim.my_custom_killprey_function = function () {
+                for (let i = 0; i < sim.predprey.nc; i++) for (let j = 0; j < sim.predprey.nr; j++) {
+                    if (sim.predprey.grid[i][j].species == 1 && this.rng.genrand_real1() < 0.9)
+                        sim.predprey.grid[i][j].species = 0
+                }
+            }
+            sim.start()
+    
+        }
+    
+    
+        /*-------------------------End user-defined code ---------------------*/
+    
+    </script>
+    
+</head>
+
+<body onload="cacatoo()">        
+    
+
+<div id="main">
+
+    
+
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Cooperating with your neighbours</b> </img></h1>
+    
+    Why do individuals cooperate? Let’s take a simple example where there are two kinds of individuals in a population: one cooperative (green) and one less cooperative (violet). 
+    Over time, the population will grow to colonise all of the available space. In order to claim a free spot on the grid, individuals require help. Of course, getting help from 
+    a cooperative (green) individual is much better than being helped by a less cooperative individual (violet). The non-cooperatives can get help from the cooperative individuals,
+     and never waste valuable reproduction opportunities by replicating someone else. However, when left by their own devices, they are very bad at replicating.
+      Who will win, and why? Let's find out!
+    
+    <center>
+    <table>
+        <tr>
+            <td style="padding:20px">    <div id="canvas_holder"></div>
+            </td>
+            <td>    <div id="form_holder"></div>
+            </td>
+            <td> <br><br><br><br> </div>
+            </div>
+            </td>
+        </tr>
+    </table>
+    <div id="graph_holder">
+</center>
+    <br><br>
+   
+</div>
+
+<nav>
+    <h2>  <a href="index.html"><b>Home</b></a></h2>
+    </h2><h3>More examples</h3>
+    <ul>
+        <li><a href="overview.html">Petridish</a></li>
+        <li><a href="overview.html">Cooperation</a></li>
+        <li><a href="first_project.html">Host-TE coevolution</a></li>
+        </ul>
+    </h2><h3>Getting started</h3>
+    <ul>
+        <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
+        <li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>
+                        <li><a href="colony_growth.html">Tutorial 3: Attaching ODEs to grid points</a></li>
+        <!--<li><a href="#">Video tutorial: Using your own classes (OOP)</a></li>-->
+
+    </ul>
+    </h2><h3>Classes</h3>
+        <ul>
+            <li><a href="Canvas.html">Canvas</a></li>
+            <li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB$1">stringToRGB$1</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 28 2021 15:33:33 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

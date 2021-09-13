@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    
+
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+
+    <script>
+
+        // First, we define a few 'variables', which we can use to ajust the model later
+        
+        var sim;                            // This 'global' variable will hold the entire simulation
+        var helper_rate_cooperator = 0.5    // Determines how much help a 'cooperative' individual gives to its neighbours
+        var helper_rate_cheater = 0.01      // Determines how much help a 'cheating' individual gives to its neighbours
+        var death = 0.05                    // Determines how often an individual spontaneously dies, making a new spot available
+        var movement = 1              // Determines how much individuals 'move around'
+        
+        /**
+        * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+        */
+        function cacatoo() {
+            /*
+                1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+            */
+            let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
+                title: "Cooperating with your neighbours",
+                description: "<center><div style=\"width:60%\"><img src=\"../../images/coop.png\" width=900><b><br><br>Why do individuals cooperate? Let’s take the example where there are two kinds of individuals "+
+                             "in a population: one cooperative (green) and one less cooperative (violet). Over time, the "+
+                             "population will grow to colonise all of the available space. In order to claim a free spot on "+
+                             "the grid, individuals require help. Of course, getting help from a cooperative (green) individual "+
+                             "is much better than being helped by a less cooperative individual (violet). The non-cooperatives can "+
+                             "get help from the cooperative individuals, and never waste valuable reproduction opportunities by "+
+                             "replicating someone else. However, when left by their own devices, they are very bad at replicating. "+
+                             "Who will win, and why? Let's find out!</b><br><br></div></center>",
+                maxtime: 1000000,
+                ncol: 200,
+                nrow: 100,		                                            // dimensions of the grid to build
+                seed: 56,
+                fps: 60,                                                   // Note: FPS can only be set in fastmode
+                fastmode: true,
+                throttlefps: false,                                        // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
+                wrap: [false, false],                                        // Wrap boundary [COLS, ROWS]
+                scale: 3,				                                    // scale of the grid (nxn pixels per grid point)            
+                graph_interval: 5,
+                graph_update: 20,
+                statecolours: { 'alive': { 1: 'white' }}
+            }
+        
+            /*
+                1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+            */
+            sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
+        
+            sim.makeGridmodel("coop")                                        // Make a new gridmodel named cheater
+        
+            sim.initialise = function()
+            {
+                let init_individuals = [{alive:1, helping_rate: helper_rate_cooperator},
+                                    {alive:1,helping_rate:  helper_rate_cheater}]                            
+                sim.populateSpot(sim.coop, init_individuals, [0.5,0.5], 100, config.ncol/2, config.nrow/2)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
+                sim.display()
+            }
+        
+            sim.coop.colourGradient('helping_rate', 100, [103, 64, 181], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])
+            sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
+                                multiplier:120, maxval:100})
+            sim.coop.canvases["Cooperation"].legend.style.display = "none"  // Hack to remove the legend :)
+            /**
+            * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
+            */
+            sim.coop.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+            {
+                // let pA, pB, pC, psum             
+                if (!this.grid[i][j].alive)                                                   // If there is no living cell here
+                {
+                    let neighbours = this.getMoore8(this, i, j,'alive',1)
+                    let winner = this.rouletteWheel(neighbours, 'fitness', 2.0)
+                    if (winner != undefined)
+                    {
+                        this.grid[i][j].alive = winner.alive
+                        this.grid[i][j].helping_rate = winner.helping_rate
+                    }
+                }
+        
+                if (this.rng.random() < death){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
+                    this.grid[i][j].alive = 0
+                    this.grid[i][j].helping_rate = 0
+                    this.grid[i][j].fitness = 0
+                }
+            }
+        
+            calculatefitness = function(i,j)
+            {
+               sim.coop.grid[i][j].fitness = sim.coop.sumMoore8(sim.coop, i, j, "helping_rate")
+            }
+        
+            /** 
+            * Define your update-function here: stuff that is applied to the entire grid every timestep. E.g. apply the next-state, diffuse stuff, mix individuals, show graphs, etc. 
+            */
+            sim.coop.update = function () {
+                this.apply_sync(calculatefitness)
+                this.synchronous()                                              // Update all grid points based on the next-state function (defined above)
+                for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
+                this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
+                
+            }
+        
+            /**
+            * OPTIONAL: add some graphs to show how your model progresses. Cacatoo currently supports three graph types, all of which are illustrated in this example
+            */
+            sim.coop.updateGraphs = function () {
+                // Let's count some stuff every update
+                let sumhelping = sumalive = sumcheater = sumcoop = 0
+                
+                for (let i = 0; i < this.nc; i++)          // i are columns
+                    for (let j = 0; j < this.nr; j++)      // j are rows
+                    {
+                        if (this.grid[i][j].alive == 1) {
+                            sumhelping += this.grid[i][j].helping_rate                
+                            sumalive ++
+                            if(this.grid[i][j].helping_rate == helper_rate_cooperator) sumcoop++
+                            if(this.grid[i][j].helping_rate == helper_rate_cheater) sumcheater++
+                        }
+                    }
+        
+                // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
+                                
+                this.plotArray(["population size", "#cheaters", "#cooperators"], [sumalive,sumcheater,sumcoop], ["black","#5f3ba6","#3dab78"], "Population sizes")
+               
+            }
+            sim.coop.bottleneck = function()
+            {
+                console.log(sim)        
+                for (let i = 0; i < this.nc; i++) {
+                    for (let j = 0; j < this.nr; j++) {
+                        if(this.rng.genrand_real1() < 0.95){
+                            this.grid[i][j].alive = 0
+                            this.grid[i][j].helping_rate = 0
+                        }
+                    }
+                }
+            }
+            /**
+            * OPTIONAL: add some buttons and sliders so you can play with your model easily
+            */
+            sim.addButton("Play / Pause", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"     
+            sim.addButton("Well mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+            sim.addButton("Catastrophe!", function () {sim.coop.bottleneck() })
+            sim.addButton("Restart", function () {sim.initialise() })
+            sim.addSlider("movement", 0,10,1, "Movement rate")    
+            sim.addSlider("death", 0.005, 1.00, 0.001, "Death rate")
+        
+            sim.initialise()
+            sim.start()
+
+            
+        }
+        </script>
+</head>
+
+<body onload="cacatoo()">        
+    
+
+<div id="main">
+
+    
+
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Cooperating with your neighbours</b> </img></h1>
+    
+    Why do individuals cooperate? Let’s take a simple example where there are two kinds of individuals in a population: one cooperative (green) and one less cooperative (violet). 
+    Over time, the population will grow to colonise all of the available space. In order to claim a free spot on the grid, individuals require help. Of course, getting help from 
+    a cooperative (green) individual is much better than being helped by a less cooperative individual (violet). The non-cooperatives can get help from the cooperative individuals,
+     and never waste valuable reproduction opportunities by replicating someone else. However, when left by their own devices, they are very bad at replicating.
+      Who will win, and why? Let's find out!
+    
+    <center>
+    <table>
+        <tr>
+            <td style="padding:20px">    <div id="canvas_holder"></div>
+            </td>
+            <td>    <div id="form_holder"></div>
+            </td>
+            <td> <br><br><br><br> </div>
+            </div>
+            </td>
+        </tr>
+    </table>
+    <div id="graph_holder">
+</center>
+    <br><br>
+   
+</div>
+
+<nav>
+    <h2>  <a href="index.html"><b>Home</b></a></h2>
+    </h2><h3>More examples</h3>
+    <ul>
+        <li><a href="overview.html">Petridish</a></li>
+        <li><a href="overview.html">Cooperation</a></li>
+        <li><a href="first_project.html">Host-TE coevolution</a></li>
+        </ul>
+    </h2><h3>Getting started</h3>
+    <ul>
+        <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
+        <li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>
+                        <li><a href="colony_growth.html">Tutorial 3: Attaching ODEs to grid points</a></li>
+        <!--<li><a href="#">Video tutorial: Using your own classes (OOP)</a></li>-->
+
+    </ul>
+    </h2><h3>Classes</h3>
+        <ul>
+            <li><a href="Canvas.html">Canvas</a></li>
+            <li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB$1">stringToRGB$1</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 28 2021 15:33:33 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

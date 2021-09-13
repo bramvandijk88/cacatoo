@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    
+
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+
+    
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim;
+    var mutationrate = 0.005;
+    var cell_diffusion = 0;
+    var mutations_required = 2;
+    function cacatoo() {
+
+        let config = {
+            title: "Petridish with local growth",
+            description: "(mutational rescue of elevated death rate)",
+            maxtime: 10000000,
+            fastmode: false,             // If possible, fast-mode will update the sim with more than 60 FPS. 
+            // Note: fastmode is only useful/recommended if the sim can readily run 
+            // at 60FPS without fast-mode, and may actually reduce the reported FPS
+            // Nevertheless, the final state of the grid is reaches sooner in real time. 
+            ncol: 200,
+            nrow: 200,		            // dimensions of the grid to build
+            wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
+            scale: 2,				    // scale of the grid (nxn pixels per grid cell)
+            graph_interval: 10,
+            graph_update: 20,
+            statecolours: { alive: 'default' },   // The background state '0' is never drawn
+            num_colours: 4
+        }
+
+        sim = new Simulation(config)
+
+        sim.makeGridmodel("cells");
+        sim.cells.statecolours.alive[0] = [255, 255, 255] // Change bg to white
+        sim.cells.statecolours.alive[1] = [79, 31, 154] // Change WT 1 to white
+        sim.cells.statecolours.alive[2] = [228, 178, 36] // Change mutant 1 to gold
+        sim.cells.statecolours.alive[3] = [32, 100, 100] // Change mutant 2 to dark-turquoise
+        sim.cells.statecolours.alive[3] = [100, 100, 255] // Change mutant 3 to light blue 
+        
+        sim.createDisplay("cells", "alive", "Colony growth (colours = #mutations)")
+        sim.makeGridmodel("cells_wellmixed");
+        sim.cells_wellmixed.statecolours = sim.cells.statecolours
+        sim.createDisplay("cells_wellmixed", "alive", "Well-mixed population (colours = #mutations)")
+
+        let birth_rate = 0.85        
+
+
+        sim.cells.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish
+        {
+
+            if (this.grid[i][j].alive == 0) {
+                let neighbour = this.randomMoore8(this, i, j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
+                if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate) {
+                    this.grid[i][j].alive = neighbour.alive
+                    if (sim.rng.genrand_real1() < mutationrate) this.grid[i][j].alive = (this.grid[i][j].alive + 1) % 19
+                }
+            }
+            else {
+                let death_rate = 0.1
+                if(this.grid[i][j].alive == 2) death_rate = 0.2
+                else if(this.grid[i][j].alive>2) death_rate = 0.0
+                if (this.grid[i][j].age < 10 && sim.rng.genrand_real1() < death_rate)
+                    this.grid[i][j].alive = 0
+                else
+                    this.grid[i][j].age++
+            }
+        }
+
+        sim.cells_wellmixed.nextState = sim.cells.nextState
+
+
+        sim.cells.update = function () {
+            this.synchronous()         // Applied as many times as it can in 1/60th of a second
+            this.plotPopsizes('alive', [1, 2, 3])
+        }
+        sim.cells.canvases["Colony growth (colours = #mutations)"].elem.className = "canvas-cacatoo-round"
+
+        sim.cells_wellmixed.update = function () {
+            this.synchronous()         // Applied as many times as it can in 1/60th of a second
+            this.plotPopsizes('alive', [1, 2, 3])
+            if(this.time<100)sim.cells_wellmixed.perfectMix()
+        }
+        sim.cells_wellmixed.canvases["Well-mixed population (colours = #mutations)"].elem.className = "canvas-cacatoo-round"  
+
+        sim.cells.reset = function () {
+            sim.initialSpot(sim.cells, 'alive', 1, 2, sim.cells.nr / 2, sim.cells.nc / 2)
+            sim.initialSpot(sim.cells_wellmixed, 'alive', 1, 2, sim.cells_wellmixed.nr / 2, sim.cells_wellmixed.nc / 2)
+            sim.initialGrid(sim.cells, 'age', 0, 1.0)
+            sim.initialGrid(sim.cells_wellmixed, 'age', 0, 1.0)
+        }
+
+        sim.cells.reset()
+
+        sim.cells.bottleneck = function () {
+            for (let i = 0; i < this.nc; i++)
+                for (let j = 0; j < this.nr; j++)
+                    if (this.rng.genrand_real1() < 0.999) this.grid[i][j].alive = 0
+        }
+        sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"
+        sim.addButton("mix once", function () { sim.cells.perfectMix() })            // Add a button that calls function "perfectMix" in "model.cheater"    
+        sim.addButton("well-mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addButton("bottleneck", function () { sim.cells.bottleneck() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addButton("reset", function () { sim.cells.reset() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+                
+
+        sim.start()
+    }
+
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+</head>
+
+<body onload="cacatoo()">        
+    
+
+<div id="main">
+
+    
+
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Mutational jackpot: crossing a fitness valley</b> </img></h1>
+    
+    Spatial structured populations primarily grow at the edge. In 2016, an interesting paper by Diana Fusco <i>et al.</i> has shown how spatial growth promotes the emergence of "jackpot mutations" -- mutant clones with
+    unexpectedly large abundance. Here, I illustrated how this effect enables a lineage to go through a fitness valley, where the first mutation (yellow) has an elevated death rate compared to the wild type (purple), and
+    the double-mutant (blue) has a lower death rate (death rates are 0.1, 0.2, and 0.0). Subsequent mutations (green) do not affect the death rate. 
+
+    <center>
+        <div id="canvas_holder"></div>
+        <div id="form_holder"></div>
+        <div id="graph_holder"></div>
+    
+</center>
+    
+
+    <br><br>
+   
+</div>
+
+<nav>
+    <h2>  <a href="index.html"><b>Home</b></a></h2>
+    </h2><h3>More examples</h3>
+    <ul>
+        <li><a href="overview.html">Petridish</a></li>
+        <li><a href="overview.html">Cooperation</a></li>
+        <li><a href="first_project.html">Host-TE coevolution</a></li>
+        </ul>
+    </h2><h3>Getting started</h3>
+    <ul>
+        <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
+        <li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>
+                        <li><a href="colony_growth.html">Tutorial 3: Attaching ODEs to grid points</a></li>
+        <!--<li><a href="#">Video tutorial: Using your own classes (OOP)</a></li>-->
+
+    </ul>
+    </h2><h3>Classes</h3>
+        <ul>
+            <li><a href="Canvas.html">Canvas</a></li>
+            <li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB$1">stringToRGB$1</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 28 2021 15:33:33 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

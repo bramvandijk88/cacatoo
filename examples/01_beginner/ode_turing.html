@@ -1,0 +1,144 @@
+<!-- 
+
+    EXAMPLE FILE Turing patterns
+
+    Another simple example of using ODEs coupled by diffusion, 
+    creating awesome Turing patterns! <3
+
+-->
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim;
+
+    function cacatoo() {
+
+        let config = {
+            title: "Turing patterns",
+            description: "Reaction-diffusion system with short-range activation and long-range inhibition",
+            maxtime: 100000,
+            fastmode: true,
+            ncol: 100,
+            nrow: 100,		            // dimensions of the grid to build
+            wrap: [true, true],         // Wrap boundary [COLS, ROWS]   
+            scale: 3,				    // scale of the grid (nxn pixels per grid cell
+            show_gridname: true,
+            graph_interval: 1,
+            graph_update: 5
+            // colourRamp extrapolates a spectrum of colours between the first and second RGB values
+        }
+
+        sim = new Simulation(config)
+
+        sim.makeGridmodel("turing")
+        sim.turing.colourViridis("activator", 100)
+        
+        sim.createDisplay_continuous({model:"turing", property:"activator", label:"Activator density", // Createa a display for a continuous variable (ODE state for external resources)
+                            minval:0, maxval:100}) 
+
+        // A self-replicating turing, which also produces a second molecule which inhibits the turing
+        let Turing = function (a, b, i, d) {
+            return function (x, y) {
+                return [
+                    a * y[0] - i * y[1] - d * y[0] * y[0],                        // y[0] is the activating molecule
+                    b * y[0] - i * y[1] - d * y[1] * y[1]                         // y[1] is the inhibiting molecule, which inhibits both but is produced by the activating molecule, 
+                ]
+            }
+        }
+
+        // Configuration object with initial states, parameters, and diffusion rates
+        let ode_config = {
+            ode_name: "turingeq",
+            init_states: [0, 0],    // y[0] and y[1]
+            parameters: [0.5, 0.5, 0.5, 0.05],               // a,b,i,d
+            diffusion_rates: [0.1, 0.2]
+        }              // resources diffuse through exteral environment, but internal resources stay put
+
+        // Attaches an ODE to all gridpoints with initial state = [0,0]. 
+        // By default, all ODEs are stored in an array in the grid point, but...
+        // If you want to access it by name, you can give a name as the final variable (here lotka)
+        sim.turing.attachODE(Turing, ode_config);
+
+        // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
+        for (let i = 0; i < sim.turing.nc; i++)
+            for (let j = 0; j < sim.turing.nr; j++)
+                sim.turing.grid[i][j].turingeq.state = [1 + sim.rng.genrand_real1(), 1]
+
+        // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
+        sim.turing.nextState = function (i, j)       // Define the next-state function. 
+        {
+            // 1) ODE integration
+            this.grid[i][j].turingeq.solve_timestep(1.0, opt_pos = true)
+
+            // 3) Update how this GP is displayed
+            let act = Math.max(0.001, this.grid[i][j].turingeq.state[0])       // Amount of prey (continuous variable)
+            let inh = Math.max(0.001, this.grid[i][j].turingeq.state[1])       // Amount of pred (continuous variable)
+            this.grid[i][j].activator = Math.min(Math.floor(act * 80), 99)
+        }
+
+        sim.turing.update = function () {
+            this.asynchronous()                              // For only solving the ODEs within grid points, asynchronous or synchronous is identical.
+            this.diffuseOdeStates()
+            let sumact = 0
+            let suminh = 0
+            let midact = 0
+            let midinh = 0
+
+            for (let i = 0; i < this.nc; i++)         // i are columns
+                for (let j = 0; j < this.nr; j++)     // j are rows
+                {
+                    sumact += this.grid[i][j].turingeq.state[0]
+                    suminh += this.grid[i][j].turingeq.state[1]
+                    if (i == this.nc / 2 && j == this.nr / 2) midact = this.grid[i][j].turingeq.state[0]
+                    if (i == this.nc / 2 && j == this.nr / 2) midinh = this.grid[i][j].turingeq.state[1]
+                }
+
+            this.plotArray(["Act", "Inh"],
+                [sumact, suminh],
+                ["gold", "#FF00AA"],
+                "Total act/inh abundance")
+            this.plotArray(["Act", "Inh"],
+                [midact, midinh],
+                ["gold", "#FF00AA"],
+                "ODE states in central grid point")
+            // if(this.time%10==0)
+            // {
+            //     let canvas = this.canvas.elem // Grab the canvas element
+            //     let timestamp = this.time.toString()
+            //     timestamp = timestamp.padStart(5, "0")
+            //     canvas.toBlob(function(blob) 
+            //     {
+            //         saveAs(blob, "my_slide"+timestamp+".png");
+            //     })
+            // }
+
+        }
+
+        sim.addButton("mix grid", function () { sim.turing.perfectMix() })
+        sim.start()
+
+
+    }
+
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header"></div>
+    <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="form_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>
