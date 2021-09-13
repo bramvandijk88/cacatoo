@@ -1,6 +1,7 @@
 @font-face {
     font-family: 'Open Sans';
     font-weight: normal;
+
     font-style: normal;
     src: url('../fonts/OpenSans-Regular-webfont.eot');
     src:
@@ -28,7 +29,7 @@ html
 {
     overflow: auto;
     background-color: #fff;
-    font-size: 14px;
+    font-size: 16px;
 }
 .grid-holder{
     display: inline-block;
@@ -58,6 +59,7 @@ body
     font-family: 'Open Sans', sans-serif;
     line-height: 1.7;
     color: #4d4e53;
+    width:90%;
     margin: 4%;
     background-color: white;
 }
@@ -82,7 +84,7 @@ tt, code, kbd, samp {
 }
 
 .class-description {
-    font-size: 130%;
+    font-size: 130%;    
     line-height: 140%;
     margin-bottom: 1em;
     margin-top: 1em;
@@ -94,7 +96,7 @@ tt, code, kbd, samp {
 
 #main {
     float: left;
-    width: 60%;
+    width: 75%;
 }
 
 article dl {
@@ -119,7 +121,7 @@ section
 }
 
 .signature-attributes {
-    font-size: 60%;
+    font-size: 100%;
     color: #aaa;
     font-style: italic;
     font-weight: lighter;
@@ -130,7 +132,7 @@ nav
     display: block;
     float: right;
     margin-top: 28px;
-    width: 30%;
+    width: 20%;
     box-sizing: border-box;
     border-left: 1px solid #ccc;
     padding-left: 16px;
@@ -146,13 +148,15 @@ nav ul {
 }
 
 nav ul a, nav ul a:visited, nav ul a:active {
-    font-family: Consolas, Monaco, 'Andale Mono', monospace;
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', arial, sans-serif;
     line-height: 18px;
-    color: #4D4E53;
+    color:rgb(144, 130, 214);
+    
 }
 
 nav h3 {
     margin-top: 12px;
+    font-weight:900;
 }
 
 nav li {
@@ -168,14 +172,14 @@ footer {
 }
 
 h1, h2, h3, h4 {
-    font-weight: 200;
+    font-weight: 900;
     margin: 0;
 }
 
 h1
 {
-    font-family: 'Open Sans Light', sans-serif;
     font-size: 48px;
+    font-weight:900;
     letter-spacing: -2px;
     margin: 12px 24px 20px;
 }
@@ -183,6 +187,7 @@ h1
 h2, h3.subsection-title
 {
     font-size: 30px;
+    font-weight:900;
     font-weight: 700;
     letter-spacing: -1px;
     margin-bottom: 12px;
