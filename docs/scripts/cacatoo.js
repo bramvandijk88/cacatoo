@@ -1730,7 +1730,7 @@ class Simulation {
             let simStartTime = performance.now();
 
             async function animate() {
-                if (model.pause == true) { cancelAnimationFrame(frame); }
+                
                 if (model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     
@@ -1741,11 +1741,14 @@ class Simulation {
                     while (t < 16.67 * 60 / model.fps)          //(t < 16.67) results in 60 fps if possible
                     {
                         let startTime = performance.now();
-                        model.step();
-                        model.events();
+                        if(!model.pause==true){
+                            model.step();
+                            model.events();
+                            model.time++;
+                        }
                         let endTime = performance.now();
                         t += (endTime - startTime);
-                        model.time++;
+                        
                         if (!model.limitfps) break
                     }
                     model.display();
@@ -1755,11 +1758,14 @@ class Simulation {
                 {
                     if (model.sleep > 0) await pause(model.sleep);
                     if(sim.fpsmeter) meter.tickStart();
-                    model.step();
-                    model.events();
+                    if (!model.pause == true) {
+                        model.step();
+                        model.events();
+                        model.time++;
+                    }
                     model.display();
                     if(sim.fpsmeter) meter.tick();
-                    model.time++;
+                    
                 }
 
                 let frame = requestAnimationFrame(animate);
@@ -1768,8 +1774,8 @@ class Simulation {
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
                     cancelAnimationFrame(frame);
                 }
-                
 
+                if (model.pause == true) { cancelAnimationFrame(frame); }
             }
 
             requestAnimationFrame(animate);
