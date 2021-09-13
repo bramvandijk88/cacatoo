@@ -38,10 +38,10 @@
                 title: "Predator prey model",                 // The name of your cacatoo-simulation
                 description: "Yellow are prey. Red are predators. Black is empty.",         // And a description if you wish
                 maxtime: 1000000,                             // How many time steps the model continues to run            
-                ncol: 150,                                   // Number of columns (width of your grid)
-                nrow: 150,		                              // Number of rows (height of your grid)
+                ncol: 200,                                   // Number of columns (width of your grid)
+                nrow: 200,		                              // Number of rows (height of your grid)
                 wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
-                scale: 3,				                      // Scale of the grid (nxn pixels per grid point)
+                scale: 2,				                      // Scale of the grid (nxn pixels per grid point)
                 statecolours: { 'species': { 1: "gold", 2: [255, 0, 96] } },          // Colours for each state. Background (0) defaults to black. 
             }
     
@@ -59,19 +59,19 @@
     
             sim.predprey.nextState = function (i, j) {
                 let randomneigh = this.randomMoore8(this, i, j).species   // Random neighbour
-    
+                let sumprey = this.countMoore8(this, i, j, 'species',1)   // Random neighbour
                 if (this.grid[i][j].species == 0)                        // If empty
                 {
-                    if (randomneigh == 1 && this.rng.genrand_real1() < 0.5)
+                    if (this.rng.genrand_real1() < 0.1*sumprey)
                         this.grid[i][j].species = 1                     // 1 (prey) reproduces
                 }
                 else if (this.grid[i][j].species == 1)                   // If prey
                 {
-                    if (randomneigh == 2 && this.rng.genrand_real1() < 0.3)
+                    if (randomneigh == 2 && this.rng.genrand_real1() < 0.7)
                         this.grid[i][j].species = 2                     // 2 (pred) reproduces
                 }
     
-                if (this.rng.genrand_real1() < 0.05)
+                if (this.rng.genrand_real1() < 0.04)
                     this.grid[i][j].species = 0                         // death
             }
     
@@ -117,13 +117,10 @@
 
     
 
-<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Cooperating with your neighbours</b> </img></h1>
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Predator-prey model</b> </img></h1>
     
-    Why do individuals cooperate? Let’s take a simple example where there are two kinds of individuals in a population: one cooperative (green) and one less cooperative (violet). 
-    Over time, the population will grow to colonise all of the available space. In order to claim a free spot on the grid, individuals require help. Of course, getting help from 
-    a cooperative (green) individual is much better than being helped by a less cooperative individual (violet). The non-cooperatives can get help from the cooperative individuals,
-     and never waste valuable reproduction opportunities by replicating someone else. However, when left by their own devices, they are very bad at replicating.
-      Who will win, and why? Let's find out!
+    One of the most famous models in ecology is probably the Lotka-Volterra predator-prey model. Below, prey (orange) can grow in available spots (black), and predators (red) can grow by replacing a nearbly prey. The dynamics are similar, yet not identitcal, 
+    to the dampened oscillations known from Lotka-Volterra equations.
     
     <center>
     <table>
