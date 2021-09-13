@@ -6,6 +6,12 @@
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
+    <script src="scripts/jquery.js"></script> 
+    <script> 
+        $(function(){
+            $("#Navigator").load("navigator.html"); 
+        });
+    </script> 
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -30,7 +36,9 @@
     
         <h2><span class="attribs"><span class="type-signature"></span></span>Gridmodel<span class="signature">(name, config, rng)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making them more like PDEs.</div>
+            <div class="class-description">Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
+ will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
+ them more like PDEs.</div>
         
     
 </header>
@@ -344,7 +352,9 @@
 
 
 <div class="description">
-    Like the synchronous function above, but can not take a custom user-defined function rather than the default next-state function. Technically one should be able to refarctor this by making the default function of synchronous "nextstate". But this works. :)
+    Like the synchronous function above, but can not take a custom user-defined function rather
+ than the default next-state function. Technically one should be able to refarctor this by making
+ the default function of synchronous "nextstate". But this works. :)
 </div>
 
 
@@ -432,7 +442,11 @@
 
 
 <div class="description">
-    Asynchronously apply the nextState function (defined by user) to the entire grid Asynchronous means that all grid points will be updated in a random order. For this first the update_order will be determined (this.set_update_order). Afterwards, the nextState will be applied in that order. This means that some cells may update while all their neighours  are still un-updated, and other cells will update while all their neighbours are already done.
+    Asynchronously apply the nextState function (defined by user) to the entire grid
+ Asynchronous means that all grid points will be updated in a random order. For this
+ first the update_order will be determined (this.set_update_order). Afterwards, the nextState
+ will be applied in that order. This means that some cells may update while all their neighours 
+ are still un-updated, and other cells will update while all their neighbours are already done.
 </div>
 
 
@@ -755,7 +769,8 @@
 
             
 
-            <td class="description last">How many colours the gradient consists offFor example usage, see colourViridis below</td>
+            <td class="description last">How many colours the gradient consists off
+For example usage, see colourViridis below</td>
         </tr>
 
     
@@ -1039,7 +1054,8 @@
 
 
 <div class="description">
-    Count the number of grid points in the Moore (8) neighbourhood which have a certain value (val) for a certain property.
+    Count the number of grid points in the Moore (8) neighbourhood which have
+ a certain value (val) for a certain property.
 </div>
 
 
@@ -1091,7 +1107,8 @@
 
             
 
-            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this),  but can be mixed to make grids interact.</td>
+            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+ but can be mixed to make grids interact.</td>
         </tr>
 
     
@@ -1183,7 +1200,11 @@
 
             
 
-            <td class="description last">the property that is counted For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js, one needs to look for value '3' in the property 'species': this.countMoore8(this,10,10,3,'species');</td>
+            <td class="description last">the property that is counted
+
+ For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js,
+ one needs to look for value '3' in the property 'species':
+ this.countMoore8(this,10,10,3,'species');</td>
         </tr>
 
     
@@ -1268,7 +1289,8 @@
 
 
 <div class="description">
-    Count the number of grid points in the Moore (9) neighbourhood which have a certain value (val) for a certain property.
+    Count the number of grid points in the Moore (9) neighbourhood which have
+ a certain value (val) for a certain property.
 </div>
 
 
@@ -1320,7 +1342,8 @@
 
             
 
-            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this),  but can be mixed to make grids interact.</td>
+            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+ but can be mixed to make grids interact.</td>
         </tr>
 
     
@@ -1412,7 +1435,11 @@
 
             
 
-            <td class="description last">the property that is counted For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js, one needs to look for value '3' in the property 'species': this.countMoore9(this,10,10,3,'species');</td>
+            <td class="description last">the property that is counted
+
+ For example, if one wants to count all the "cheater" surrounding a gridpoint in cheater.js,
+ one needs to look for value '3' in the property 'species':
+ this.countMoore9(this,10,10,3,'species');</td>
         </tr>
 
     
@@ -1497,7 +1524,9 @@
 
 
 <div class="description">
-    Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector),  which is then used to update the grid.
+    Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
+ states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
+ which is then used to update the grid.
 </div>
 
 
@@ -1585,7 +1614,8 @@
 
 
 <div class="description">
-    Get the gridpoint at coordinates i,j  Makes sure wrapping is applied if necessary
+    Get the gridpoint at coordinates i,j 
+ Makes sure wrapping is applied if necessary
 </div>
 
 
@@ -1745,7 +1775,8 @@
 
 
 <div class="description">
-    Get the x,y coordinates of a neighbour in an array.  Makes sure wrapping is applied if necessary
+    Get the x,y coordinates of a neighbour in an array. 
+ Makes sure wrapping is applied if necessary
 </div>
 
 
@@ -1993,7 +2024,10 @@
 
 
 <div class="description">
-    Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines" The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations, CCW in odd iterations)
+    Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines"
+ The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles
+ simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations,
+ CCW in odd iterations)
 </div>
 
 
@@ -2081,7 +2115,8 @@
 
 
 <div class="description">
-    The most important function in GridModel: how to determine the next state of a gridpoint?By default, nextState is empty. It should be defined by the user (see examples)
+    The most important function in GridModel: how to determine the next state of a gridpoint?
+By default, nextState is empty. It should be defined by the user (see examples)
 </div>
 
 
@@ -2241,7 +2276,9 @@
 
 
 <div class="description">
-    Assign each gridpoint a new random position on the grid. This simulated mixing, but does not guarantee a "well-mixed" system per se (interactions are still) calculated based on neighbourhoods.
+    Assign each gridpoint a new random position on the grid. This simulated mixing,
+ but does not guarantee a "well-mixed" system per se (interactions are still)
+ calculated based on neighbourhoods.
 </div>
 
 
@@ -3247,7 +3284,8 @@
 
             
 
-            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this),  but can be mixed to make grids interact.</td>
+            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+ but can be mixed to make grids interact.</td>
         </tr>
 
     
@@ -3430,7 +3468,8 @@
 
             
 
-            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this),  but can be mixed to make grids interact.</td>
+            <td class="description last">The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+ but can be mixed to make grids interact.</td>
         </tr>
 
     
@@ -3649,7 +3688,8 @@
 
 
 <div class="description">
-    Change the gridpoint at position i,j into gp Makes sure wrapping is applied if necessary
+    Change the gridpoint at position i,j into gp
+ Makes sure wrapping is applied if necessary
 </div>
 
 
@@ -3884,7 +3924,10 @@
 
             
 
-            <td class="description last">given object can be in two forms                            | either {state:colour} tuple (e.g. 'alive':'white', see gol.html)                             | or {state:object} where objects are {val:'colour},                            | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html</td>
+            <td class="description last">given object can be in two forms
+                            | either {state:colour} tuple (e.g. 'alive':'white', see gol.html) 
+                            | or {state:object} where objects are {val:'colour},
+                            | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html</td>
         </tr>
 
     
@@ -4143,7 +4186,11 @@
 
 
 <div class="description">
-    Synchronously apply the nextState function (defined by user) to the entire grid Synchronous means that all grid points will be updated simultaneously. This is ensured by making a back-up grid, which will serve as a reference to know the state in the previous time step. First all grid points are updated based on the back-up. Only then will the  actual grid be changed.
+    Synchronously apply the nextState function (defined by user) to the entire grid
+ Synchronous means that all grid points will be updated simultaneously. This is ensured
+ by making a back-up grid, which will serve as a reference to know the state in the previous
+ time step. First all grid points are updated based on the back-up. Only then will the 
+ actual grid be changed.
 </div>
 
 
@@ -4231,7 +4278,13 @@
 
 
 <div class="description">
-    The update is, like nextState, user-defined (hence, empty by default). It should contains all functions that one wants to apply every time step (e.g. grid manipulations and printing statistics)  For example, and update function could look like: this.synchronous()         // Update all cells   this.MargolusDiffusion()   // Apply Toffoli Margolus diffusion algorithm this.plotPopsizes('species',[1,2,3]) // Plot the population sizes
+    The update is, like nextState, user-defined (hence, empty by default).
+ It should contains all functions that one wants to apply every time step
+ (e.g. grid manipulations and printing statistics) 
+ For example, and update function could look like:
+ this.synchronous()         // Update all cells  
+ this.MargolusDiffusion()   // Apply Toffoli Margolus diffusion algorithm
+ this.plotPopsizes('species',[1,2,3]) // Plot the population sizes
 </div>
 
 
@@ -4319,10 +4372,8 @@
 
 
 </div>
+<div id="Navigator"></div>
 
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Canvas.html">Canvas</a></li><li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB$1">stringToRGB$1</a></li></ul>
-</nav>
 
 <br class="clear">
 

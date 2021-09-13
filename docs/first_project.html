@@ -11,7 +11,12 @@
     <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
-
+    <script src="scripts/jquery.js"></script> 
+    <script> 
+        $(function(){
+            $("#Navigator").load("navigator.html"); 
+        });
+    </script> 
     <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
     <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
 
@@ -366,23 +371,8 @@ sim.start()</font></code></pre></center>
 </div>
 
 
-    
+<div id="Navigator"></div>
 
-<nav>
-    <h2>  <a href="index.html"><b>Home</b></a></h2>
-    </h2><h3>Getting started</h3>
-    <ul>
-        <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
-        <li><a href="first_project.html">Tutorial 2: A predator-prey model</a></li>
-                        <li><a href="colony_growth.html">Tutorial 3: Attaching ODEs to grid points</a></li>
-        <!--<li><a href="#">Video tutorial: Using your own classes (OOP)</a></li>-->
-
-    </ul>
-    </h2><h3>Classes</h3>
-        <ul>
-            <li><a href="Canvas.html">Canvas</a></li>
-            <li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB$1">stringToRGB$1</a></li></ul>
-</nav>
 <br class="clear">
 
 <footer>
