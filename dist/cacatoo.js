@@ -1522,7 +1522,8 @@ class Simulation {
         this.graphs = [];                // All graphs
         this.time = 0;
         this.inbrowser = (typeof document !== "undefined");
-        this.fpsmeter = config.fpsmeter || true;
+        this.fpsmeter = true;
+        if(config.fpsmeter == false) this.fpsmeter = false;
     }
 
     /**
