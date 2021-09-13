@@ -413,7 +413,7 @@ class Gridmodel {
     setupColours(statecols,num_colours=18) {
         let return_dict = {};
         if (statecols == null)           // If the user did not define statecols (yet)
-            return return_dict
+            return return_dict["state"] = default_colours(num_colours)
         let colours = dict_reverse(statecols) || { 'val': 1 };
 
         for (const [statekey, statedict] of Object.entries(colours)) {
@@ -422,6 +422,14 @@ class Gridmodel {
             }
             else if (statedict == 'random') {
                 return_dict[statekey] = random_colours(num_colours+1,this.rng);
+            }
+            else if (statedict == 'viridis') {
+                 let colours = this.colourGradientArray(num_colours, 0,[68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37]); 
+                 return_dict[statekey] = colours;
+            }
+            else if (statedict == 'inferno') {
+                let colours = this.colourGradientArray(num_colours, 0,[20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]); 
+                return_dict[statekey] = colours;                
             }
             else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
             {
@@ -440,25 +448,21 @@ class Gridmodel {
     }
 
 
-    /** Initiate a gradient of colours for a property. 
+    /** Initiate a gradient of colours for a property (return array only) 
     * @param {string} property The name of the property to which the colour is assigned
     * @param {int} n How many colours the gradient consists off
     * For example usage, see colourViridis below
     */
-    colourGradient(property, n) {        
+    colourGradientArray(n,total) 
+    {        
+        let color_dict = {};
+        color_dict[0] = [0, 0, 0];
+
         let n_arrays = arguments.length - 2;
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
-
         let segment_len = n / (n_arrays-1);
         
-        let color_dict = this.statecolours[property];
-        let total = 0;
-        if (typeof color_dict != 'undefined')
-            total = Object.keys(this.statecolours[property]).length;
-        else
-            color_dict = {};
 
-        color_dict[0] = [0, 0, 0];
         for (let arr = 0; arr < n_arrays -1 ; arr++) {
             let arr1 = arguments[2 + arr];
             let arr2 = arguments[2 + arr + 1];
@@ -471,14 +475,36 @@ class Gridmodel {
                 else g = Math.floor(arr1[0] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)));
                 if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)));
                 else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)));
-
-                color_dict[Math.floor(i + arr * segment_len + total) + 1] = [r, g, b];
+                color_dict[Math.floor(i + arr * segment_len + total) + 1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
             }
-            // total += segment_len
-            
-        }
+        }        
+        return(color_dict)
+    }
+
+    /** Initiate a gradient of colours for a property. 
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * For example usage, see colourViridis below
+    */
+    colourGradient(property, n) {        
+        let offset = 2;        
+        let n_arrays = arguments.length - offset;
         
-        this.statecolours[property] = color_dict;
+        if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
+        
+        let color_dict = {};
+        let total = 0;
+
+        if(this.statecolours !== undefined && this.statecolours[property] !== undefined){
+            color_dict = this.statecolours[property];
+            total = Object.keys(this.statecolours[property]).length;
+        } 
+        
+        let all_arrays = [];
+        for (let arr = 0; arr < n_arrays ; arr++) all_arrays.push(arguments[offset + arr]);
+        
+        let new_dict = this.colourGradientArray(n,total,...all_arrays);
+        this.statecolours[property] = {...color_dict,...new_dict};
     }
 
     /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) or Inferno (black to orange to yellow)
@@ -1512,9 +1538,15 @@ class Simulation {
         this.config = config;
         this.rng = new MersenneTwister(config.seed || 53);
         this.sleep = config.sleep || 0;
-        this.fps = config.fps * 1.4 || 60;
-        this.limitfps = true;
-        if (config.limitfps == false) this.limitfps = false;
+        this.maxtime = config.maxtime || 1000000;
+        this.ncol = config.ncol || 100;
+        this.nrow = config.nrow || 100;
+        
+        this.scale = config.scale || 2;
+        this.maxtime = config.maxtime || 1000000;
+        this.graph_interval = config.graph_interval || 10;
+        this.graph_update = config.graph_update || 50;
+        this.fps = config.fps * 1.4 || 60;        
 
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = [];            // All gridmodels in this simulation
@@ -1524,6 +1556,8 @@ class Simulation {
         this.inbrowser = (typeof document !== "undefined");
         this.fpsmeter = true;
         if(config.fpsmeter == false) this.fpsmeter = false;
+
+
     }
 
     /**
@@ -1594,7 +1628,7 @@ class Simulation {
         let scale = config.scale || this[name].scale;
        
         
-        let maxval = config.maxval || 100;
+        let maxval = config.maxval || this.maxval || undefined;
         
         
         let minval = config.minval || 0;
@@ -1688,11 +1722,10 @@ class Simulation {
                 
             } 
 
-            document.title = `Cacatoo - ${this.config.title}`;
-
+            document.title = `Cacatoo - ${this.config.title}`;            
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/cacatoo/images/elephant_cacatoo_small.png"></a>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/cacatoo/images/gh.png"></a></img>`;
-            if (document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`;
+            if (this.config.noheader != true && document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>";
             let simStartTime = performance.now();
 
@@ -1720,6 +1753,7 @@ class Simulation {
                 }
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
+                    if (model.sleep > 0) await pause(model.sleep);
                     if(sim.fpsmeter) meter.tickStart();
                     model.step();
                     model.events();

@@ -19,9 +19,15 @@ class Simulation {
         this.config = config
         this.rng = new MersenneTwister(config.seed || 53);
         this.sleep = config.sleep || 0
-        this.fps = config.fps * 1.4 || 60
-        this.limitfps = true
-        if (config.limitfps == false) this.limitfps = false
+        this.maxtime = config.maxtime || 1000000
+        this.ncol = config.ncol || 100
+        this.nrow = config.nrow || 100
+        
+        this.scale = config.scale || 2
+        this.maxtime = config.maxtime || 1000000
+        this.graph_interval = config.graph_interval || 10
+        this.graph_update = config.graph_update || 50
+        this.fps = config.fps * 1.4 || 60        
 
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = []            // All gridmodels in this simulation
@@ -31,6 +37,8 @@ class Simulation {
         this.inbrowser = (typeof document !== "undefined")
         this.fpsmeter = true
         if(config.fpsmeter == false) this.fpsmeter = false
+
+
     }
 
     /**
@@ -101,7 +109,7 @@ class Simulation {
         let scale = config.scale || this[name].scale
        
         
-        let maxval = config.maxval || 100
+        let maxval = config.maxval || this.maxval || undefined
         
         
         let minval = config.minval || 0
@@ -195,11 +203,10 @@ class Simulation {
                 
             } 
 
-            document.title = `Cacatoo - ${this.config.title}`
-
+            document.title = `Cacatoo - ${this.config.title}`            
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/images/elephant_cacatoo_small.png"></a>`
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/images/gh.png"></a></img>`
-            if (document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`
+            if (this.config.noheader != true && document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>"
             let simStartTime = performance.now();
 
@@ -227,6 +234,7 @@ class Simulation {
                 }
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
+                    if (model.sleep > 0) await pause(model.sleep)
                     if(sim.fpsmeter) meter.tickStart()
                     model.step()
                     model.events();
