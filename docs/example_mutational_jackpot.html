@@ -99,7 +99,7 @@
         sim.cells_wellmixed.update = function () {
             this.synchronous()         // Applied as many times as it can in 1/60th of a second
             this.plotPopsizes('alive', [1, 2, 3])
-            if(this.time<100)sim.cells_wellmixed.perfectMix()
+            if(sim.time<100)sim.cells_wellmixed.perfectMix()
         }
         sim.cells_wellmixed.canvases["Well-mixed population (colours = #mutations)"].elem.className = "canvas-cacatoo-round"  
 
@@ -108,6 +108,7 @@
             sim.initialSpot(sim.cells_wellmixed, 'alive', 1, 2, sim.cells_wellmixed.nr / 2, sim.cells_wellmixed.nc / 2)
             sim.initialGrid(sim.cells, 'age', 0, 1.0)
             sim.initialGrid(sim.cells_wellmixed, 'age', 0, 1.0)
+            sim.time = 0
         }
 
         sim.cells.reset()
