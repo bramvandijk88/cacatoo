@@ -31,9 +31,9 @@ fix_libs() {
     sed -i 's/..\/..\/style\/cacatoo.css/https:\/\/bramvandijk88.github.io\/cacatoo\/styles\/cacatoo.css/g' $1
 }
 
-cp examples/03_expert/PoS_classes.js docs/TEs_streamlining/
-cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
-fix_libs docs/TEs_streamlining/index.html
+#cp examples/03_expert/PoS_classes.js docs/TEs_streamlining/
+#cp examples/03_expert/11_classes_PoS_TEs.html docs/TEs_streamlining/index.html
+#fix_libs docs/TEs_streamlining/index.html
 
 cp examples/04_even_more_examples/crossfeeding.html docs/crossfeeding.html
 fix_libs docs/crossfeeding.html
