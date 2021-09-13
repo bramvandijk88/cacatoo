@@ -106,11 +106,11 @@ function cacatoo() {
     * Define your update-function here: stuff that is applied to the entire grid every timestep. E.g. apply the next-state, diffuse stuff, mix individuals, show graphs, etc. 
     */
     sim.coop.update = function () {
-        // this.apply_sync(calculatefitness)
+        this.apply_sync(calculatefitness)
         this.synchronous()                                              // Update all grid points based on the next-state function (defined above)
         for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
         this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
-        this.apply_sync(calculatefitness)
+        
     }
 
     /**

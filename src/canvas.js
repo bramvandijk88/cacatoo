@@ -30,8 +30,8 @@ class Canvas {
             this.canvasdiv = document.createElement("div")
             this.canvasdiv.className = "grid-holder"
             
-
-            this.elem.className = "grid-holder"
+            
+            this.elem.className = "canvas-cacatoo"
             this.elem.width = this.width * this.scale
             this.elem.height = this.height * this.scale
             this.canvasdiv.appendChild(this.elem)

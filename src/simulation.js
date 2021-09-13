@@ -29,6 +29,7 @@ class Simulation {
         this.graphs = []                // All graphs
         this.time = 0
         this.inbrowser = (typeof document !== "undefined")
+        this.fpsmeter = config.fpsmeter | true
     }
 
     /**
@@ -186,23 +187,28 @@ class Simulation {
      */
     start() {
         let model = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
+        let meter = undefined
         if (this.inbrowser) {
-            let meter = new FPSMeter({ show: 'ms', left: "auto", top: "45px", right: "50px", graph: 1, history: 20, smoothing: 30 });
+            if(this.fpsmeter){               
+                meter = new FPSMeter({ position: 'absolute', show: 'ms', left: "auto", top: "45px", right: "25px", graph: 1, history: 20, smoothing: 100});                
+                
+            } 
 
             document.title = `Cacatoo - ${this.config.title}`
 
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/images/elephant_cacatoo_small.png"></a>`
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/images/gh.png"></a></img>`
             if (document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore individual-based models straight from your webbrowser. It is still in development. Feedback <a href=\"https://www.bramvandijk.com/contact\">very welcome.</a></h2>"
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>"
             let simStartTime = performance.now();
 
             async function animate() {
                 if (model.pause == true) { cancelAnimationFrame(frame) }
                 if (model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
+                    
                     if (model.sleep > 0) await pause(model.sleep)
-
+                    if(sim.fpsmeter) meter.tickStart()
                     let t = 0;              // Will track cumulative time per step in microseconds 
 
                     while (t < 16.67 * 60 / model.fps)          //(t < 16.67) results in 60 fps if possible
@@ -216,15 +222,15 @@ class Simulation {
                         if (!model.limitfps) break
                     }
                     model.display()
-                    meter.tick()
+                    if(sim.fpsmeter) meter.tick()
                 }
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
-                    meter.tickStart()
+                    if(sim.fpsmeter) meter.tickStart()
                     model.step()
                     model.events();
                     model.display()
-                    meter.tick()
+                    if(sim.fpsmeter) meter.tick()
                     model.time++
                 }
 
@@ -670,4 +676,3 @@ function parseColours(cols) {
     }
     return return_cols
 }
-

@@ -174,7 +174,7 @@ are not seeing anything happening, even though you expect something, try opening
 In the next bit of code, a global variable "sim" is declared, and a new function is created called "cacatoo":
 
 <center>
-<pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+<pre><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
 
 function cacatoo()
 {
@@ -186,7 +186,7 @@ The function named "cacatoo" will contain everything Cacatoo needs to know to st
 
 <center><div style="text-align:left;background-color:#EEEEEE;border:1px solid #888888; width: 80%">
  <font color="blue" size=2>
-<xmp><font size =2><body onload="cacatoo()">   
+<xmp> <body onload="cacatoo()">   
 </xmp></font></div></center>
 <br>
 Inside this main Cacatoo-function, the code is made up of three main blocks (corresponding to the three steps given in the introductionary tutorial):
@@ -207,7 +207,7 @@ Inside this main Cacatoo-function, the code is made up of three main blocks (cor
 
 First, let's modify the setup-code so that our model has a name, and a grid-size/colours corresponding to the predator-prey example we decided to recreate:
 
-<center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">let config = 
+<center><pre><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">let config = 
 {                                        
     title: "Predator prey model",                 // The name of your cacatoo-simulation
     description: "My first model",                // And a description if you wish
@@ -223,7 +223,7 @@ First, let's modify the setup-code so that our model has a name, and a grid-size
 
 Next, let's initialise the simulation, make a new GridModel inside that simulation, and initialise the grid with a small fraction of predators and preys:
 
-<center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+<center><pre><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">sim = new Simulation(config)                          // Initialise the Cacatoo simulation
 sim.makeGridmodel("model")                            // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
 sim.initialGrid(sim.model, 'species', 1, 0.2, 2, 0.2) // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
 sim.createDisplay("model","species","")                 // Create a display so we can see our newly made gridmodel  </font></code></pre></center>
@@ -242,7 +242,7 @@ sim.createDisplay("model","species","")                 // Create a display so w
 
     Let's define our nextState function, which will decide how every grid point gets updated. For now, this piece of the code looks like this:<br>
 
-    <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.model.nextState = function(i,j)                   
+    <center><pre><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">sim.model.nextState = function(i,j)                   
 {   
     // Empty
 } </font></code></pre></center> 
@@ -265,8 +265,8 @@ sim.createDisplay("model","species","")                 // Create a display so w
     To implement the above rules, I use two functions that are already present in Cacatoo: "randomMoore8" and "genrand_real1" (generate a pseudorandom number). 
     The former is used to sample a random grid point from the "Moore" neighbourhood (8 adjacent grid points). This we can use to check if there are predators or prey around, and it also creates a density dependence as it will 
     naturally have a higher chance to sample an individual when there are more individuals around! The second function simply generates a random number to put some stochasticity on the birth and death events. Here's the code I came up with:
-
-    <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.model.nextState = function(i,j)                   
+    
+    <center><pre><code style="text-align:left;width:78%"><font size=2 color="blue" style="font-family: monospace;">sim.model.nextState = function(i,j)                   
 {   
     let randomneigh = this.randomMoore8(this,i,j).species   // Random neighbour
     
@@ -294,7 +294,7 @@ sim.createDisplay("model","species","")                 // Create a display so w
 
    <br><br>At this point you may wonder why the code already works, considering we haven't yet done step 3? Well, the main simulation loop in the default (empty) project actually already contains a synchronous update function:
    
-   <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.model.update = function()
+   <center><pre><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">sim.model.update = function()
 {                                
     this.synchronous()        
 }    </font></code></pre></center> 
@@ -321,7 +321,7 @@ sim.createDisplay("model","species","")                 // Create a display so w
     
     Maybe you want to be able to hit pause on your simulation, or hit a button enable mixing. Well, also that is easy with a few lines of code, which you can add before "sim.start()":
 
-    <center><pre><code style="text-align:left"><font size =2 color="blue" style="font-family: monospace;">sim.addButton("Play/pause sim",function() {sim.toggle_play()})
+    <center><pre><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">sim.addButton("Play/pause sim",function() {sim.toggle_play()})
 sim.addButton("Disable/enable mix",function() {sim.toggle_mix()})
 sim.addButton("Kill prey",function() {sim.my_custom_killprey_function()})
 sim.my_custom_killprey_function = function()

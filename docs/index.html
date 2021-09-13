@@ -110,14 +110,16 @@
         * OPTIONAL: add some buttons and sliders so you can play with your model easily
         */
         sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
+        sim.addHTML("form_holder","<br>")
         sim.addButton("mix once",function() { sim.cheaters.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
+        sim.addHTML("form_holder","<br>")
         sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        
         sim.addSlider("A2B")
         sim.addSlider("B2A")
         sim.addSlider("B2C")
         sim.addSlider("stay_empty",0.00,20.00,0.01)
-        sim.addSlider("death", 0.00, 1.00, 0.001)
-
+        sim.addSlider("death", 0.00, 1.00, 0.001)        
         sim.start()
     }
 
@@ -133,14 +135,14 @@
 
 <h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Home</b> </img></h1>
     
-    This page contains tutorials and the documentation for <a href="https://github.com/bramvandijk88/cacatoo">Cacatoo</a>, a javascript library to build simple IBMs. The simulation you see below
-    is fully interactive, making it much easier to play with and try different parameters. But perhaps most importantly, it
-    is super easy to make yourself! To get started, use the menu on the right-hand side to navigate through the manual.<br><br> 
+    This page contains tutorials and the documentation for <a href="https://github.com/bramvandijk88/cacatoo">Cacatoo</a>, a javascript library that makes building spatially structured models of biology easy! The simulation you see below
+    is fully interactive, making it much easier to play with and try different parameters. After you've read through this manual, you'll have no issue starting to build simple models yourself. 
+    To get started, use the menu on the right-hand side to see more examples, and navigate through the manual.<br><br> 
     
     <center>
     <table>
         <tr>
-            <td>    <div id="canvas_holder"></div>
+            <td style="padding:20px">    <div id="canvas_holder"></div>
             </td>
             <td>    <div id="form_holder"></div>
             </td>
@@ -157,6 +159,12 @@
 
 <nav>
     <h2>  <a href="index.html"><b>Home</b></a></h2>
+    </h2><h3>More examples</h3>
+    <ul>
+        <li><a href="overview.html">Petridish</a></li>
+        <li><a href="overview.html">Cooperation</a></li>
+        <li><a href="first_project.html">Host-TE coevolution</a></li>
+        </ul>
     </h2><h3>Getting started</h3>
     <ul>
         <li><a href="overview.html">Tutorial 1: Cacatoo overview</a></li>
