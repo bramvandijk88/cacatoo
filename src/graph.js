@@ -19,7 +19,7 @@ class Graph {
         this.title = title
         this.num_dps = this.labels.length // number of data points for this graphs        
         this.elem = document.createElement("div")
-        this.elem.className = "graph-holder"
+        this.elem.className = "graph-holder"      
         this.colours = []
         for (let v of colours) {
             if (v == "Time") continue            

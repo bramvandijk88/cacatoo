@@ -799,7 +799,7 @@ class Gridmodel {
      *  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
      *  which is then used to update the grid.
      */
-    diffuseOdeStates() {
+     diffuseODEstates() {
         let newstates_2 = CopyGridODEs(this.nc, this.nr, this.grid);    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state-vector)    
 
         for (let i = 0; i < this.nc; i += 1) // every column

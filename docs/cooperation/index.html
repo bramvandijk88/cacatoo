@@ -65,7 +65,7 @@ function cacatoo() {
     {
         let init_individuals = [{alive:1, helping_rate: helper_rate_cooperator},
                             {alive:1,helping_rate:  helper_rate_cheater}]                            
-        sim.populateSpot(sim.coop, init_individuals, [0.5,0.5], 100, config.ncol/2, config.nrow/2)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
+        sim.populateSpot(sim.coop, init_individuals, [0.5,0.5], 100, config.ncol/2, config.nrow/2)         // cheaters and cooperators 50/50
         sim.display()
         sim.coop.resetPlots()
     }

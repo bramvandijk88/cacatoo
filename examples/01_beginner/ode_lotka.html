@@ -100,7 +100,7 @@
 
         sim.lotka.update = function () {
             this.asynchronous()  // For only solving the ODEs within grid points, asynchronous or synchronous is identical.
-            this.diffuseOdeStates()
+            this.diffuseODEstates()
             this.plotArray(["Predators", "Preys"],
                 [sim.lotka.sumStates()[0], sim.lotka.sumStates()[1]],
                 ["gold", "#FF00AA"],

@@ -88,9 +88,9 @@
     
             sim.createDisplay_continuous({model:"TE_model", property:"genomesize", label:"Growing cells (colour=genome size)", minval:0, maxval:100, fill:"viridis"}) 
             sim.TE_model.colourGradient("T_in_genomes", 100, [255,0,0], [255, 255, 0])
-            sim.createDisplay_continuous({model:"TE_model", property:"T_in_genomes", label:"TEs inside genomes"}) 
+            sim.createDisplay_continuous({model:"TE_model", property:"T_in_genomes", label:"TEs inside genomes", maxval:100}) 
             sim.TE_model.colourGradient("T_in_eDNA", 100, [255,0,0], [255, 255, 0])
-            sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool"})             
+            sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool", maxval:100})             
     
             sim.TE_model.initialise = function () {
                 sim.initialGrid(sim.TE_model, "alive", 0, 1.0)

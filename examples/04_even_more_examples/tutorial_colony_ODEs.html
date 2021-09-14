@@ -128,7 +128,7 @@
         */
         sim.model.update = function () {
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
-            this.diffuseOdeStates()       // Diffusion of external metabolites
+            this.diffuseODEstates()       // Diffusion of external metabolites
             this.plotODEstates("resources", [0, 1], [[0, 0, 0], [255, 0, 0]])
         }
 

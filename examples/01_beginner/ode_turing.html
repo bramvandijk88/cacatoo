@@ -84,7 +84,7 @@
 
         sim.turing.update = function () {
             this.asynchronous()                              // For only solving the ODEs within grid points, asynchronous or synchronous is identical.
-            this.diffuseOdeStates()
+            this.diffuseODEstates()
             let sumact = 0
             let suminh = 0
             let midact = 0

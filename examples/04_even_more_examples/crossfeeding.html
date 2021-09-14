@@ -160,7 +160,7 @@
         sim.cross.update = function () {
 
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
-            this.diffuseOdeStates()       // Diffusion of external metabolites
+            this.diffuseODEstates()       // Diffusion of external metabolites
             let sum_ext = sum_int = sum_b1 = sum_b2 = sum_product = sum_alive = sum_s1 = sum_s2 = sum_b1_e = sum_b2_e = 0
             for (let i = 0; i < this.nc; i++)         // i are columns
                 for (let j = 0; j < this.nr; j++)     // j are rows

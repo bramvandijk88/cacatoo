@@ -136,7 +136,7 @@
             this.perfectMix()
         }
         sim.batchculture.update = function () {
-            this.diffuseOdeStates()  // Only diffuse state 0 (first state) of the ODE named "resources"
+            this.diffuseODEstates()  // Only diffuse state 0 (first state) of the ODE named "resources"
             this.asynchronous()         // Asynchronous because division changes both parent and offspring grid points, so updating can't be synchronous without leading to bugs
 
             this.MargolusDiffusion()

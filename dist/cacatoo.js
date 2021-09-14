@@ -39,7 +39,7 @@ class Graph {
         this.title = title;
         this.num_dps = this.labels.length; // number of data points for this graphs        
         this.elem = document.createElement("div");
-        this.elem.className = "graph-holder";
+        this.elem.className = "graph-holder";      
         this.colours = [];
         for (let v of colours) {
             if (v == "Time") continue            
@@ -830,7 +830,7 @@ class Gridmodel {
      *  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
      *  which is then used to update the grid.
      */
-    diffuseOdeStates() {
+    diffuseODEstates() {
         let newstates_2 = CopyGridODEs(this.nc, this.nr, this.grid);    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state-vector)    
 
         for (let i = 0; i < this.nc; i += 1) // every column
