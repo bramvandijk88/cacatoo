@@ -44,6 +44,7 @@ class Graph {
         console.log(`Setting up colours for graph ${title}`);
         console.log(colours);
         for (let v in colours) {
+            console.log(v);
             console.log(colours[v][0], colours[v][1], colours[v][2]);
             if (v == "Time") continue            
             else if (colours[v] == undefined) this.colours.push("#000000");
