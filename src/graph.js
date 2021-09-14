@@ -23,13 +23,13 @@ class Graph {
         this.colours = []
         console.log(`Setting up colours for graph ${title}`)
         console.log(colours)
-        for (let v in colours) {
+        for (let v of colours) {
             console.log(v)
-            console.log(colours[v][0], colours[v][1], colours[v][2])
+            console.log(v[0], v[1], v[2])
             if (v == "Time") continue            
-            else if (colours[v] == undefined) this.colours.push("#000000")
-            else if (colours[v][0] + colours[v][1] + colours[v][2] == 765) this.colours.push("#dddddd")
-            else this.colours.push(rgbToHex(colours[v][0], colours[v][1], colours[v][2]))
+            else if (v == undefined) this.colours.push("#000000")
+            else if (v[0] + v[1] + v[2] == 765) this.colours.push("#dddddd")
+            else this.colours.push(rgbToHex(v[0], v[1], v[2]))
         }
 
         document.body.appendChild(this.elem)
