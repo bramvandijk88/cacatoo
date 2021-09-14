@@ -21,7 +21,7 @@ class Graph {
         this.elem = document.createElement("div")
         this.elem.className = "graph-holder"
         this.colours = []
-
+        console.log(colours)
         for (let v in colours) {
             if (v == "Time") continue
             else if (colours[v] == undefined) this.colours.push("#000000")
