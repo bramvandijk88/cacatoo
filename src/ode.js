@@ -26,7 +26,7 @@ class ODE {
      *  @param {float} delta_t Step size
      *  @param {bool} opt_pos When enabled, negative values are set to 0 automatically
     */
-    solve_timestep(delta_t = 0.1, pos = false) {
+     solveTimestep(delta_t = 0.1, pos = false) {
         let newstate = this.solver.solve(
             this.eq(...this.pars),      // function to solve and its pars (... unlists the array as a list of args)
             0,                          // Initial x value

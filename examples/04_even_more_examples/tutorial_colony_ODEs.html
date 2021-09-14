@@ -115,7 +115,7 @@
                 }
             }
 
-            this_gp.resources.solve_timestep(0.1)
+            this_gp.resources.solveTimestep(0.1)
 
             this_gp.external_resources = this_gp.resources.state[0]
             if(this_gp.species > 0) this_gp.internal_resources = this.grid[i][j].resources.state[1]

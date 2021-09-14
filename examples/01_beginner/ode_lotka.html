@@ -74,7 +74,7 @@
         sim.lotka.nextState = function (i, j)       // Define the next-state function. 
         {
             // 1) ODE integration
-            this.grid[i][j].lotka.solve_timestep(0.1, opt_pos = true)
+            this.grid[i][j].lotka.solveTimestep(0.1, opt_pos = true)
 
 
             // 3) Update how this GP is displayed

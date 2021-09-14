@@ -207,7 +207,7 @@ reproduction, and iii) all grid-points get solved. The rest should function appr
         }
     }
 
-    this_gp.resources.solve_timestep(0.1) // Solve a single time step with delta_t=0.1
+    this_gp.resources.solveTimestep(0.1) // Solve a single time step with delta_t=0.1
 
     this_gp.external_resources = this_gp.resources.state[0]
     if(this_gp.species > 0) this_gp.internal_resources = this.grid[i][j].resources.state[1]

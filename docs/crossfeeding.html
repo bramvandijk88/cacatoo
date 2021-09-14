@@ -107,7 +107,7 @@
             2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
         */
         sim.cross.nextState = function (i, j) {
-            this.grid[i][j].resources.solve_timestep(1)
+            this.grid[i][j].resources.solveTimestep(1)
 
 
             // So, first we need to know how many cells are alive around a grid point

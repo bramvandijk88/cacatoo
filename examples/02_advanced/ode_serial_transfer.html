@@ -109,7 +109,7 @@
                     this.grid[i][j].resources.pars = [influx, uptake, upkeep]    // Living cells get an influx par                
                 }
             }
-            this.grid[i][j].resources.solve_timestep(0.1)
+            this.grid[i][j].resources.solveTimestep(0.1)
 
             // Update how this GP is displayed
             let conc_e = Math.max(0, this.grid[i][j].resources.state[0])       // Amount of prey (continuous variable)

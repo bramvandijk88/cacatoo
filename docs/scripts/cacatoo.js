@@ -148,7 +148,7 @@ class ODE {
      *  @param {float} delta_t Step size
      *  @param {bool} opt_pos When enabled, negative values are set to 0 automatically
     */
-    solve_timestep(delta_t = 0.1, pos = false) {
+     solveTimestep(delta_t = 0.1, pos = false) {
         let newstate = this.solver.solve(
             this.eq(...this.pars),      // function to solve and its pars (... unlists the array as a list of args)
             0,                          // Initial x value
@@ -1098,18 +1098,18 @@ class Gridmodel {
      *  @param {float} delta_t Step size
      *  @param {bool} opt_pos When enabled, negative values are set to 0 automatically
     */
-    solve_all_odes(delta_t = 0.1, opt_pos = false) {
+    solveAllODEs(delta_t = 0.1, opt_pos = false) {
         for (let i = 0; i < this.nc; i++) {
             for (let j = 0; j < this.nr; j++) {
                 for (let ode of this.grid[i][j].ODEs) {
-                    ode.solve_timestep(delta_t, opt_pos);
+                    ode.solveTimestep(delta_t, opt_pos);
                 }
             }
         }
     }
 
     /** 
-     *  Print the entire grid to the console. Not always recommended, but useful for debugging :D
+     *  Print the entire grid to the console. Not always recommended, but useful for debugging
      *  @param {float} property What property is printed
      *  @param {float} fract Subset to be printed (from the top-left)
     */
