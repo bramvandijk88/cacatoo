@@ -43,7 +43,6 @@ class Graph {
         this.colours = [];
         
         for (let v in colours) {
-            console.log(rgbToHex(colours[v][0], colours[v][1], colours[v][2]));
             if (v == "Time") continue
             else if (colours[v] == undefined) this.colours.push("#000000");
             else if (colours[v][0] + colours[v][1] + colours[v][2] == 765) this.colours.push("#dddddd");
@@ -111,6 +110,7 @@ class Graph {
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
 function componentToHex(c) {
+    console.log(c.toString(16));
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
