@@ -91,7 +91,7 @@ export default Graph
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
 function componentToHex(c) {
-    console.log(c.toString(16))
+    console.log(`Calling componentToHex for c ${c}`)
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
