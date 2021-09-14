@@ -41,11 +41,7 @@ class Graph {
         this.elem = document.createElement("div");
         this.elem.className = "graph-holder";
         this.colours = [];
-        console.log(`Setting up colours for graph ${title}`);
-        console.log(colours);
         for (let v of colours) {
-            console.log(v);
-            console.log(v[0], v[1], v[2]);
             if (v == "Time") continue            
             else if (v == undefined) this.colours.push("#000000");
             else if (v[0] + v[1] + v[2] == 765) this.colours.push("#dddddd");
@@ -83,10 +79,13 @@ class Graph {
     }
 
     reset_plot() {
-        this.data = [this.data[0]];
+        let first_dp = this.data[0];
+        this.data = [];
+        let empty = Array(first_dp.length).fill(undefined);
+        this.data.push(empty);
         this.g.updateOptions(
             {
-                'file': [this.data]
+                'file': this.data
             });
     }
 
@@ -113,7 +112,6 @@ class Graph {
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
 function componentToHex(c) {
-    console.log(`Calling componentToHex for c ${c}`);
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }

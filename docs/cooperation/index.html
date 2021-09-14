@@ -67,6 +67,7 @@ function cacatoo() {
                             {alive:1,helping_rate:  helper_rate_cheater}]                            
         sim.populateSpot(sim.coop, init_individuals, [0.5,0.5], 100, config.ncol/2, config.nrow/2)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
         sim.display()
+        sim.coop.resetPlots()
     }
 
     sim.coop.colourGradient('helping_rate', 100, [103, 64, 181], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])
