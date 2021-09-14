@@ -22,6 +22,7 @@ class Graph {
         this.elem.className = "graph-holder"
         this.colours = []
         console.log(`Setting up colours for graph ${title}`)
+        console.log(colours)
         for (let v in colours) {
             console.log(colours[v][0], colours[v][1], colours[v][2])
             if (v == "Time") continue            
