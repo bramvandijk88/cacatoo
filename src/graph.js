@@ -21,9 +21,10 @@ class Graph {
         this.elem = document.createElement("div")
         this.elem.className = "graph-holder"
         this.colours = []
-        
+        console.log(`Setting up colours for graph ${title}`)
         for (let v in colours) {
             if (v == "Time") continue
+            console.log(colours[v][0], colours[v][1], colours[v][2])
             else if (colours[v] == undefined) this.colours.push("#000000")
             else if (colours[v][0] + colours[v][1] + colours[v][2] == 765) this.colours.push("#dddddd")
             else this.colours.push(rgbToHex(colours[v][0], colours[v][1], colours[v][2]))
