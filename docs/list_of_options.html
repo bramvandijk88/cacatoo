@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo - List of all configuration options</title>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <script src="scripts/jquery.js"></script>
+    <script>
+        $(function () {
+            $("#Navigator").load("navigator.html");
+        });
+    </script>
+</head>
+<body>
+    <div id="main">
+        <h1 class="page-title">List of all configuration options</h1>
+        <section>
+            <header>
+            </header>
+            <article>
+                <div class="container-overview">
+                    <h5>Config {} - object that is passed to construct the initial simulation:</h5>
+                    <table class="params">
+                        <thead>
+                            <tr>
+                                <th style="width:15%">Name</th>
+                                <th style="width:15%">Type</th>
+                                <th style="width:55%">Description</th>
+                                <th class="last">Default value</th>
+                            </tr>
+                        </thead>
+                         
+       
+                        <tbody>
+                            <tr>
+                                <td class="name">                   <code>  title                                   </code></td>
+                                <td class="name"><span class="param-type">  string                                   </span></td>
+                                <td class="name">               A title for your model                  </td>
+                                <td class="name">               " "                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  description                                   </code></td>
+                                <td class="type"><span class="param-type">  string                                   </span></td>
+                                <td class="name">               A short description of your model                 </td>
+                                <td class="name">               " "                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  maxtime                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Duration of your simulation                 </td>
+                                <td class="name">               1,000,000                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  ncol                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Number of columns (width) of grid                 </td>
+                                <td class="name">               100                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  nrow                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Number of rows (heighth) of grid                 </td>
+                                <td class="name">               100                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  wrap                                   </code></td>
+                                <td class="type"><span class="param-type">  Array(2)                                   </span></td>
+                                <td class="name">               Wrapped boundary conditions [cols, rows]                </td>
+                                <td class="name">               0                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  seed                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Random number seed                 </td>
+                                <td class="name">               53                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  fast-mode                                   </code></td>
+                                <td class="type"><span class="param-type">  boolean                                   </span></td>
+                                <td class="name">               If true, attempt to update grids multiple times before the next frame is drawn (depends on fps, below)                 </td>
+                                <td class="name">               false                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  fps                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Target frame-rate (fast-mode only)                </td>
+                                <td class="name">               60                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  fpsmeter                                   </code></td>
+                                <td class="type"><span class="param-type">  boolean                                   </span></td>
+                                <td class="name">               Show a FPS-meter in the upper-right corner                </td>
+                                <td class="name">               true                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  sleep                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Pause X milliseconds in between time steps                </td>
+                                <td class="name">               0                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  graph-interval                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Save datapoint to graph every X time steps               </td>
+                                <td class="name">               10                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  graph-update                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Redraw graph every X time steps             </td>
+                                <td class="name">               50                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  scale                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Size of drawn grid points in pixels             </td>
+                                <td class="name">               2                                    </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  statecolours                                   </code></td>
+                                <td class="type"><span class="param-type">  Object  <br>(or)<br>  string                                  </span></td>
+                                <td class="name">               Dictionary-style object mapping state-values to colours <br>(or)<br> name of colour map (default, random, viridis, inferno)
+                                               </td>
+                                <td class="name">               "default"                                 </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  num_colours                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Total number of colours generate if statecolours is one of the default colour maps                 </td>
+                                <td class="name">               18                                 </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  skipbg_state                                   </code></td>
+                                <td class="type"><span class="param-type">  boolean                                   </span></td>
+                                <td class="name">               Do not draw the 0-state (faster)               </td>
+                                <td class="name">               false                                 </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  show_gridname                                   </code></td>
+                                <td class="type"><span class="param-type">  boolean                                   </span></td>
+                                <td class="name">               Show the gridname below the canvas               </td>
+                                <td class="name">               true                                 </td>
+                            </tr>
+
+                            
+                            
+                        </tbody>
+                    </table>
+                    
+            </article>
+        </section>
+        
+    </div>
+    <div id="Navigator"></div>
+    <br class="clear">
+    <footer>
+        Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 28 2021 15:33:33
+        GMT+0200 (Central European Summer Time)
+    </footer>
+    <script> prettyPrint();</script>
+    <script src="scripts/linenumber.js"> </script>
+</body>
+</html>

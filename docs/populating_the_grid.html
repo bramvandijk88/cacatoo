@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo - Populating the grid</title>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <script src="scripts/jquery.js"></script>
+    <script>
+        $(function () {
+            $("#Navigator").load("navigator.html");
+        });
+    </script>
+</head>
+<body>
+    <div id="main">
+        <h1 class="page-title">Populating the grid</h1>
+        <section>
+            <h2> Initialising the model itself</h2>
+            <article>
+                To initialise your grid, simply use:<br>                
+                <ul><h5 class="name"><span class="signature">let config = { ncol:100, nrow:100, title="MyModel", ... }</span></ul>                    
+                <ul><h5 class="name"><span class="signature">sim = new Simulation(config)</span></ul>
+                        followed by
+                <ul><h5 class="name"><span class="signature">sim.makeGridmodel("modelname") </span></ul>
+                
+            </article>
+        </section>
+
+                <section>
+            <h2> Initialise the grid points with numbers</h2>
+            <article>
+                If your model is simple, you can simply represent different "species" or "individuals" as integer numbers (1,2,3,...,n). Similarly, you may want to
+                represent resource concentrations with simple floating point numbers (0.02,1.29,482.1). To do so (after you have made your GridModel), use either:<br>                
+                <ul>
+                    <h5 class="name"><span class="type-signature"></span>initialiseGrid<span class="signature">(<a href="Gridmodel.html">@Gridmodel</a>, statename, 1st_number, 1st_fraction, 2nd_number, 2nd_fraction, ...)</span><span class="type-signature"></span></h5>
+                    OR
+                    <h5 class="name"><span class="type-signature"></span>initialSpot<span class="signature">(<a href="Gridmodel.html">@Gridmodel</a>, statename, number, spotsize, x, y)</span><span class="type-signature"></span></h5>
+                </ul>
+                   <h4> Use cases:</h4>
+                    <ul>
+                        <li><b>In cheater.html: set species '1', '2', and '3', to 33% occupancy each</b><br>
+                        <span class="signature">sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)</span></li>
+                        <li><b>In petridish.html: inoculate the middle of the grid with 'alive' cells</b><br>
+                        <span class="signature">sim.initialSpot(sim.cells, 'alive', 1, 2, sim.cells.nr / 2, sim.cells.nc / 2)</span></li>
+                        <li><b>In tutorial_colony.html: give 100% of grid points external resources (set to 1)</b><br>
+                            <span class="signature">sim.initialGrid(sim.growth,'external_resources',1000.0,1.0) </span></li>                        
+                    </ul> 
+            </article>
+        </section>
+
+
+        <section>
+            <h2> Populating the grid points with custom individuals</h2>
+            <article>
+                If your model is a bit more complex, you may want to first define what your individuals look like. To do this, there are two functions analogous to the ones above, but which you
+                can pass a configuration-object with many more options.<br>   <br>
+                First, define your individual(s):
+                <ul><h5 class="name"><span class="signature">let individuals = [{alive:1, age:1, name: 'Cacatoo'},{alive:1, age:20, name: 'Cash'}]  </span></ul>
+                And then call the functions "populateSpot" or "populateGrid":<br>
+                <ul>
+                    <h5 class="name"><span class="type-signature"></span>populateGrid<span class="signature">(<a href="Gridmodel.html">@Gridmodel</a>, individuals, frequencies)</span><span class="type-signature"></span></h5>
+                    OR
+
+                    <h5 class="name"><span class="type-signature"></span>populateSpot<span class="signature">(<a href="Gridmodel.html">@Gridmodel</a>, individuals, frequencies, size, x, y)</span><span class="type-signature"></span></h5>
+                </ul>
+                <h4> Use cases:</h4>
+                <ul>
+                    <li><b>In cooperation.html: populate with 'cooperators' and 'cheaters'</b><br>
+                    <span class="signature">        let init_individuals = [{alive:1, helping_rate: helper_rate_cooperator},
+                        {alive:1,helping_rate:  helper_rate_cheater}]         <br>                   
+    sim.populateSpot(sim.coop, init_individuals, [0.5,0.5], 100, config.ncol/2, config.nrow/2)   </span> </li>     
+                    
+                    <li><b>In tutorial_colony.html: populate with species with different uptake rates</b><br>
+                        <span class="signature">         let species = [{species:1,uptake_rate:0.5,internal_resources:1},
+                            {species:2,uptake_rate:5.0,internal_resources:1},
+                            {species:3,uptake_rate:50.0,internal_resources:1}]<br>
+            
+            sim.populateSpot(sim.growth, species, [0.33,0.33,0.33], 15, config.ncol/2, config.nrow/2)         
+                </ul> 
+
+               
+
+
+            </article>
+        </section>
+
+
+        
+        <section>
+            <h2> Manually setting the grid points</h2>
+            <article>
+                If you want even more freedom, it's probably best to loop over all the grid points and set them yourself. Here's an example of that, from "spirals.html":<br><br>
+                
+                
+                    <span class="signature">        
+                        &emsp; &emsp;    for (let i = 0; i < sim.spirals.nc; i++)                          // i are columns<br>
+                        &emsp; &emsp;&emsp; &emsp;for (let j = 0; j < sim.spirals.nr; j++)                      // j are rows<br>
+                        &emsp; &emsp;&emsp; &emsp; &emsp; &emsp;       sim.spirals.grid[i][j]['colour'] = Math.ceil(sim.rng.genrand_real1() * n_species)  </span>
+<br><br>
+                        or another example from "ode_turing.html":<br><br>
+
+                        <span class="signature">        
+                            &emsp; &emsp;   for (let i = 0; i < sim.turing.nc; i++)                          // i are columns<br>
+                            &emsp; &emsp;    &emsp; &emsp;for (let j = 0; j < sim.turing.nr; j++)                      // j are rows<br>
+                            &emsp; &emsp;   &emsp; &emsp; &emsp; &emsp;       sim.turing.grid[i][j].turingeq.state = [1 + sim.rng.genrand_real1(), 1] </span>
+               
+
+
+            </article>
+        </section>
+    
+
+        
+    </div>
+    <div id="Navigator"></div>
+    <br class="clear">
+    <footer>
+        Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 28 2021 15:33:33
+        GMT+0200 (Central European Summer Time)
+    </footer>
+    <script> prettyPrint();</script>
+    <script src="scripts/linenumber.js"> </script>
+</body>
+</html>
