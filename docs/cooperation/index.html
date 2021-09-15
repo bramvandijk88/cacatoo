@@ -19,7 +19,7 @@
 
 var sim;                            // This 'global' variable will hold the entire simulation
 var helper_rate_cooperator = 0.5    // Determines how much help a 'cooperative' individual gives to its neighbours
-var helper_rate_cheater = 0.01      // Determines how much help a 'cheating' individual gives to its neighbours
+var helper_rate_cheater = 0.05      // Determines how much help a 'cheating' individual gives to its neighbours
 var death = 0.05                    // Determines how often an individual spontaneously dies, making a new spot available
 var movement = 1              // Determines how much individuals 'move around'
 
@@ -83,7 +83,7 @@ function cacatoo() {
         if (!this.grid[i][j].alive)                                                   // If there is no living cell here
         {
             let neighbours = this.getMoore8(this, i, j,'alive',1)
-            let winner = this.rouletteWheel(neighbours, 'fitness', 2.0)
+            let winner = this.rouletteWheel(neighbours, 'fitness', 5.0)
             if (winner != undefined)
             {
                 this.grid[i][j].alive = winner.alive

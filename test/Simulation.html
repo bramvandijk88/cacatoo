@@ -30,7 +30,9 @@
     
         <h2><span class="attribs"><span class="type-signature"></span></span>Simulation<span class="signature">(config)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">Simulation is the global class of Cacatoo, containing the main configuration   for making a grid-based model grid and displaying it in either browser or with nodejs.</div>
+            <div class="class-description">Simulation is the global class of Cacatoo, containing the main configuration  
+ for making a grid-based model grid and displaying it in either browser or with
+ nodejs.</div>
         
     
 </header>
@@ -53,7 +55,8 @@
 
 
 <div class="description">
-    The constructor function for a @Simulation object. Takes a config dictionary. and sets options accordingly.
+    The constructor function for a @Simulation object. Takes a config dictionary.
+ and sets options accordingly.
 </div>
 
 
@@ -370,7 +373,9 @@
 
 
 <div class="description">
-    addPatternButton adds a pattern button to the HTML environment which allows the user to load a PNG which then sets the state of 'proparty' for the @GridModel.  (currently only supports black and white image)
+    addPatternButton adds a pattern button to the HTML environment which allows the user
+ to load a PNG which then sets the state of 'proparty' for the @GridModel. 
+ (currently only supports black and white image)
 </div>
 
 
@@ -525,7 +530,8 @@
 
 
 <div class="description">
-    addSlider adds a HTML slider to the DOM-environment which allows the user to modify a model parameter at runtime.
+    addSlider adds a HTML slider to the DOM-environment which allows the user
+ to modify a model parameter at runtime.
 </div>
 
 
@@ -1340,7 +1346,8 @@
 
 
 <div class="description">
-    Apply global events to all grids in the model. (only perfectmix currently... :D)
+    Apply global events to all grids in the model. 
+(only perfectmix currently... :D)
 </div>
 
 
@@ -1611,7 +1618,11 @@
 
 
 <div class="description">
-    initialGrid populates a grid with states. The number of arguments  is flexible and defined the percentage of every state. For example, initialGrid('grid','species',1,0.5,2,0.25) populates the grid with  two species (1 and 2), where species 1 occupies 50% of the grid, and species 2 25%.
+    initialGrid populates a grid with states. The number of arguments 
+ is flexible and defined the percentage of every state. For example,
+ initialGrid('grid','species',1,0.5,2,0.25) populates the grid with 
+ two species (1 and 2), where species 1 occupies 50% of the grid, and
+ species 2 25%.
 </div>
 
 
@@ -1812,7 +1823,11 @@
 
 
 <div class="description">
-    initialPattern takes a @GridModel and loads a pattern from a PNG file. Note that this will only work when Cacatoo is ran on a server due to security issues. If you want to use this feature locally, there are plugins for most browser to host a simple local webserver.  (currently only supports black and white image)
+    initialPattern takes a @GridModel and loads a pattern from a PNG file. Note that this
+ will only work when Cacatoo is ran on a server due to security issues. If you want to
+ use this feature locally, there are plugins for most browser to host a simple local
+ webserver. 
+ (currently only supports black and white image)
 </div>
 
 
@@ -1900,7 +1915,8 @@
 
 
 <div class="description">
-    initialSpot populates a grid with states. Grid points close to a certain coordinate are set to state value, while other cells are set to the bg-state of 0.
+    initialSpot populates a grid with states. Grid points close to a certain coordinate are set to state value, while
+ other cells are set to the bg-state of 0.
 </div>
 
 
@@ -2238,7 +2254,10 @@
 
 
 <div class="description">
-    Start the simulation. start() detects whether the user is running the code from the browser of in nodejs. In the browser, a GUI is provided to interact with the model. In nodejs the  programmer can simply wait for the result without wasting time on displaying intermediate stuff  (which can be slow)
+    Start the simulation. start() detects whether the user is running the code from the browser of
+ in nodejs. In the browser, a GUI is provided to interact with the model. In nodejs the 
+ programmer can simply wait for the result without wasting time on displaying intermediate stuff 
+ (which can be slow)
 </div>
 
 
