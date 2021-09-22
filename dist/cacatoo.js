@@ -704,12 +704,17 @@ class Gridmodel {
 
     /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore8(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,8]) }
+    getNeighbours8(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,8]) }
     /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getMoore9(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,8]) }
+    getNeighbours9(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,8]) }
     /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
     getNeumann4(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,4]) }
+    getNeighbours4(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[1,4]) }
     /** getNeighbours for the Moore8 neighbourhood (range 1-8 in function getNeighbours) */     
-    getNeumann5(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,4]) }    
+    getNeumann5(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,4]) }
+    getNeighbours5(model, col, row, property,val) { return this.getNeighbours(model,col,row,property,val,[0,4]) }
+
 
     /** From a list of grid points, e.g. from getNeighbours(), sample one weighted by a property. This is analogous
      *  to spinning a "roulette wheel". Also see a hard-coded versino of this in the "cheater" example
@@ -756,12 +761,16 @@ class Gridmodel {
 
     /** sumNeighbours for range 1-8 (see sumNeighbours) */     
     sumMoore8(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [1,8]) }
+    sumNeighbours8(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [1,8]) }
     /** sumNeighbours for range 0-8 (see sumNeighbours) */ 
     sumMoore9(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [0,8]) }
+    sumNeighbours9(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [0,8]) }
     /** sumNeighbours for range 1-4 (see sumNeighbours) */ 
     sumNeumann4(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [1,4]) }
+    sumNeighbours4(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [1,4]) }
     /** sumNeighbours for range 0-4 (see sumNeighbours) */ 
     sumNeumann5(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [0,4]) }
+    sumNeighbours5(grid, col, row, property) { return this.sumNeighbours(grid, col, row, property, [0,4]) }
 
 
     /** Count the number of neighbours with 'val' in 'property' (Neu4, Neu5, Moore8, Moore9 depending on range-array)
@@ -792,12 +801,17 @@ class Gridmodel {
 
     /** sumNeighbours for range 1-8 (see sumNeighbours) */     
     countMoore8(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,8]) }
+    countNeighbours8(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,8]) }
     /** sumNeighbours for range 0-8 (see sumNeighbours) */ 
     countMoore9(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,8]) }
+    countNeighbours9(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,8]) }
     /** sumNeighbours for range 1-4 (see sumNeighbours) */ 
     countNeumann4(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,4]) }
+    countNeighbours4(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,4]) }
     /** sumNeighbours for range 0-4 (see sumNeighbours) */ 
     countNeumann5(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,4]) }
+    countNeighbours5(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,4]) }
+
 
 
     /** Return a random neighbour from the neighbourhood defined by range array
@@ -818,12 +832,20 @@ class Gridmodel {
 
     /** sumNeighbours for range 1-8 (see sumNeighbours) */     
     randomMoore8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
+    randomNeighbour8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
+
     /** sumNeighbours for range 0-8 (see sumNeighbours) */ 
     randomMoore9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
+    randomNeighbour9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
+
     /** sumNeighbours for range 1-4 (see sumNeighbours) */ 
-    randomNeu4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
+    randomNeumann4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
+    randomNeighbour4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
+
     /** sumNeighbours for range 0-4 (see sumNeighbours) */ 
-    randomNeu5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
+    randomNeumann5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
+    randomNeighbour5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
+
     
 
     /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
