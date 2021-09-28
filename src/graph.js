@@ -38,7 +38,7 @@ class Graph {
                 width: opts ? (opts.width != undefined ? opts.width : 500) : 500,
                 height: opts ? (opts.height != undefined ? opts.height : 200) : 200,
                 xlabel: this.labels[0],
-                drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false
+                drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
                 pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
                 strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
                 dateWindow: [0, 100],
