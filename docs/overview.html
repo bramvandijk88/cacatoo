@@ -72,14 +72,14 @@ weird and "pixely" they may look! <br><br>
 
 When working with individual-based models, direct visual feedback is important. Not only are you more likely to detect programming mistakes, but it also aids rapid exploration of parameter space.
 Over the last decade, most of my models were implemented by using the <a href="https://www.bramvandijk.com/software/#cash21">CASH C-library</a>, which would allow direct visual feedback by means of the X11
-library. This library was originally developed by R.J. de Boer & A.D. Staritsk, and was then further developed by Nobuto Takeuchi (CASH2s) and myself (CASH2.1). However, as it is 
+library. CASH was originally developed by R.J. de Boer & A.D. Staritsk, and was then further developed by Nobuto Takeuchi (CASH2s) and myself (CASH2.1). However, as it is 
 based in C, developing models with CASH requires a lot of programming experience, and even an experienced user like myself can sometimes take days to track down a simple bug.
 Moreover, sharing your model with other users can be a pain in the neck, as installation is slightly different depending on the operating system. For this reason, I have 
 been trying to find a new programming language in which to implement something that is reminiscent of CASH. Even though some of the new programming languages (<i>e.g. </i> Ruby, Julia)
 are very fast, creating a display for direct visual feedback typically slowed things down tremendously. <br><br>
 
 <a id="1.3"></a><h4> <b>The new and improved Javascript</b></h4>
-After searching for a new programming language for CASH for years, some prior colleagues of mine published <a href="https://artistoo.net/" target="_blank">Artistoo</a>, a toolbox to simulate 
+After searching for a new programming language for CASH for years, Inge Wortel and Johannes Textor published <a href="https://artistoo.net/" target="_blank">Artistoo</a>, a toolbox to simulate 
 cell tissues with 100% Javascript (see animation below). They even compared this toolbox with other known C++-libraries, and show their toolbox is not significantly slower. This initially surprised me, as I
 remember Javascript being a language that was mostly use to make websites more annoying, and I did not expect it to be fast. As it turns out, it wasn't always this fast. Google has invested 
 a lot of money in optimising Javascript, especially for their own V8-engine in the Chrome browser. After fiddling around with Javascript a bit myself, I realised this was exactly what I
