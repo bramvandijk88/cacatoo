@@ -110,15 +110,10 @@ class Simulation {
         
         let height = config.height || this[name].nr        
         let width = config.width || this[name].nc
-        let scale = config.scale || this[name].scale
-       
-        
-        let maxval = config.maxval || this.maxval || undefined
-        
-        
+        let scale = config.scale || this[name].scale               
+        let maxval = config.maxval || this.maxval || undefined                
         let minval = config.minval || 0
         let multiplier = config.multiplier || 1
-
         
         if(config.fill == "viridis") this[name].colourViridis(property, maxval)    
         else if(config.fill == "inferno") this[name].colourViridis(property, maxval, false, "inferno")    
@@ -200,7 +195,7 @@ class Simulation {
      *  (which can be slow)
      */
     start() {
-        let model = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
+        let sim = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
         let meter = undefined
         if (this.inbrowser) {
             if(this.fpsmeter){               
@@ -217,59 +212,59 @@ class Simulation {
 
             async function animate() {
                 
-                if (model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
+                if (sim.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     
-                    if (model.sleep > 0) await pause(model.sleep)
+                    if (sim.sleep > 0) await pause(sim.sleep)
                     if(sim.fpsmeter) meter.tickStart()
                     let t = 0;              // Will track cumulative time per step in microseconds 
 
-                    while (t < 16.67 * 60 / model.fps)          //(t < 16.67) results in 60 fps if possible
+                    while (t < 16.67 * 60 / sim.fps)          //(t < 16.67) results in 60 fps if possible
                     {
                         let startTime = performance.now();
-                        if(!model.pause==true){
-                            model.step()
-                            model.events()
-                            model.time++
+                        if(!sim.pause==true){
+                            sim.step()
+                            sim.events()
+                            sim.time++
                         }
                         let endTime = performance.now();
                         t += (endTime - startTime);
                         
-                        if (!model.limitfps) break
+                        if (!sim.limitfps) break
                     }
-                    model.display()
+                    sim.display()
                     if(sim.fpsmeter) meter.tick()
                 }
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
-                    if (model.sleep > 0) await pause(model.sleep)
+                    if (sim.sleep > 0) await pause(sim.sleep)
                     if(sim.fpsmeter) meter.tickStart()
-                    if (!model.pause == true) {
-                        model.step()
-                        model.events();
-                        model.time++
+                    if (!sim.pause == true) {
+                        sim.step()
+                        sim.events();
+                        sim.time++
                     }
-                    model.display()
+                    sim.display()
                     if(sim.fpsmeter) meter.tick()
                     
                 }
 
                 let frame = requestAnimationFrame(animate);
-                if (model.time >= model.config.maxtime) {
+                if (sim.time >= sim.config.maxtime) {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds")
                     cancelAnimationFrame(frame)
                 }
 
-                if (model.pause == true) { cancelAnimationFrame(frame) }
+                if (sim.pause == true) { cancelAnimationFrame(frame) }
             }
 
             requestAnimationFrame(animate);
         }
         else {
             while (true) {
-                model.step();
-                model.time++
+                sim.step();
+                sim.time++
             }
         }
     }
@@ -453,6 +448,59 @@ class Simulation {
     }
 
     /**
+     *  addCustomSlider adds a HTML slider to the DOM-environment which allows the user
+     *  to add a custom callback function to a slider 
+     *  @param {function} func The name of the (global!) parameter to link to the slider
+     *  @param {float} [min] Minimal value of the slider
+     *  @param {float} [max] Maximum value of the slider
+     *  @param {float} [step] Step-size when modifying
+     */
+     addCustomSlider(func, min = 0.0, max = 2.0, step = 0.01, default_value=0, label) {        
+        let lab = label || func
+        if (!this.inbrowser) return
+        if (func === undefined) { console.warn(`addCustomSlider: callback function not defined. No slider made.`); return; }
+        let container = document.createElement("div")
+        container.classList.add("form-container")
+
+        let slider = document.createElement("input")
+        let numeric = document.createElement("input")
+        container.innerHTML += "<div style='width:100%;height:20px;font-size:12px;'><b>" + lab + ":</b></div>"
+
+        // Setting slider variables / handler
+        slider.type = 'range'
+        slider.classList.add("slider")
+        slider.min = min
+        slider.max = max
+        slider.step = step
+        slider.value = default_value
+        let parent = sim
+        slider.oninput = function () {
+            let value = parseFloat(slider.value)
+            func(value)
+            numeric.value = value
+        }
+
+        // Setting number variables / handler
+        numeric.type = 'number'
+        numeric.classList.add("number")
+        numeric.min = min
+        numeric.max = max
+        numeric.step = step
+        numeric.value = default_value
+        numeric.onchange = function () {
+            let value = parseFloat(numeric.value)
+            if (value > this.max) value = this.max
+            if (value < this.min) value = this.min
+            func(value)
+            numeric.value = value
+            slider.value = value
+        }
+        container.appendChild(slider)
+        container.appendChild(numeric)
+        document.getElementById("form_holder").appendChild(container)
+    }
+
+    /**
      *  Adds some html to an existing DIV in your web page. 
      *  @param {String} div Name of DIV to add to
      *  @param {String} html HTML code to add
@@ -614,7 +662,7 @@ class Simulation {
         else this.pause = true;
         if (!this.pause) this.start()
     }
-
+        
     /**
      *  colourRamp interpolates between two arrays to get a smooth colour scale. 
      *  @param {array} arr1 Array of R,G,B values to start fromtargetgrid The gridmodel containing the grid to be modified. 
