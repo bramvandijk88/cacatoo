@@ -17,7 +17,7 @@ class Graph {
         this.labels = labels
         this.data = [values]
         this.title = title
-        this.num_dps = this.labels.length // number of data points for this graphs        
+        this.num_dps = values.length // number of data points for this graphs        
         this.elem = document.createElement("div")
         this.elem.className = "graph-holder"      
         this.colours = []
@@ -30,23 +30,25 @@ class Graph {
 
         document.body.appendChild(this.elem)
         document.getElementById("graph_holder").appendChild(this.elem)
+
         this.g = new Dygraph(this.elem, this.data,
             {
                 title: this.title,
-                showRoller: false,
-                ylabel: this.labels.length == 2 ? this.labels[1] : "",
+                showRoller: false,                
                 width: opts ? (opts.width != undefined ? opts.width : 500) : 500,
                 height: opts ? (opts.height != undefined ? opts.height : 200) : 200,
                 xlabel: this.labels[0],
+                ylabel: this.labels.length == 2 ? this.labels[1] : "",
                 drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
                 pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
                 strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
                 dateWindow: [0, 100],
-                axisLabelFontSize: 10,
+                axisLabelFontSize: 10,               
                 valueRange: [0.000,],
                 strokeWidth: opts ? (opts.strokeWidth != undefined ? opts.strokeWidth : 3) : 3,
                 colors: this.colours,
-                labels: this.labels
+                labels: labels.length == values.length ? this.labels: null,
+                series: opts ? ( opts.series != undefined ? opts.series : null) : null                
             });
     }
 

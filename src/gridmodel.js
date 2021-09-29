@@ -626,6 +626,51 @@ class Gridmodel {
     /** 
      * Adds a dygraph-plot to your DOM (if the DOM is loaded)
      *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of floats to plot (here plotted over time)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
+     plotPoints(graph_values, title, opts) {
+        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'y'+(i+1))
+        let cols = Array.from({length: graph_values.length}, (v, i) => 'black')
+
+        let seriesname = 'average'
+        let sum = graph_values.reduce((a, b) => a + b, 0);
+        let avg = (sum / graph_values.length) || 0;
+        graph_values.unshift(avg)
+        graph_labels.unshift(seriesname)
+        cols.unshift("#666666")
+        
+        if(opts == undefined) opts = {}
+        opts.drawPoints = true
+        opts.strokeWidth = 0
+        opts.pointSize = 1
+        
+        opts.series = {[seriesname]: {strokeWidth: 3.0, strokeColor:"green", drawPoints: false, pointSize: 0, highlightCircleSize: 3 }}
+        if (typeof window == 'undefined') return
+        if (!(title in this.graphs)) {
+            cols = parseColours(cols)
+            graph_values.unshift(this.time)
+            graph_labels.unshift("Time")
+            this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts)
+        }
+        else {
+            if (this.time % this.graph_interval == 0) {
+                graph_values.unshift(this.time)
+                graph_labels.unshift("Time")
+                this.graphs[title].push_data(graph_values)
+            }
+            if (this.time % this.graph_update == 0) {
+                this.graphs[title].update()
+            }
+        }
+    }
+
+
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
      *  @param {Array} graph_values Array of 2 floats to plot (first value for x-axis, second value for y-axis)
      *  @param {Array} cols Array of colours to use for plotting
      *  @param {String} title Title of the plot

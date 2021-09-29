@@ -37,7 +37,7 @@ class Graph {
         this.labels = labels;
         this.data = [values];
         this.title = title;
-        this.num_dps = this.labels.length; // number of data points for this graphs        
+        this.num_dps = values.length; // number of data points for this graphs        
         this.elem = document.createElement("div");
         this.elem.className = "graph-holder";      
         this.colours = [];
@@ -45,28 +45,30 @@ class Graph {
             if (v == "Time") continue            
             else if (v == undefined) this.colours.push("#000000");
             else if (v[0] + v[1] + v[2] == 765) this.colours.push("#dddddd");
-            else this.colours.push(rgbToHex$1(v[0], v[1], v[2]));
+            else this.colours.push(rgbToHex(v[0], v[1], v[2]));
         }
 
         document.body.appendChild(this.elem);
         document.getElementById("graph_holder").appendChild(this.elem);
+
         this.g = new Dygraph(this.elem, this.data,
             {
                 title: this.title,
-                showRoller: false,
-                ylabel: this.labels.length == 2 ? this.labels[1] : "",
+                showRoller: false,                
                 width: opts ? (opts.width != undefined ? opts.width : 500) : 500,
                 height: opts ? (opts.height != undefined ? opts.height : 200) : 200,
                 xlabel: this.labels[0],
+                ylabel: this.labels.length == 2 ? this.labels[1] : "",
                 drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
                 pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
                 strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
                 dateWindow: [0, 100],
-                axisLabelFontSize: 10,
+                axisLabelFontSize: 10,               
                 valueRange: [0.000,],
                 strokeWidth: opts ? (opts.strokeWidth != undefined ? opts.strokeWidth : 3) : 3,
                 colors: this.colours,
-                labels: this.labels
+                labels: labels.length == values.length ? this.labels: null,
+                series: opts ? ( opts.series != undefined ? opts.series : null) : null                
             });
     }
 
@@ -111,13 +113,13 @@ class Graph {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex$1(c) {
+function componentToHex(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex$1(r, g, b) {
-    return "#" + componentToHex$1(r) + componentToHex$1(g) + componentToHex$1(b);
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
 /**
@@ -983,6 +985,51 @@ class Gridmodel {
     /** 
      * Adds a dygraph-plot to your DOM (if the DOM is loaded)
      *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of floats to plot (here plotted over time)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
+     plotPoints(graph_values, title, opts) {
+        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'y'+(i+1));
+        let cols = Array.from({length: graph_values.length}, (v, i) => 'black');
+
+        let seriesname = 'average';
+        let sum = graph_values.reduce((a, b) => a + b, 0);
+        let avg = (sum / graph_values.length) || 0;
+        graph_values.unshift(avg);
+        graph_labels.unshift(seriesname);
+        cols.unshift("#666666");
+        
+        if(opts == undefined) opts = {};
+        opts.drawPoints = true;
+        opts.strokeWidth = 0;
+        opts.pointSize = 1;
+        
+        opts.series = {[seriesname]: {strokeWidth: 3.0, strokeColor:"green", drawPoints: false, pointSize: 0, highlightCircleSize: 3 }};
+        if (typeof window == 'undefined') return
+        if (!(title in this.graphs)) {
+            cols = parseColours(cols);
+            graph_values.unshift(this.time);
+            graph_labels.unshift("Time");
+            this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts);
+        }
+        else {
+            if (this.time % this.graph_interval == 0) {
+                graph_values.unshift(this.time);
+                graph_labels.unshift("Time");
+                this.graphs[title].push_data(graph_values);
+            }
+            if (this.time % this.graph_update == 0) {
+                this.graphs[title].update();
+            }
+        }
+    }
+
+
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
      *  @param {Array} graph_values Array of 2 floats to plot (first value for x-axis, second value for y-axis)
      *  @param {Array} cols Array of colours to use for plotting
      *  @param {String} title Title of the plot
@@ -1471,7 +1518,7 @@ class Canvas {
                          
                 if(val>this.maxval) val = this.maxval;
                 if(statecols[val] == undefined) ctx.fillStyle = "#000000";
-                else ctx.fillStyle = rgbToHex(statecols[val]);
+                else ctx.fillStyle = rgbToHex$1(statecols[val]);
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
                 
@@ -1498,7 +1545,7 @@ class Canvas {
             ctx.closePath();
             div.appendChild(this.legend);
         }
-        else {                     
+        else{                     
             let keys = Object.keys(statecols);
             let total_num_values = keys.length;
             let spacing = 0.8;
@@ -1520,7 +1567,7 @@ class Canvas {
                 ctx.beginPath();                
                 ctx.strokeStyle = "#000000";
                 if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;
-                else if(keys[i]>0) ctx.fillStyle = rgbToHex(statecols[keys[i]]);
+                else if(keys[i]>0) ctx.fillStyle = rgbToHex$1(statecols[keys[i]]);
                 else ctx.fillStyle = this.bgcolor;
                 ctx.fillRect(pos-4, 10, 10, 10);
                 ctx.closePath();
@@ -1538,13 +1585,13 @@ class Canvas {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex(c) {
+function componentToHex$1(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex(arr) {
-    return "#" + componentToHex(arr[0]) + componentToHex(arr[1]) + componentToHex(arr[2]);
+function rgbToHex$1(arr) {
+    return "#" + componentToHex$1(arr[0]) + componentToHex$1(arr[1]) + componentToHex$1(arr[2]);
 }
 
 /**
@@ -2021,7 +2068,7 @@ class Simulation {
             if(warn) console.log("Sorry, writing grid files currently works in NODEJS mode only.");
             return
         }
-        else {
+        else{
             const fs = require('fs');
             // fs.writeFile('helloworld.txt', 'Hello World!', function (err) {
             // if (err) return console.log(err);
@@ -2215,12 +2262,3 @@ function get2DFromCanvas(canvas) {
 }
 
 module.exports = Simulation;
-
-try
-{
-    module.exports = Simulation;
-}
-catch(err)
-{
-    // do nothing
-}

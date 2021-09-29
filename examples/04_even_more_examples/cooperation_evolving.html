@@ -118,12 +118,14 @@ function cacatoo() {
     sim.coop.updateGraphs = function () {
         // Let's count some stuff every update
         let sumhelping = sumalive = sumcheater = sumcoop = 0
-        
+        let helping_rates = []
         for (let i = 0; i < this.nc; i++)          // i are columns
             for (let j = 0; j < this.nr; j++)      // j are rows
             {
                 if (this.grid[i][j].alive == 1) {
-                    sumhelping += this.grid[i][j].helping_rate                
+                    help = this.grid[i][j].helping_rate
+                    if(helping_rates.length < 10) helping_rates.push(help)
+                    sumhelping += help
                     sumalive ++
                 }
             }
@@ -133,8 +135,9 @@ function cacatoo() {
         this.plotArray(["Avg helping","Fraction of grid occupied"],
             [sumhelping / sumalive, sumalive/(this.nc*this.nr)],
             ["#FFAA00","#111111"],
-            "Average helping rate / fract. grid occupied")        
-       
+            "Average helping rate / fract. grid occupied")
+        this.plotPoints(helping_rates,"Cooperation rates (sampled points)")
+        
     }
     sim.coop.bottleneck = function()
     {
