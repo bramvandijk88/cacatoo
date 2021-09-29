@@ -2,6 +2,7 @@ import Gridpoint from "./gridpoint.js"
 import Graph from './graph.js'
 import ODE from "./ode.js"
 import MersenneTwister from "../lib/mersenne.js"
+import * as utility from './utility'
 
 /**
  *  Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
@@ -56,15 +57,15 @@ class Gridmodel {
     setupColours(statecols,num_colours=18) {
         let return_dict = {}
         if (statecols == null)           // If the user did not define statecols (yet)
-            return return_dict["state"] = default_colours(num_colours)
-        let colours = dict_reverse(statecols) || { 'val': 1 }
+            return return_dict["state"] = utility.default_colours(num_colours)
+        let colours = utility.dict_reverse(statecols) || { 'val': 1 }
 
         for (const [statekey, statedict] of Object.entries(colours)) {
             if (statedict == 'default') {
-                return_dict[statekey] = default_colours(num_colours+1)
+                return_dict[statekey] = utility.default_colours(num_colours+1)
             }
             else if (statedict == 'random') {
-                return_dict[statekey] = random_colours(num_colours+1,this.rng)
+                return_dict[statekey] = utility.random_colours(num_colours+1,this.rng)
             }
             else if (statedict == 'viridis') {
                  let colours = this.colourGradientArray(num_colours, 0,[68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37]) 
@@ -74,15 +75,19 @@ class Gridmodel {
                 let colours = this.colourGradientArray(num_colours, 0,[20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]) 
                 return_dict[statekey] = colours                
             }
+            else if (statedict == 'inferno_rev') {
+                let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52])
+                return_dict[statekey] = colours                
+            }
             else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
             {
-                return_dict[statekey] = stringToRGB(statedict)
+                return_dict[statekey] = utility.stringToRGB(statedict)
             }
             else {
                 let c = {}
                 for (const [key, val] of Object.entries(statedict)) {
                     if (Array.isArray(val)) c[key] = val
-                    else c[key] = stringToRGB(val)
+                    else c[key] = utility.stringToRGB(val)
                 }
                 return_dict[statekey] = c
             }
@@ -258,7 +263,7 @@ class Gridmodel {
                 this.upd_order.push(n)
             }
         }
-        shuffle(this.upd_order, this.rng)            // Shuffle the update order
+        utility.shuffle(this.upd_order, this.rng)            // Shuffle the update order
     }
 
     /** The update is, like nextState, user-defined (hence, empty by default).
@@ -539,7 +544,7 @@ class Gridmodel {
             for (let j = 0; j < this.nr; j++)
                 all_gridpoints.push(this.getGridpoint(i, j))
 
-        all_gridpoints = shuffle(all_gridpoints, this.rng)
+        all_gridpoints = utility.shuffle(all_gridpoints, this.rng)
 
         for (let i = 0; i < all_gridpoints.length; i++)
             this.setGridpoint(i % this.nc, Math.floor(i / this.nc), all_gridpoints[i])
@@ -604,7 +609,7 @@ class Gridmodel {
     plotArray(graph_labels, graph_values, cols, title, opts) {
         if (typeof window == 'undefined') return
         if (!(title in this.graphs)) {
-            cols = parseColours(cols)
+            cols = utility.parseColours(cols)
             graph_values.unshift(this.time)
             graph_labels.unshift("Time")
             this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts)
@@ -646,7 +651,7 @@ class Gridmodel {
         opts.series = {[seriesname]: {strokeWidth: 3.0, strokeColor:"green", drawPoints: false, pointSize: 0, highlightCircleSize: 3 }}
         if (typeof window == 'undefined') return
         if (!(title in this.graphs)) {
-            cols = parseColours(cols)
+            cols = utility.parseColours(cols)
             graph_values.unshift(this.time)
             graph_labels.unshift("Time")
             this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts)
@@ -675,7 +680,7 @@ class Gridmodel {
     plotXY(graph_labels, graph_values, cols, title, opts) {
         if (typeof window == 'undefined') return
         if (!(title in this.graphs)) {
-            cols = parseColours(cols)
+            cols = utility.parseColours(cols)
             this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts)
         }
         else {
@@ -840,13 +845,14 @@ export default Gridmodel
 //  The functions below are not methods of grid-model as they are never unique for a particular model. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 /** 
  *  Make a grid, or when a template is given, a COPY of a grid. 
  *  @param {int} cols Width of the new grid
  *  @param {int} rows Height of the new grid
  *  @param {2DArray} template Template to be used for copying (if not set, a new empty grid is made)
 */
-function MakeGrid(cols, rows, template) {
+let MakeGrid = function(cols, rows, template) {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
     for (let i = 0; i < cols; i++) {
         grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
@@ -865,7 +871,7 @@ function MakeGrid(cols, rows, template) {
  *  @param {int} rows Height of the grid
  *  @param {2DArray} template Get ODE states from here
 */
-function CopyGridODEs(cols, rows, template) {
+let CopyGridODEs = function(cols, rows, template) {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
     for (let i = 0; i < cols; i++) {
         grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
@@ -883,151 +889,3 @@ function CopyGridODEs(cols, rows, template) {
 
     return grid;
 }
-
-/** 
- *  Reverse dictionary 
- *  @param {Object} obj dictionary-style object to reverse in order 
-*/
-function dict_reverse(obj) {
-    let new_obj = {}
-    let rev_obj = Object.keys(obj).reverse();
-    rev_obj.forEach(function (i) {
-        new_obj[i] = obj[i];
-    })
-    return new_obj;
-}
-
-/** 
- *  Randomly shuffle an array with custom RNG
- *  @param {Array} array array to be shuffled
- *  @param {MersenneTwister} rng MersenneTwister RNG
-*/
-function shuffle(array, rng) {
-    let i = array.length;
-    while (i--) {
-        const ri = Math.floor(rng.random() * (i + 1));
-        [array[i], array[ri]] = [array[ri], array[i]];
-    }
-    return array;
-}
-
-/** 
- *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
- *  @param {String} string string to convert to RGB
-*/
-function stringToRGB(string) {
-    if (string[0] != '#') return nameToRGB(string)
-    else return hexToRGB(string)
-}
-
-/** 
- *  Convert hexadecimal to RGB
- *  @param {String} hex string to convert to RGB
-*/
-function hexToRGB(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-}
-
-/** 
- *  Convert colour name to RGB
- *  @param {String} name string to look up in the set of known colours (see below)
-*/
-function nameToRGB(string) {
-    let colours = {
-        'black': [0, 0, 0],
-        'white': [255, 255, 255],
-        'red': [255, 0, 0],
-        'blue': [0, 0, 255],
-        'green': [0, 255, 0],
-        'darkgrey': [40, 40, 40],
-        'lightgrey': [180, 180, 180],
-        'violet': [148, 0, 211],
-        'turquoise': [64, 224, 208],
-        'orange': [255, 165, 0],
-        'gold': [240, 200, 0],
-        'grey': [125, 125, 125],
-        'yellow': [255, 255, 0],
-        'cyan': [0, 255, 255],
-        'aqua': [0, 255, 255],
-        'silver': [192, 192, 192],
-        'nearwhite': [192, 192, 192],
-        'purple': [128, 0, 128],
-        'darkgreen': [0, 128, 0],
-        'olive': [128, 128, 0],
-        'teal': [0, 128, 128],
-        'navy': [0, 0, 128]
-
-    }
-    let c = colours[string]
-    if (c == undefined) throw new Error(`Cacatoo has no colour with name '${string}'`)
-    return c
-}
-
-/** 
- *  Make sure all colours, even when of different types, are stored in the same format (RGB, as cacatoo uses internally)
- *  @param {Array} cols array of strings, or [R,G,B]-arrays. Only strings are converted, other returned. 
-*/
-
-function parseColours(cols) {
-    let return_cols = []
-    for (let c of cols) {
-        if (typeof c === 'string' || c instanceof String) {
-            return_cols.push(stringToRGB(c))
-        }
-        else {
-            return_cols.push(c)
-        }
-    }
-    return return_cols
-}
-
-/** 
- *  Compile a dict of default colours if nothing is given by the user. Reuses colours if more colours are needed. 
-*/
-let default_colours = function(num_colours)
-{
-    let colour_dict = [
-        [0, 0, 0],            // black
-        [255, 255, 255],      // white
-        [255, 0, 0],          // red
-        [0, 0, 255],          // blue
-        [0, 255, 0],          //green      
-        [60, 60, 60],         //darkgrey    
-        [180, 180, 180],      //lightgrey   
-        [148, 0, 211],      //violet      
-        [64, 224, 208],     //turquoise   
-        [255, 165, 0],      //orange       
-        [240, 200, 0],       //gold       
-        [125, 125, 125],
-        [255, 255, 0], // yellow
-        [0, 255, 255], // cyan
-        [192, 192, 192], // silver
-        [0, 128, 0], //darkgreen
-        [128, 128, 0], // olive
-        [0, 128, 128], // teal
-        [0, 0, 128]] // navy
-
-    let return_dict = {}
-    for(let i = 0; i < num_colours; i++)
-    {
-        return_dict[i] = colour_dict[i%19]
-    }
-    return return_dict
-}
-
-
-/** 
- *  A list of default colours if nothing is given by the user. 
-*/
-let random_colours = function(num_colours,rng)
-{
-    let return_dict = {}
-    for(let i = 0; i < num_colours; i++)
-    {
-        return_dict[i] = [rng.genrand_int(0,255),rng.genrand_int(0,255),rng.genrand_int(0,255)]
-    }
-    return return_dict
-}
-
-

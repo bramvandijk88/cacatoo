@@ -1,7 +1,7 @@
 import Gridmodel from "./gridmodel"
-import Graph from "./graph"
 import Canvas from "./canvas"
 import MersenneTwister from '../lib/mersenne'
+import * as utility from './utility'
 
 
 /**
@@ -64,12 +64,16 @@ class Simulation {
     createDisplay(name, property, customlab, height, width, scale, x, y) {
         let label = customlab
         if (customlab == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
-        let gridmodel = this[name]
+        let gridmodel = this[name]        
         if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
         if (height == undefined) height = gridmodel.nr
         if (width == undefined) width = gridmodel.nc
         if (scale == undefined) scale = gridmodel.scale
-        
+
+        if(gridmodel.statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)                        
+            gridmodel.statecolours[property] = utility.default_colours(10)
+        } 
         if(this.inbrowser)
         {
             let cnv = new Canvas(gridmodel, property, label, height, width, scale);
@@ -118,6 +122,7 @@ class Simulation {
         
         if(config.fill == "viridis") this[name].colourViridis(property, maxval)    
         else if(config.fill == "inferno") this[name].colourViridis(property, maxval, false, "inferno")    
+        else if(config.fill == "inferno_rev") this[name].colourViridis(property, maxval, true, "inferno")    
         else if(config.fill == "red") this[name].colourGradient(property, maxval, [0, 0, 0], [255, 0, 0])
         else if(config.fill == "green") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 255, 0])
         else if(config.fill == "blue") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255])

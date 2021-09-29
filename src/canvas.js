@@ -102,7 +102,7 @@ class Canvas {
         if (typeof document == "undefined") return
         let statecols = this.gridmodel.statecolours[property]
         if(statecols == undefined){
-            console.log(`Warning: no colours setup for canvs "${this.label}"`)
+            console.log(`Warning: no colours setup for canvas "${this.label}"`)
             return
         } 
                     
@@ -127,7 +127,7 @@ class Canvas {
                 let val = this.minval+Math.ceil(i*(1/0.8)*this.maxval/bar_width)       
                          
                 if(val>this.maxval) val = this.maxval
-                if(statecols[val] == undefined) ctx.fillStyle = "#000000"
+                if(statecols[val] == undefined) ctx.fillStyle = this.bgcolor
                 else ctx.fillStyle = rgbToHex(statecols[val])
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
@@ -176,9 +176,8 @@ class Canvas {
                 let pos = offset+Math.floor(i*step_size)
                 ctx.beginPath()                
                 ctx.strokeStyle = "#000000"
-                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor
-                else if(keys[i]>0) ctx.fillStyle = rgbToHex(statecols[keys[i]])
-                else ctx.fillStyle = this.bgcolor
+                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor                
+                else ctx.fillStyle = rgbToHex(statecols[keys[i]])
                 ctx.fillRect(pos-4, 10, 10, 10)
                 ctx.closePath()
                 ctx.font = '12px helvetica';

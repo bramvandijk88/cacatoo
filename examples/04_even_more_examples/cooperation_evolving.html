@@ -21,7 +21,7 @@ var sim;                            // This 'global' variable will hold the enti
 var initial_helping_rate = 0.5    // Determines how much help a 'cooperative' individual gives to its neighbours
 var death = 0.05                    // Determines how often an individual spontaneously dies, making a new spot available
 var movement = 1                    // Determines how much individuals 'move around'
-var mutation_rate = 0.001
+var mutation_rate = 0.01
 
 /**
 * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
@@ -62,7 +62,7 @@ function cacatoo() {
     }
 
     sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
-                        multiplier:100, maxval:60, fill:"inferno"})
+                        multiplier:100, minval: 0, maxval:60, fill:"inferno"})
     
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
@@ -133,7 +133,7 @@ function cacatoo() {
         // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
         
         this.plotPopsizes('alive',[1])        
-        this.plotPoints(helping_rates,"Cooperation rates (points + average)")
+        this.plotPoints(helping_rates,"Cooperation rates (points + average)")        
         
     }
     sim.coop.bottleneck = function()
