@@ -64,7 +64,8 @@
               if(sim.particles.grid[i][j].food=='food' && this.countMoore8(sim.growth,i,j,'state','alive') > 0){
                   sim.particles.grid[i][j].food = 'no food'
                   this.grid[i][j].state = 'alive'
-                  this.grid[i][j].colour = Math.min(18,Math.floor(this.time/10))
+                  this.grid[i][j].colour = Math.min(18,1+Math.floor(this.time/10))
+                  
               }
             }
            

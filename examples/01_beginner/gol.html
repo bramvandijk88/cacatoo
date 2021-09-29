@@ -92,6 +92,7 @@
         sim.addPatternButton(sim.gol, 'alive')
         sim.addButton("pause/continue", function () { sim.toggle_play() })
         sim.addButton("step", function () { sim.step(); sim.display() })
+        sim.modifysleep = function(newvalue) { this.sleep = newvalue}
         sim.start()
 
     }
