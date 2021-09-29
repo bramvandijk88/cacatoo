@@ -44,7 +44,7 @@ function cacatoo() {
         scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 5,
         graph_update: 20,
-        statecolours: { 'alive': { 1: 'white' }}
+        statecolours: { 'alive': { 1: 'black' }}
     }
 
     /*
@@ -132,11 +132,8 @@ function cacatoo() {
 
         // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
         
-        this.plotArray(["Avg helping","Fraction of grid occupied"],
-            [sumhelping / sumalive, sumalive/(this.nc*this.nr)],
-            ["#FFAA00","#111111"],
-            "Average helping rate / fract. grid occupied")
-        this.plotPoints(helping_rates,"Cooperation rates (sampled points)")
+        this.plotPopsizes('alive',[1])        
+        this.plotPoints(helping_rates,"Cooperation rates (points + average)")
         
     }
     sim.coop.bottleneck = function()
