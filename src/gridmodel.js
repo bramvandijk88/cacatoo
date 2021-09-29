@@ -115,7 +115,7 @@ class Gridmodel {
                 if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0]) * (i / (segment_len - 1)))
                 else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len - 1)))
                 if (arr2[1] > arr1[1]) g = Math.floor(arr1[1] + (arr2[1] - arr1[1]) * (i / (segment_len - 1)))
-                else g = Math.floor(arr1[0] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)))
+                else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)))
                 if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)))
                 else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)))
                 color_dict[Math.floor(i + arr * segment_len + total) + 1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)]
@@ -134,8 +134,6 @@ class Gridmodel {
         let n_arrays = arguments.length - offset
         
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
-
-        let segment_len = n / (n_arrays-1)
         
         let color_dict = {}
         let total = 0
@@ -625,9 +623,7 @@ class Gridmodel {
 
     /** 
      * Adds a dygraph-plot to your DOM (if the DOM is loaded)
-     *  @param {Array} graph_labels Array of strings for the graph legend
      *  @param {Array} graph_values Array of floats to plot (here plotted over time)
-     *  @param {Array} cols Array of colours to use for plotting
      *  @param {String} title Title of the plot
      *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
     */
