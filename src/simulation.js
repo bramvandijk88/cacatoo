@@ -113,17 +113,17 @@ class Simulation {
         let scale = config.scale || this[name].scale               
         let maxval = config.maxval || this.maxval || undefined                
         let minval = config.minval || 0
-        let multiplier = config.multiplier || 1
+        let num_colours = config.num_colours || 64
         
-        if(config.fill == "viridis") this[name].colourViridis(property, maxval)    
-        else if(config.fill == "inferno") this[name].colourViridis(property, maxval, false, "inferno")    
-        else if(config.fill == "inferno_rev") this[name].colourViridis(property, maxval, true, "inferno")    
-        else if(config.fill == "red") this[name].colourGradient(property, maxval, [0, 0, 0], [255, 0, 0])
-        else if(config.fill == "green") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 255, 0])
-        else if(config.fill == "blue") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255])
+        if(config.fill == "viridis") this[name].colourViridis(property, num_colours)    
+        else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno")    
+        else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno")    
+        else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0])
+        else if(config.fill == "green") this[name].colourGradient(property, maxnum_coloursval, [0, 0, 0], [0, 255, 0])
+        else if(config.fill == "blue") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255])
         else if(this[name].statecolours[property]==undefined){
             console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)
-            this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255])
+            this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255])
         } 
         
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
@@ -131,7 +131,7 @@ class Simulation {
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         if (maxval !== undefined) cnv.maxval = maxval
         if (minval !== undefined) cnv.minval = minval
-        if (multiplier !== undefined) cnv.multiplier = multiplier
+        if (num_colours !== undefined) cnv.num_colours = num_colours
         
         cnv.add_legend(cnv.canvasdiv,property) 
 

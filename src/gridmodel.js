@@ -76,7 +76,8 @@ class Gridmodel {
                 return_dict[statekey] = colours                
             }
             else if (statedict == 'inferno_rev') {
-                let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52])
+                console.log("i")
+                let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107])
                 return_dict[statekey] = colours                
             }
             else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
@@ -104,28 +105,32 @@ class Gridmodel {
     colourGradientArray(n,total) 
     {        
         let color_dict = {}
-        color_dict[0] = [0, 0, 0]
+        //color_dict[0] = [0, 0, 0]
 
         let n_arrays = arguments.length - 2
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
-        let segment_len = n / (n_arrays-1)
+        let segment_len = Math.ceil(n / (n_arrays-1))
         
+        let total_added_colours = 0
 
-        for (let arr = 0; arr < n_arrays -1 ; arr++) {
+        for (let arr = 0; arr < n_arrays - 1 ; arr++) {
             let arr1 = arguments[2 + arr]
             let arr2 = arguments[2 + arr + 1]
-            
+
             for (let i = 0; i < segment_len; i++) {
                 let r, g, b
-                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0]) * (i / (segment_len - 1)))
-                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len - 1)))
+                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0])*( i / (segment_len-1) ))
+                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len-1)))
                 if (arr2[1] > arr1[1]) g = Math.floor(arr1[1] + (arr2[1] - arr1[1]) * (i / (segment_len - 1)))
                 else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)))
                 if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)))
                 else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)))
-                color_dict[Math.floor(i + arr * segment_len + total) + 1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)]
+                color_dict[Math.floor(i + arr * segment_len + total)+1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)]
+                total_added_colours++
+                if(total_added_colours == n) break
             }
         }        
+
         return(color_dict)
     }
 
@@ -400,7 +405,7 @@ class Gridmodel {
             let i = model.moore[n][0]
             let j = model.moore[n][1]
             let gp = model.getGridpoint(col + i, row + j)
-            if(gp != undefined)     count += model.getGridpoint(col + i, row + j)[property]
+            if(gp !== undefined && gp[property] !== undefined) count += gp[property]
         }
         return count;
     }

@@ -582,7 +582,8 @@ class Gridmodel {
                 return_dict[statekey] = colours;                
             }
             else if (statedict == 'inferno_rev') {
-                let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52]);
+                console.log("i");
+                let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107]);
                 return_dict[statekey] = colours;                
             }
             else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
@@ -610,28 +611,32 @@ class Gridmodel {
     colourGradientArray(n,total) 
     {        
         let color_dict = {};
-        color_dict[0] = [0, 0, 0];
+        //color_dict[0] = [0, 0, 0]
 
         let n_arrays = arguments.length - 2;
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
-        let segment_len = n / (n_arrays-1);
+        let segment_len = Math.ceil(n / (n_arrays-1));
         
+        let total_added_colours = 0;
 
-        for (let arr = 0; arr < n_arrays -1 ; arr++) {
+        for (let arr = 0; arr < n_arrays - 1 ; arr++) {
             let arr1 = arguments[2 + arr];
             let arr2 = arguments[2 + arr + 1];
-            
+
             for (let i = 0; i < segment_len; i++) {
                 let r, g, b;
-                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0]) * (i / (segment_len - 1)));
-                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len - 1)));
+                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0])*( i / (segment_len-1) ));
+                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len-1)));
                 if (arr2[1] > arr1[1]) g = Math.floor(arr1[1] + (arr2[1] - arr1[1]) * (i / (segment_len - 1)));
                 else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)));
                 if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)));
                 else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)));
-                color_dict[Math.floor(i + arr * segment_len + total) + 1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
+                color_dict[Math.floor(i + arr * segment_len + total)+1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
+                total_added_colours++;
+                if(total_added_colours == n) break
             }
         }        
+
         return(color_dict)
     }
 
@@ -906,7 +911,7 @@ class Gridmodel {
             let i = model.moore[n][0];
             let j = model.moore[n][1];
             let gp = model.getGridpoint(col + i, row + j);
-            if(gp != undefined)     count += model.getGridpoint(col + i, row + j)[property];
+            if(gp !== undefined && gp[property] !== undefined) count += gp[property];
         }
         return count;
     }
@@ -1453,6 +1458,7 @@ class Canvas {
         ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
+        
         for (let i = 0; i < ncol; i++)         // i are cols
         {
             for (let j = 0; j < nrow; j++)     // j are rows
@@ -1461,13 +1467,16 @@ class Canvas {
                 let statecols = this.gridmodel.statecolours[prop];
 
                 let value = this.gridmodel.grid[i][j][prop];
-                if(this.multiplier !== undefined) value = Math.floor(value*this.multiplier);
-                if(this.maxval !== undefined && value>=this.maxval) value = this.maxval-1;
-                if(this.minval !== undefined && value<=this.minval) value = this.minval;            
+                if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
+                {                  
+                    value = Math.min(value,this.maxval) - this.minval;
+                    let mult = this.num_colours/(this.maxval-this.minval);
+                    value = Math.max(Math.floor(value*mult),1);
+                }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state
                     continue
-                let idx;
+                let idx; 
                 if (statecols.constructor == Object) {
                     idx = statecols[value];
                 }
@@ -1506,7 +1515,7 @@ class Canvas {
         this.legend.height = 40;
         let ctx = this.legend.getContext("2d");
         
-        if(this.maxval!==undefined) {       
+        if(this.maxval!==undefined) {
             let bar_width = this.width*this.scale*0.8;
             let offset = 0.1*this.legend.width;  
             let n_ticks = 5;
@@ -1517,11 +1526,13 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = this.minval+Math.ceil(i*(1/0.8)*this.maxval/bar_width);       
-                         
-                if(val>this.maxval) val = this.maxval;
-                if(statecols[val] == undefined) ctx.fillStyle = this.bgcolor;
-                else ctx.fillStyle = rgbToHex$1(statecols[val]);
+                let val = Math.ceil(this.num_colours*i/bar_width);
+                if(statecols[val] == undefined) {                    
+                    ctx.fillStyle = this.bgcolor;
+                }
+                else {                    
+                    ctx.fillStyle = rgbToHex$1(statecols[val]);
+                }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
                 
@@ -1537,8 +1548,10 @@ class Canvas {
                 ctx.closePath();
                 ctx.fillStyle = "#000000";
                 ctx.textAlign = "center";
-                ctx.font = '12px helvetica';                
-                ctx.fillText(this.minval+i*tick_increment, tick_position, 35);
+                ctx.font = '12px helvetica';     
+                let ticklab = (this.minval+i*tick_increment);
+                ticklab = ticklab.toFixed(1);         
+                ctx.fillText(ticklab, tick_position, 35);
             }
 
             ctx.beginPath();
@@ -1705,17 +1718,17 @@ class Simulation {
         let scale = config.scale || this[name].scale;               
         let maxval = config.maxval || this.maxval || undefined;                
         let minval = config.minval || 0;
-        let multiplier = config.multiplier || 1;
+        let num_colours = config.num_colours || 64;
         
-        if(config.fill == "viridis") this[name].colourViridis(property, maxval);    
-        else if(config.fill == "inferno") this[name].colourViridis(property, maxval, false, "inferno");    
-        else if(config.fill == "inferno_rev") this[name].colourViridis(property, maxval, true, "inferno");    
-        else if(config.fill == "red") this[name].colourGradient(property, maxval, [0, 0, 0], [255, 0, 0]);
-        else if(config.fill == "green") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 255, 0]);
-        else if(config.fill == "blue") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255]);
+        if(config.fill == "viridis") this[name].colourViridis(property, num_colours);    
+        else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno");    
+        else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno");    
+        else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0]);
+        else if(config.fill == "green") this[name].colourGradient(property, maxnum_coloursval, [0, 0, 0], [0, 255, 0]);
+        else if(config.fill == "blue") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255]);
         else if(this[name].statecolours[property]==undefined){
             console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`);
-            this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255]);
+            this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255]);
         } 
         
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
@@ -1723,7 +1736,7 @@ class Simulation {
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         if (maxval !== undefined) cnv.maxval = maxval;
         if (minval !== undefined) cnv.minval = minval;
-        if (multiplier !== undefined) cnv.multiplier = multiplier;
+        if (num_colours !== undefined) cnv.num_colours = num_colours;
         
         cnv.add_legend(cnv.canvasdiv,property); 
 

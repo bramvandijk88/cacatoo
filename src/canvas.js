@@ -60,6 +60,7 @@ class Canvas {
         ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
+        
         for (let i = 0; i < ncol; i++)         // i are cols
         {
             for (let j = 0; j < nrow; j++)     // j are rows
@@ -68,13 +69,16 @@ class Canvas {
                 let statecols = this.gridmodel.statecolours[prop]
 
                 let value = this.gridmodel.grid[i][j][prop]
-                if(this.multiplier !== undefined) value = Math.floor(value*this.multiplier)
-                if(this.maxval !== undefined && value>=this.maxval) value = this.maxval-1
-                if(this.minval !== undefined && value<=this.minval) value = this.minval            
+                if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
+                {                  
+                    value = Math.min(value,this.maxval) - this.minval
+                    let mult = this.num_colours/(this.maxval-this.minval)
+                    value = Math.max(Math.floor(value*mult),1)
+                }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state
                     continue
-                let idx
+                let idx 
                 if (statecols.constructor == Object) {
                     idx = statecols[value]
                 }
@@ -113,7 +117,7 @@ class Canvas {
         this.legend.height = 40
         let ctx = this.legend.getContext("2d")
         
-        if(this.maxval!==undefined) {       
+        if(this.maxval!==undefined) {
             let bar_width = this.width*this.scale*0.8
             let offset = 0.1*this.legend.width  
             let n_ticks = 5
@@ -124,11 +128,13 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = this.minval+Math.ceil(i*(1/0.8)*this.maxval/bar_width)       
-                         
-                if(val>this.maxval) val = this.maxval
-                if(statecols[val] == undefined) ctx.fillStyle = this.bgcolor
-                else ctx.fillStyle = rgbToHex(statecols[val])
+                let val = Math.ceil(this.num_colours*i/bar_width)
+                if(statecols[val] == undefined) {                    
+                    ctx.fillStyle = this.bgcolor
+                }
+                else {                    
+                    ctx.fillStyle = rgbToHex(statecols[val])
+                }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
                 
@@ -144,8 +150,10 @@ class Canvas {
                 ctx.closePath();
                 ctx.fillStyle = "#000000"
                 ctx.textAlign = "center";
-                ctx.font = '12px helvetica';                
-                ctx.fillText(this.minval+i*tick_increment, tick_position, 35);
+                ctx.font = '12px helvetica';     
+                let ticklab = (this.minval+i*tick_increment)
+                ticklab = ticklab.toFixed(1)         
+                ctx.fillText(ticklab, tick_position, 35);
             }
 
             ctx.beginPath();
