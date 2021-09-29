@@ -1553,7 +1553,7 @@ class Canvas {
             let total_num_values = keys.length;
             let spacing = 0.8;
             if(total_num_values < 8) spacing = 0.6;
-            if(total_num_values < 4) spacing = 0.2;
+            if(total_num_values < 4) spacing = 0.3;
             
             let bar_width = this.width*this.scale*spacing;   
             let offset = 0.5*(1-spacing)*this.legend.width;
@@ -1885,36 +1885,35 @@ class Simulation {
                 for (let j = 0; j < gridmodel.nr; j++)                    // j are rows
                     if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];
     }
-
-    /**
+    
+     /**
      *  populateGrid populates a grid with custom individuals. 
      *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
      *  @param {Array} individuals The properties for individuals 1..n
      *  @param {Array} freqs The initial frequency of individuals 1..n
      */
-    populateGrid(gridmodel,individuals,freqs)
-    {
-        let sumfreqs =0;
-        if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
-        for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
+      populateGrid(gridmodel,individuals,freqs)
+      {
+          if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+          if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
 
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
-                let cumsumfreq = 0;                
-                for (const property in individuals[0]) {
-                    gridmodel.grid[i][j][property] = 0;    
-                }
-                for(let n=0; n<individuals.length; n++)
-                {
-                    cumsumfreq += freqs[n];
-                    if(this.rng.random() < cumsumfreq) {
-                        Object.assign(gridmodel.grid[i][j],individuals[n]);
-                        break
-                    }
-                }
-            }
-        
-    }
+          for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+              for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
+                  for (const property in individuals[0]) {
+                      gridmodel.grid[i][j][property] = 0;    
+                  }
+                  let random_number = this.rng.random();
+                  let sum_freqs = 0;
+                  for(let n=0; n<individuals.length; n++)
+                  {
+                      sum_freqs += freqs[n];
+                      if(random_number < sum_freqs) {
+                          Object.assign(gridmodel.grid[i][j],individuals[n]);
+                          break
+                      }
+                  }
+              }  
+      }
 
     /**
     *  initialSpot populates a grid with states. Grid points close to a certain coordinate are set to state value, while

@@ -160,7 +160,7 @@ class Canvas {
             let total_num_values = keys.length
             let spacing = 0.8
             if(total_num_values < 8) spacing = 0.6
-            if(total_num_values < 4) spacing = 0.2
+            if(total_num_values < 4) spacing = 0.3
             
             let bar_width = this.width*this.scale*spacing   
             let offset = 0.5*(1-spacing)*this.legend.width

@@ -1,7 +1,8 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
+> Modify tutorials to match with new function names, etc. (e.g. predator prey with string-labels)
+
 > Push data to graphs rather then completely reload it
-> SumMoore functionality
 > FBA testing
 > Spacetime plots
 > Options to save PNGs:

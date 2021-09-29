@@ -36,7 +36,7 @@
             nrow: 60,		                              // Number of rows (height of your grid)
             wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
             scale: 3,				                      // Scale of the grid (nxn pixels per grid point)
-            statecolours: { 'species': { 1: [245, 245, 80], 2: [255, 0, 96] } },          // Colours for each state. Background (0) defaults to black. 
+            statecolours: { 'species': { 'prey': [245, 245, 80], 'predator': [255, 0, 96] } },          // Colours for each state. Background (0) defaults to black. 
         }
 
         /*
@@ -44,7 +44,7 @@
         */
         sim = new Simulation(config)                          // Initialise the Cacatoo simulation
         sim.makeGridmodel("model")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.initialGrid(sim.model, 'species', 1, 0.2, 2, 0.2)                // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
+        sim.initialGrid(sim.model, 'species', 'prey', 0.2, 'predator', 0.2)                // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
         sim.createDisplay("model", "species", "")                      // Create a display so we can see our newly made gridmodel
 
         /*
@@ -54,19 +54,19 @@
         sim.model.nextState = function (i, j) {
             let randomneigh = this.randomMoore8(this, i, j).species   // Random neighbour
 
-            if (this.grid[i][j].species == 0)                        // If empty
+            if (!this.grid[i][j].species)                        // If empty
             {
-                if (randomneigh == 1 && this.rng.genrand_real1() < 0.5)
-                    this.grid[i][j].species = 1                     // 1 (prey) reproduces
+                if (randomneigh == 'prey' && this.rng.genrand_real1() < 0.5)
+                    this.grid[i][j].species = 'prey'                     // 1 (prey) reproduces
             }
-            else if (this.grid[i][j].species == 1)                   // If prey
+            else if (this.grid[i][j].species == 'prey')                   // If prey
             {
-                if (randomneigh == 2 && this.rng.genrand_real1() < 0.3)
-                    this.grid[i][j].species = 2                     // 2 (pred) reproduces
+                if (randomneigh == 'predator' && this.rng.genrand_real1() < 0.3)
+                    this.grid[i][j].species = 'predator'                     // 2 (pred) reproduces
             }
 
             if (this.rng.genrand_real1() < 0.05)
-                this.grid[i][j].species = 0                         // death
+                this.grid[i][j].species = undefined                         // death
         }
 
         /*
@@ -75,7 +75,7 @@
         */
         sim.model.update = function () {
             this.synchronous()         // Applied as many times as it can in 1/60th of a second
-            this.plotPopsizes('species', [1, 2])
+            this.plotPopsizes('species', ['prey', 'predator'])
         }
 
         /*
@@ -87,8 +87,8 @@
         sim.addButton("Kill prey", function () { sim.my_custom_killprey_function() })
         sim.my_custom_killprey_function = function () {
             for (let i = 0; i < sim.model.nc; i++) for (let j = 0; j < sim.model.nr; j++) {
-                if (sim.model.grid[i][j].species == 1 && this.rng.genrand_real1() < 0.9)
-                    sim.model.grid[i][j].species = 0
+                if (sim.model.grid[i][j].species == 'prey' && this.rng.genrand_real1() < 0.9)
+                    sim.model.grid[i][j].species = undefined
             }
         }
         sim.start()

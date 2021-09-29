@@ -35,12 +35,12 @@
             maxtime: 1000000,                             // How many time steps the model continues to run            
             ncol: 200,                                   // Number of columns (width of your grid)
             nrow: 200,		                              // Number of rows (height of your grid)
-            seed: 5,
+            seed: 11,
             wrap: [false, false],                         // Wrapped boundary conditions? [COLS, ROWS]   
             scale: 2,				                      // Scale of the grid (nxn pixels per grid point)
-            statecolours: {'species': { 1: "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
-                                        2: "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
-                                        3: "#3030ff"}}
+            statecolours: {'species': { 'low': "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                        'medium': "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                        'high': "#3030ff"}}
         }
 
         /*
@@ -54,12 +54,12 @@
         sim.makeGridmodel("growth")                              // Build a new Gridmodel within the simulation called "model"
 
         sim.initialGrid(sim.growth,'external_resources',1000.0,1.0) // Give 100% of grid points external resources (set to 1)
-        let species = [{species:1,uptake_rate:0.5,internal_resources:1},
-                                {species:2,uptake_rate:5.0,internal_resources:1},
-                                {species:3,uptake_rate:50.0,internal_resources:1}]
+        let species = [{species:'low',uptake_rate:0.5,internal_resources:1},
+                                {species:'medium',uptake_rate:5.0,internal_resources:1},
+                                {species:'high',uptake_rate:50.0,internal_resources:1}]
         
-        sim.populateSpot(sim.growth, species, [0.33,0.33,0.33], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
-        // sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
+        //sim.populateSpot(sim.growth, species, [0.33,0.33,0.33], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+        sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
 
         sim.createDisplay("growth", "species", "Species")     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
         
@@ -77,11 +77,10 @@
 
         sim.growth.nextState = function (i, j) {
             let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
-            let this_gp = this.grid[i][j]                     // This cell
-
-            if (this_gp.species == 0)                        // If empty spot
+            let this_gp = this.grid[i][j]                     // This cell            
+            if (!this_gp.species)                        // If empty spot
             {
-                if (randomneigh.species > 1 && randomneigh.internal_resources > 50) {   // Random neighbour is alive and it has enough resources
+                if (randomneigh.species && randomneigh.internal_resources > 50) {   // Random neighbour is alive and it has enough resources
                     this_gp.species = randomneigh.species                               // Empty spot becomes the parent type (reproduction)
                     this_gp.uptake_rate = randomneigh.uptake_rate                       // Empty spot inherits uptake rate from the parent
                     randomneigh.internal_resources = this_gp.internal_resources = randomneigh.internal_resources / 2    // Resources are divided between parent and offpsring
@@ -108,6 +107,7 @@
         */
         sim.growth.update = function () {
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
+            this.plotPopsizes('species', ['low', 'medium','high'])
         }
 
         /*
