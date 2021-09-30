@@ -1,10 +1,10 @@
 # Cacatoo
 
-Cacatoo is a highly customisable toolkit for designing your own individual-based models. It is roughly based Cash (Cellular Automata Simulated Hardware, RJ de Boer & AD Staritsk), but because it is written in 100% javascript, it requires no installation and works on any machine. This library is ideal for students to learn programming, and to learn how to explore and debug simple individual-based models. 
+Cacatoo is a highly customisable toolkit that makes building spatially structured models of biology easy. Because it is written in 100% javascript it requires no installation and works on any machine, making building, sharing, and exploring your model easier than it ever was! With a web-based interface that is ideal for students to learn how to program, and a NodeJS-mode which allows one to run directly from the command line, it is suited for beginners and advanced programmers alike! 
 
 <center>
 <img src="images/elephant_cacatoo.png" width="400"
-     alt="Chillin on the shoulders of giants"
+     alt="Riding on the shoulders of giants"
 /></center>
 
 
