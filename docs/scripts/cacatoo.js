@@ -1693,7 +1693,7 @@ class Simulation {
             this.canvases.push(cnv);  // Add a reference to the canvas to the sim
             const canvas = cnv.elem;        
             cnv.add_legend(cnv.canvasdiv,property);
-            cnv.bgcolour = config.bgcolour;
+            cnv.bgcolour = this.config.bgcolour;
             canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });
             cnv.displaygrid();
         }
@@ -1747,7 +1747,7 @@ class Simulation {
         if (num_colours !== undefined) cnv.num_colours = num_colours;
         
         cnv.add_legend(cnv.canvasdiv,property); 
-        cnv.bgcolour = config.bgcolour;
+        cnv.bgcolour = this.config.bgcolour;
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         const canvas = cnv.elem;
         canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale); });
