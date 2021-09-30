@@ -1428,7 +1428,7 @@ class Canvas {
         this.width = width;
         this.scale = scale;        
         this.continuous = continuous;
-        this.bgcolor = 'black';
+        this.bgcolour = 'black';
 
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
         {
@@ -1462,7 +1462,7 @@ class Canvas {
         let prop = this.property;
         ctx.clearRect(0, 0, scale * ncol, scale * nrow);
 
-        ctx.fillStyle = this.bgcolor;
+        ctx.fillStyle = this.bgcolour;
         ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;

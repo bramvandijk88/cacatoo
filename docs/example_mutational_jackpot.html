@@ -54,7 +54,7 @@
         sim = new Simulation(config)
 
         sim.makeGridmodel("cells");
-        delete sim.cells.statecolours.alive[0]
+        delete sim.cells.statecolours.alive[0]  // Remove colour so it doesn't show in legend 
         sim.cells.statecolours.alive[1] = [79, 31, 154] // Change WT 1 to white
         sim.cells.statecolours.alive[2] = [228, 178, 36] // Change mutant 1 to gold
         sim.cells.statecolours.alive[3] = [32, 100, 100] // Change mutant 2 to dark-turquoise
