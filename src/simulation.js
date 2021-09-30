@@ -27,8 +27,7 @@ class Simulation {
         this.maxtime = config.maxtime || 1000000
         this.graph_interval = config.graph_interval || 10
         this.graph_update = config.graph_update || 50
-        this.fps = config.fps * 1.4 || 60        
-
+        this.fps = config.fps * 1.4 || 60
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = []            // All gridmodels in this simulation
         this.canvases = []              // Array with refs to all canvases (from all models) from this simulation
@@ -81,7 +80,7 @@ class Simulation {
             this.canvases.push(cnv)  // Add a reference to the canvas to the sim
             const canvas = cnv.elem        
             cnv.add_legend(cnv.canvasdiv,property)
-            cnv.bgcolour = this.bgcolour
+            cnv.bgcolour = config.bgcolour
             canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })
             cnv.displaygrid()
         }
@@ -135,7 +134,7 @@ class Simulation {
         if (num_colours !== undefined) cnv.num_colours = num_colours
         
         cnv.add_legend(cnv.canvasdiv,property) 
-        cnv.bgcolour = this.bgcolour
+        cnv.bgcolour = config.bgcolour
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv.elem
         canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })
