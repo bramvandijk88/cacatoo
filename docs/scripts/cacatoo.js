@@ -37,7 +37,7 @@ class Graph {
         this.labels = labels;
         this.data = [values];
         this.title = title;
-        this.num_dps = this.labels.length; // number of data points for this graphs        
+        this.num_dps = values.length; // number of data points for this graphs        
         this.elem = document.createElement("div");
         this.elem.className = "graph-holder";      
         this.colours = [];
@@ -45,28 +45,30 @@ class Graph {
             if (v == "Time") continue            
             else if (v == undefined) this.colours.push("#000000");
             else if (v[0] + v[1] + v[2] == 765) this.colours.push("#dddddd");
-            else this.colours.push(rgbToHex$1(v[0], v[1], v[2]));
+            else this.colours.push(rgbToHex(v[0], v[1], v[2]));
         }
 
         document.body.appendChild(this.elem);
         document.getElementById("graph_holder").appendChild(this.elem);
+
         this.g = new Dygraph(this.elem, this.data,
             {
                 title: this.title,
-                showRoller: false,
-                ylabel: this.labels.length == 2 ? this.labels[1] : "",
+                showRoller: false,                
                 width: opts ? (opts.width != undefined ? opts.width : 500) : 500,
                 height: opts ? (opts.height != undefined ? opts.height : 200) : 200,
                 xlabel: this.labels[0],
+                ylabel: this.labels.length == 2 ? this.labels[1] : "",
                 drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
                 pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
                 strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
                 dateWindow: [0, 100],
-                axisLabelFontSize: 10,
+                axisLabelFontSize: 10,               
                 valueRange: [0.000,],
                 strokeWidth: opts ? (opts.strokeWidth != undefined ? opts.strokeWidth : 3) : 3,
                 colors: this.colours,
-                labels: this.labels
+                labels: labels.length == values.length ? this.labels: null,
+                series: opts ? ( opts.series != undefined ? opts.series : null) : null                
             });
     }
 
@@ -100,10 +102,10 @@ class Graph {
             if (i[0] < min_x) min_x = i[0];
         }
         this.g.updateOptions(
-            {
-                'file': this.data,
-                dateWindow: [min_x, max_x]
-            });
+        {
+            'file': this.data,
+            dateWindow: [min_x, max_x]
+        });
 
     }
 }
@@ -111,13 +113,13 @@ class Graph {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex$1(c) {
+function componentToHex(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex$1(r, g, b) {
-    return "#" + componentToHex$1(r) + componentToHex$1(g) + componentToHex$1(b);
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
 /**
@@ -362,6 +364,152 @@ function MersenneTwister(seed) {
     return (a*67108864.0+b)*(1.0/9007199254740992.0); 
   };
 
+/** 
+ *  Reverse dictionary 
+ *  @param {Object} obj dictionary-style object to reverse in order 
+*/
+function dict_reverse(obj) {
+    let new_obj = {};
+    let rev_obj = Object.keys(obj).reverse();
+    rev_obj.forEach(function (i) {
+        new_obj[i] = obj[i];
+    });
+    return new_obj;
+}
+
+/** 
+ *  Randomly shuffle an array with custom RNG
+ *  @param {Array} array array to be shuffled
+ *  @param {MersenneTwister} rng MersenneTwister RNG
+*/
+function shuffle(array, rng) {
+    let i = array.length;
+    while (i--) {
+        const ri = Math.floor(rng.random() * (i + 1));
+        [array[i], array[ri]] = [array[ri], array[i]];
+    }
+    return array;
+}
+
+/** 
+ *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
+ *  @param {String} string string to convert to RGB
+*/
+function stringToRGB(string) {
+    if (string[0] != '#') return nameToRGB(string)
+    else return hexToRGB(string)
+}
+
+/** 
+ *  Convert hexadecimal to RGB
+ *  @param {String} hex string to convert to RGB
+*/
+function hexToRGB(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+}
+
+/** 
+ *  Convert colour name to RGB
+ *  @param {String} name string to look up in the set of known colours (see below)
+*/
+function nameToRGB(string) {
+    let colours = {
+        'black': [0, 0, 0],
+        'white': [255, 255, 255],
+        'red': [255, 0, 0],
+        'blue': [0, 0, 255],
+        'green': [0, 255, 0],
+        'darkgrey': [40, 40, 40],
+        'lightgrey': [180, 180, 180],
+        'violet': [148, 0, 211],
+        'turquoise': [64, 224, 208],
+        'orange': [255, 165, 0],
+        'gold': [240, 200, 0],
+        'grey': [125, 125, 125],
+        'yellow': [255, 255, 0],
+        'cyan': [0, 255, 255],
+        'aqua': [0, 255, 255],
+        'silver': [192, 192, 192],
+        'nearwhite': [192, 192, 192],
+        'purple': [128, 0, 128],
+        'darkgreen': [0, 128, 0],
+        'olive': [128, 128, 0],
+        'teal': [0, 128, 128],
+        'navy': [0, 0, 128]
+
+    };
+    let c = colours[string];
+    if (c == undefined) throw new Error(`Cacatoo has no colour with name '${string}'`)
+    return c
+}
+
+/** 
+ *  Make sure all colours, even when of different types, are stored in the same format (RGB, as cacatoo uses internally)
+ *  @param {Array} cols array of strings, or [R,G,B]-arrays. Only strings are converted, other returned. 
+*/
+
+function parseColours(cols) {
+    let return_cols = [];
+    for (let c of cols) {
+        if (typeof c === 'string' || c instanceof String) {
+            return_cols.push(stringToRGB(c));
+        }
+        else {
+            return_cols.push(c);
+        }
+    }
+    return return_cols
+}
+
+/** 
+ *  Compile a dict of default colours if nothing is given by the user. Reuses colours if more colours are needed. 
+*/
+function default_colours(num_colours)
+{
+    let colour_dict = [
+        [0, 0, 0],            // black
+        [255, 255, 255],      // white
+        [255, 0, 0],          // red
+        [0, 0, 255],          // blue
+        [0, 255, 0],          //green      
+        [60, 60, 60],         //darkgrey    
+        [180, 180, 180],      //lightgrey   
+        [148, 0, 211],      //violet      
+        [64, 224, 208],     //turquoise   
+        [255, 165, 0],      //orange       
+        [240, 200, 0],       //gold       
+        [125, 125, 125],
+        [255, 255, 0], // yellow
+        [0, 255, 255], // cyan
+        [192, 192, 192], // silver
+        [0, 128, 0], //darkgreen
+        [128, 128, 0], // olive
+        [0, 128, 128], // teal
+        [0, 0, 128]]; // navy
+
+    let return_dict = {};
+    for(let i = 0; i < num_colours; i++)
+    {
+        return_dict[i] = colour_dict[i%19];
+    }
+    return return_dict
+}
+
+
+/** 
+ *  A list of default colours if nothing is given by the user. 
+*/
+function random_colours(num_colours,rng)
+{
+    let return_dict = {};
+    for(let i = 0; i < num_colours; i++)
+    {
+        return_dict[i] = [rng.genrand_int(0,255),rng.genrand_int(0,255),rng.genrand_int(0,255)];
+    }
+    return return_dict
+}
+
 /**
  *  Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
  *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
@@ -433,6 +581,11 @@ class Gridmodel {
                 let colours = this.colourGradientArray(num_colours, 0,[20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]); 
                 return_dict[statekey] = colours;                
             }
+            else if (statedict == 'inferno_rev') {
+                console.log("i");
+                let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107]);
+                return_dict[statekey] = colours;                
+            }
             else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
             {
                 return_dict[statekey] = stringToRGB(statedict);
@@ -458,26 +611,30 @@ class Gridmodel {
     colourGradientArray(n,total) 
     {        
         let color_dict = {};
-        color_dict[0] = [0, 0, 0];
+        //color_dict[0] = [0, 0, 0]
 
         let n_arrays = arguments.length - 2;
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
-        let segment_len = n / (n_arrays-1);
-        
+        let segment_len = Math.ceil(n / (n_arrays-1));
 
-        for (let arr = 0; arr < n_arrays -1 ; arr++) {
+        if(n <= 10 && n_arrays > 3) console.warn("Cacatoo warning: forming a complex gradient with only few colours... hoping for the best.");
+        let total_added_colours = 0;
+
+        for (let arr = 0; arr < n_arrays - 1 ; arr++) {
             let arr1 = arguments[2 + arr];
             let arr2 = arguments[2 + arr + 1];
-            
+
             for (let i = 0; i < segment_len; i++) {
                 let r, g, b;
-                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0]) * (i / (segment_len - 1)));
-                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len - 1)));
+                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0])*( i / (segment_len-1) ));
+                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len-1)));
                 if (arr2[1] > arr1[1]) g = Math.floor(arr1[1] + (arr2[1] - arr1[1]) * (i / (segment_len - 1)));
-                else g = Math.floor(arr1[0] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)));
+                else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)));
                 if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)));
                 else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)));
-                color_dict[Math.floor(i + arr * segment_len + total) + 1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
+                color_dict[Math.floor(i + arr * segment_len + total)+1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
+                total_added_colours++;
+                if(total_added_colours == n) break
             }
         }        
         return(color_dict)
@@ -754,7 +911,7 @@ class Gridmodel {
             let i = model.moore[n][0];
             let j = model.moore[n][1];
             let gp = model.getGridpoint(col + i, row + j);
-            if(gp != undefined)     count += model.getGridpoint(col + i, row + j)[property];
+            if(gp !== undefined && gp[property] !== undefined) count += gp[property];
         }
         return count;
     }
@@ -982,6 +1139,57 @@ class Gridmodel {
 
     /** 
      * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_values Array of floats to plot (here plotted over time)
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
+     plotPoints(graph_values, title, opts) {
+        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'y'+(i+1));
+        let cols = Array.from({length: graph_values.length}, (v, i) => 'black');
+
+        let seriesname = 'average';
+        let sum = 0;
+        let num = 0;
+        // Get average of all defined values
+        for(let n = 0; n< graph_values.length; n++){
+            if(graph_values[n] !== undefined) {
+                sum += graph_values[n];
+                num++;
+            }
+        }
+        let avg = (sum / num) || 0;
+        graph_values.unshift(avg);
+        graph_labels.unshift(seriesname);
+        cols.unshift("#666666");
+        
+        if(opts == undefined) opts = {};
+        opts.drawPoints = true;
+        opts.strokeWidth = 0;
+        opts.pointSize = 1;
+        
+        opts.series = {[seriesname]: {strokeWidth: 3.0, strokeColor:"green", drawPoints: false, pointSize: 0, highlightCircleSize: 3 }};
+        if (typeof window == 'undefined') return
+        if (!(title in this.graphs)) {
+            cols = parseColours(cols);
+            graph_values.unshift(this.time);
+            graph_labels.unshift("Time");
+            this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts);
+        }
+        else {
+            if (this.time % this.graph_interval == 0) {
+                graph_values.unshift(this.time);
+                graph_labels.unshift("Time");
+                this.graphs[title].push_data(graph_values);
+            }
+            if (this.time % this.graph_update == 0) {
+                this.graphs[title].update();
+            }
+        }
+    }
+
+
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
      *  @param {Array} graph_labels Array of strings for the graph legend
      *  @param {Array} graph_values Array of 2 floats to plot (first value for x-axis, second value for y-axis)
      *  @param {Array} cols Array of colours to use for plotting
@@ -1154,13 +1362,14 @@ class Gridmodel {
 //  The functions below are not methods of grid-model as they are never unique for a particular model. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 /** 
  *  Make a grid, or when a template is given, a COPY of a grid. 
  *  @param {int} cols Width of the new grid
  *  @param {int} rows Height of the new grid
  *  @param {2DArray} template Template to be used for copying (if not set, a new empty grid is made)
 */
-function MakeGrid(cols, rows, template) {
+let MakeGrid = function(cols, rows, template) {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
     for (let i = 0; i < cols; i++) {
         grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
@@ -1171,7 +1380,7 @@ function MakeGrid(cols, rows, template) {
     }
 
     return grid;
-}
+};
 
 /** 
  *  Make a back-up of all the ODE states (for synchronous ODE updating)
@@ -1179,7 +1388,7 @@ function MakeGrid(cols, rows, template) {
  *  @param {int} rows Height of the grid
  *  @param {2DArray} template Get ODE states from here
 */
-function CopyGridODEs(cols, rows, template) {
+let CopyGridODEs = function(cols, rows, template) {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
     for (let i = 0; i < cols; i++) {
         grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
@@ -1196,152 +1405,6 @@ function CopyGridODEs(cols, rows, template) {
     }
 
     return grid;
-}
-
-/** 
- *  Reverse dictionary 
- *  @param {Object} obj dictionary-style object to reverse in order 
-*/
-function dict_reverse(obj) {
-    let new_obj = {};
-    let rev_obj = Object.keys(obj).reverse();
-    rev_obj.forEach(function (i) {
-        new_obj[i] = obj[i];
-    });
-    return new_obj;
-}
-
-/** 
- *  Randomly shuffle an array with custom RNG
- *  @param {Array} array array to be shuffled
- *  @param {MersenneTwister} rng MersenneTwister RNG
-*/
-function shuffle(array, rng) {
-    let i = array.length;
-    while (i--) {
-        const ri = Math.floor(rng.random() * (i + 1));
-        [array[i], array[ri]] = [array[ri], array[i]];
-    }
-    return array;
-}
-
-/** 
- *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
- *  @param {String} string string to convert to RGB
-*/
-function stringToRGB(string) {
-    if (string[0] != '#') return nameToRGB(string)
-    else return hexToRGB(string)
-}
-
-/** 
- *  Convert hexadecimal to RGB
- *  @param {String} hex string to convert to RGB
-*/
-function hexToRGB(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-}
-
-/** 
- *  Convert colour name to RGB
- *  @param {String} name string to look up in the set of known colours (see below)
-*/
-function nameToRGB(string) {
-    let colours = {
-        'black': [0, 0, 0],
-        'white': [255, 255, 255],
-        'red': [255, 0, 0],
-        'blue': [0, 0, 255],
-        'green': [0, 255, 0],
-        'darkgrey': [40, 40, 40],
-        'lightgrey': [180, 180, 180],
-        'violet': [148, 0, 211],
-        'turquoise': [64, 224, 208],
-        'orange': [255, 165, 0],
-        'gold': [240, 200, 0],
-        'grey': [125, 125, 125],
-        'yellow': [255, 255, 0],
-        'cyan': [0, 255, 255],
-        'aqua': [0, 255, 255],
-        'silver': [192, 192, 192],
-        'nearwhite': [192, 192, 192],
-        'purple': [128, 0, 128],
-        'darkgreen': [0, 128, 0],
-        'olive': [128, 128, 0],
-        'teal': [0, 128, 128],
-        'navy': [0, 0, 128]
-
-    };
-    let c = colours[string];
-    if (c == undefined) throw new Error(`Cacatoo has no colour with name '${string}'`)
-    return c
-}
-
-/** 
- *  Make sure all colours, even when of different types, are stored in the same format (RGB, as cacatoo uses internally)
- *  @param {Array} cols array of strings, or [R,G,B]-arrays. Only strings are converted, other returned. 
-*/
-
-function parseColours(cols) {
-    let return_cols = [];
-    for (let c of cols) {
-        if (typeof c === 'string' || c instanceof String) {
-            return_cols.push(stringToRGB(c));
-        }
-        else {
-            return_cols.push(c);
-        }
-    }
-    return return_cols
-}
-
-/** 
- *  Compile a dict of default colours if nothing is given by the user. Reuses colours if more colours are needed. 
-*/
-let default_colours = function(num_colours)
-{
-    let colour_dict = [
-        [0, 0, 0],            // black
-        [255, 255, 255],      // white
-        [255, 0, 0],          // red
-        [0, 0, 255],          // blue
-        [0, 255, 0],          //green      
-        [60, 60, 60],         //darkgrey    
-        [180, 180, 180],      //lightgrey   
-        [148, 0, 211],      //violet      
-        [64, 224, 208],     //turquoise   
-        [255, 165, 0],      //orange       
-        [240, 200, 0],       //gold       
-        [125, 125, 125],
-        [255, 255, 0], // yellow
-        [0, 255, 255], // cyan
-        [192, 192, 192], // silver
-        [0, 128, 0], //darkgreen
-        [128, 128, 0], // olive
-        [0, 128, 128], // teal
-        [0, 0, 128]]; // navy
-
-    let return_dict = {};
-    for(let i = 0; i < num_colours; i++)
-    {
-        return_dict[i] = colour_dict[i%19];
-    }
-    return return_dict
-};
-
-
-/** 
- *  A list of default colours if nothing is given by the user. 
-*/
-let random_colours = function(num_colours,rng)
-{
-    let return_dict = {};
-    for(let i = 0; i < num_colours; i++)
-    {
-        return_dict[i] = [rng.genrand_int(0,255),rng.genrand_int(0,255),rng.genrand_int(0,255)];
-    }
-    return return_dict
 };
 
 /**
@@ -1403,6 +1466,7 @@ class Canvas {
         ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
+        
         for (let i = 0; i < ncol; i++)         // i are cols
         {
             for (let j = 0; j < nrow; j++)     // j are rows
@@ -1411,13 +1475,16 @@ class Canvas {
                 let statecols = this.gridmodel.statecolours[prop];
 
                 let value = this.gridmodel.grid[i][j][prop];
-                if(this.multiplier !== undefined) value = Math.floor(value*this.multiplier);
-                if(this.maxval !== undefined && value>=this.maxval) value = this.maxval-1;
-                if(this.minval !== undefined && value<=this.minval) value = this.minval;            
+                if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
+                {                  
+                    value = Math.min(value,this.maxval) - this.minval;
+                    let mult = this.num_colours/(this.maxval-this.minval);
+                    value = Math.max(Math.floor(value*mult),1);
+                }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state
                     continue
-                let idx;
+                let idx; 
                 if (statecols.constructor == Object) {
                     idx = statecols[value];
                 }
@@ -1445,7 +1512,7 @@ class Canvas {
         if (typeof document == "undefined") return
         let statecols = this.gridmodel.statecolours[property];
         if(statecols == undefined){
-            console.log(`Warning: no colours setup for canvs "${this.label}"`);
+            console.warn(`Cacatoo warning: no colours setup for canvas "${this.label}"`);
             return
         } 
                     
@@ -1456,7 +1523,7 @@ class Canvas {
         this.legend.height = 40;
         let ctx = this.legend.getContext("2d");
         
-        if(this.maxval!==undefined) {       
+        if(this.maxval!==undefined) {
             let bar_width = this.width*this.scale*0.8;
             let offset = 0.1*this.legend.width;  
             let n_ticks = 5;
@@ -1467,11 +1534,13 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = this.minval+Math.ceil(i*(1/0.8)*this.maxval/bar_width);       
-                         
-                if(val>this.maxval) val = this.maxval;
-                if(statecols[val] == undefined) ctx.fillStyle = "#000000";
-                else ctx.fillStyle = rgbToHex(statecols[val]);
+                let val = Math.ceil(this.num_colours*i/bar_width);
+                if(statecols[val] == undefined) {                    
+                    ctx.fillStyle = this.bgcolor;
+                }
+                else {                    
+                    ctx.fillStyle = rgbToHex$1(statecols[val]);
+                }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
                 
@@ -1487,8 +1556,10 @@ class Canvas {
                 ctx.closePath();
                 ctx.fillStyle = "#000000";
                 ctx.textAlign = "center";
-                ctx.font = '12px helvetica';                
-                ctx.fillText(this.minval+i*tick_increment, tick_position, 35);
+                ctx.font = '12px helvetica';     
+                let ticklab = (this.minval+i*tick_increment);
+                ticklab = ticklab.toFixed(1);         
+                ctx.fillText(ticklab, tick_position, 35);
             }
 
             ctx.beginPath();
@@ -1498,12 +1569,12 @@ class Canvas {
             ctx.closePath();
             div.appendChild(this.legend);
         }
-        else {                     
+        else{                     
             let keys = Object.keys(statecols);
             let total_num_values = keys.length;
             let spacing = 0.8;
             if(total_num_values < 8) spacing = 0.6;
-            if(total_num_values < 4) spacing = 0.2;
+            if(total_num_values < 4) spacing = 0.3;
             
             let bar_width = this.width*this.scale*spacing;   
             let offset = 0.5*(1-spacing)*this.legend.width;
@@ -1519,9 +1590,8 @@ class Canvas {
                 let pos = offset+Math.floor(i*step_size);
                 ctx.beginPath();                
                 ctx.strokeStyle = "#000000";
-                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;
-                else if(keys[i]>0) ctx.fillStyle = rgbToHex(statecols[keys[i]]);
-                else ctx.fillStyle = this.bgcolor;
+                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;                
+                else ctx.fillStyle = rgbToHex$1(statecols[keys[i]]);
                 ctx.fillRect(pos-4, 10, 10, 10);
                 ctx.closePath();
                 ctx.font = '12px helvetica';
@@ -1538,13 +1608,13 @@ class Canvas {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex(c) {
+function componentToHex$1(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex(arr) {
-    return "#" + componentToHex(arr[0]) + componentToHex(arr[1]) + componentToHex(arr[2]);
+function rgbToHex$1(arr) {
+    return "#" + componentToHex$1(arr[0]) + componentToHex$1(arr[1]) + componentToHex$1(arr[2]);
 }
 
 /**
@@ -1607,12 +1677,16 @@ class Simulation {
     createDisplay(name, property, customlab, height, width, scale, x, y) {
         let label = customlab;
         if (customlab == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
-        let gridmodel = this[name];
+        let gridmodel = this[name];        
         if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
         if (height == undefined) height = gridmodel.nr;
         if (width == undefined) width = gridmodel.nc;
         if (scale == undefined) scale = gridmodel.scale;
-        
+
+        if(gridmodel.statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`);                        
+            gridmodel.statecolours[property] = default_colours(10);
+        } 
         if(this.inbrowser)
         {
             let cnv = new Canvas(gridmodel, property, label, height, width, scale);
@@ -1649,24 +1723,20 @@ class Simulation {
         
         let height = config.height || this[name].nr;        
         let width = config.width || this[name].nc;
-        let scale = config.scale || this[name].scale;
-       
-        
-        let maxval = config.maxval || this.maxval || undefined;
-        
-        
+        let scale = config.scale || this[name].scale;               
+        let maxval = config.maxval || this.maxval || undefined;                
         let minval = config.minval || 0;
-        let multiplier = config.multiplier || 1;
-
+        let num_colours = config.num_colours || 64;
         
-        if(config.fill == "viridis") this[name].colourViridis(property, maxval);    
-        else if(config.fill == "inferno") this[name].colourViridis(property, maxval, false, "inferno");    
-        else if(config.fill == "red") this[name].colourGradient(property, maxval, [0, 0, 0], [255, 0, 0]);
-        else if(config.fill == "green") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 255, 0]);
-        else if(config.fill == "blue") this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255]);
+        if(config.fill == "viridis") this[name].colourViridis(property, num_colours);    
+        else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno");    
+        else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno");    
+        else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0]);
+        else if(config.fill == "green") this[name].colourGradient(property, maxnum_coloursval, [0, 0, 0], [0, 255, 0]);
+        else if(config.fill == "blue") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255]);
         else if(this[name].statecolours[property]==undefined){
             console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`);
-            this[name].colourGradient(property, maxval, [0, 0, 0], [0, 0, 255]);
+            this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255]);
         } 
         
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
@@ -1674,7 +1744,7 @@ class Simulation {
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         if (maxval !== undefined) cnv.maxval = maxval;
         if (minval !== undefined) cnv.minval = minval;
-        if (multiplier !== undefined) cnv.multiplier = multiplier;
+        if (num_colours !== undefined) cnv.num_colours = num_colours;
         
         cnv.add_legend(cnv.canvasdiv,property); 
 
@@ -1738,7 +1808,7 @@ class Simulation {
      *  (which can be slow)
      */
     start() {
-        let model = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
+        let sim = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
         let meter = undefined;
         if (this.inbrowser) {
             if(this.fpsmeter){               
@@ -1747,67 +1817,67 @@ class Simulation {
             } 
 
             document.title = `Cacatoo - ${this.config.title}`;            
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/images/elephant_cacatoo_small.png"></a>`;
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/images/gh.png"></a></img>`;
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src="/cacatoo/images/elephant_cacatoo_small.png"></a>`;
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src="/cacatoo/images/gh.png"></a></img>`;
             if (this.config.noheader != true && document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>";
             let simStartTime = performance.now();
 
             async function animate() {
                 
-                if (model.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
+                if (sim.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
                 {
                     
-                    if (model.sleep > 0) await pause(model.sleep);
+                    if (sim.sleep > 0) await pause(sim.sleep);
                     if(sim.fpsmeter) meter.tickStart();
                     let t = 0;              // Will track cumulative time per step in microseconds 
 
-                    while (t < 16.67 * 60 / model.fps)          //(t < 16.67) results in 60 fps if possible
+                    while (t < 16.67 * 60 / sim.fps)          //(t < 16.67) results in 60 fps if possible
                     {
                         let startTime = performance.now();
-                        if(!model.pause==true){
-                            model.step();
-                            model.events();
-                            model.time++;
+                        if(!sim.pause==true){
+                            sim.step();
+                            sim.events();
+                            sim.time++;
                         }
                         let endTime = performance.now();
                         t += (endTime - startTime);
                         
-                        if (!model.limitfps) break
+                        if (!sim.limitfps) break
                     }
-                    model.display();
+                    sim.display();
                     if(sim.fpsmeter) meter.tick();
                 }
                 else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
                 {
-                    if (model.sleep > 0) await pause(model.sleep);
+                    if (sim.sleep > 0) await pause(sim.sleep);
                     if(sim.fpsmeter) meter.tickStart();
-                    if (!model.pause == true) {
-                        model.step();
-                        model.events();
-                        model.time++;
+                    if (!sim.pause == true) {
+                        sim.step();
+                        sim.events();
+                        sim.time++;
                     }
-                    model.display();
+                    sim.display();
                     if(sim.fpsmeter) meter.tick();
                     
                 }
 
                 let frame = requestAnimationFrame(animate);
-                if (model.time >= model.config.maxtime) {
+                if (sim.time >= sim.config.maxtime) {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
                     cancelAnimationFrame(frame);
                 }
 
-                if (model.pause == true) { cancelAnimationFrame(frame); }
+                if (sim.pause == true) { cancelAnimationFrame(frame); }
             }
 
             requestAnimationFrame(animate);
         }
         else {
             while (true) {
-                model.step();
-                model.time++;
+                sim.step();
+                sim.time++;
             }
         }
     }
@@ -1836,36 +1906,35 @@ class Simulation {
                 for (let j = 0; j < gridmodel.nr; j++)                    // j are rows
                     if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];
     }
-
-    /**
+    
+     /**
      *  populateGrid populates a grid with custom individuals. 
      *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
      *  @param {Array} individuals The properties for individuals 1..n
      *  @param {Array} freqs The initial frequency of individuals 1..n
      */
-    populateGrid(gridmodel,individuals,freqs)
-    {
-        let sumfreqs =0;
-        if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
-        for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
+      populateGrid(gridmodel,individuals,freqs)
+      {
+          if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+          if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
 
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
-                let cumsumfreq = 0;                
-                for (const property in individuals[0]) {
-                    gridmodel.grid[i][j][property] = 0;    
-                }
-                for(let n=0; n<individuals.length; n++)
-                {
-                    cumsumfreq += freqs[n];
-                    if(this.rng.random() < cumsumfreq) {
-                        Object.assign(gridmodel.grid[i][j],individuals[n]);
-                        break
-                    }
-                }
-            }
-        
-    }
+          for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+              for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
+                  for (const property in individuals[0]) {
+                      gridmodel.grid[i][j][property] = 0;    
+                  }
+                  let random_number = this.rng.random();
+                  let sum_freqs = 0;
+                  for(let n=0; n<individuals.length; n++)
+                  {
+                      sum_freqs += freqs[n];
+                      if(random_number < sum_freqs) {
+                          Object.assign(gridmodel.grid[i][j],individuals[n]);
+                          break
+                      }
+                  }
+              }  
+      }
 
     /**
     *  initialSpot populates a grid with states. Grid points close to a certain coordinate are set to state value, while
@@ -1990,6 +2059,58 @@ class Simulation {
     }
 
     /**
+     *  addCustomSlider adds a HTML slider to the DOM-environment which allows the user
+     *  to add a custom callback function to a slider 
+     *  @param {function} func The name of the (global!) parameter to link to the slider
+     *  @param {float} [min] Minimal value of the slider
+     *  @param {float} [max] Maximum value of the slider
+     *  @param {float} [step] Step-size when modifying
+     */
+     addCustomSlider(func, min = 0.0, max = 2.0, step = 0.01, default_value=0, label) {        
+        let lab = label || func;
+        if (!this.inbrowser) return
+        if (func === undefined) { console.warn(`addCustomSlider: callback function not defined. No slider made.`); return; }
+        let container = document.createElement("div");
+        container.classList.add("form-container");
+
+        let slider = document.createElement("input");
+        let numeric = document.createElement("input");
+        container.innerHTML += "<div style='width:100%;height:20px;font-size:12px;'><b>" + lab + ":</b></div>";
+
+        // Setting slider variables / handler
+        slider.type = 'range';
+        slider.classList.add("slider");
+        slider.min = min;
+        slider.max = max;
+        slider.step = step;
+        slider.value = default_value;
+        slider.oninput = function () {
+            let value = parseFloat(slider.value);
+            func(value);
+            numeric.value = value;
+        };
+
+        // Setting number variables / handler
+        numeric.type = 'number';
+        numeric.classList.add("number");
+        numeric.min = min;
+        numeric.max = max;
+        numeric.step = step;
+        numeric.value = default_value;
+        numeric.onchange = function () {
+            let value = parseFloat(numeric.value);
+            if (value > this.max) value = this.max;
+            if (value < this.min) value = this.min;
+            func(value);
+            numeric.value = value;
+            slider.value = value;
+        };
+        container.appendChild(slider);
+        container.appendChild(numeric);
+        document.getElementById("form_holder").appendChild(container);
+    }
+
+    /**
      *  Adds some html to an existing DIV in your web page. 
      *  @param {String} div Name of DIV to add to
      *  @param {String} html HTML code to add
@@ -2021,7 +2142,7 @@ class Simulation {
             if(warn) console.log("Sorry, writing grid files currently works in NODEJS mode only.");
             return
         }
-        else {
+        else{
             const fs = require('fs');
             // fs.writeFile('helloworld.txt', 'Hello World!', function (err) {
             // if (err) return console.log(err);
@@ -2151,7 +2272,7 @@ class Simulation {
         else this.pause = true;
         if (!this.pause) this.start();
     }
-
+        
     /**
      *  colourRamp interpolates between two arrays to get a smooth colour scale. 
      *  @param {array} arr1 Array of R,G,B values to start fromtargetgrid The gridmodel containing the grid to be modified. 
@@ -2214,7 +2335,6 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-module.exports = Simulation;
 
 try
 {

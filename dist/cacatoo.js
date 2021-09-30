@@ -1150,6 +1150,7 @@ class Gridmodel {
         let seriesname = 'average';
         let sum = 0;
         let num = 0;
+        // Get average of all defined values
         for(let n = 0; n< graph_values.length; n++){
             if(graph_values[n] !== undefined) {
                 sum += graph_values[n];
@@ -2334,4 +2335,12 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-module.exports = Simulation;
+
+try
+{
+    module.exports = Simulation;
+}
+catch(err)
+{
+    // do nothing
+}
