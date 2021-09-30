@@ -34,16 +34,17 @@ function cacatoo() {
         title: "Cooperating with your neighbours (evolving)",
         description: "",
         maxtime: 1000000,
-        ncol: 150,
-        nrow: 150,		                                            // dimensions of the grid to build
+        ncol: 200,
+        nrow: 200,		                                            // dimensions of the grid to build
         seed: 56,
         fps: 60,                                                   // Note: FPS can only be set in fastmode
+        fpsmeter: false,
         fastmode: true,
         throttlefps: false,                                        // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
         wrap: [false, false],                                        // Wrap boundary [COLS, ROWS]
-        scale: 3,				                                    // scale of the grid (nxn pixels per grid point)            
-        graph_interval: 5,
-        graph_update: 20,
+        scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
+        graph_interval: 10,
+        graph_update: 50,
         statecolours: { 'alive': { 1: 'black' }}
     }
 
@@ -118,21 +119,18 @@ function cacatoo() {
     */
     sim.coop.updateGraphs = function () {
         // Let's count some stuff every update
-        let sumhelping = sumalive = sumcheater = sumcoop = 0
         let helping_rates = []
-        for (let i = 0; i < this.nc; i++)          // i are columns
-            for (let j = 0; j < this.nr; j++)      // j are rows
-            {
-                if (this.grid[i][j].alive == 1) {
-                    help = this.grid[i][j].helping_rate
-                    if(helping_rates.length < 20) helping_rates.push(help)
-                    sumhelping += help
-                    sumalive ++
-                }
+        for(let n = 0; n < 20; n++){
+            let i = this.rng.genrand_int(0,this.nc-1)
+            let j = this.rng.genrand_int(0,this.nr-1)           
+            if (this.grid[i][j].alive == 1) {
+                help = this.grid[i][j].helping_rate
+                helping_rates.push(help)
             }
+            else helping_rates.push(undefined)
+        }
 
         // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
-        
         this.plotPopsizes('alive',[1])        
         this.plotPoints(helping_rates,"Cooperation rates (points + average)")        
         

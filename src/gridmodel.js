@@ -110,7 +110,8 @@ class Gridmodel {
         let n_arrays = arguments.length - 2
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
         let segment_len = Math.ceil(n / (n_arrays-1))
-        
+
+        if(n <= 10 && n_arrays > 3) console.warn("Cacatoo warning: forming a complex gradient with only few colours... hoping for the best.")
         let total_added_colours = 0
 
         for (let arr = 0; arr < n_arrays - 1 ; arr++) {
@@ -130,7 +131,6 @@ class Gridmodel {
                 if(total_added_colours == n) break
             }
         }        
-
         return(color_dict)
     }
 
@@ -642,8 +642,15 @@ class Gridmodel {
         let cols = Array.from({length: graph_values.length}, (v, i) => 'black')
 
         let seriesname = 'average'
-        let sum = graph_values.reduce((a, b) => a + b, 0);
-        let avg = (sum / graph_values.length) || 0;
+        let sum = 0
+        let num = 0
+        for(let n = 0; n< graph_values.length; n++){
+            if(graph_values[n] !== undefined) {
+                sum += graph_values[n]
+                num++
+            }
+        }
+        let avg = (sum / num) || 0;
         graph_values.unshift(avg)
         graph_labels.unshift(seriesname)
         cols.unshift("#666666")

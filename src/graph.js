@@ -82,10 +82,10 @@ class Graph {
             if (i[0] < min_x) min_x = i[0]
         }
         this.g.updateOptions(
-            {
-                'file': this.data,
-                dateWindow: [min_x, max_x]
-            });
+        {
+            'file': this.data,
+            dateWindow: [min_x, max_x]
+        });
 
     }
 }

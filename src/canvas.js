@@ -106,7 +106,7 @@ class Canvas {
         if (typeof document == "undefined") return
         let statecols = this.gridmodel.statecolours[property]
         if(statecols == undefined){
-            console.log(`Warning: no colours setup for canvas "${this.label}"`)
+            console.warn(`Cacatoo warning: no colours setup for canvas "${this.label}"`)
             return
         } 
                     
