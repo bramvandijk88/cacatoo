@@ -96,7 +96,7 @@
             sim.addButton("Kill prey", function () { sim.my_custom_killprey_function() })
             sim.my_custom_killprey_function = function () {
                 for (let i = 0; i < sim.predprey.nc; i++) for (let j = 0; j < sim.predprey.nr; j++) {
-                    if (sim.predprey.grid[i][j].species == 1 && this.rng.genrand_real1() < 0.9)
+                    if (sim.predprey.grid[i][j].species == 'prey' && this.rng.genrand_real1() < 0.9)
                         sim.predprey.grid[i][j].species = 0
                 }
             }
