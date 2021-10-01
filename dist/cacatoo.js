@@ -536,6 +536,7 @@ class Gridmodel {
         this.scale = config.scale || 1;
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
+        this.bgcolour = config.bgcolour || 'black';
 
         this.margolus_phase = 0;
         // Store a simple array to get neighbours from the N, E, S, W, NW, NE, SW, SE (analogous to Cash2.1)

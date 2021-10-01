@@ -64,47 +64,48 @@
             }
         
             /*
-                1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
-            */
-            sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
-        
-            sim.makeGridmodel("coop")                                        // Make a new gridmodel named cheater
-        
-            sim.initialise = function()
+        1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+    */
+    sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
+
+    sim.makeGridmodel("coop")                                        // Make a new gridmodel named cheater
+
+    sim.initialise = function()
+    {
+        let init_individuals = [{alive:1, helping_rate: helper_rate_cooperator},
+                            {alive:1,helping_rate:  helper_rate_cheater}]                            
+        sim.populateSpot(sim.coop, init_individuals, [0.5,0.5], 100, config.ncol/2, config.nrow/2)         // cheaters and cooperators 50/50
+        sim.display()
+        sim.coop.resetPlots()
+    }
+
+    sim.coop.colourGradient('helping_rate', 100, [103, 64, 181], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])
+    sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",minval:0, maxval:1, num_colours: 100})
+
+    sim.coop.canvases["Cooperation"].legend.style.display = "none"  // Hack to remove the legend :)
+    /**
+    * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
+    */
+    sim.coop.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+    {
+        // let pA, pB, pC, psum             
+        if (!this.grid[i][j].alive)                                                   // If there is no living cell here
+        {
+            let neighbours = this.getMoore8(this, i, j,'alive',1)
+            let winner = this.rouletteWheel(neighbours, 'fitness', 5.0)
+            if (winner != undefined)
             {
-                let init_individuals = [{alive:1, helping_rate: helper_rate_cooperator},
-                                    {alive:1,helping_rate:  helper_rate_cheater}]                            
-                sim.populateSpot(sim.coop, init_individuals, [0.5,0.5], 100, config.ncol/2, config.nrow/2)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
-                sim.display()
+                this.grid[i][j].alive = winner.alive
+                this.grid[i][j].helping_rate = winner.helping_rate
             }
-        
-            sim.coop.colourGradient('helping_rate', 100, [103, 64, 181], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])
-            sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
-                                multiplier:120, maxval:100})
-            sim.coop.canvases["Cooperation"].legend.style.display = "none"  // Hack to remove the legend :)
-            /**
-            * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
-            */
-            sim.coop.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
-            {
-                // let pA, pB, pC, psum             
-                if (!this.grid[i][j].alive)                                                   // If there is no living cell here
-                {
-                    let neighbours = this.getMoore8(this, i, j,'alive',1)
-                    let winner = this.rouletteWheel(neighbours, 'fitness', 2.0)
-                    if (winner != undefined)
-                    {
-                        this.grid[i][j].alive = winner.alive
-                        this.grid[i][j].helping_rate = winner.helping_rate
-                    }
-                }
-        
-                if (this.rng.random() < death){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
-                    this.grid[i][j].alive = 0
-                    this.grid[i][j].helping_rate = 0
-                    this.grid[i][j].fitness = 0
-                }
-            }
+        }
+
+        if (this.rng.random() < death){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
+            this.grid[i][j].alive = 0
+            this.grid[i][j].helping_rate = 0
+            this.grid[i][j].fitness = 0
+        }
+    }
         
             calculatefitness = function(i,j)
             {
