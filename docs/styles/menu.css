@@ -116,11 +116,7 @@ h1 {
 .nav__link > i {
     margin-right: 15px;
 }
-.nav__link--active {
-    color: #dadadd; 
-}
 
-.nav__link--active,
 .nav__link:hover{
     background:#dadaff;
 }
