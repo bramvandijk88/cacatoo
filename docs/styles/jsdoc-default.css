@@ -38,22 +38,28 @@ html
 .canvas-cacatoo{
     display: inline-block;
     border: 4px solid black;
+    text-align: center;
     border-radius: 8px 8px 8px 8px;
     margin:10px;
   }
-  .canvas-cacatoo-round{
+
+.canvas-cacatoo-round{
     display: inline-block;
     border: 4px solid black;
     border-radius: 50% 50% 50% 50%;
-    margin:10px;
+    margin:20px;
   }
-pre code {
+
+
+  pre code {
     background-color: #eee;
     border: 1px solid #999;
     display: inline-block;
     padding: 20px;
+    overflow-x:scroll;
     font-size: 9px;
   }
+
 body
 {
     font-family: 'Open Sans', sans-serif;
@@ -69,9 +75,7 @@ a, a:visited, a:active {
     text-decoration: none;
 }
 
-a:hover {
-    text-decoration: underline;
-}
+
 
 header
 {
@@ -96,7 +100,7 @@ tt, code, kbd, samp {
 
 #main {
     float: left;
-    width: 75%;
+    width: 100%;
 }
 
 article dl {

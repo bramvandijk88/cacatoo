@@ -2,22 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Cacatoo - Populating the grid</title>
+    <title>Cacatoo manual</title>
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
-    <script src="scripts/jquery.js"></script>
-    <script>
-        $(function () {
-            $("#Navigator").load("navigator.html");
-        });
-    </script>
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
 </head>
 <body>
+    <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+    <header class="header"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+    <nav class="nav"><div class="nav__links">            
+            <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> About Cacatoo </a>
+            <a href="index.html" target="iframe_body" id="nav__link" class="nav__link">Home</a>
+            <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code</a>
+            <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a>
+            <a href="#" class="nav__head"><i class="material-icons"> description </i> Examples</a>
+            <a href="example_predator_prey.html" target="iframe_body" id="nav__link" class="nav__link"> Predator prey</a>
+            <a href="example_mutational_jackpot.html" target="iframe_body" id="nav__link" class="nav__link"> Mutational jackpot</a>
+            <a href="example_cooperation.html" target="iframe_body" id="nav__link" class="nav__link"> Cooperation</a>
+            <a href="example_TEs.html" target="iframe_body" id="nav__link" class="nav__link"> Transposon evolution</a>
+            <a href="https://github.com/bramvandijk88/cacatoo/tree/master/examples" target="_blank" id="nav__link" class="nav__link"> More examples on Github</a>
+            <a href="#" class="nav__head"><i class="material-icons"> grid_4x4 </i> Getting started </a>
+            <a href="overview.html" class="nav__link"> Tutorial 1: Cacatoo overview</a>
+            <a href="first_project.html" class="nav__link"> Tutorial 2: Predator-prey model</a>
+            <a href="colony_growth.html" class="nav__link"> Tutorial 3: Colony growth / ODEs</a>            
+            <a href="#" class="nav__head"><i class="material-icons"> insights </i> More useful stuff</a>
+            <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+            <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
+            <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+            <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+            <a href="grid_events.html" class="nav__link"> Grid events</a>
+            <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
+            <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+            <a href="js_docs.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+        </div><div class="nav__overlay"></div></nav>
+    
+    <script>         
+        document.addEventListener("DOMContentLoaded", () => {
+            const nav = document.querySelector(".nav");
+            document.querySelector("#btnNav").addEventListener("click", () => {
+                nav.classList.add("nav--open");
+            });
+            document.querySelector(".nav__overlay").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });
+            document.querySelector("#btnNavclose").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });    
+            var all_links = document.getElementsByClassName("nav__link");            
+            var hide_menu = function() {
+                 nav.classList.remove("nav--open");
+            };    
+            for (var i = 0; i < all_links.length; i++) {
+                all_links[i].addEventListener('click', hide_menu, false);
+            }
+        });
+    </script>
+    <!-- --------------------- END MENU --------------------- -->
     <div id="main">
         <h1 class="page-title">Populating the grid</h1>
         <section>
@@ -120,10 +167,7 @@
     </div>
     <div id="Navigator"></div>
     <br class="clear">
-    <footer>
-        Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Wed Jul 28 2021 15:33:33
-        GMT+0200 (Central European Summer Time)
-    </footer>
+    
     <script> prettyPrint();</script>
     <script src="scripts/linenumber.js"> </script>
 </body>
