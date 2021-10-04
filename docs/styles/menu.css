@@ -1,33 +1,35 @@
 body {
-    --header-height: 25px;
+    --header-height: 50px;
     margin: var(--header-height) 0 0 0;
     font-family: sans-serif;
     font-size:18px;
     margin: 2% 2% 0% 2%;
     
     background: none;
-    padding: 10px 20px;
+    padding: 5px 15px;
 }
 
 .header{
     position:fixed;
+    height: var(--header-height);
     top:0;
     left:0;
     width:100%;
-    height:var(--header-height);
     background-color: rgb(111, 146, 170);
-    display:flex;
-    padding: 10px;
+    padding: 7px 10px;
 }
 
 .header__button {
     width: var(--header-height);
-    flex-shrink: 0;
+    font-size: 36px;
     background: none;
     outline: none;
     border: none;
     color: white;
     cursor: pointer;
+}
+.header__button > i {
+    font-size: 36px;
 }
 /* The button itself */
 button {
@@ -78,6 +80,7 @@ h1 {
 
 .nav__head > i{
     margin-right: 15px;
+    font-size: 36px;
 
 }
 
@@ -92,6 +95,7 @@ h1 {
 
 .nav__headlink > i{
     margin-right: 15px;
+    font-size: 36px;
 }
 
 .nav__headlink:hover{
@@ -164,11 +168,4 @@ h1 {
     border-radius: 50% 50% 50% 50%;
     margin:10px;
   }
-pre code {
-    background-color: #eee;
-    border: 1px solid #999;
-    display: inline-block;
-    padding: 20px;
-    overflow-wrap: normal;
-    font-size: 9px;
-  }
+  
