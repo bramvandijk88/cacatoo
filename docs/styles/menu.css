@@ -32,16 +32,6 @@ body {
     font-size: 36px;
 }
 
-/* The button itself */
-button {
-    background-color: rgb(217, 234, 245);
-    border-radius: 10px; 
-    border: 2px solid rgb(177, 209, 231);;
-    padding:7px;
-    font-size:12px;
-    margin:10px;
-    width:128px;
-  }
 
 h1 {
     color: rgb(58, 92, 114);
@@ -224,4 +214,51 @@ h1 {
     border-radius: 50% 50% 50% 50%;
     margin:10px;
   }
+
+  /* The numeric form */
+input[type=number] { 
+    background-color: rgb(217, 234, 245);
+    border: 2px solid rgb(177, 209, 231);
+    font-size:12px;
+  }
+    /* The slider itself */
+    .slider {
+      -webkit-appearance: none;  /* Override default CSS styles */
+      appearance: none;
+      width: 50%; /* Full-width */
+      cursor: pointer;
+      height: 8px; /* Specified height */
+      background: rgb(177, 209, 231);
+      outline: none; /* Remove outline */
+      opacity: 0.5; /* Set transparency (for mouse-over effects on hover) */
+      -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+      transition: opacity .2s;
+    }
+    
+    /* The number input */
+    .number {
+      -webkit-appearance: none;  /* Override default CSS styles */
+      appearance: none;
+      width: 50%; /* Full-width */
+      margin-top:10px;
+      height: 30px; /* Specified height */
+      background: #FFFFFF; /* Grey background */  
+      opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+      -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+      transition: opacity .2s;
+    }
+  /* Mouse-over effects */
+  .slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+  }
   
+/* The button itself */
+button {
+    background-color: rgb(217, 234, 245);
+    border-radius: 10px; 
+    border: 2px solid rgb(177, 209, 231);;
+    padding:7px;
+    font-size:12px;
+    margin:10px;
+    width:128px;
+  }
