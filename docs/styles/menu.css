@@ -181,7 +181,7 @@ h1 {
         transform: translateX(-100%);
         transition: transform 0.3s;
         font-weight:bold;
-        font-size:36px;
+        font-size:30px;
         padding: 5px 5px;    
     }
     .nav__head > i{
