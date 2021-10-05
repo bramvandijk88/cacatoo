@@ -71,7 +71,7 @@ body
 }
 
 a, a:visited, a:active {
-    color: #0095dd;
+    color: rgb(75, 101, 179);
     text-decoration: none;
 }
 

@@ -50,7 +50,6 @@ h1 {
     font-weight:bold;
     font-size:16px;
     padding: 5px 5px;    
-    color:#555555;
 }
 
 .nav--open .nav__links {
@@ -61,7 +60,7 @@ h1 {
 .nav__head {
     display: flex;
     align-items: center;
-    color:#333333;
+    color:rgb(58, 92, 200);
     font-weight:bold;
     font-size: 15 px;
     text-decoration:none;
@@ -71,13 +70,14 @@ h1 {
 
 .nav__head > i{
     margin-right: 15px;
+    color: rgb(75, 101, 179);
     font-size: 36px;
-
 }
 
 .nav__headlink {
     display: flex;
     align-items: center;
+    color: rgb(75, 101, 179);
     font-weight:bold;
     font-size: 15 px;
     text-decoration:none;
@@ -86,6 +86,7 @@ h1 {
 
 .nav__headlink > i{
     margin-right: 15px;
+    color:rgb(58, 92, 200);
     font-size: 36px;
 }
 
@@ -96,6 +97,7 @@ h1 {
 
 .nav__link {
     display: flex;
+    color: rgb(75, 101, 179);
     align-items: center;
     font-weight:bold;
     font-size: 13 px;
@@ -106,6 +108,7 @@ h1 {
 .nav__link > i {
     margin-right: 15px;
 }
+
 
 .nav__link:hover{
     background:#dadaff;
