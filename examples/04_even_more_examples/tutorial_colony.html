@@ -58,7 +58,7 @@
                                 {species:'medium',uptake_rate:5.0,internal_resources:1},
                                 {species:'high',uptake_rate:50.0,internal_resources:1}]
         
-        sim.populateSpot(sim.growth, species, [0.3,0.2,0.01], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+        sim.populateSpot(sim.growth, species, [0.33,0.33,0.33], 150, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
         //sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
 
         sim.createDisplay("growth", "species", "Species")     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
@@ -107,6 +107,7 @@
         */
         sim.growth.update = function () {
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
+            this.diffuseStates('external_resources',0.1)
             this.plotPopsizes('species', ['low', 'medium','high'])
         }
 

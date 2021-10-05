@@ -1005,6 +1005,37 @@ class Gridmodel {
     randomNeighbour5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
 
     
+    /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
+         *  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
+         *  which is then used to update the grid.
+         */
+    diffuseStates(state,rate) {
+        if(rate > 0.25) {
+            throw new Error("Cacatoo: rate for diffusion cannot be greater than 0.25, try multiple diffusion steps instead.")
+        }
+        let newstate = MakeGrid(this.nc, this.nr, this.grid); 
+
+        for (let i = 0; i < this.nc; i += 1) // every column
+        {           
+            for (let j = 0; j < this.nr; j += 1) // every row
+            {                
+                //newstate[i][j] = this.grid[i][j][state]
+                for (let n = 1; n <= 4; n++)   // Every neighbour (neumann)
+                {                    
+                    let moore = this.moore[n];
+                    let xy = this.getNeighXY(i + moore[0], j + moore[1]);
+                    if (typeof xy == "undefined") continue
+                    let neigh = this.grid[xy[0]][xy[1]];
+                    newstate[i][j][state] += neigh[state] * rate;
+                    newstate[xy[0]][xy[1]][state] -= neigh[state] * rate;
+                }
+            }
+        }
+        for (let i = 0; i < this.nc; i += 1) // every column
+            for (let j = 0; j < this.nr; j += 1) // every row
+                for (let n = 1; n <= 4; n++) this.grid[i][j][state] = newstate[i][j][state];
+
+    }
 
     /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
      *  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
