@@ -34,12 +34,12 @@
                 maxtime: 1000000,                             // How many time steps the model continues to run            
                 ncol: 200,                                   // Number of columns (width of your grid)
                 nrow: 200,		                              // Number of rows (height of your grid)
-                seed: 14,
+                seed: 15,
                 wrap: [false, false],                         // Wrapped boundary conditions? [COLS, ROWS]   
                 scale: 2,				                      // Scale of the grid (nxn pixels per grid point)
-                statecolours: {'species': { 'slow': "#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
-                                            'medium': "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
-                                            'fast': "#3030ff"}}
+                statecolours: {'species': { 'low uptake': "#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                            'medium uptake': "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                            'high uptake': "#3030ff"}}
             }
     
             /*
@@ -53,11 +53,11 @@
             sim.makeGridmodel("growth")                              // Build a new Gridmodel within the simulation called "model"
     
             sim.initialGrid(sim.growth,'external_resources',1000.0,1.0) // Give 100% of grid points external resources (set to 1)
-            let species = [{species:'slow',uptake_rate:5.0,internal_resources:1},
-                                    {species:'medium',uptake_rate:10.0,internal_resources:1},
-                                    {species:'fast',uptake_rate:50.0,internal_resources:1}]
+            let species = [{species:'low uptake',uptake_rate:5.0,internal_resources:1},
+                                    {species:'medium uptake',uptake_rate:10.0,internal_resources:1},
+                                    {species:'high uptake',uptake_rate:50.0,internal_resources:1}]
             
-            sim.populateSpot(sim.growth, species, [0.33,0.33,0.33], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+            sim.populateSpot(sim.growth, species, [0.34,0.33,0.33], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
             //sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
     
             sim.createDisplay("growth", "species", "Species")     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
@@ -107,7 +107,7 @@
             sim.growth.update = function () {
                 this.asynchronous()         // Applied as many times as it can in 1/60th of a second
                 this.diffuseStates('external_resources',0.1)
-                this.plotPopsizes('species', ['slow', 'medium','fast'])
+                this.plotPopsizes('species', ['low uptake', 'medium uptake','high uptake'])
                 // Let's count some stuff every update
                 let sum_resources = 0                
                 for (let i = 0; i < this.nc; i++)          // i are columns
@@ -121,6 +121,7 @@
 
                 if(this.time%240==0) {
                     sim.initialGrid(sim.growth,'external_resources',1000.0,1.0)
+                    sim.growth.perfectMix()
                     for (let i = 0; i < this.nc; i++)          // i are columns
                         for (let j = 0; j < this.nr; j++) 
                             if(this.rng.genrand_real1() < 0.995){
