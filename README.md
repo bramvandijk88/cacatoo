@@ -24,7 +24,7 @@ The bundle was made with rollup:
 (also see make_bundle.sh)
 
 Documentation was compiled with jsdoc (npm install jsdoc -g)
-> jsdoc dist/cacatoo.js
+> ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs
 
 ## License
 This library is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3, as published by the Free Software Foundation. 

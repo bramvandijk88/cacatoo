@@ -16,3 +16,5 @@
 		// });
 
 		// Colour map as array rather than as object? Probably faster. 
+
+> ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs

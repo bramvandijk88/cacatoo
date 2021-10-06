@@ -20,7 +20,7 @@ function cacatoo() {
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
         title: "Mutualists and cheaters",
         description: "",
-        maxtime: 100000,
+        maxtime: 1000000,
         ncol: 100,
         nrow: 100,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]

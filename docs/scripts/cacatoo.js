@@ -1910,6 +1910,7 @@ class Simulation {
             while (true) {
                 sim.step();
                 sim.time++;
+                if (sim.time >= sim.config.maxtime) break;
             }
         }
     }
