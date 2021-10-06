@@ -22,7 +22,7 @@
         let config = {
             title: "ODEs in gridpoints",
             description: "Diffusion-coupled predator prey system (Lotka-Volterra)",
-            maxtime: 100000,
+            maxtime: 1000000,
             fastmode: false,
             ncol: 64,
             nrow: 64,		            // dimensions of the grid to build
@@ -80,8 +80,8 @@
             // 3) Update how this GP is displayed
             let prey = Math.max(0, this.grid[i][j].lotka.state[0])       // Amount of prey (continuous variable)
             let pred = Math.max(0, this.grid[i][j].lotka.state[1])       // Amount of pred (continuous variable)
-            this.grid[i][j].numpred = Math.min(Math.floor(pred * 30), 199)
-            this.grid[i][j].numprey = Math.min(Math.floor(prey * 30), 199)
+            this.grid[i][j].numpred = Math.min(Math.floor(pred * 30), 200)
+            this.grid[i][j].numprey = Math.min(Math.floor(prey * 30), 200)
         }
 
         // Custom function to count the sum of predators / preys in the grid (used in update below)

@@ -113,7 +113,7 @@ class Simulation {
         let scale = config.scale || this[name].scale               
         let maxval = config.maxval || this.maxval || undefined                
         let minval = config.minval || 0
-        let num_colours = config.num_colours || 64
+        let num_colours = config.num_colours || (maxval-minval) || 64
         
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours)    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno")    

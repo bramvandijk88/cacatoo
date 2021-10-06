@@ -662,8 +662,9 @@ class Gridmodel {
         
         let all_arrays = [];
         for (let arr = 0; arr < n_arrays ; arr++) all_arrays.push(arguments[offset + arr]);
-        
+
         let new_dict = this.colourGradientArray(n,total,...all_arrays);
+
         this.statecolours[property] = {...color_dict,...new_dict};
     }
 
@@ -1498,7 +1499,6 @@ class Canvas {
         ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
-        
         for (let i = 0; i < ncol; i++)         // i are cols
         {
             for (let j = 0; j < nrow; j++)     // j are rows
@@ -1509,9 +1509,9 @@ class Canvas {
                 let value = this.gridmodel.grid[i][j][prop];
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
                 {                  
-                    value = Math.min(value,this.maxval) - this.minval;
+                    value = Math.min(value+this.minval,this.maxval);
                     let mult = this.num_colours/(this.maxval-this.minval);
-                    value = Math.max(Math.floor(value*mult),1);
+                    value = Math.max(Math.floor(value*mult),1);                     
                 }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state
@@ -1566,7 +1566,7 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = Math.ceil(this.num_colours*i/bar_width);
+                let val = Math.ceil(this.num_colours*i/bar_width)+this.minval;
                 if(statecols[val] == undefined) {                    
                     ctx.fillStyle = this.bgcolor;
                 }
@@ -1590,7 +1590,7 @@ class Canvas {
                 ctx.textAlign = "center";
                 ctx.font = '12px helvetica';     
                 let ticklab = (this.minval+i*tick_increment);
-                ticklab = ticklab.toFixed(1);         
+                ticklab = ticklab.toFixed(0);         
                 ctx.fillText(ticklab, tick_position, 35);
             }
 
@@ -1758,7 +1758,7 @@ class Simulation {
         let scale = config.scale || this[name].scale;               
         let maxval = config.maxval || this.maxval || undefined;                
         let minval = config.minval || 0;
-        let num_colours = config.num_colours || 64;
+        let num_colours = config.num_colours || (maxval-minval) || 64;
         
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours);    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno");    

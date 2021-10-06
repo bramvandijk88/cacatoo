@@ -156,8 +156,9 @@ class Gridmodel {
         
         let all_arrays = []
         for (let arr = 0; arr < n_arrays ; arr++) all_arrays.push(arguments[offset + arr])
-        
+
         let new_dict = this.colourGradientArray(n,total,...all_arrays)
+
         this.statecolours[property] = {...color_dict,...new_dict}
     }
 
