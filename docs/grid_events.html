@@ -67,18 +67,59 @@
     </script>
     <!-- --------------------- END MENU --------------------- -->
     <div id="main">
-        <h1 class="page-title">Grid events</h1>
+        <h1 class="page-title">Mixing events</h1>
         <section>
             <header>
             </header>
             <article>
                 <div class="container-overview">
-                    W.i.p.<br><br>
-                    <h5>Mixing</h5>
-                    Perfectmix<br>
-                    Margolusdiffusion<br>
-                    diffuseODEstates                    
+                    Grid events are functions that can be called before or after updating the grid points. For example, after individuals have reproduced, you may want to 
+                    apply some random mixing by using the Toffoli-Margolus diffusion algorithm:<br><br>
                     
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.MargolusDiffusion<span class="signature">()</span><span class="type-signature"></span></h5>
+                    <br>
+                    Other available "mixing" functions are:<br>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.perfectMix<span class="signature">()</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.diffuseStates<span class="signature">(state,rate)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.diffuseODEstates<span class="signature">() // Uses diffusion rates as defined in ODE system </span><span class="type-signature"></span></h5>                    
+            </article>
+        </section>
+        <h1 class="page-title">Custom events</h1>
+        <section>
+            <header>
+            </header>
+            <article>
+                <div class="container-overview">
+                    <br>Or you can use define your own functions, for example a bottleneck where a fraction of the population dies: <br><br>
+               
+
+                    <ul><h5 class="name"><span class="signature">
+                        sim.model.bottleneck = function(fraction){
+                            <div style="margin-left:40px;">                                
+                                for (let i = 0; i < this.nc; i++) {
+                                    <div style="margin-left:40px;"> for (let j = 0; j < this.nr; j++) {
+                                        <div style="margin-left:40px;"> if(this.rng.genrand_real1() < fraction){
+                                            <div style="margin-left:40px;">  this.grid[i][j].alive = 0</div>
+                                                <div style="margin-left:40px;"> this.grid[i][j].helping_rate = 0</div>
+                                        }</div>
+                                    }</div>
+                                }
+                            </div>
+                            }
+                        </span></ul>  
+
+                       
+
+
+                    Which you can then call to kill 95% of the population within the "update" loop, every 100 time steps:
+                    <ul><h5 class="name"><span class="signature">
+                        sim.model.update = function() {
+                            <div style="margin-left:40px;">                                
+                                sim.model.synchronous()<br>
+                                if(sim.time%100==0) sim.model.bottleneck(0.95)</div>
+                            }
+                             
+                        </span></ul>  
             </article>
         </section>
         

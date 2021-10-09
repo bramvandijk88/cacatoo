@@ -73,19 +73,31 @@
             </header>
             <article>
                 <div class="container-overview">
-                    W.i.p.<br><br>
-                    <h5>Interactive graphs</h5>
-                    plotPopsizes<br>
-                    plotArray<br>
-                    plotXY<br>     
-                    plotODEstates<br>           
-                    <h5>Buttons and sliders</h5>
+                    <h2> Interactive graphs </h2>
+                    Cacatoo uses the dygraphs library to plot interactive graphs. Because these graphs are updated every time step, they need to be placed in the update loop (see for example the cheater.js example), where
+                    we use:<br><br>
+
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>plotPopsizes<span class="signature">(property_to_count, values_to_count)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>plotArray<span class="signature">([group_labels], [group_values], [group_colours], plot_title, {dygraph_options})</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>plotXY<span class="signature">([group_labels], [group_values], [group_colours], plot_title, {dygraph_options})</span><span class="type-signature"></span></h5>
+                                        
+                    <br>Optionally, a configuration object can be passed to modify what the graph looks like: <br>
+                    <br>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>
+                        let graph_opts = { width: 1000, heigh:300, strokeWidth: 2, drawPoints: true, strokePattern: [1,2]}
+                        <br> <br>
+                   <hr>
+                   <br>
+
+                    
+                   <h2> Buttons and sliders: </h2>
+                   W.I.P.<br>        
                     plotPopsizes<br>
                     plotArray<br>
                     plotXY<br>
                     <h5>Read from address bar</h5>
                     Size example
-                    <h5>CutsomHTML</h5>
+                    <h5>CustomHTML</h5>
                     addHTML()
             </article>
         </section>
