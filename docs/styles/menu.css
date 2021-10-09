@@ -121,8 +121,8 @@ h1 {
     width:100vw;
     height:100vh;
     z-index: 999;
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(5px);
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(3px);
     visibility: hidden;
     opacity: 0;
     transition: opacity 0.3s;
@@ -255,6 +255,18 @@ input[type=number] {
     opacity: 1; /* Fully shown on mouse-over */
   }
   
+  .form-container{  /* Sliders and buttons */
+    display: inline-block;
+    margin:10px;
+  }
+  
+  .graph-holder{
+    margin: 10px;    
+    display: inline-block;    
+    width:80%;
+    padding:10px;
+  }
+
 /* The button itself */
 button {
     background-color: rgb(217, 234, 245);

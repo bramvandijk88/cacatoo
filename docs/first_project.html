@@ -198,25 +198,20 @@ see your progress every time you hit "Run". Try opening your newly copied HTML f
 <br> 
 Not very exciting, but that's because we haven't programmed anything yet! Let's take a look at the code. It starts with a bunch of basic HTML stuff:<br><br>
 
-<center><div style="text-align:left;background-color:#EEEEEE;border:1px solid #888888; width: 80%">
-<font color="blue" size=2>
-<xmp>
-    <!-- 
+<pre class="prettyprint lang-html"><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">    <!-- 
     #########################################################
         Example (empty) project
     #########################################################
-    -->
+    -->&lt;html&gt;
+        &lt;script src="../../dist/cacatoo.js"&gt;&lt;/script&gt;            
+        &lt;script src="../../lib/all.js"&gt;&lt;/script&gt;                 
+        &lt;link rel="stylesheet" href="../../style/cacatoo.css"&gt;   
+        &lt;head&gt;
+            &lt;title&gt;Cacatoo&lt;/title&gt;
+        &lt;/head&gt;
+        &lt;script&gt;    
+</font></code></pre></center>
 
-    <html>
-        <script src="../../dist/cacatoo.js"></script>            
-        <script src="../../lib/all.js"></script>                 
-        <link rel="stylesheet" href="../../style/cacatoo.css">   
-        <head>
-            <title>Cacatoo</title>
-        </head>
-    <script>
-    
-</xmp></font></div></center>
 
 <br> The code above is not particularly interesting, but if you have problems with the libraries loading, this is probably the place to start digging. That reminds me, if you 
 are not seeing anything happening, even though you expect something, try opening the developer console (CTRL/CMD+SHIFT+I in Chrome). It will tell you what went wrong.<br><br>
@@ -234,9 +229,8 @@ function cacatoo()
 
 The function named "cacatoo" will contain everything Cacatoo needs to know to start simulating, and is later called as an onload option for the HTML page:<br><br>
 
-<center><div style="text-align:left;background-color:#EEEEEE;border:1px solid #888888; width: 80%">
- <font color="blue" size=2>
-<xmp> <body onload="cacatoo()">   
+<pre class="prettyprint lang-html"><code style="text-align:left;width:78%"><font size =2 color="blue" style="font-family: monospace;">&lt;body onload="cacatoo()"&gt;</font></code></pre></center>
+ 
 </xmp></font></div></center>
 <br>
 Inside this main Cacatoo-function, the code is made up of three main blocks (corresponding to the three steps given in the introductionary tutorial):

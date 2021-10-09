@@ -30,8 +30,8 @@
                 title: "Mutualists and cheaters",
                 description: "",
                 maxtime: 100000,
-                ncol : 200,            
-                nrow : 200,		                                            // dimensions of the grid to build                
+                ncol : 120,            
+                nrow : 120,		                                            // dimensions of the grid to build                
                 scale : 3,				                                    // scale of the grid (nxn pixels per grid point)     
                 fpsmeter: false,       
                 statecolours: {'species':{1:"#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
@@ -108,15 +108,15 @@
         * OPTIONAL: add some buttons and sliders so you can play with your model easily
         */
         sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
-        sim.addHTML("form_holder","<br>")
         sim.addButton("mix once",function() { sim.cheaters.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
-        sim.addHTML("form_holder","<br>")
+
         sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
-        
+
         sim.addSlider("A2B")
         sim.addSlider("B2A")
         sim.addSlider("B2C")
-        sim.addSlider("stay_empty",0.00,20.00,0.01)
+        
+       // sim.addSlider("stay_empty",0.00,20.00,0.01)
         sim.addSlider("death", 0.00, 1.00, 0.001)        
         sim.start()
     }
@@ -185,31 +185,28 @@
 <h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Home</b> </img></h1>
     
     This page contains tutorials and the documentation for <a href="https://github.com/bramvandijk88/cacatoo">Cacatoo</a>, a javascript library that makes building spatially structured models of biology easy! The simulation you see below
-    is fully interactive, making it much easier to play with and try different parameters. If you've worked with similar models, you'll have no trouble getting started right away. If not, this manual will explain everything you need to know.
+    is fully interactive, making it much easier to explore and try different parameters. If you've worked with similar models, you'll have no trouble getting started right away. If not, this manual will explain everything you need to know.
      After you've read through this manual, you'll have no issue starting to build simple models yourself. 
     To get started, use the menu to see more examples and step-by-step tutorials!<br><br> 
     
     <center>
     <table>
         <tr>
-            <td style="padding:20px">    <div id="canvas_holder" class="cacatoo-content"></div>
+            <td style="padding:0px">    <div id="canvas_holder" class="cacatoo-content"></div>
             </td>
-            <td>    <div id="form_holder"></div>
+            <td style="width:33%">    <div id="form_holder" style="margin-top:15%"></div>
             </td>
-            <td> <br><br><br><br> </div>
+            <td>   <div id="graph_holder"style="margin-top:15%">
             </div>
             </td>
         </tr>
     </table>
-    <div id="graph_holder">
+   
 </center>
-    <br><br>
    
 </div>
 
 
-
-<br class="clear">
 
 <script> prettyPrint(); </script>
 <script src="scripts/linenumber.js"> </script>
