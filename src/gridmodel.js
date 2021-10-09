@@ -34,12 +34,12 @@ class Gridmodel {
 
         this.margolus_phase = 0
         // Store a simple array to get neighbours from the N, E, S, W, NW, NE, SW, SE (analogous to Cash2.1)
-        this.moore = [[0, 0],         // SELF   _____________
+        this.moore = [[0, 0],    // SELF   _____________
         [0, -1],        // NORTH           | 5 | 1 | 6 |
-        [1, 0],         // EAST            | 4 | 0 | 2 |
-        [0, 1],         // SOUTH           | 7 | 3 | 8 |
-        [-1, 0],        // WEST            _____________
-        [-1, -1],       // NW
+        [-1, 0],        // WEST            | 2 | 0 | 3 |
+        [1, 0],         // EAST            | 7 | 4 | 8 |
+        [0, 1],         // SOUTH           _____________
+        [-1, -1],       // NW              
         [1, -1],        // NE
         [-1, 1],        // SW
         [1, 1]          // SE
@@ -327,6 +327,19 @@ class Gridmodel {
         else return [x, y]
     }
 
+    /** Get a neighbour at compass direction 
+    *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+    *  but can be mixed to make grids interact.
+    *  @param {int} col position (column) for the focal gridpoint
+    *  @param {int} row position (row) for the focal gridpoint
+    *  @param {int} direction the neighbour to return        
+    */
+    getNeighbour(model,col,row,direction) {        
+            let i = model.moore[direction][0]
+            let j = model.moore[direction][1]
+            return model.getGridpoint(col + i, row + j)
+    }
+
     /** Get array of grid points with val in property (Neu4, Neu5, Moore8, Moore9 depending on range-array)
     *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
     *  but can be mixed to make grids interact.
@@ -452,16 +465,16 @@ class Gridmodel {
         return count;
     }
 
-    /** sumNeighbours for range 1-8 (see sumNeighbours) */     
+    /** countNeighbours for range 1-8 (see countNeighbours) */     
     countMoore8(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,8]) }
     countNeighbours8(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,8]) }
-    /** sumNeighbours for range 0-8 (see sumNeighbours) */ 
+    /** countNeighbours for range 0-8 (see countNeighbours) */ 
     countMoore9(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,8]) }
     countNeighbours9(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,8]) }
-    /** sumNeighbours for range 1-4 (see sumNeighbours) */ 
+    /** countNeighbours for range 1-4 (see countNeighbours) */ 
     countNeumann4(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,4]) }
     countNeighbours4(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [1,4]) }
-    /** sumNeighbours for range 0-4 (see sumNeighbours) */ 
+    /** countNeighbours for range 0-4 (see countNeighbours) */ 
     countNeumann5(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,4]) }
     countNeighbours5(model, col, row, property, val) { return this.countNeighbours(model, col, row, property, val, [0,4]) }
 
@@ -483,19 +496,19 @@ class Gridmodel {
         return neigh
     }
 
-    /** sumNeighbours for range 1-8 (see sumNeighbours) */     
+    /** randomMoore for range 1-8 (see randomMoore) */     
     randomMoore8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
     randomNeighbour8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
 
-    /** sumNeighbours for range 0-8 (see sumNeighbours) */ 
+    /** randomMoore for range 0-8 (see randomMoore) */ 
     randomMoore9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
     randomNeighbour9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
 
-    /** sumNeighbours for range 1-4 (see sumNeighbours) */ 
+    /** randomMoore for range 1-4 (see randomMoore) */ 
     randomNeumann4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
     randomNeighbour4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
 
-    /** sumNeighbours for range 0-4 (see sumNeighbours) */ 
+    /** randomMoore for range 0-4 (see randomMoore) */ 
     randomNeumann5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
     randomNeighbour5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
 

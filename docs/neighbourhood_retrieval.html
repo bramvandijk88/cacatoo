@@ -12,6 +12,29 @@
     <script src="scripts/jquery.js"></script>    
     <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
     <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+    <style>
+        #box{
+            font-size:25px;
+            font-weight: bold;text-align: center; vertical-align: center; 
+            top:50%;
+            display:inline-block;
+            width:40px; 
+            border: 2px solid darkgrey;
+            padding: 5px;
+            border-radius: 2px 2px 2px 2px;
+            margin: 5px;
+        }   
+        #bo{
+            font-size:25px;
+            font-weight: bold;text-align: center; vertical-align: center; 
+            top:50%;
+            display:inline-block;
+            width:44px;            
+            padding: 5px;
+            border-radius: 2px 2px 2px 2px;
+            margin: 5px;
+        }   
+    </style>
 </head>
 <body>
     <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
@@ -68,25 +91,149 @@
     <!-- --------------------- END MENU --------------------- -->
     <div id="main">
         
-                    <h1 class="page-title">Neighboorhood_retrieval</h1>
+                    <h1 class="page-title">Neighboorhood retrieval</h1>
         <section>
             <header>
             </header>
             <article>
                 <div class="container-overview">
-                    <h2> Getting adjacent grid points </h2>
-                    Standardised functions are provided to count or sum certain values in all adjacent grid points.
-                    W.i.p.<br><br>
-                    <h5>Retrieving, counting, or sampling neighbouring grid points</h5>
-                    GetNeighbours in array<br>
-                    Count<br>
-                    Sum<br>
-                    Random neighbour<br>
-                    Roulette<br>
-                    getNeighXY(coords only)<br>                    
+                    In a grid-based model, the next state of a grid point is often influenced by its neighbours. An array of functions is available in Cacatoo to get information on 
+                    neighbours in the Moore or Neumann neighboorhood (see table below). Each compass direction is also linked to a number (0 is self, 1 is North, etc) which can be used
+                    to extract specific neighbours. <br><br>
+
+                    <div style="display:inline-block; margin-right:2%"> <b>Moore neighbourhood</b> <br>
+                    <table>
+                        <tr><td id="box">5</td><td id="box">1</td><td id="box">6</td></tr>
+                        <tr><td id="box">2</td><td id="box">0</td><td id="box">3</td></tr>
+                        <tr><td id="box">7</td><td id="box">4</td><td id="box">8</td></tr>
+                    </table>
+                    </div>
+
+                    <div style="display:inline-block; margin-left:2%"> <b>Neumann neighbourhood</b> <br>
+                        <table>
+                            <tr><td id="bo"></td><td id="box">1</td><td id="bo"></td></tr>
+                            <tr><td id="box">2</td><td id="box">0</td><td id="box">3</td></tr>
+                            <tr><td id="bo"></td><td id="box">4</td><td id="bo"></td></tr>
+                        </table>
+                        </div>
+                    
+                   <br><br>
+
+                   <h2> Directly retreiving neighbours </h2>
+                   To get a single neighbour from one of these neighbourhood, you can use the following function:
+
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbour<span class="signature">(model, col, row, direction)</span><span class="type-signature"></span></h5>
+                   
+                   <br>For example, to get the 'North-West' neighbour (5) directly within the nextState function, you can use:
+
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbour<span class="signature">(this, i, j, 5)</span><span class="type-signature"></span></h5>
+                        <br>
+                        To get multiple neighbours, and store them in an array, you can use getNeighbours (plural!):
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours<span class="signature">(model, col, row, neighbour_array)</span><span class="type-signature"></span></h5>     
+                   
+                        <br>For example, to get the 'North' and 'South' neighbour (1 and 4), you can use:
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours<span class="signature">(this, i, j, [1,4])</span><span class="type-signature"></span></h5>     
+                        
+                        <br>If you want to use one of the default neighbourhoods, you can use one fo the following shortcuts: <br><br>
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours8<span class="signature">(model, col, row, neighbour_array) // Moore, self exclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours9<span class="signature">(model, col, row, neighbour_array)  // Moore, self exclusive</span><span class="type-signature"></span></h5>         
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours4<span class="signature">(model, col, row, neighbour_array)  // Neumann, self exclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours5<span class="signature">(model, col, row, neighbour_array)  // Neumann, self inclusive</span><span class="type-signature"></span></h5>     
+
+                        
+
+                    <br>
+                   <hr>
+                   <br>
+                   Standardised functions are also available to count, sum, or sample from adjacent grid points, listed below. <br><br>
+                   <h2> Summing a property of all neighbours </h2>
+
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours<span class="signature">(model, col, row, property, neighbour_array)</span><span class="type-signature"></span></h5>
+
+                   <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumMoore8<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours8<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumMoore9<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours9<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeumann4<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours4<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeumann5<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours5<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <br>
+                   <hr>
+                   <br>
+
+                    <h2> Counting all neighbours with 'property' set to 'value' </h2>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours<span class="signature">(model, col, row, property, value, neighbour_array)</span><span class="type-signature"></span></h5>
+
+
+                   <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countMoore8<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours8<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countMoore9<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours9<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeumann4<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours4<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeumann5<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours5<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <br>
+                   <hr>
+                   <br>
+
+                   <h2> Getting a random neighbour </h2>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore<span class="signature">(model, col, row, neighbour_array)</span><span class="type-signature"></span></h5>
+
+
+                  <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore8<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours8<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore9<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours9<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann4<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours4<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann5<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours5<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <br>
+                  <hr>
+                  <br>
+
+                  <h2> Roulette wheel selection </h2>
+                  This is similar to random neighbour selection, but you can assign a grid point property to do weighted sampling:
+                  
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>rouletteWheel<span class="signature">(gridpoints, property)</span><span class="type-signature"></span></h5>
+
+                    For example, to sample an individual with 'fitness' as weight, you can do:
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours<span class="signature">(gridpoints, property)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>rouletteWheel<span class="signature">(gridpoints, property)</span><span class="type-signature"></span></h5>
+
+                 <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore8<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours8<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore9<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours9<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann4<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours4<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann5<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours5<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <br>
+                 <hr>
+                 <br>
+               
+                                                                  
                     <h5>Getting or setting a grid point at arbitrary position:</h5>
-                    Get gridpoint<br>
-                    Set gridpoint<br>                    
+                    When programming, you may often want to 'get' or 'set' objects. To do this with gridpoints, you need to know the coordinates of these grid points, and modify them with 'getGridpoint' and 'setGridpoint'. 
+                    Note that the i,j coordinates will automatically wrap arround the grid.
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getGridpoint<span class="signature">(i, j)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>setGridpoint<span class="signature">(i, j, template_gridpoint)</span><span class="type-signature"></span></h5>
+                    
+                    So for example, to get a random grid point in the entire grid, and copy it to a random position, you can do:
+                    sim.model.rng.genrand_int
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let x_get = sim.rng.genrand_int(0,sim.ncol)</span><span class="type-signature"></span></h5>    
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let y_get = sim.rng.genrand_int(0,sim.nrow)</span><span class="type-signature"></span></h5>    
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let template = this.getGridpoint<span class="signature">(x_get, y_get)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let x_set = sim.rng.genrand_int(0,sim.ncol)</span><span class="type-signature"></span></h5>    
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let y_set = sim.rng.genrand_int(0,sim.nrow)</span><span class="type-signature"></span></h5>    
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.setGridpoint<span class="signature">(x_set, y_set, template)</span><span class="type-signature"></span></h5>
                     
             </article>
         </section>

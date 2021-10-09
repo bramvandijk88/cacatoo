@@ -8,6 +8,15 @@
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/menu.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <style>
+        #colorbox{
+            font-weight: bold;text-align: center; vertical-align: center; top:50%;display:inline-block; width:150px; 
+            border: 1px solid black;
+            padding: 10px;
+            border-radius: 8px 0px 8px 0px;
+            margin: 10px;
+        }    
+    </style>
     <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
     <script src="scripts/jquery.js"></script>    
     <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
@@ -67,36 +76,119 @@
     </script>
     <!-- --------------------- END MENU --------------------- -->
     <div id="main">
+        
         <h1 class="page-title">Display and colours</h1>
 
         <section>
             <h2> Setting up colours maps:</h2>
 
             <article>
-                To initialise your grid, simply use:<br>                
-                <ul><h5 class="name"><span class="signature">let config = { ncol:100, nrow:100, title="MyModel", ... }</span></ul>                    
-                <ul><h5 class="name"><span class="signature">sim = new Simulation(config)</span></ul>
-                        followed by
-                <ul><h5 class="name"><span class="signature">sim.makeGridmodel("modelname") </span></ul>
+                In Cacatoo, the "state" of grid points (i.e. the properties of individuals) are linked to colours by setting up a colour map. <br><br>
+                In this map, <b>state-colour</b> pairs are stored, where a <b>state</b> can be:
+                <ul>
+                    <li> whole numbers (e.g. <b>'0'</b> or <b>'1'</b> for dead and living individuals), </li>
+                    <li> real numbers (e.g. <b>5.0</b> for the 'uptake rate' of cells in a colony), </li>
+                    <li> the names of species (e.g. <b>'predator'</b> and <b>'prey'</b>)</li>
+                </ul>
+                A <b>colour</b> can be:
+                <ul>
+                    <li> The name of one of the default colours in Cacatoo (see <a href="#palette">colour table</a>), </li>
+                    <li> An array of length 3 with RGB values (e.g. <b>[255,0,0]</b> for red), </li>
+                    <li> A hexadecimal color code (e.g. <b>#00FF00</b> for green), </li>
+                </ul>    <a id="palette"></a>
+
+                <h4> Default colour map:</h4>                
+                <div style="width:90%">
+                <div id="colorbox" style="color:white; background-color: rgb(0, 0, 0);"> 0: black </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 255, 255);"> 1: white </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 0, 0);"> 2: red </div>                
+                <div id="colorbox" style="color:white; background-color: rgb(0, 0, 255);"> 3: blue </div>
+                <div id="colorbox" style="color:black; background-color: rgb(0, 255, 0);"> 4: green </div>                
+                <div id="colorbox" style="color:white; background-color: rgb(60, 60, 60);"> 5: darkgrey </div>
+                <div id="colorbox" style="color:black; background-color: rgb(180, 180, 180);"> 6: lightgrey </div>
+                <div id="colorbox" style="color:black; background-color: rgb(148, 0, 211);"> 7: violet </div>
+                <div id="colorbox" style="color:black; background-color: rgb(64, 224, 208);"> 8: turquoise </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 165, 0);"> 9: orange </div>
+                <div id="colorbox" style="color:black; background-color: rgb(240, 200, 0);"> 10: gold </div>
+                <div id="colorbox" style="color:black; background-color: rgb(125, 125, 125);"> 11: grey </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 255, 0);"> 12: yellow </div>
+                <div id="colorbox" style="color:black; background-color: rgb(0, 255, 255);"> 13: cyan </div>
+                <div id="colorbox" style="color:black; background-color: rgb(192, 192, 192);"> 14: silver </div>
+                <div id="colorbox" style="color:white; background-color: rgb(0, 128, 0);"> 15: darkgreen </div>
+                <div id="colorbox" style="color:white; background-color: rgb(128, 128, 0);"> 16: olive </div>
+                <div id="colorbox" style="color:white; background-color: rgb(0, 128, 128);"> 17: teal </div>
+                <div id="colorbox" style="color:white; background-color: rgb(0, 0, 128);"> 18: navy </div>
+
+                </div>
+               <br> To avoid users having to define colours manually, a set of useful functions is provided to link states to either default colours (see <a href="#palette">colour table</a>), 
+                random colours, or colour gradients. Firstly, one can assign colours directly in the configuration file by assigning a property 'default', 'random', 'inferno', or 'viridis'. For example,
+                to generate 50 random colours:
+                <ul><h5 class="name"><span class="signature">
+                    // generate 50 random colours<br>
+                    let config = { 
+                        <div style="margin-left:40px;">
+                        title="MyModel",<br>
+                        ncol:100, <br>
+                        nrow:100,<br>
+                        num_colours: 50,<br>    
+                        statecolours: { colour: 'random' }  <br>
+                        </div>
+                        }
+                </span></ul>                  
+
+                One can also each state-colour pair individually:
+                <ul><h5 class="name"><span class="signature">
+                    let config = { 
+                        <div style="margin-left:40px;">
+                        title="MyModel",<br>
+                        ncol:100, <br>
+                        nrow:100,<br>
+                        statecolours: { colour: 
+                            <div style="margin-left:40px;">1: 'red', <br>2: '#EE00FF',  <br>3: [0,0,145], ... </div>} <br>
+                        </div>
+                        }
+                    </span></ul>  
+
+                Colour gradients can also be manually defined by using one of the following functions:    
+                <br>                
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sim.model.colourGradient<span class="signature">(statename, num_colours, array_1, array_2, ..., array_n)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sim.model.colourVidiris<span class="signature">(statename, num_colours)</span><span class="type-signature"></span></h5>
+                    <br>Which is for example done in the example "ode_lotka.html"
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sim.lotka.colourGradient<span class="signature">('numpred', 200, [0, 0, 0], [240, 200, 0])</span><span class="type-signature"></span></h5>
+                </ul>
+                <br>
+                
+                Once the colour maps have been set up, it is time to set up the display.<br><br>
+
+
+                <h2> Setting up a display for (simple) discrete states:</h2>
+                
+                After having set up your colours for a certain property (e.g. 'alive' in Game of Life), a display can be added like this:<br>
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay<span class="signature">(name_of_gridmodel, property, title)</span><span class="type-signature"></span></h5>
+                <br>Which is for example done in the example "cheater.js"
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay<span class="signature">("cheater", "species", "Mutualists and cheater")</span><span class="type-signature"></span></h5>
+<br>
+                <h2> Setting up a display for continuous variables:</h2>
+
+                Because setting up a continuous display has many more parameters, one instead passes a configuration object (much like how the simulation is configured), as seen in 
+                the example "ode_turing.html":
+                
+                .colourViridis("activator", 100)
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.turing.colourViridis<span class="signature">("activator",100)</span><span class="type-signature"></span></h5>
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100})</span><span class="type-signature"></span></h5>
+                <br>Or you can combine these two line by passing a "fill" to the last function:
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100, num_colours: 100, fill:"viridis", na_colour: 'black'})</span><span class="type-signature"></span></h5>
+                <br>
+            
+                <h2> Setting up space-time plot:</h2>
+                
+               W.i.p.
+               
                 
             </article>
         </section>
 
-        <section>
-            
-            <article>
-                <div class="container-overview">
-                    <h5>Setting up state colours maps:</h5>
-                    W.i.p.
-                    <h5>Setting up a standard display (for integers):</h5>
-                    W.i.p.
-                    <h5>Setting up a continuous variable display</h5>                                    
-                    W.i.p.
-                    <h5>Setting up a space-time plot (Jeroen! :D)</h5>                                    
-                    W.i.p.
-                    
-            </article>
-        </section>
+        
         
     </div>
     <div id="Navigator"></div>

@@ -60,7 +60,6 @@
             // So, first we need to know how many cells are alive around a grid point
             let self = this.grid[i][j].num
             let sum_neigh = this.sumNeumann5(this, i, j, 'num')
-            
             if (sum_neigh%2==0) 
             {
                 this.grid[i][j].num = self / 2
