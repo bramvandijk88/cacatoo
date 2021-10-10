@@ -89,11 +89,11 @@
         /*
             OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
         */
-        sim.addPatternButton(sim.gol, 'alive')
+        sim.addPatternButton(sim.gol, 'alive')  // Note, for security reasons, this needs a local server to be run (try VSC's 'live server' plugin!)
         sim.addButton("pause/continue", function () { sim.toggle_play() })
         sim.addButton("step", function () { sim.step(); sim.display() })
         sim.modifysleep = function(newvalue) { this.sleep = newvalue}
-        sim.addCustomSlider(function (new_value) { sim.sleep = new_value },0,1000,1,0,"Sleeping time (ms)") // addCustomSlider(function, minimal, maximal, step-size, default, label)
+        sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
         sim.start()
 
     }

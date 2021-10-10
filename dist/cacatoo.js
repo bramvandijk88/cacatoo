@@ -2112,7 +2112,7 @@ class Simulation {
      *  @param {float} [max] Maximum value of the slider
      *  @param {float} [step] Step-size when modifying
      */
-     addCustomSlider(func, min = 0.0, max = 2.0, step = 0.01, default_value=0, label) {        
+     addCustomSlider(label,func, min = 0.0, max = 2.0, step = 0.01, default_value=0) {        
         let lab = label || func;
         if (!this.inbrowser) return
         if (func === undefined) { console.warn(`addCustomSlider: callback function not defined. No slider made.`); return; }
