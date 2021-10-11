@@ -1,6 +1,6 @@
 import Gridmodel from "./gridmodel"
 import Canvas from "./canvas"
-import MersenneTwister from '../lib/mersenne'
+//import MersenneTwister from '../lib/mersenne'
 import * as utility from './utility'
 
 

@@ -1,7 +1,7 @@
 import Gridpoint from "./gridpoint.js"
 import Graph from './graph.js'
 import ODE from "./ode.js"
-import MersenneTwister from "../lib/mersenne.js"
+//import MersenneTwister from "../lib/mersenne.js"
 import * as utility from './utility'
 
 /**

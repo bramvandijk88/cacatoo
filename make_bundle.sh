@@ -7,6 +7,7 @@
 
 compile_cacatoo()
 {               
+            
             rollup src/simulation.js -o dist/cacatoo.js -f cjs
             sed -i '$ d' dist/cacatoo.js
             echo "
@@ -60,15 +61,16 @@ chsum1=""
 
 while [[ true ]]
 do
-    chsum2=`find src lib examples -type f -exec md5sum {} \;`
-    if [[ $chsum1 != $chsum2 ]] ; then           
-        if [ -n "$chsum1" ]; then
-            compile_cacatoo
-        fi
-        chsum1=$chsum2
-    fi
+    compile_cacatoo
     if [[ $1 == "once" ]]; then
         echo -e "Cacatoo compilation\t[ OK ]"
         exit 0
+    fi
+    chsum2=`find src lib examples -type f -exec md5sum {} \;`
+    if [[ $chsum1 != $chsum2 ]] ; then           
+        if [ -n "$chsum1" ]; then
+            compile_cacatoo            
+        fi
+        chsum1=$chsum2
     fi
 done
