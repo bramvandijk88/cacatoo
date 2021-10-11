@@ -2,6 +2,7 @@
 
 > Go through all examples making sure the comments are not from older code
 > Modify tutorials to match with new function names, etc. (e.g. predator prey with string-labels)
+> Replace replit with JSfiddle examples
 
 > Push data to graphs rather then completely reload it
 > FBA testing
