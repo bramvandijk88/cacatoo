@@ -18,6 +18,7 @@ class Simulation {
     constructor(config) {
         this.config = config
         this.rng = new MersenneTwister(config.seed || 53);
+        
         this.sleep = config.sleep || 0
         this.maxtime = config.maxtime || 1000000
         this.ncol = config.ncol || 100
@@ -189,7 +190,7 @@ class Simulation {
     }
 
     /**
-     *  Start the simulation. start() detects whether the user is running the code from the browser of
+     *  Start the simulation. start() detects whether the user is running the code from the browser or, alternatively,
      *  in nodejs. In the browser, a GUI is provided to interact with the model. In nodejs the 
      *  programmer can simply wait for the result without wasting time on displaying intermediate stuff 
      *  (which can be slow)

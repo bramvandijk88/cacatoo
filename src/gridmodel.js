@@ -25,6 +25,8 @@ class Gridmodel {
         this.nr = config.nrow || 200
         this.wrap = config.wrap || [true, true]
         this.rng = rng
+        this.random = () => { return this.rng.genrand_real1()}
+        this.randomint = (a,b) => { return this.rng.genrand_int(a,b)}                
         this.statecolours = this.setupColours(config.statecolours,config.num_colours) // Makes sure the statecolours in the config dict are parsed (see below)
         this.lims = {}
         this.scale = config.scale || 1
@@ -311,8 +313,27 @@ class Gridmodel {
         let y = j
         if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
            
-        if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined    // TODO!!!!!!!! Return border-state instead!
+        if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined    
         else this.grid[x][y] = gp
+    }
+
+    /** Change the gridpoint at position i,j into gp
+         *  Makes sure wrapping is applied if necessary
+         *  @param {int} i position (column) for the focal gridpoint
+         *  @param {int} j position (row) for the focal gridpoint
+         *  @param {Gridpoint} @Gridpoint object to set the gp to
+    */
+     copyGridpoint(i, j, gp) {
+        let x = i
+        if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = j
+        if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+           
+        if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined    
+        else {
+            for (var prop in gp)
+                this.grid[x][y][prop] = gp[prop]
+        }
     }
 
     /** Get the x,y coordinates of a neighbour in an array. 

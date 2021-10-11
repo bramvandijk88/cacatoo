@@ -1,5 +1,6 @@
 (rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
 
+> Go through all examples making sure the comments are not from older code
 > Modify tutorials to match with new function names, etc. (e.g. predator prey with string-labels)
 
 > Push data to graphs rather then completely reload it
