@@ -1,0 +1,85 @@
+<!-- 
+
+    EXAMPLE FILE 03: Spirals
+    On the grid, n (here 8) different colours exist. Each colour 
+    is predated by the next colour (3 eats 2, 2 eats 1, etc). Colour
+    1 eats 8, so this is a cycle. In space, this looks very pretty. 
+    Check it out!
+    
+-->
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim;
+
+    function cacatoo() {
+
+        let config = {
+            title: "Rock-paper-scissors",
+            description: "Rock beats scissors, scissors beats paper, and paper beats... rock. Apparently.",
+            maxtime: 10000,
+            fastmode: true,
+            seed:1,
+            ncol: 300,
+            nrow: 300,		                        // dimensions of the grid to build
+            wrap: [true, true],                    // Wrap boundary [COLS, ROWS]   
+            scale: 1,				                // scale of the grid (nxn pixels per grid cell)
+            statecolours: { colour: {1:'blue',2:'red',3:'white'} },        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
+            num_colours: 3
+        }
+
+        sim = new Simulation(config)
+
+        sim.makeGridmodel("spirals");
+        sim.createDisplay("spirals", "colour", "Colours represent different species")
+        sim.spirals.canvases["Colours represent different species"].legend.style.display = "none"  // Hack to remove the legend :)
+        let n_species = 3
+
+
+        // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        
+        for (let i = 0; i < sim.spirals.nc; i++)                          // i are columns
+            for (let j = 0; j < sim.spirals.nr; j++)                      // j are rows
+                sim.spirals.grid[i][j]['colour'] = Math.ceil(sim.rng.genrand_real1() * n_species)
+
+        sim.spirals.nextState = function (i, j)           // Define the next-state function. This example is spirals
+        {
+            let state = this.grid[i][j].colour               // Colour of current pixel
+            let pred = (this.grid[i][j].colour % n_species) + 1  // Colour it is predated by (% because 8 is predated by 1)
+
+            let neighbours = sim.spirals.countMoore8(this, i, j, 'colour',pred) // Count the nr of predators
+            // Red will spread
+            if (sim.rng.genrand_real1() < 0.25 * neighbours)   // Let "predator" grow over the current pixel
+                this.grid[i][j].colour = pred;
+        }
+
+        sim.spirals.update = function () {
+            this.synchronous()                              // Applied as many times as it can in 1/60th of a second        
+            this.MargolusDiffusion()
+            this.plotPopsizes('colour', [1, 2, 3])
+        }
+        
+        sim.addButton("pause", function () { sim.toggle_play() })
+        sim.addButton("mix grid", function () { sim.spirals.perfectMix() })
+        sim.start()
+    }
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header"></div>
+    <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="form_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>
