@@ -396,11 +396,9 @@ function MersenneTwister(seed) {
     /* divided by 2^32 */
   }
 
-  /* generates a random int between [min,max] */
+   /* generates a random int between [min,max] */
    MersenneTwister.prototype.genrand_int = function(min,max) {
-    relMax = max-min+1
-    result = Math.floor(this.genrand_real2()*relMax)
-    return min+result;
+    return min+Math.floor(this.genrand_real1()*(max));
   }
   
   /* generates a random number on [0,1)-real-interval */

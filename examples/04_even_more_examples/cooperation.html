@@ -5,8 +5,7 @@
 
 <html>
 <script src="../../dist/cacatoo.js"></script>           <!-- Include cacatoo library (compiled with rollup) -->
-<script src="../../lib/all.js"></script>                <!-- Include other libraries (concattenated in 1 file) -->
-<script src="../../lib/odex.js"></script>               <!-- Include other libraries (concattenated in 1 file) -->
+
 <link rel="stylesheet" href="../../style/cacatoo.css">  <!-- Set style sheet -->
 
 <!-- 
@@ -72,7 +71,7 @@ function cacatoo() {
 
     sim.coop.colourGradient('helping_rate', 100, [103, 64, 181], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37])
     sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",minval:0, maxval:1, num_colours: 100})
-    
+
     sim.coop.canvases["Cooperation"].legend.style.display = "none"  // Hack to remove the legend :)
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?

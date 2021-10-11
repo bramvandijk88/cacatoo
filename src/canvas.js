@@ -119,7 +119,7 @@ class Canvas {
         if(this.maxval!==undefined) {
             let bar_width = this.width*this.scale*0.8
             let offset = 0.1*this.legend.width  
-            let n_ticks = 5
+            let n_ticks = this.nticks-1
             
             let tick_increment = (this.maxval-this.minval) / n_ticks
             let step_size =  (this.legend.width / n_ticks)*0.8
@@ -151,7 +151,7 @@ class Canvas {
                 ctx.textAlign = "center";
                 ctx.font = '12px helvetica';     
                 let ticklab = (this.minval+i*tick_increment)
-                ticklab = ticklab.toFixed(0)         
+                ticklab = ticklab.toFixed(this.decimals)         
                 ctx.fillText(ticklab, tick_position, 35);
             }
 

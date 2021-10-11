@@ -5,8 +5,7 @@
 
 <html>
 <script src="../../dist/cacatoo.js"></script>           <!-- Include cacatoo library (compiled with rollup) -->
-<script src="../../lib/all.js"></script>                <!-- Include other libraries (concattenated in 1 file) -->
-<script src="../../lib/odex.js"></script>               <!-- Include other libraries (concattenated in 1 file) -->
+
 <link rel="stylesheet" href="../../style/cacatoo.css">  <!-- Set style sheet -->
 
 <!-- 
@@ -63,7 +62,7 @@ function cacatoo() {
     }
 
     sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
-                        minval: 0.0, maxval:1.0,num_colours:50, na_colour: 'black', fill:"inferno"})
+                        minval: 0.0, maxval:1.0,num_colours:50, na_colour: 'black', fill:"inferno", decimals:2, nticks:5})
     
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?

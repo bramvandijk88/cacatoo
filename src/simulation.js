@@ -112,7 +112,9 @@ class Simulation {
         let height = config.height || this[name].nr        
         let width = config.width || this[name].nc
         let scale = config.scale || this[name].scale               
-        let maxval = config.maxval || this.maxval || undefined                
+        let maxval = config.maxval || this.maxval || undefined   
+        let decimals= config.decimals || 0
+        let nticks= config.nticks || 5
         let minval = config.minval || 0
         let num_colours = config.num_colours || (maxval-minval) || 64
         
@@ -133,6 +135,8 @@ class Simulation {
         if (maxval !== undefined) cnv.maxval = maxval
         if (minval !== undefined) cnv.minval = minval
         if (num_colours !== undefined) cnv.num_colours = num_colours
+        if (decimals !== undefined) cnv.decimals = decimals
+        if (nticks !== undefined) cnv.nticks = nticks
         
         cnv.add_legend(cnv.canvasdiv,property) 
         cnv.bgcolour = this.config.bgcolour
