@@ -2227,7 +2227,6 @@ function get2DFromCanvas(canvas) {
     for (var i = 0; i < img1.data.length; i += 4) {
         let num = [img1.data[i], img1.data[i + 1], img1.data[i + 2]];
         let state;
-        // console.log(num)
         if (JSON.stringify(num) == JSON.stringify([0, 0, 0])) state = 0;
         else if (JSON.stringify(num) == JSON.stringify([255, 255, 255])) state = 1;
         else if (JSON.stringify(num) == JSON.stringify([255, 0, 0])) state = 2;

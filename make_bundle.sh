@@ -20,6 +20,8 @@ compile_cacatoo()
                 // do nothing
             }" >> dist/cacatoo.js
 
+            ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md
+            
             #cat lib/all.js >> dist/cacatoo.js
             cp examples/03_expert/legend.png docs/TEs_streamlining
             cp dist/cacatoo.js docs/scripts/cacatoo.js
