@@ -20,7 +20,7 @@ compile_cacatoo()
                 // do nothing
             }" >> dist/cacatoo.js
 
-            cat lib/all.js >> dist/cacatoo.js
+            #cat lib/all.js >> dist/cacatoo.js
             cp examples/03_expert/legend.png docs/TEs_streamlining
             cp dist/cacatoo.js docs/scripts/cacatoo.js
             cp style/cacatoo.css docs/styles/cacatoo.css
@@ -59,9 +59,10 @@ compile_cacatoo()
 
 chsum1=""
 
+compile_cacatoo
+
 while [[ true ]]
-do
-    compile_cacatoo
+do    
     if [[ $1 == "once" ]]; then
         echo -e "Cacatoo compilation\t[ OK ]"
         exit 0

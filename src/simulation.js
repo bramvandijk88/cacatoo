@@ -35,8 +35,10 @@ class Simulation {
         this.graphs = []                // All graphs
         this.time = 0
         this.inbrowser = (typeof document !== "undefined")
+        this.printcursor = true
         this.fpsmeter = true
         if(config.fpsmeter == false) this.fpsmeter = false
+        if(config.printcursor == false) this.printcursor = false
 
 
     }
@@ -61,7 +63,7 @@ class Simulation {
     * @param {integer} width Number of cols to display (default = ALL)
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
     */
-    createDisplay(name, property, customlab, height, width, scale, x, y) {
+    createDisplay(name, property, customlab, height, width, scale) {
         let label = customlab
         if (customlab == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name]        
@@ -79,10 +81,10 @@ class Simulation {
             let cnv = new Canvas(gridmodel, property, label, height, width, scale);
             gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
             this.canvases.push(cnv)  // Add a reference to the canvas to the sim
-            const canvas = cnv.elem        
+            const canvas = cnv        
             cnv.add_legend(cnv.canvasdiv,property)
             cnv.bgcolour = this.config.bgcolour
-            canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })
+            if(this.printcursor == true) canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
             cnv.displaygrid()
         }
         
@@ -141,25 +143,38 @@ class Simulation {
         cnv.add_legend(cnv.canvasdiv,property) 
         cnv.bgcolour = this.config.bgcolour
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
-        const canvas = cnv.elem
-        canvas.addEventListener('mousedown', (e) => { this.getCursorPosition(canvas, e, scale) })
+        const canvas = cnv        
+        canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(cnv, e, scale) }, false)
         cnv.displaygrid()
     }
 
 
     /**
-    * Create a display for a gridmodel, showing a certain property on it. 
+    * Get the position of the cursor on the canvas
     * @param {canvas} canvas A (constant) canvas object
     * @param {event-handler} event Event handler (mousedown)
     * @param {scale} scale The zoom (scale) of the grid to grab the correct grid point
     */
     getCursorPosition(canvas, event, scale) {
-        const rect = canvas.getBoundingClientRect()
-        const x = Math.floor(Math.max(0, event.clientX - rect.left) / scale)
-        const y = Math.floor(Math.max(0, event.clientY - rect.top) / scale)
-        console.log(`You have clicked the grid at position ${x},${y}`)
+        const rect = canvas.elem.getBoundingClientRect()
+        const x = Math.floor(Math.max(0, event.clientX - rect.left) / scale) + canvas.offset_x
+        const y = Math.floor(Math.max(0, event.clientY - rect.top) / scale) + canvas.offset_y
+        return({x:x,y:y})
+    }
+
+    /**
+    * Get *and print the GP* at the cursor position
+    * @param {canvas} canvas A (constant) canvas object
+    * @param {event-handler} event Event handler (mousedown)
+    * @param {scale} scale The zoom (scale) of the grid to grab the correct grid point
+    */
+    printCursorPosition(canvas, event, scale){
+        let coords = this.getCursorPosition(canvas,event,scale)
+        let x = coords.x
+        let y = coords.y
+        if( x< 0 || x >= this.ncol || y < 0 || y >= this.nrow) return
+        console.log(`You have clicked the grid at position ${x},${y}, which has grid point:`)
         for (let model of this.gridmodels) {
-            console.log(`This corresponds to gridpoint...`)
             console.log(model.grid[x][y])
             console.log(`... in model ${model.name}`)
         }
@@ -340,15 +355,27 @@ class Simulation {
     initialSpot(gridmodel, property, value, size, x, y) {
         let p = property || 'val'
         let bg = 0
+        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+            for (let j = 0; j < gridmodel.nr; j++) 
+                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = 0
+        this.putSpot(gridmodel,property,value,size,x,y)
+    }
 
+    /**
+    *  putSpot sets values at a certain position with a certain radius. Grid points close to a certain coordinate are set to state value, while
+    *  other cells are set to the bg-state of 0. 
+    *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+    *  @param {String} property The name of the state to be set 
+    *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
+    *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
+    */
+     putSpot(gridmodel, property, value, size, x, y) {
         // Draw a circle
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
             {
                 if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
-                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = value
-                else
-                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = 0
+                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][property] = value
             }
     }
 

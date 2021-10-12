@@ -20,6 +20,8 @@ class Canvas {
         this.scale = scale        
         this.continuous = continuous
         this.bgcolour = 'black'
+        this.offset_x = 0
+        this.offset_y = 0
 
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
         {
@@ -60,13 +62,17 @@ class Canvas {
         ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
-        for (let i = 0; i < ncol; i++)         // i are cols
-        {
-            for (let j = 0; j < nrow; j++)     // j are rows
-            {
-                if (!(prop in this.gridmodel.grid[i][j])) continue
-                let statecols = this.gridmodel.statecolours[prop]
 
+        
+        for (let i = this.offset_x; i < ncol+this.offset_x; i++)         // i are cols
+        {
+            for (let j = this.offset_y; j < nrow+this.offset_y; j++)     // j are rows
+            {     
+                if (!(prop in this.gridmodel.grid[i][j]))
+                    continue                
+                
+                let statecols = this.gridmodel.statecolours[prop]
+                
                 let value = this.gridmodel.grid[i][j][prop]
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
                 {                  
@@ -75,8 +81,10 @@ class Canvas {
                     value = Math.max(Math.floor(value*mult),1)                     
                 }                
 
-                if (statecols[value] == undefined)                   // Don't draw the background state
-                    continue
+                if (statecols[value] == undefined)                   // Don't draw the background state                 
+                    continue                                    
+                
+
                 let idx 
                 if (statecols.constructor == Object) {
                     idx = statecols[value]
@@ -85,8 +93,8 @@ class Canvas {
 
                 for (let n = 0; n < scale; n++) {
                     for (let m = 0; m < scale; m++) {
-                        let x = i * scale + n;
-                        let y = j * scale + m;
+                        let x = (i-this.offset_x) * scale + n
+                        let y = (j-this.offset_y) * scale + m
                         var off = (y * id.width + x) * 4;
                         pixels[off] = idx[0];
                         pixels[off + 1] = idx[1];
