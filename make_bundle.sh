@@ -21,7 +21,7 @@ compile_cacatoo()
             }" >> dist/cacatoo.js
 
             ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md
-            
+
             #cat lib/all.js >> dist/cacatoo.js
             cp examples/03_expert/legend.png docs/TEs_streamlining
             cp dist/cacatoo.js docs/scripts/cacatoo.js
@@ -29,6 +29,7 @@ compile_cacatoo()
             cp lib/all.js docs/scripts/all.js
             cp lib/odex.js docs/scripts/odex.js
             cp images/elephant_cacatoo_small.png docs/images/
+            cp images/elephant_cacatoo.png docs/images/
             cp images/gh.png docs/images/
 
             # // Copy the TE-example to the docs on Github for publication
