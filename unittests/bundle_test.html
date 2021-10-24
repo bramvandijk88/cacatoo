@@ -1,0 +1,37 @@
+<!-- 
+    
+    EXAMPLE FILE Cheater (HTML)
+
+    This HTML file is different from other examples like GoL and prime, because
+    instead of defining the model within the HTML itself, it merely includes the javascript
+    code called cheater.js. The benefit of this is that you can easily
+    swap between running your code interactively (in the browser), or just running
+    the raw code on the commandline via 'nodejs cheater.js'. 
+
+    Apart from this difference, the HTML file is identical. 
+
+-->
+
+
+<html>
+<script src="../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="stylesheet" href="../style/cacatoo.css"> <!-- Set style sheet -->
+
+<!-- Include your model code here -->
+<script src="bundle_test.js"> </script>
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>    
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"></div>
+
+    <div class="footer" id="footer"></div>
+    <div class="output" id="output"></div>
+</body>
+
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+
+    
+</head>
+
+<body>        
+    
+    <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+    <header class="header" id="btnNav"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+    <nav class="nav"><div class="nav__links">            
+            <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> Cacatoo </a>
+            <a href="index.html"  id="nav__link" class="nav__link">Home</a>
+            <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code (Github)</a>
+            <!-- <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a> -->
+            <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
+            <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
+            <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
+            <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+            <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+            <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
+            <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
+           <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
+            <a href="overview.html" class="nav__link"> Tutorial 1: Cacatoo overview</a>
+            <a href="first_project.html" class="nav__link"> Tutorial 2: Predator-prey model</a>
+            <a href="colony_growth.html" class="nav__link"> Tutorial 3: Colony growth / ODEs</a>            
+            
+            <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+            <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
+            <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+            <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+            <a href="grid_events.html" class="nav__link"> Grid events</a>
+            <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
+            <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+            <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+        </div><div class="nav__overlay"></div></nav>
+    
+    <script>         
+        document.addEventListener("DOMContentLoaded", () => {
+            const nav = document.querySelector(".nav");
+            document.querySelector("#btnNav").addEventListener("click", () => {
+                nav.classList.add("nav--open");
+            });
+            document.querySelector(".nav__overlay").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });
+            document.querySelector("#btnNavclose").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });    
+            var all_links = document.getElementsByClassName("nav__link");            
+            var hide_menu = function() {
+                 nav.classList.remove("nav--open");
+            };    
+            for (var i = 0; i < all_links.length; i++) {
+                all_links[i].addEventListener('click', hide_menu, false);
+            }
+        });
+    </script>
+    <!-- --------------------- END MENU --------------------- -->
+
+
+<div id="main">
+   
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>JSFiddle examples</b> </img></h1>
+    
+    The easiest way to get started with Cacatoo is using JSFiddle and immediately start coding! Here are some links to JSFiddle to get you started:<br>
+
+        <a href="https://jsfiddle.net/bramvandijk88/n73jvtbh/" target="_blank"><div class="example_card" ><center>Game of Life</center><div class="example_card_img" style="background-image:url('images/gol.gif')">  </div></div></a>
+        <a href="https://jsfiddle.net/bramvandijk88/9hojbegw/" target="_blank"><div class="example_card" ><center>Voting rule</center><div class="example_card_img" style="background-image:url('images/vote.gif')"></div></div></a>
+
+        <a href="https://jsfiddle.net/bramvandijk88/zxn6rjea/" target="_blank"><div class="example_card" ><center> Modulo prime</center><div class="example_card_img" style="background-image:url('images/prime.gif')">  </div></div></a>
+        <a href="https://jsfiddle.net/bramvandijk88/fLu018cm/" target="_blank"><div class="example_card" > <center>Spirals</center><div class="example_card_img" style="background-image:url('images/spirals.gif')">  </div></div></a>
+        
+        <a href="https://jsfiddle.net/bramvandijk88/fLu018cm/" target="_blank"><div class="example_card" > <center>Lotka Volterra (coupled ODEs)</center><div class="example_card_img" style="background-image:url('images/lotka.gif')">  </div></div></a>
+        <a href="https://jsfiddle.net/bramvandijk88/ynv4furd/" target="_blank"><div class="example_card" > <center>Turing Patterns (coupled ODEs)</center><div class="example_card_img" style="background-image:url('images/lotka.gif')">  </div></div></a>
+        
+        <a href="https://jsfiddle.net/bramvandijk88/0mu9ah5p/"  target="_blank"><div class="example_card" ><center> Diffusion-limited aggregation</center><div class="example_card_img" style="background-image:url('images/dla.gif')">  </div></div></a>
+        <a href="https://jsfiddle.net/bramvandijk88/jscu64pt/"  target="_blank"><div class="example_card" ><center> Mutualists and cheater</center><div class="example_card_img" style="background-image:url('images/cheater.gif')">  </div></div></a>
+        <a href="https://jsfiddle.net/bramvandijk88/h2zs07jc/"  target="_blank"><div class="example_card" > <center>Serial transfer (cells with ODEs)</center> <div class="example_card_img" style="background-image:url('images/serial.gif')">  </div></div></a>
+        <a href="https://jsfiddle.net/bramvandijk88/6gvbor2p/"  target="_blank"><div class="example_card" > <center>Petridish (allele surfing)</center> <div class="example_card_img" style="background-image:url('images/petridish.gif')">  </div></div></a>        
+                
+    
+<center>
+    <table>
+        <tr>
+            <td style="padding:0px">    <div id="canvas_holder" class="cacatoo-content"></div>
+            </td>
+            <td style="width:33%">    <div id="form_holder" style="margin-top:15%"></div>
+            </td>
+            <td>   <div id="graph_holder"style="margin-top:15%">
+            </div>
+            </td>
+        </tr>
+    </table>
+</center>
+   
+</div>
+
+
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
