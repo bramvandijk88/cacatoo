@@ -779,7 +779,7 @@ class Gridmodel {
      *  @param {String} property What property to plot (needs to exist in your model, e.g. "species" or "alive")
      *  @param {Array} values Which values are plotted (e.g. [1,3,4,6])     
     */
-    plotPopsizes(property, values) {
+    plotPopsizes(property, values, opts) {
         if (typeof window == 'undefined') return
         if (this.time % this.graph_interval != 0 && this.graphs[`Population sizes (${this.name})`] !== undefined) return
         // Wrapper for plotXY function, which expects labels, values, colours, and a title for the plot:
@@ -805,7 +805,7 @@ class Gridmodel {
         // Title
         let title = "Population sizes (" + this.name + ")"
 
-        this.plotArray(graph_labels, graph_values, colours, title)
+        this.plotArray(graph_labels, graph_values, colours, title, opts)
 
 
 

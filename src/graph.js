@@ -44,7 +44,7 @@ class Graph {
                 strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
                 dateWindow: [0, 100],
                 axisLabelFontSize: 10,               
-                valueRange: [0.000,],
+                valueRange: [opts ? (opts.min_y != undefined ? opts.min_y: 0):0, opts ? (opts.max_y != undefined ? opts.max_y: null):null],
                 strokeWidth: opts ? (opts.strokeWidth != undefined ? opts.strokeWidth : 3) : 3,
                 colors: this.colours,
                 labels: labels.length == values.length ? this.labels: null,

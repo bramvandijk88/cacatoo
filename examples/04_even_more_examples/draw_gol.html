@@ -32,7 +32,7 @@
         */
         let config = {
             title: "Game of Life (draw your own initial pattern)",                       // The name of your cacatoo-simulation
-            description: "Use the 0/1 keys to swap between drawing 1's or 0's.",        // And a description if you wish
+            description: "Use the 0/1 keys to swap between drawing 1's or 0's.<br> Use '[' and ']' to change the brush size.",        // And a description if you wish
             maxtime: 10000000,                            // How many time steps the model continues to run
             fastmode: false,                              // If possible, fast-mode will update the model more than once before displaying the grid
                                                          // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
@@ -87,9 +87,9 @@
         sim.canvases[1].offset_x = 90//sim.ncol/2
         sim.canvases[1].offset_y = 90//sim.nrow/2
         sim.addPatternButton(sim.gol, 'alive')  // Note, for security reasons, this needs a local server to be run (try VSC's 'live server' plugin!)
-        sim.addButton("pause/continue", function () { sim.toggle_play() })
+        sim.addButton("play/pause", function () { sim.toggle_play() })
         sim.addButton("step", function () { sim.step(); sim.display() })
-        sim.addButton("reset", function () { sim.initialGrid(sim.gol, 'alive', 1, 0.0); sim.display(); })
+        sim.addButton("reset", function () { sim.initialGrid(sim.gol, 'alive', 1, 0.0); sim.pause=true; sim.display(); })
         
         sim.modifysleep = function(newvalue) { this.sleep = newvalue}
         sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
@@ -101,6 +101,8 @@
         sim.place_value = 1
         sim.place_size = 1
         let drawing_canvas = sim.canvases[1] // the second (zoomed) canvas is selected to draw on
+
+      
 
         drawing_canvas.elem.addEventListener('mousemove', (e) => { 
             if(mouseDown){

@@ -1,6 +1,6 @@
 import Gridmodel from "./gridmodel"
 import Canvas from "./canvas"
-//import MersenneTwister from '../lib/mersenne'
+import MersenneTwister from '../lib/mersenne' 
 import * as utility from './utility'
 
 
@@ -36,8 +36,8 @@ class Simulation {
         this.time = 0
         this.inbrowser = (typeof document !== "undefined")
         this.printcursor = true
-        this.fpsmeter = true
-        if(config.fpsmeter == false) this.fpsmeter = false
+        this.fpsmeter = false
+        if(config.fpsmeter == true) this.fpsmeter = true
         if(config.printcursor == false) this.printcursor = false
 
 
@@ -64,6 +64,10 @@ class Simulation {
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
     */
     createDisplay(name, property, customlab, height, width, scale) {
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:createDisplay, cannot create display in command-line mode.")
+            return
+        }
         let label = customlab
         if (customlab == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name]        
@@ -76,17 +80,16 @@ class Simulation {
             console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)                        
             gridmodel.statecolours[property] = utility.default_colours(10)
         } 
-        if(this.inbrowser)
-        {
-            let cnv = new Canvas(gridmodel, property, label, height, width, scale);
-            gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
-            this.canvases.push(cnv)  // Add a reference to the canvas to the sim
-            const canvas = cnv        
-            cnv.add_legend(cnv.canvasdiv,property)
-            cnv.bgcolour = this.config.bgcolour
-            if(this.printcursor == true) canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
-            cnv.displaygrid()
-        }
+        
+        let cnv = new Canvas(gridmodel, property, label, height, width, scale);
+        gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
+        const canvas = cnv        
+        cnv.add_legend(cnv.canvasdiv,property)
+        cnv.bgcolour = this.config.bgcolour
+        canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
+        cnv.displaygrid()
+        
         
     }
 
@@ -100,7 +103,10 @@ class Simulation {
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
     */
     createDisplay_continuous(config) {  
-    
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:createDisplay_continuous, cannot create display in command-line mode.")
+            return
+        }
         let name = config.model
         
         let property = config.property 
@@ -131,6 +137,7 @@ class Simulation {
             this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255])
         } 
         
+
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
         
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
@@ -290,7 +297,7 @@ class Simulation {
             while (true) {
                 sim.step();
                 sim.time++
-                if (sim.time >= sim.config.maxtime) break;
+                if (sim.time >= sim.config.maxtime) return true;
             }
         }
     }
