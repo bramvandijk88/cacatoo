@@ -40,7 +40,7 @@ function cacatoo() {
     sim.initialGrid(sim.model, 'discrete_var', 1, 0.33, 2, 0.33, 3, 0.33)
     sim.initialGrid(sim.model, 'continuous_var', 100, 1.0)
     sim.initialGrid(sim.model, 'continuous_var2', 100, 1.0)
-    
+
     sim.createDisplay("model", "discrete_var", "Discrete variable")                    
     sim.spaceTimePlot("model", "Discrete variable", "Space-time (discr)", 50, sim.ncol)                                  
     sim.createDisplay("model", "discrete_var", "(zoom in on grid)", 20, 20, 10)            
@@ -55,8 +55,8 @@ function cacatoo() {
     {
         let state = this.grid[i][j].discrete_var;
         neigh = this.randomMoore8(this, i, j);               
-        sum = this.countMoore8(this, i, j, 'discrete_var',2); 
-
+        sum = this.countMoore8(this, i, j, 'discrete_var',2);         
+            
         if (state == 0)                                                 
         {
             
