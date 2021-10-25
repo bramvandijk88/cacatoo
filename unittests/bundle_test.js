@@ -40,11 +40,15 @@ function cacatoo() {
     sim.initialGrid(sim.model, 'discrete_var', 1, 0.33, 2, 0.33, 3, 0.33)
     sim.initialGrid(sim.model, 'continuous_var', 100, 1.0)
     sim.initialGrid(sim.model, 'continuous_var2', 100, 1.0)
-    sim.createDisplay("model", "discrete_var", "discrete var display")                              
-    sim.createDisplay("model", "discrete_var", "(zoom in on grid)", 20, 20, 10)        
     
+    sim.createDisplay("model", "discrete_var", "Discrete variable")                    
+    sim.spaceTimePlot("model", "Discrete variable", "Space-time (discr)", 50, sim.ncol)                                  
+    sim.createDisplay("model", "discrete_var", "(zoom in on grid)", 20, 20, 10)            
+
     sim.createDisplay_continuous({model:"model", property:"continuous_var", label:"Some continuous variable", minval:0, maxval:100}) 
+    sim.spaceTimePlot("model", "Some continuous variable", "Space-time (continuous)", 50, sim.ncol)                        
     sim.createDisplay_continuous({model:"model", property:"continuous_var2", label:"Some continuous variable 2", minval:0, maxval:100, num_colours: 20, fill: 'inferno'}) 
+    
 
    
     sim.model.nextState = function (i, j)                               
