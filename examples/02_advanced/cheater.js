@@ -5,9 +5,9 @@ let sim;
 // Using var instead of let, so I can access it with sliders
 var A2B = 1.0                    // Mutualist species A giving help to reproduce B
 var B2A = 1.0                    // Mutualist species B giving help to reproduce A
-var B2C = 0.9                    // Mutualist species B giving help to reproduce C ("cheater")
+var B2C = 1.2                    // Mutualist species B giving help to reproduce C ("cheater")
 var stay_empty = 1.0               // Constant which scales the probability that nothing happens when competing for empty grid point, iow "stay empty"
-var death = 0.1                  // Death rate of individuals
+var death = 0.2                  // Death rate of individuals
 let mdif_interval = 0
 
 /**
@@ -21,17 +21,18 @@ function cacatoo() {
         title: "Mutualists and cheaters",
         description: "",
         maxtime: 1000000,
-        ncol: 100,
-        nrow: 100,		                                            // dimensions of the grid to build
+        ncol: 200,
+        nrow: 200,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
         seed: 56,
         fps: 60,                                                   // Note: FPS can only be set in fastmode
         fastmode: false,
-        scale: 4,				                                    // scale of the grid (nxn pixels per grid point)            
+        scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         graph_update: 50,
         statecolours: {
             'species': {
+                0: "black",
                 1: "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
                 2: "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
                 3: "#3030ff"
@@ -47,8 +48,10 @@ function cacatoo() {
     sim.makeGridmodel("cheater")                                        // Make a new gridmodel named cheater
     sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
 
-    sim.createDisplay("cheater", "species", "Mutualists and cheater")                              // Display the 'species' property of the cheater grid
-    sim.createDisplay("cheater", "species", "(zoom in on top-left)", 20, 20, 20)                     // Display the 'species' property of a small bit of the grid (i.e. zoom in)
+    sim.createDisplay("cheater", "species", "Mutualists and cheater")                               // Display the 'species' property of the cheater grid
+    sim.createDisplay("cheater", "species", "(zoom in on top-left)", 20, 20, 20)                    // Display the 'species' property of a small bit of the grid (i.e. zoom in)
+    sim.spaceTimePlot("cheater", "Mutualists and cheater", "Space-time plot", 10, 400)              // Make a space-time plot based on the canvas "mutualists and cheater" called "Space-time plot". Draw row 10. Width 400. 
+   
 
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?

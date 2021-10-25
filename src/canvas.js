@@ -21,7 +21,8 @@ class Canvas {
         this.continuous = continuous
         this.bgcolour = 'black'
         this.offset_x = 0
-        this.offset_y = 0
+        this.offset_y = 0        
+        this.phase = 0
 
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
         {
@@ -56,22 +57,33 @@ class Canvas {
         let ncol = this.width
         let nrow = this.height
         let prop = this.property
-        ctx.clearRect(0, 0, scale * ncol, scale * nrow);
+        
+        if(this.spacetime){
+            ctx.fillStyle = this.bgcolour
+            ctx.fillRect((this.phase%ncol)*scale, 0, scale, nrow * scale)
+        }
+        else{
+            ctx.clearRect(0, 0, scale * ncol, scale * nrow)        
+            ctx.fillStyle = this.bgcolour
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale)            
+        }
 
-        ctx.fillStyle = this.bgcolour
-        ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
 
+        let start_col = this.offset_x
+        let stop_col = start_col + ncol
+        let start_row = this.offset_y
+        let stop_row = start_row + nrow
+
+        let statecols = this.gridmodel.statecolours[prop]
         
-        for (let i = this.offset_x; i < ncol+this.offset_x; i++)         // i are cols
+        for (let i = start_col; i < stop_col; i++)         // i are cols
         {
-            for (let j = this.offset_y; j < nrow+this.offset_y; j++)     // j are rows
-            {     
+            for (let j = start_row; j< stop_row; j++)     // j are rows
+            {                     
                 if (!(prop in this.gridmodel.grid[i][j]))
-                    continue                
-                
-                let statecols = this.gridmodel.statecolours[prop]
+                    continue                     
                 
                 let value = this.gridmodel.grid[i][j][prop]
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
@@ -84,7 +96,6 @@ class Canvas {
                 if (statecols[value] == undefined)                   // Don't draw the background state                 
                     continue                                    
                 
-
                 let idx 
                 if (statecols.constructor == Object) {
                     idx = statecols[value]
@@ -93,7 +104,7 @@ class Canvas {
 
                 for (let n = 0; n < scale; n++) {
                     for (let m = 0; m < scale; m++) {
-                        let x = (i-this.offset_x) * scale + n
+                        let x = (i-this.offset_x) * scale + n + (this.phase%ncol)*scale
                         let y = (j-this.offset_y) * scale + m
                         var off = (y * id.width + x) * 4;
                         pixels[off] = idx[0];
@@ -103,6 +114,10 @@ class Canvas {
                 }
 
 
+            }
+            if(this.spacetime) {
+                this.phase = (this.phase+1)
+                break
             }
         }
         ctx.putImageData(id, 0, 0);
@@ -123,7 +138,6 @@ class Canvas {
         
         this.legend.height = 40
         let ctx = this.legend.getContext("2d")
-        
         if(this.maxval!==undefined) {
             let bar_width = this.width*this.scale*0.8
             let offset = 0.1*this.legend.width  

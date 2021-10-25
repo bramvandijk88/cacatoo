@@ -1329,7 +1329,8 @@ class Canvas {
         this.continuous = continuous;
         this.bgcolour = 'black';
         this.offset_x = 0;
-        this.offset_y = 0;
+        this.offset_y = 0;        
+        this.phase = 0;
 
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
         {
@@ -1361,22 +1362,33 @@ class Canvas {
         let ncol = this.width;
         let nrow = this.height;
         let prop = this.property;
-        ctx.clearRect(0, 0, scale * ncol, scale * nrow);
+        
+        if(this.spacetime){
+            ctx.fillStyle = this.bgcolour;
+            ctx.fillRect((this.phase%ncol)*scale, 0, scale, nrow * scale);
+        }
+        else{
+            ctx.clearRect(0, 0, scale * ncol, scale * nrow);        
+            ctx.fillStyle = this.bgcolour;
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale);            
+        }
 
-        ctx.fillStyle = this.bgcolour;
-        ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
 
+        let start_col = this.offset_x;
+        let stop_col = start_col + ncol;
+        let start_row = this.offset_y;
+        let stop_row = start_row + nrow;
+
+        let statecols = this.gridmodel.statecolours[prop];
         
-        for (let i = this.offset_x; i &lt; ncol+this.offset_x; i++)         // i are cols
+        for (let i = start_col; i &lt; stop_col; i++)         // i are cols
         {
-            for (let j = this.offset_y; j &lt; nrow+this.offset_y; j++)     // j are rows
-            {     
+            for (let j = start_row; j&lt; stop_row; j++)     // j are rows
+            {                     
                 if (!(prop in this.gridmodel.grid[i][j]))
-                    continue                
-                
-                let statecols = this.gridmodel.statecolours[prop];
+                    continue                     
                 
                 let value = this.gridmodel.grid[i][j][prop];
                 if(this.continuous &amp;&amp; value !== 0 &amp;&amp; this.maxval !== undefined &amp;&amp; this.minval !== undefined)
@@ -1389,7 +1401,6 @@ class Canvas {
                 if (statecols[value] == undefined)                   // Don't draw the background state                 
                     continue                                    
                 
-
                 let idx; 
                 if (statecols.constructor == Object) {
                     idx = statecols[value];
@@ -1398,7 +1409,7 @@ class Canvas {
 
                 for (let n = 0; n &lt; scale; n++) {
                     for (let m = 0; m &lt; scale; m++) {
-                        let x = (i-this.offset_x) * scale + n;
+                        let x = (i-this.offset_x) * scale + n + (this.phase%ncol)*scale;
                         let y = (j-this.offset_y) * scale + m;
                         var off = (y * id.width + x) * 4;
                         pixels[off] = idx[0];
@@ -1408,6 +1419,10 @@ class Canvas {
                 }
 
 
+            }
+            if(this.spacetime) {
+                this.phase = (this.phase+1);
+                break
             }
         }
         ctx.putImageData(id, 0, 0);
@@ -1428,7 +1443,6 @@ class Canvas {
         
         this.legend.height = 40;
         let ctx = this.legend.getContext("2d");
-        
         if(this.maxval!==undefined) {
             let bar_width = this.width*this.scale*0.8;
             let offset = 0.1*this.legend.width;  
@@ -1803,11 +1817,11 @@ class Simulation {
         cnv.add_legend(cnv.canvasdiv,property);
         cnv.bgcolour = this.config.bgcolour;
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale); }, false);
-        cnv.displaygrid();
-        
-        
+        cnv.displaygrid();                
     }
 
+    
+    
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {string} name The name of an existing gridmodel to display
@@ -1868,6 +1882,54 @@ class Simulation {
         const canvas = cnv;        
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(cnv, e, scale); }, false);
         cnv.displaygrid();
+    }
+
+    /**
+    * Create a space time display for a gridmodel
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} source_canvas_label The name of the property to display
+    * @param {string} label Overwrite the display name with something more descriptive
+    * @param {integer} col_to_draw Col to display (default = center)
+    * @param {integer} ncol Number of cols (i.e. time points) to display (default = ncol)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+     spaceTimePlot(name, source_canvas_label, label, col_to_draw, ncolumn) {
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:spaceTiemPlot, cannot create display in command-line mode.");
+            return
+        }
+
+        // this.createDisplay(name, property, customlab, height, width, scale)
+        //name, property, customlab, height, width, scale
+        
+        let source_canvas = this[name].canvases[source_canvas_label];
+        let property = source_canvas.property;
+        let height = source_canvas.height;
+        let width = ncolumn;
+        let scale = source_canvas.scale;
+        
+
+        let cnv = new Canvas(this[name], property, label, height, width, scale);
+        
+        cnv.spacetime=true;
+        cnv.offset_x = col_to_draw;
+        cnv.continuous = source_canvas.continuous;
+        cnv.minval = source_canvas.minval;
+        cnv.maxval = source_canvas.maxval;
+        cnv.num_colours = source_canvas.num_colours;
+        cnv.ctx.fillRect(0, 0, width*scale , height*scale);
+
+        this[name].canvases[label] = cnv;    // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv);             // Add a reference to the canvas to the sim
+
+        var newCanvas = document.createElement('canvas');
+        var context = newCanvas.getContext('2d');
+        newCanvas.width = source_canvas.legend.width;
+        newCanvas.height = source_canvas.legend.height;
+        context.drawImage(source_canvas.legend, 0, 0);
+
+        cnv.canvasdiv.appendChild(newCanvas);
+        cnv.bgcolour = this.config.bgcolour;
     }
 
 
@@ -2506,7 +2568,7 @@ function get2DFromCanvas(canvas) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sun Oct 24 2021 18:32:30 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Oct 25 2021 10:07:36 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

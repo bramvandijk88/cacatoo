@@ -88,11 +88,11 @@ class Simulation {
         cnv.add_legend(cnv.canvasdiv,property)
         cnv.bgcolour = this.config.bgcolour
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
-        cnv.displaygrid()
-        
-        
+        cnv.displaygrid()                
     }
 
+    
+    
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {string} name The name of an existing gridmodel to display
@@ -153,6 +153,55 @@ class Simulation {
         const canvas = cnv        
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(cnv, e, scale) }, false)
         cnv.displaygrid()
+    }
+
+    /**
+    * Create a space time display for a gridmodel
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} source_canvas_label The name of the property to display
+    * @param {string} label Overwrite the display name with something more descriptive
+    * @param {integer} col_to_draw Col to display (default = center)
+    * @param {integer} ncol Number of cols (i.e. time points) to display (default = ncol)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+     spaceTimePlot(name, source_canvas_label, label, col_to_draw, ncolumn) {
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:spaceTiemPlot, cannot create display in command-line mode.")
+            return
+        }
+
+        // this.createDisplay(name, property, customlab, height, width, scale)
+        //name, property, customlab, height, width, scale
+        
+        let source_canvas = this[name].canvases[source_canvas_label]
+        let property = source_canvas.property
+        let height = source_canvas.height
+        let width = ncolumn
+        let scale = source_canvas.scale
+        
+
+        let cnv = new Canvas(this[name], property, label, height, width, scale);
+        
+        cnv.spacetime=true
+        cnv.offset_x = col_to_draw
+        cnv.continuous = source_canvas.continuous
+        cnv.minval = source_canvas.minval
+        cnv.maxval = source_canvas.maxval
+        cnv.num_colours = source_canvas.num_colours
+        cnv.ctx.fillRect(0, 0, width*scale , height*scale)
+
+        this[name].canvases[label] = cnv    // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv)             // Add a reference to the canvas to the sim
+        const canvas = cnv
+
+        var newCanvas = document.createElement('canvas')
+        var context = newCanvas.getContext('2d')
+        newCanvas.width = source_canvas.legend.width
+        newCanvas.height = source_canvas.legend.height
+        context.drawImage(source_canvas.legend, 0, 0)
+
+        cnv.canvasdiv.appendChild(newCanvas)
+        cnv.bgcolour = this.config.bgcolour
     }
 
 

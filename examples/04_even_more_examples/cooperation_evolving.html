@@ -64,6 +64,7 @@ function cacatoo() {
 
     sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
                         minval: 0.0, maxval:1.0,num_colours:50, na_colour: 'black', fill:"inferno", decimals:2, nticks:5})
+    sim.spaceTimePlot("coop", "Cooperation", "ST", 100, sim.ncol*3)                        
     
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
@@ -110,7 +111,7 @@ function cacatoo() {
     sim.coop.update = function () {
         this.apply_sync(calculatefitness)
         this.asynchronous()                                              // Update all grid points based on the next-state function (defined above)
-        for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
+        // for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
         this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
     }
 
