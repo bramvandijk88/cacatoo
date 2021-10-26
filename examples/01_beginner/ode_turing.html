@@ -107,17 +107,8 @@
                 [midact, midinh],
                 ["gold", "#FF00AA"],
                 "ODE states in central grid point")
-            // if(this.time%10==0)
-            // {
-            //     let canvas = this.canvas.elem // Grab the canvas element
-            //     let timestamp = this.time.toString()
-            //     timestamp = timestamp.padStart(5, "0")
-            //     canvas.toBlob(function(blob) 
-            //     {
-            //         saveAs(blob, "my_slide"+timestamp+".png");
-            //     })
-            // }
 
+            if(this.time%20==0) this.drawSlide("Activator density") // Calls a download-request for images, allowing users to store their grids while running the simulation
         }
 
         sim.addButton("mix grid", function () { sim.turing.perfectMix() })

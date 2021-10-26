@@ -1140,6 +1140,16 @@ class Gridmodel {
         this.plotArray(graph_labels, ode_states, colours, title);
     }
 
+    drawSlide(canvasname,prefix="grid_") {
+        let canvas = this.canvases[canvasname].elem; // Grab the canvas element
+        let timestamp = sim.time.toString();
+        timestamp = timestamp.padStart(5, "0");
+        canvas.toBlob(function(blob) 
+        {
+            saveAs(blob, "my_slide"+timestamp+".png");
+        });
+    }
+
     resetPlots() {
         this.time = 0;
         for (let g in this.graphs) {
@@ -1983,7 +1993,7 @@ class Simulation {
             
             var link = document.querySelector("link[rel~='icon']");
             if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); }
-            link.href = '../../patterns/cacatoo.png';
+            link.href = '../../images/favicon.png';
 
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src=""https://bramvandijk88.github.io/cacatoo/cacatoo/images/elephant_cacatoo_small.png"></a>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src=""https://bramvandijk88.github.io/cacatoo/cacatoo/images/gh.png"></a></img>`;

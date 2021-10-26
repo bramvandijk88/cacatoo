@@ -46,12 +46,13 @@
         /*
             1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
         */
-        sim = new Simulation(config)                          // Initialise the Cacatoo simulation
-        sim.makeGridmodel("growth")                            // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.makeGridmodel("particles")                            // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.initialGrid(sim.growth,'state','dead',0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
-        sim.initialGrid(sim.particles,'food','food',0.25)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
-        sim.growth.grid[config.ncol/2][config.nrow/2].state = 'alive'
+        sim = new Simulation(config)                              // Initialise the Cacatoo simulation
+        sim.makeGridmodel("growth")                               // Build a new Gridmodel within the simulation called "growth" 
+        sim.makeGridmodel("particles")                            // Build a new Gridmodel within the simulation called "particles"
+        sim.initialGrid(sim.growth,'state','dead',1.0)            // Set all Grid points in 'growth' to 'dead' ...
+        sim.growth.grid[config.ncol/2][config.nrow/2].state = 'alive'   // ... except for 1 grid point in the middle which is 'alive'
+        sim.initialGrid(sim.particles,'food','food',0.25)         // Set 25% of the Gridmodel 'particle' to 'food'
+        
         sim.createDisplay("growth","state","Growing aggregate")                                       // Create a display so we can see our newly made gridmodel
         sim.createDisplay("growth","colour","Growing aggregate (coloured by time)")
         sim.createDisplay("particles","food","Available food particles")                                // Create a display so we can see our newly made gridmodel
@@ -61,7 +62,7 @@
         */
         sim.growth.nextState = function(i,j)                   
         {   
-            if(this.grid[i][j].state == 0){
+            if(this.grid[i][j].state == 'dead'){
               if(sim.particles.grid[i][j].food=='food' && this.countMoore8(sim.growth,i,j,'state','alive') > 0){
                   sim.particles.grid[i][j].food = 'no food'
                   this.grid[i][j].state = 'alive'
@@ -79,8 +80,7 @@
         */
         sim.growth.update = function()
         {                                
-            this.synchronous()         // Applied as many times as it can in 1/60th of a second
-    
+            this.synchronous()         // Applied as many times as it can in 1/60th of a second                
         }
     
         sim.particles.update = function()

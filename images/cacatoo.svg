@@ -5,6 +5,7 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="201.25127mm"
@@ -803,18 +804,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.0000001"
-     inkscape:cx="588.14438"
-     inkscape:cy="446.42536"
+     inkscape:zoom="1.0000001"
+     inkscape:cx="781.82676"
+     inkscape:cy="430.0212"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
      inkscape:snap-global="false"
-     inkscape:window-width="3840"
-     inkscape:window-height="2066"
-     inkscape:window-x="-11"
-     inkscape:window-y="-11"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      fit-margin-top="5"
      fit-margin-left="5"
@@ -3109,18 +3110,6 @@
          y="216.13454"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:consolas;-inkscape-font-specification:consolas;stroke-width:0.0786199"
          id="tspan24240">Population bottlenecks</tspan></text>
-    <path
-       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0624944px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 2.3080249,13.920497 v -0.668524 h 0.78885 v -2.032312 h 0.9092 v -1.029526 h 1.13648 V 7.4358186 H 6.5063453 V 6.2993276 H 5.1425549 v -0.895821 h -1.14986 v -2.286351 h 1.12312 v 2.299722 h 1.4039004 v -2.299722 h 1.09638 v 2.299722 h 3.2490297 v 0.949303 h 3.47632 V 7.516041 h 0.68189 v 3.623398 h -2.78105 v 2.072423 h -1.43065 v 0.735376 z"
-       id="path27237" />
-    <rect
-       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.297375;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill;stop-color:#000000"
-       id="rect1559-4-7-2-4-3"
-       width="1.2053438"
-       height="1.3602864"
-       x="-8.6822176"
-       y="8.8340902"
-       transform="rotate(-90)" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:3.14481px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0786199"
@@ -3240,5 +3229,21 @@
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 24.790729,13.953593 c 0,0 -3.788546,0.841899 -4.677217,-0.420949 -0.888671,-1.262849 1.403165,3.320823 4.630444,3.741773"
        id="path27357" />
+    <image
+       width="11.570058"
+       height="15.278409"
+       preserveAspectRatio="none"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE4AAABnCAYAAACuCXTjAAAABHNCSVQICAgIfAhkiAAAAVdJREFU
+eJzt21Fqg0AUQNFYuv8ttxuoCXMZHbXnfAYi5vLgMUncXtfzs/P6dupdfPC1+gbuSrhIuEi4SLho
+5aaatT33rrNnymc2cZFwkXCRcJFw0Xd4z6qz5NHbc+j6Ji4SLhIuEi4SLipb9WqWnG1NXCRcJFwk
+XCRcNPN8OXqGHd1ue2Zdf6iFiYuEi4SLhIuEi87Yqndhq55BuEi4SLhIuOgJ3wCP8m+llYSLhIuE
+i4SLnFU/87vqTMJFwkXCRcJFT9iqR/9u+ycTFwkXCRcJFwkXzXyy5l8xcZFwkXCRcJFwUTmr2qov
+E5cJFwkXCRcJF73bqk/dnlOebzVxkXCRcJFwkXDRFbfqkudPR5m4SLhIuEi4SLhoe93nTDq6bW3V
+KxIuEi4SLhIuevLzqoduWxMXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJF/0CcIMX
+zDT6my4AAAAASUVORK5CYII=
+"
+       id="image4653"
+       x="3.047652"
+       y="4.9460754" />
   </g>
 </svg>

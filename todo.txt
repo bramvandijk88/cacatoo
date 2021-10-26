@@ -1,23 +1,4 @@
-(rollup src/model.js -o dist/cacatoo.js -f cjs  -w)
-
-> Go through all examples making sure the comments are not from older code
-> Error for Initial Pattern handling via ALERT
-> Modify tutorials to match with new function names, etc. (e.g. predator prey with string-labels)
-> Replace replit with JSfiddle examples
-
+TODO
+> Add warnings for calling grid-events in the next-state function 
 > Push data to graphs rather then completely reload it
 > FBA testing
-> Spacetime plots
-> Options to save PNGs:
-		// change stuff below to sim.spirals.drawslide("name")
-		// let canvas = sim.spirals.canvas.elem // Grab the canvas element
-		// let timestamp = sim.time.toString()
-		// timestamp = timestamp.padStart(5, "0")
-		// canvas.toBlob(function(blob) 
-		// {
-		// 	saveAs(blob, "my_slide"+timestamp+".png");
-		// });
-
-		// Colour map as array rather than as object? Probably faster. 
-
-> ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs
