@@ -11,12 +11,14 @@ Cacatoo is a highly customisable toolkit that makes building spatially structure
 
 ## Getting started
 
-You don't need to install anything, just dowload this repository and start playing!
-If you want help with Javascript / setting up a nice coding environment, check out this [blog post](https://www.bramvandijk.com/blog/2020/11/20/javascript-programming-part-ii-my-setup).
-For Cacatoo-specific help, start by taking a look at the examples folder. This folder contains simple HTML files you can open with your browser (Chrome is recommended). Two examples (gol and cheater) have been extensively commented to explain how Cacatoo works.
+You don't need to install anything. You can either immediately start playing with one of the many [JSFiddle examples](https://bramvandijk88.github.io/cacatoo/examples_jsfiddle.html), or dowload this repository and explore dozens of more examples! 
+If you want help with Javascript, I recommend [this](https://youtu.be/W6NZfCO5SIk) tutorial from "Programming with Mosh". The first hour is free, and the other 6 hours are definitely worth the money. I also recomment setting up a nice coding environment, as I explain in [this blog post](https://www.bramvandijk.com/blog/2020/11/20/javascript-programming-part-ii-my-setup).
 
-## What else can I do?
-For an overview of all the Classes and functions you can use in Cacatoo, [see here](https://bramvandijk88.github.io/cacatoo/Simulation.html)
+## How to Cacatoo
+Cacatoo has been extenstively documented. Tutorials and overviews of its many functions can be found [here](https://bramvandijk88.github.io/cacatoo). If you prefer to learn by example, I have made dozens of different models for you 
+to start playing (found in the "examples" folder of the repository), ranging from beginner to expert!
+
+If you want to get in debt on what each function specifically does, check out the [JSDocs](https://bramvandijk88.github.io/cacatoo/jsdocs/index.html). 
 
 ## Notes for developers
 
