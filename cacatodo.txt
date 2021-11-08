@@ -1,5 +1,3 @@
-TODO
-> Add ref for model of X in docs
-> Add warnings for calling grid-events in the next-state function 
+(caca)TODO
 > Push data to graphs rather then completely reload it
 > FBA testing
