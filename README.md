@@ -1,7 +1,6 @@
-
 # Cacatoo
 
-Cacatoo is a highly customisable toolkit that makes building spatially structured models of biology easy. Because it is written in 100% javascript it requires no installation and works on any machine, making building, sharing, and exploring your model easier than it ever was! With a web-based interface that is ideal for students to learn how to program, and a NodeJS-mode which allows one to run directly from the command line, it is suited for beginners and advanced programmers alike! 
+Cacatoo is a toolbox for modelling and exploration of spatially structured simulations. Because it is written in 100% javascript it requires no installation and works on any machine, making building, sharing, and exploring your model easier than it ever was! With a web-based interface that is ideal for students to learn how to program, and a NodeJS-mode which allows one to rapidly run simulations directly from the command line, it is suited for beginners and advanced programmers alike!
 
 <center>
 <img src="https://bramvandijk88.github.io/cacatoo/images/elephant_cacatoo.png" width="400"
@@ -12,13 +11,24 @@ Cacatoo is a highly customisable toolkit that makes building spatially structure
 ## Getting started
 
 You don't need to install anything. You can either immediately start playing with one of the many [JSFiddle examples](https://bramvandijk88.github.io/cacatoo/examples_jsfiddle.html), or dowload this repository and explore dozens of more examples! 
-If you want help with Javascript, I recommend [this](https://youtu.be/W6NZfCO5SIk) tutorial from "Programming with Mosh". The first hour is free, and the other 6 hours are definitely worth the money. I also recomment setting up a nice coding environment, as I explain in [this blog post](https://www.bramvandijk.com/blog/2020/11/20/javascript-programming-part-ii-my-setup).
+If you want help with Javascript, I recommend [this](https://youtu.be/W6NZfCO5SIk) tutorial from "Programming with Mosh". The first hour is free, and the other 6 hours are definitely worth the money. I also recommend setting up a nice coding environment, as I explain in [this blog post](https://www.bramvandijk.com/blog/2020/11/20/javascript-programming-part-ii-my-setup).
+
 
 ## How to Cacatoo
-Cacatoo has been extenstively documented. Tutorials and overviews of its many functions can be found [here](https://bramvandijk88.github.io/cacatoo). If you prefer to learn by example, I have made dozens of different models for you 
-to start playing (found in the "examples" folder of the repository), ranging from beginner to expert!
+If you prefer to learn by example, I have made dozens of different models for you to start playing (found in the "examples" folder of the repository), ranging from beginner to expert! That said, Cacatoo has been extenstively documented. Tutorials and overviews of its many functions can be found [here](https://bramvandijk88.github.io/cacatoo). Briefly, setting up a Cacatoo model consists of roughly three steps: 1) setup, 2) defining the rules, and 3) setting up a main simulation loop (see image below). I have added comments to some of the example files, denoting which step is to be executed where in the code. If you want to get in debt on what each function specifically does, check out the [JSDocs](https://bramvandijk88.github.io/cacatoo/jsdocs/index.html).
 
-If you want to get in debt on what each function specifically does, check out the [JSDocs](https://bramvandijk88.github.io/cacatoo/jsdocs/index.html). 
+<center>
+<img src="https://bramvandijk88.github.io/cacatoo/images/cacatoo_recipe.png" width="700"
+     alt="Riding on the shoulders of giants"
+/></center>
+
+<br><br>
+
+# Motivation
+
+Complex systems like microbial communities, the human immune system, and the Earth's climate, have many emergent properties which arise from the interactions between individual components. As such, predicting exactly how these systems will behave and respond to various stimuli is difficult. Simulation offers a solution by allowing a modeller to simply put in what they deem important, and observe the outcome. As such, direct visual feedback is an important part of the process of "getting to know" your model. Not only are you more likely to detect programming mistakes, but it also aids exploration of parameter space. Over the last decade, most of my models were implemented by using the CASH C-library, which would allow direct visual feedback by means of the X11 library (R.J. de Boer & A.D. Staritsk). However, as it is based in C, developing models with CASH requires a lot of programming experience, and even an experienced user like myself can sometimes take days to track down a simple bug. Moreover, sharing your model with other users can be a pain in the neck, as installation is slightly different depending on the operating system. The amazing toolbox Artistoo[https://artistoo.net/] (REF ART) has illustrated how Javascript can be both beginner-friendly and versatile. Hence, I decided that Javascript was the way forward! <br><br>
+
+# Other
 
 ## Notes for developers
 
@@ -29,9 +39,17 @@ The bundle was made with rollup:
 Documentation was compiled with jsdoc (npm install jsdoc -g)
 > ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs
 
+## FAQ
+
+Q: My model isn't running, what can I do to find out what's wrong?\
+A: Open the developer console (CTRL+SHIFT+I in Google Chrome), and see which line of your code causes the problem. If it is an error in Cacatoo, please submit an issue on the Github repository. <br> <br>
+Q: My model is too slow, how do I find what is slowing things down?\
+A: Open the developer console (CTRL+SHIFT+I in Google Chrome), and go to the 'profile' tab. You can run the code for a bit and observe which functions are taking most time. As a general rule, try and avoid build-in functions of javascript (e.g. 'reduce' to get the sum of an array), because despite being easier to use, they are quite a bit slower than a C-style piece of code where you loop over the values yourself. After you understand the model, and you simply want to rapidly run many simulations, I recommend running the code from the command line with nodeJS (also see the "cheater" example).  <br> <br>
+Q: Why is this toolbox called Cacatoo?\
+A: Cacatoo is an acronym for CAsh-like Cellular Automaton TOOlbox. However, as Cacatoo developed it became much more than just a tool for cellular automata. <br><br>
+
 ## License
 This library is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3, as published by the Free Software Foundation. 
 
 This program is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose. See the GNU General Public License for more details.
-
 
