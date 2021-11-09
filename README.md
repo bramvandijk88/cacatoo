@@ -18,8 +18,8 @@ If you want help with Javascript, I recommend [this](https://youtu.be/W6NZfCO5SI
 If you prefer to learn by example, I have made dozens of different models for you to start playing (found in the "examples" folder of the repository), ranging from beginner to expert! That said, Cacatoo has been extenstively documented. Tutorials and overviews of its many functions can be found [here](https://bramvandijk88.github.io/cacatoo). Briefly, setting up a Cacatoo model consists of roughly three steps: 1) setup, 2) defining the rules, and 3) setting up a main simulation loop (see image below). I have added comments to some of the example files, denoting which step is to be executed where in the code. If you want to get in debt on what each function specifically does, check out the [JSDocs](https://bramvandijk88.github.io/cacatoo/jsdocs/index.html).
 
 <center>
-<img src="https://bramvandijk88.github.io/cacatoo/images/cacatoo_recipe.png" width="700"
-     alt="Riding on the shoulders of giants"
+<img src="images/cacatoo_recipe.png" width="700"
+     alt="The basic recipe of a Cacatoo simulation contains three ingredients: 1) setup, 2) defining the rules, and 3) setting up the main simulation loop."
 /></center>
 
 <br><br>
@@ -46,7 +46,7 @@ A: Open the developer console (CTRL+SHIFT+I in Google Chrome), and see which lin
 Q: My model is too slow, how do I find what is slowing things down?\
 A: Open the developer console (CTRL+SHIFT+I in Google Chrome), and go to the 'profile' tab. You can run the code for a bit and observe which functions are taking most time. As a general rule, try and avoid build-in functions of javascript (e.g. 'reduce' to get the sum of an array), because despite being easier to use, they are quite a bit slower than a C-style piece of code where you loop over the values yourself. After you understand the model, and you simply want to rapidly run many simulations, I recommend running the code from the command line with nodeJS (also see the "cheater" example).  <br> <br>
 Q: Why is this toolbox called Cacatoo?\
-A: Cacatoo is an acronym for CAsh-like Cellular Automaton TOOlbox. However, as Cacatoo developed it became much more than just a tool for cellular automata. <br><br>
+A: Cacatoo is an acronym for CAsh-like Cellular Automaton TOOlbox. However, as Cacatoo developed it became much more than just a tool for cellular automata. The name stuck, however. <br><br>
 
 ## License
 This library is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3, as published by the Free Software Foundation. 
