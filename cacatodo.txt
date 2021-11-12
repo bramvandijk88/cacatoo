@@ -1,3 +1,4 @@
 (caca)TODO
-> Push data to graphs rather then completely reload it
+> Push data to graphs rather then completely reload it (not sure dygraphs allows for this, but could check)
 > FBA testing
+> Implement d3.js visualization like histograms / phylogenetic trees. 
