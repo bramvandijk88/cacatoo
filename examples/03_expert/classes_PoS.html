@@ -208,7 +208,7 @@
                 }
                 else if (randomnr < gene_deletion_rate + gene_duplication_rate + gene_tandem_deletion) {
                     let size = sim.rng.genrand_real1() * this.chromosome.length / 4
-                    this.chromosome.splice(i, size)                // Tandem deletion (splice up to a fourth of, plus one to ensure the last can be deleted)
+                    this.chromosome.splice(i, size)                
                     mutation = true
                 }
                 else if (randomnr < gene_deletion_rate + gene_duplication_rate + gene_tandem_deletion + gene_tandem_duplication) {
