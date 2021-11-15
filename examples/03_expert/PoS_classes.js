@@ -127,7 +127,7 @@ class Gene {
 function shuffle(a) {
     var j, x, i;
     for (i = a.length - 1; i > 0; i--) {
-        j = Math.floor(sim.rng.genrand_real1() * (i + 1));
+        j = Math.floor(sim.rng.genrand_real2() * (i + 1));
         x = a[i];
         a[i] = a[j];
         a[j] = x;

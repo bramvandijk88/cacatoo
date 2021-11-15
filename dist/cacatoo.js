@@ -1692,6 +1692,12 @@ function MersenneTwister(seed) {
     /* divided by 2^32-1 */ 
   };
 
+  /* generates a random number on [0,1)-real-interval */
+    MersenneTwister.prototype.genrand_real2 = function() {
+      return this.genrand_int32()*(1.0/4294967296.0); 
+      /* divided by 2^32 */
+    };
+    
   /* generates a random int between [min,max] */
   MersenneTwister.prototype.genrand_int = function(min,max) {
     return min+Math.floor(this.genrand_real1()*(max));
