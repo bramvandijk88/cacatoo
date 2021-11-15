@@ -1,9 +1,9 @@
 #!/bin/bash 
-# This bundle script is use meant for developer-use only. It bundles the Cacatoo package into 1 javascript file
-# that can be loaded for users. 
 
-# Requires rollup
-
+# This bundle script is NOT meant for regular developers. It bundles all the source code together,
+# and make sure the paths to the documentations are updated. If you want your changed to be 
+# implemented in the documentation, issue a pull request on github and I (Bram) will do the rest. 
+# 
 
 compile_cacatoo()
 {               
