@@ -3,4 +3,5 @@ docs/jsdocs/* linguist-vendored
 docs/scripts/* linguist-vendored
 docs/styles/* linguist-vendored
 lib/* linguist-vendored
+dist/* linguist-vendored
 
