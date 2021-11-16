@@ -1,0 +1,5 @@
+# Ignore doc-directories and duplicated library files from linguist statistics:
+docs/jsdocs/* linguist-vendored
+docs/scripts/* linguist-vendored
+docs/styles/* linguist-vendored
+
