@@ -166,7 +166,7 @@ class Simulation {
     */
      spaceTimePlot(name, source_canvas_label, label, col_to_draw, ncolumn) {
         if(! this.inbrowser) {
-            console.warn("Cacatoo:spaceTiemPlot, cannot create display in command-line mode.")
+            console.warn("Cacatoo:spaceTimePlot, cannot create display in command-line mode.")
             return
         }
 
