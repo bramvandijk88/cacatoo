@@ -789,14 +789,12 @@ class Gridmodel {
 
         // Values
         let popsizes = this.getPopsizes(property, values)
-        //popsizes.unshift(this.time)
         let graph_values = popsizes
 
         // Colours
         let colours = []
 
         for (let c of values) {
-            //console.log(this.statecolours[property][c])
             if (this.statecolours[property].constructor != Object)
                 colours.push(this.statecolours[property])
             else

@@ -44,7 +44,6 @@ class Graph {
         for (let v of colours) {
             if (v == "Time") continue            
             else if (v == undefined) this.colours.push("#000000");
-            else if (v[0] + v[1] + v[2] == 765) this.colours.push("#dddddd");
             else this.colours.push(rgbToHex(v[0], v[1], v[2]));
         }
 
@@ -1099,14 +1098,12 @@ class Gridmodel {
 
         // Values
         let popsizes = this.getPopsizes(property, values);
-        //popsizes.unshift(this.time)
         let graph_values = popsizes;
 
         // Colours
         let colours = [];
 
         for (let c of values) {
-            //console.log(this.statecolours[property][c])
             if (this.statecolours[property].constructor != Object)
                 colours.push(this.statecolours[property]);
             else

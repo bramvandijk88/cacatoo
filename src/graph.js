@@ -24,7 +24,6 @@ class Graph {
         for (let v of colours) {
             if (v == "Time") continue            
             else if (v == undefined) this.colours.push("#000000")
-            else if (v[0] + v[1] + v[2] == 765) this.colours.push("#dddddd")
             else this.colours.push(rgbToHex(v[0], v[1], v[2]))
         }
 
