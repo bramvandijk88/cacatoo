@@ -1,4 +1,6 @@
 (caca)TODO
+> random colours '0' should default to black
+> populateSpot now resets everything if applied more than once, this is undesirable (see Microbial Warfare fiddle)
 > Push data to graphs rather then completely reload it (not sure dygraphs allows for this, but could check)
 > FBA testing
 > Implement d3.js visualization like histograms / phylogenetic trees. 
