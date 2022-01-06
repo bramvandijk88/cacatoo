@@ -306,7 +306,8 @@ function default_colours(num_colours)
 function random_colours(num_colours,rng)
 {
     let return_dict = {};
-    for(let i = 0; i < num_colours; i++)
+    return_dict[0] = [0,0,0];
+    for(let i = 1; i < num_colours; i++)
     {
         return_dict[i] = [rng.genrand_int(0,255),rng.genrand_int(0,255),rng.genrand_int(0,255)];
     }
@@ -843,10 +844,11 @@ class Gridmodel {
     randomNeighbour5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
 
     
-    /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
-         *  states of the ODEs have to be first stored (copied) into a 4D array (x,y,ODE,state-vector), 
-         *  which is then used to update the grid.
-         */
+    /** Diffuse continuous states on the grid. 
+     * *  @param {string} state The name of the state to diffuse
+     *  but can be mixed to make grids interact.
+     *  @param {float} rate the rate of diffusion. (<0.25)     
+     */
     diffuseStates(state,rate) {
         if(rate > 0.25) {
             throw new Error("Cacatoo: rate for diffusion cannot be greater than 0.25, try multiple diffusion steps instead.")
@@ -857,7 +859,6 @@ class Gridmodel {
         {           
             for (let j = 0; j < this.nr; j += 1) // every row
             {                
-                //newstate[i][j] = this.grid[i][j][state]
                 for (let n = 1; n <= 4; n++)   // Every neighbour (neumann)
                 {                    
                     let moore = this.moore[n];
@@ -872,7 +873,51 @@ class Gridmodel {
         for (let i = 0; i < this.nc; i += 1) // every column
             for (let j = 0; j < this.nr; j += 1) // every row
                 for (let n = 1; n <= 4; n++) this.grid[i][j][state] = newstate[i][j][state];
+    }
 
+    /** Diffuse continuous states on the grid. 
+     * *  @param {string} state The name of the state to diffuse
+     *  but can be mixed to make grids interact.
+     *  @param {float} rate the rate of diffusion. (<0.25)     
+     */
+     diffuseStateVector(statevector,rate) {
+        if(rate > 0.25) {
+            throw new Error("Cacatoo: rate for diffusion cannot be greater than 0.25, try multiple diffusion steps instead.")
+        }
+        let newstate = MakeGrid(this.nc, this.nr); 
+
+        for (let i = 0; i < this.nc; i += 1) // every column
+            for (let j = 0; j < this.nr; j += 1) // every row
+            {
+                newstate[i][j].toxins = Array(statevector.length).fill(0);
+                for (let n = 1; n <= 4; n++)
+                    for(let state=0; state < this.grid[i][j][statevector].length; state++)
+                        newstate[i][j][statevector][state] = this.grid[i][j][statevector][state];
+            }
+
+        for (let i = 0; i < this.nc; i += 1) // every column
+        {           
+            for (let j = 0; j < this.nr; j += 1) // every row
+            {                
+                for (let n = 1; n <= 4; n++)   // Every neighbour (neumann)
+                {                    
+                    let moore = this.moore[n];
+                    let xy = this.getNeighXY(i + moore[0], j + moore[1]);
+                    if (typeof xy == "undefined") continue
+                    let neigh = this.grid[xy[0]][xy[1]];
+                    for(let state=0; state < newstate[i][j][statevector].length; state++)
+                    {
+                        newstate[i][j][statevector][state] += neigh[statevector][state] * rate;
+                        newstate[xy[0]][xy[1]][statevector][state] -= neigh[statevector][state] * rate;
+                    }
+                }
+            }
+        }
+        for (let i = 0; i < this.nc; i += 1) // every column
+            for (let j = 0; j < this.nr; j += 1) // every row
+                for (let n = 1; n <= 4; n++)
+                    for(let state=0; state < newstate[i][j][statevector].length; state++)
+                        this.grid[i][j][statevector][state] = newstate[i][j][statevector][state];
     }
 
     /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
@@ -2158,7 +2203,7 @@ class Simulation {
      *  @param {Array} individuals The properties for individuals 1..n
      *  @param {Array} freqs The initial frequency of individuals 1..n
      */
-     populateSpot(gridmodel,individuals, freqs,size, x, y)
+     populateSpot(gridmodel,individuals, freqs,size, x, y, set_background_state=false)
      {
         let sumfreqs =0;
         if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
@@ -2168,7 +2213,7 @@ class Simulation {
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
         for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
         {
-            for (const property in individuals[0]) gridmodel.grid[i][j][property] = 0; 
+            if(set_background_state) for (const property in individuals[0]) gridmodel.grid[i][j][property] = 0; 
 
             if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
             {

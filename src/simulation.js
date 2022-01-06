@@ -446,7 +446,7 @@ class Simulation {
      *  @param {Array} individuals The properties for individuals 1..n
      *  @param {Array} freqs The initial frequency of individuals 1..n
      */
-     populateSpot(gridmodel,individuals, freqs,size, x, y)
+     populateSpot(gridmodel,individuals, freqs,size, x, y, set_background_state=false)
      {
         let sumfreqs =0
         if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
@@ -456,7 +456,7 @@ class Simulation {
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
         for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
         {
-            for (const property in individuals[0]) gridmodel.grid[i][j][property] = 0 
+            if(set_background_state) for (const property in individuals[0]) gridmodel.grid[i][j][property] = 0 
 
             if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
             {

@@ -137,7 +137,8 @@ export function default_colours(num_colours)
 export function random_colours(num_colours,rng)
 {
     let return_dict = {}
-    for(let i = 0; i < num_colours; i++)
+    return_dict[0] = [0,0,0]
+    for(let i = 1; i < num_colours; i++)
     {
         return_dict[i] = [rng.genrand_int(0,255),rng.genrand_int(0,255),rng.genrand_int(0,255)]
     }
