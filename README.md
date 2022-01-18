@@ -40,12 +40,17 @@ Documentation was compiled with jsdoc (npm install jsdoc -g)
 
 ## FAQ
 
-Q: My model isn't running, what can I do to find out what's wrong?\
-A: Open the developer console (CTRL+SHIFT+I in Google Chrome), and see which line of your code causes the problem. If it is an error in Cacatoo, please submit an issue on the Github repository. <br> <br>
-Q: My model is too slow, how do I find what is slowing things down?\
-A: Open the developer console (CTRL+SHIFT+I in Google Chrome), and go to the 'profile' tab. You can run the code for a bit and observe which functions are taking most time. As a general rule, try and avoid build-in functions of javascript (e.g. 'reduce' to get the sum of an array), because despite being easier to use, they are quite a bit slower than a C-style piece of code where you loop over the values yourself. After you understand the model, and you simply want to rapidly run many simulations, I recommend running the code from the command line with nodeJS (also see the "cheater" example).  <br> <br>
-Q: Why is this toolbox called Cacatoo?\
-A: Cacatoo is an acronym for CAsh-like Cellular Automaton TOOlbox. However, as Cacatoo developed it became much more than just a tool for cellular automata. The name stuck, however. <br><br>
+**Q**: My model isn't running, what can I do to find out what's wrong?\
+**A**: Open the developer console (CTRL+SHIFT+I in Google Chrome), and see which line of your code causes the problem. If it is an error in Cacatoo, please submit an issue on the Github repository. <br> <br>
+
+**Q**: Grid points / individuals are dissappearing every update!\
+**A**: By far the most common reason for this is the synchronous updating of the grid. When synchronously updating the grid,
+make sure only the focal cell is modified by the nextState function. If not, the order of updating may cause individuals to appear / dissapear. If you want the nextState to be able to modify neighbouring grid points, only use *asynchronous* updating (see examples). <br><br>
+
+**Q**: My model is too slow, how do I find what is slowing things down?\
+**A**: Open the developer console (CTRL+SHIFT+I in Google Chrome), and go to the 'profile' tab. You can run the code for a bit and observe which functions are taking most time. As a general rule, try and avoid build-in functions of javascript (e.g. 'reduce' to get the sum of an array), because despite being easier to use, they are quite a bit slower than a C-style piece of code where you loop over the values yourself. After you understand the model, and you simply want to rapidly run many simulations, I recommend running the code from the command line with nodeJS (also see the "cheater" example).  <br> <br>
+**Q**: Why is this toolbox called Cacatoo?\
+**A**: Cacatoo is an acronym for CAsh-like Cellular Automaton TOOlbox. However, as Cacatoo developed it became much more than just a tool for cellular automata. The name stuck, however. <br><br>
 
 ## License
 This library is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3, as published by the Free Software Foundation. 
