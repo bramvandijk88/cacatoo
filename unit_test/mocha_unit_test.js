@@ -11,7 +11,7 @@ describe('Cacatoo simulation unit test', function()
 {  
    describe('Testing grid model functionality...', function() 
    {
-     it('Generate a simulation object, make an model with the name "grid model"', function() 
+     it('Generate a simulation object and a model', function() 
      {          
        const sim = new Simulation();       
        const model = sim.makeGridmodel("gridmodel")
