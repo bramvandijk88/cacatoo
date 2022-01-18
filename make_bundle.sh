@@ -2,13 +2,13 @@
 
 # This bundle script is NOT meant for regular developers. It bundles all the source code together,
 # and make sure the paths to the documentations are updated. If you want your changed to be 
-# implemented in the documentation, issue a pull request on github and I (Bram) will do the rest. 
+# implemented in the documentation, issue a pull request on github and I (Bram) will do the rest.
 # 
 
 compile_cacatoo()
 {               
             
-            rollup src/simulation.js -o dist/cacatoo.js -f cjs
+            rollup src/simulation.js -o dist/cacatoo.js -f cjs                              # Use rollup to bundle the package as a single commonJS file
             sed -i '$ d' dist/cacatoo.js
             echo "
             try
@@ -20,10 +20,18 @@ compile_cacatoo()
                 // do nothing
             }" >> dist/cacatoo.js
 
-            ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md
+            ./node_modules/mocha/bin/mocha unit_test/                                       # Run mocha unit test to ensure the bundle works as intended
+            
+            if [[ "$?" -gt 0 ]]; then
+                echo -e "Mocha: at least one of the unit tests failed\t[ERROR]";
+                echo -e "Fix above issues before commiting the new bundle.\n\n"
+                exit 1
+            fi
 
-            #cat lib/all.js >> dist/cacatoo.js
-            cp examples/03_expert/legend.png docs/TEs_streamlining
+            ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md           # Automatically recompile JSdocs
+
+            
+            cp examples/03_expert/legend.png docs/TEs_streamlining                          # Everything below = fixing documentation files
             cp dist/cacatoo.js docs/scripts/cacatoo.js
             cp style/cacatoo.css docs/styles/cacatoo.css
             cp lib/all.js docs/scripts/all.js

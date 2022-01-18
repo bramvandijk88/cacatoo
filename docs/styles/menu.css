@@ -48,8 +48,8 @@ h1 {
     transform: translateX(-310px);
     transition: transform 0.3s;
     font-weight:bold;
-    font-size:16px;
-    padding: 5px 5px;    
+    font-size:14px;
+    padding: 2px 2px;    
 }
 
 .nav--open .nav__links {
@@ -81,7 +81,7 @@ h1 {
     font-weight:bold;
     font-size: 15 px;
     text-decoration:none;
-    padding: 5px 5px;
+    padding: 2px 2px;
 }
 
 .nav__headlink > i{
@@ -102,7 +102,7 @@ h1 {
     font-weight:bold;
     font-size: 13 px;
     text-decoration:none;
-    padding: 5px 25px;
+    padding: 2px 25px;
 }
 
 .nav__link > i {

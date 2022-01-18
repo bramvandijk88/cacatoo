@@ -15,19 +15,19 @@ class Simulation {
     *  and sets options accordingly.  
     *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo simulation. 
     */
-    constructor(config) {
-        this.config = config
+    constructor(config) {        
+        if(config == undefined) config = {}
+        this.config = config                
         this.rng = new MersenneTwister(config.seed || 53);
         
-        this.sleep = config.sleep || 0
-        this.maxtime = config.maxtime || 1000000
-        this.ncol = config.ncol || 100
-        this.nrow = config.nrow || 100
-        
-        this.scale = config.scale || 2
-        this.maxtime = config.maxtime || 1000000
-        this.graph_interval = config.graph_interval || 10
-        this.graph_update = config.graph_update || 50
+        this.sleep = config.sleep = config.sleep || 0
+        this.maxtime = config.maxtime = config.maxtime || 1000000
+        this.ncol = config.ncol = config.ncol || 100
+        this.nrow = config.nrow = config.nrow || 100  
+        this.scale = config.scale = config.scale || 2
+
+        this.graph_interval = config.graph_interval = config.graph_interval || 10
+        this.graph_update = config.graph_update= config.graph_update || 50
         this.fps = config.fps * 1.4 || 60
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = []            // All gridmodels in this simulation
@@ -38,9 +38,7 @@ class Simulation {
         this.printcursor = true
         this.fpsmeter = false
         if(config.fpsmeter == true) this.fpsmeter = true
-        if(config.printcursor == false) this.printcursor = false
-
-
+        if(config.printcursor == false) this.printcursor = false        
     }
 
     /**
@@ -473,7 +471,6 @@ class Simulation {
         }
          
      }
-
 
     /**
      *  addButton adds a HTML button which can be linked to a function by the user. 

@@ -1,4 +1,7 @@
 (caca)TODO
+> Option and example for serialising objects
+> Example of writing stuff to file and plot is with an Rscript
+> Modify hamburger menu in DOCs for small screens
 > Push data to graphs rather then completely reload it (not sure dygraphs allows for this, but could check)
 > FBA testing
 > Implement d3.js visualization like histograms / phylogenetic trees. 

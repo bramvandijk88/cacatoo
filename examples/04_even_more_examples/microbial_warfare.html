@@ -15,10 +15,12 @@
 
 <script>
 var sim; // This 'global' variable will hold the entire simulation
-var nr_of_toxins = 10
+var nr_of_toxins = 3
 var init_nr_of_clones = 10
 var base_death = 0.001                    // Determines how often an individual spontaneously dies, making a new spot available
-var mutation_rate = 0.01
+var uptake_rate = 0.1
+var mobility_resistance = 0.1
+var mobility_toxins = 0.9
 var toxin_shown = 1 
 /**
 * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
@@ -32,17 +34,17 @@ function cacatoo() {
         description: "",
         maxtime: 10000,
         ncol: 100,
-        nrow: 100,		                                            // dimensions of the grid to build
+        nrow: 100,		                                           // dimensions of the grid to build
         seed: 56,
         fps: 60,                                                   // Note: FPS can only be set in fastmode
         fpsmeter: false,
         fastmode: true,
         throttlefps: false,                                        // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
-        scale: 3,				                                    // scale of the grid (nxn pixels per grid point)            
+        scale: 2,				                                   // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         graph_update: 50,
-        statecolours: {'clone': 'random', 'alive': { 1: 'black' }}
+        statecolours: {'clone': 'random', 'alive': { 1: 'black' }, 'resistant':{0:'black', 1:'gold'}}
     }
 
     /*
@@ -52,9 +54,9 @@ function cacatoo() {
 
     sim.makeGridmodel("warfare")                                        // Make a new gridmodel named cheater
     sim.createDisplay("warfare", "clone", "Clone types")
-    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"toxin_conc", label:"Concentration toxin 1", minval:0, maxval:12, num_colours:40})
-
-
+    sim.createDisplay("warfare", "resistant", "Resistant to toxin")
+    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"toxin_conc", label:"Concentration of toxin", minval:0, maxval:12, num_colours:40})
+    
     sim.initialise = function()
     {
         for (let i = 0; i < sim.warfare.nc; i++)                          // i are columns
@@ -78,7 +80,7 @@ function cacatoo() {
             pos_x = sim.rng.genrand_int(10,config.ncol-10)
             pos_y = sim.rng.genrand_int(10,config.nrow-10)
             let init_individuals = [{alive:1,clone:c+1, deathrate:base_death, production: production, resistance: resistance}]                         
-            sim.populateSpot(sim.warfare, init_individuals, [1.0], 10, pos_x, pos_y, c==0)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
+            sim.populateSpot(sim.warfare, init_individuals, [1.0], 10, pos_x, pos_y, c==0)         // Populate small spots, the last argument sets all properties to a default of '0', and should only be used for the first spot (hence c==0, only true first round)
             sim.display()
         }
     }
@@ -91,6 +93,8 @@ function cacatoo() {
         // let pA, pB, pC, psum     
         let me = this.grid[i][j]
         me.toxin_conc = me.toxins[toxin_shown]
+        me.resistant = me.alive ? me.resistance[toxin_shown] : 0
+
         if (!me.alive)                                                   // If there is no living cell here
         {
             let neighbours = this.getMoore8(this, i, j,'alive',1)
@@ -104,13 +108,35 @@ function cacatoo() {
                 me.resistance = [...winner.resistance]
                 me.production = [...winner.production]
             }
-        }
+        }        
 
         if (this.rng.random() < this.grid[i][j].deathrate){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
             this.grid[i][j].alive = 0
             this.grid[i][j].fitness = 0
             this.grid[i][j].clone = 0
         }
+        else if(this.rng.random() < uptake_rate)
+        {
+            let neighbour = this.randomMoore8(this,i,j)
+
+            if(neighbour.alive == 1)
+            {
+                if(this.rng.random() < mobility_resistance)
+                {
+                    let num = this.rng.genrand_int(0,neighbour.resistance.length-1)
+                    if(neighbour.resistance[num] == 1)
+                        me.resistance[num] = 1
+                }
+                if(this.rng.random() < mobility_toxins)
+                {
+                    let num = this.rng.genrand_int(0,neighbour.production.length-1)
+                    if(neighbour.production[num] == 1)
+                        me.production[num] = 1  
+                }
+                                  
+            } 
+        }
+        
     }
 
       secreteToxins = function(i,j)
@@ -184,7 +210,7 @@ function cacatoo() {
             for (let j = 0; j < this.nr; j++) {
                 if(this.rng.genrand_real1() < 0.99){
                     this.grid[i][j].alive = 0
-                    this.grid[i][j].helping_rate = 0
+                    this.grid[i][j].clone = 0
                 }
             }
         }
@@ -195,10 +221,10 @@ function cacatoo() {
     */
     sim.addButton("Play / Pause", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"     
     sim.addButton("Well mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
-    sim.addButton("Catastrophe!", function () {sim.coop.bottleneck() })
+    sim.addButton("Catastrophe!", function () {sim.warfare.bottleneck() })
     sim.addButton("Restart", function () {sim.initialise() })
     sim.addHTML("form_holder","<br>")
-    sim.addSlider("toxin_shown", 0.00, 10.00, 1.00, "Show toxin")    
+    sim.addSlider("toxin_shown", 0.00, 9.00, 1.00, "Show toxin")    
     
 
     sim.initialise()

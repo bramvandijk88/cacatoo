@@ -1,5 +1,5 @@
 
-// In this "unit test", most of the functionalities in Cacatoo are called, and it is checked whether any unexpected behaviour occurs. 
+// With this "bundle test", most of the functionalities in Cacatoo are called, and it is checked whether any unexpected behaviour occurs. 
 
 if (typeof window == "undefined") Simulation = require('../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
 

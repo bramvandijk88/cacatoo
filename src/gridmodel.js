@@ -20,9 +20,9 @@ class Gridmodel {
     constructor(name, config, rng) {
         this.name = name
         this.time = 0
-        this.grid = MakeGrid(config.ncol, config.nrow)       // Initialises an (empty) grid
         this.nc = config.ncol || 200
         this.nr = config.nrow || 200
+        this.grid = MakeGrid(this.nc, this.nr)       // Initialises an (empty) grid
         this.wrap = config.wrap || [true, true]
         this.rng = rng
         this.random = () => { return this.rng.genrand_real1()}
@@ -50,6 +50,14 @@ class Gridmodel {
         this.graphs = {}                // Object containing all graphs belonging to this model (HTML usage only)
         this.canvases = {}              // Object containing all Canvases belonging to this model (HTML usage only)
     }
+
+    /** Replaces current grid with an empty grid */
+    clearGrid()
+    {
+        this.grid = MakeGrid(this.nc,this.nr)
+        
+    }
+        
 
     /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
     *   @param {statecols} object - given object can be in two forms
@@ -508,30 +516,30 @@ class Gridmodel {
      *  @param {int} row position (row) for the focal gridpoint
      *  @param {Array} range from which to sample (1-8 is Moore8, 0-4 is Neu5, etc.)
      */
-    randomMoore(grid, col, row,range) {
+    randomNeighbour(grid, col, row,range) {
         let rand = this.rng.genrand_int(range[0], range[1])
         let i = this.moore[rand][0]
         let j = this.moore[rand][1]
         let neigh = grid.getGridpoint(col + i, row + j)
-        while (neigh == undefined) neigh = this.randomMoore(grid, col, row,range);
+        while (neigh == undefined) neigh = this.randomNeighbour(grid, col, row,range);
         return neigh
     }
 
     /** randomMoore for range 1-8 (see randomMoore) */     
-    randomMoore8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
-    randomNeighbour8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
+    randomMoore8(model, col, row) { return this.randomNeighbour(model, col, row, [1,8]) }
+    randomNeighbour8(model, col, row) { return this.randomNeighbour(model, col, row, [1,8]) }
 
     /** randomMoore for range 0-8 (see randomMoore) */ 
-    randomMoore9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
-    randomNeighbour9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
+    randomMoore9(model, col, row) { return this.randomNeighbour(model, col, row, [0,8]) }
+    randomNeighbour9(model, col, row) { return this.randomNeighbour(model, col, row, [0,8]) }
 
     /** randomMoore for range 1-4 (see randomMoore) */ 
-    randomNeumann4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
-    randomNeighbour4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
+    randomNeumann4(model, col, row) { return this.randomNeighbour(model, col, row, [1,4]) }
+    randomNeighbour4(model, col, row) { return this.randomNeighbour(model, col, row, [1,4]) }
 
     /** randomMoore for range 0-4 (see randomMoore) */ 
-    randomNeumann5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
-    randomNeighbour5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
+    randomNeumann5(model, col, row) { return this.randomNeighbour(model, col, row, [0,4]) }
+    randomNeighbour5(model, col, row) { return this.randomNeighbour(model, col, row, [0,4]) }
 
     
     /** Diffuse continuous states on the grid. 

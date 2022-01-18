@@ -330,9 +330,9 @@ class Gridmodel {
     constructor(name, config, rng) {
         this.name = name;
         this.time = 0;
-        this.grid = MakeGrid(config.ncol, config.nrow);       // Initialises an (empty) grid
         this.nc = config.ncol || 200;
         this.nr = config.nrow || 200;
+        this.grid = MakeGrid(this.nc, this.nr);       // Initialises an (empty) grid
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
         this.random = () => { return this.rng.genrand_real1()};
@@ -360,6 +360,14 @@ class Gridmodel {
         this.graphs = {};                // Object containing all graphs belonging to this model (HTML usage only)
         this.canvases = {};              // Object containing all Canvases belonging to this model (HTML usage only)
     }
+
+    /** Replaces current grid with an empty grid */
+    clearGrid()
+    {
+        this.grid = MakeGrid(this.nc,this.nr);
+        
+    }
+        
 
     /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
     *   @param {statecols} object - given object can be in two forms
@@ -818,30 +826,30 @@ class Gridmodel {
      *  @param {int} row position (row) for the focal gridpoint
      *  @param {Array} range from which to sample (1-8 is Moore8, 0-4 is Neu5, etc.)
      */
-    randomMoore(grid, col, row,range) {
+    randomNeighbour(grid, col, row,range) {
         let rand = this.rng.genrand_int(range[0], range[1]);
         let i = this.moore[rand][0];
         let j = this.moore[rand][1];
         let neigh = grid.getGridpoint(col + i, row + j);
-        while (neigh == undefined) neigh = this.randomMoore(grid, col, row,range);
+        while (neigh == undefined) neigh = this.randomNeighbour(grid, col, row,range);
         return neigh
     }
 
     /** randomMoore for range 1-8 (see randomMoore) */     
-    randomMoore8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
-    randomNeighbour8(model, col, row) { return this.randomMoore(model, col, row, [1,8]) }
+    randomMoore8(model, col, row) { return this.randomNeighbour(model, col, row, [1,8]) }
+    randomNeighbour8(model, col, row) { return this.randomNeighbour(model, col, row, [1,8]) }
 
     /** randomMoore for range 0-8 (see randomMoore) */ 
-    randomMoore9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
-    randomNeighbour9(model, col, row) { return this.randomMoore(model, col, row, [0,8]) }
+    randomMoore9(model, col, row) { return this.randomNeighbour(model, col, row, [0,8]) }
+    randomNeighbour9(model, col, row) { return this.randomNeighbour(model, col, row, [0,8]) }
 
     /** randomMoore for range 1-4 (see randomMoore) */ 
-    randomNeumann4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
-    randomNeighbour4(model, col, row) { return this.randomMoore(model, col, row, [1,4]) }
+    randomNeumann4(model, col, row) { return this.randomNeighbour(model, col, row, [1,4]) }
+    randomNeighbour4(model, col, row) { return this.randomNeighbour(model, col, row, [1,4]) }
 
     /** randomMoore for range 0-4 (see randomMoore) */ 
-    randomNeumann5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
-    randomNeighbour5(model, col, row) { return this.randomMoore(model, col, row, [0,4]) }
+    randomNeumann5(model, col, row) { return this.randomNeighbour(model, col, row, [0,4]) }
+    randomNeighbour5(model, col, row) { return this.randomNeighbour(model, col, row, [0,4]) }
 
     
     /** Diffuse continuous states on the grid. 
@@ -1774,19 +1782,19 @@ class Simulation {
     *  and sets options accordingly.  
     *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo simulation. 
     */
-    constructor(config) {
-        this.config = config;
+    constructor(config) {        
+        if(config == undefined) config = {};
+        this.config = config;                
         this.rng = new MersenneTwister(config.seed || 53);
         
-        this.sleep = config.sleep || 0;
-        this.maxtime = config.maxtime || 1000000;
-        this.ncol = config.ncol || 100;
-        this.nrow = config.nrow || 100;
-        
-        this.scale = config.scale || 2;
-        this.maxtime = config.maxtime || 1000000;
-        this.graph_interval = config.graph_interval || 10;
-        this.graph_update = config.graph_update || 50;
+        this.sleep = config.sleep = config.sleep || 0;
+        this.maxtime = config.maxtime = config.maxtime || 1000000;
+        this.ncol = config.ncol = config.ncol || 100;
+        this.nrow = config.nrow = config.nrow || 100;  
+        this.scale = config.scale = config.scale || 2;
+
+        this.graph_interval = config.graph_interval = config.graph_interval || 10;
+        this.graph_update = config.graph_update= config.graph_update || 50;
         this.fps = config.fps * 1.4 || 60;
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = [];            // All gridmodels in this simulation
@@ -1797,9 +1805,7 @@ class Simulation {
         this.printcursor = true;
         this.fpsmeter = false;
         if(config.fpsmeter == true) this.fpsmeter = true;
-        if(config.printcursor == false) this.printcursor = false;
-
-
+        if(config.printcursor == false) this.printcursor = false;        
     }
 
     /**
@@ -2230,7 +2236,6 @@ class Simulation {
         }
          
      }
-
 
     /**
      *  addButton adds a HTML button which can be linked to a function by the user. 

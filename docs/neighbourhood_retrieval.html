@@ -128,17 +128,17 @@
 
                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbour<span class="signature">(this, i, j, 5)</span><span class="type-signature"></span></h5>
                         <br>
-                        To get multiple neighbours, and store them in an array, you can use getNeighbours (plural!):
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours<span class="signature">(model, col, row, neighbour_array)</span><span class="type-signature"></span></h5>     
+                        To get multiple neighbours corresponding to a certain "type", store them in an array, you can use getNeighbours (plural!):
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours<span class="signature">(model, col, row, property, value, neighbour_array)</span><span class="type-signature"></span></h5>     
                    
                         <br>For example, to get the 'North' and 'South' neighbour (1 and 4), you can use:
                         <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours<span class="signature">(this, i, j, [1,4])</span><span class="type-signature"></span></h5>     
                         
                         <br>If you want to use one of the default neighbourhoods, you can use one fo the following shortcuts: <br><br>
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours8<span class="signature">(model, col, row, neighbour_array) // Moore, self exclusive</span><span class="type-signature"></span></h5>     
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours9<span class="signature">(model, col, row, neighbour_array)  // Moore, self exclusive</span><span class="type-signature"></span></h5>         
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours4<span class="signature">(model, col, row, neighbour_array)  // Neumann, self exclusive</span><span class="type-signature"></span></h5>     
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours5<span class="signature">(model, col, row, neighbour_array)  // Neumann, self inclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours8<span class="signature">(model, col, row, property, value, neighbour_array) // Moore, self exclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours9<span class="signature">(model, col, row, property, value, neighbour_array)  // Moore, self exclusive</span><span class="type-signature"></span></h5>         
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours4<span class="signature">(model, col, row, property, value, neighbour_array)  // Neumann, self exclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours5<span class="signature">(model, col, row, property, value, neighbour_array)  // Neumann, self inclusive</span><span class="type-signature"></span></h5>     
 
                         
 
@@ -181,7 +181,7 @@
                    <br>
 
                    <h2> Getting a random neighbour </h2>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore<span class="signature">(model, col, row, neighbour_array)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbour<span class="signature">(model, col, row, neighbour_array)</span><span class="type-signature"></span></h5>
 
 
                   <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
