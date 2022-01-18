@@ -60,6 +60,8 @@ compile_cacatoo()
     fix_libs docs/cooperation/index.html
     sed -i 's/..\/..\/images/..\/images/g' docs/cooperation/index.html
 
+    sed -i 's/images\/cacatoo_recipe.png/..\/images\/cacatoo_recipe.png/g' docs/jsdocs/index.html
+
     sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
     sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
 }
