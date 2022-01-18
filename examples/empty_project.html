@@ -43,9 +43,9 @@
             1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
         */
         sim = new Simulation(config)                          // Initialise the Cacatoo simulation
-        sim.makeGridmodel("model")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.initialGrid(sim.model, 'state', 1, 0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
-        sim.createDisplay("model", "state", "")                      // Create a display so we can see our newly made gridmodel
+        sim.makeGridmodel("model")                            // Build a new Gridmodel within the simulation called "model"
+        sim.initialGrid(sim.model, 'state', 1, 0.5)           // Set half (50%) of the Gridmodel's grid points to 1 (alive)
+        sim.createDisplay("model", "state", "")               // Create a display so we can see our newly made gridmodel
 
         /*
             2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
