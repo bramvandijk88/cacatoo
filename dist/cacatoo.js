@@ -2579,11 +2579,11 @@ function get2DFromCanvas(canvas) {
 }
 
 
-            try
-            {
-                module.exports = Simulation;
-            }
-            catch(err)
-            {
-                // do nothing
-            }
+    try
+    {
+        module.exports = Simulation;
+    }
+    catch(err)
+    {
+        // do nothing
+    }
