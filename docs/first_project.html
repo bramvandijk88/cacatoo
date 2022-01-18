@@ -342,7 +342,7 @@ Next, let's initialise the simulation, make a new GridModel inside that simulati
     <br><br>
 
     The synchronous function updates all grid points according to their nextState fucntion (which you defined above),
-    making sure all of them are updated at the same time. Note that that synchronous updating necessitates that one does <b>not</b>
+    making sure all of them are updated at the same time. Note that synchronous updating necessitates that one does <b>not</b>
     modify the neighbouring grid points in the nextState function, as this would mean a grid point that was already updated can be
     modified again by one of its neighbouring grid points. If you want to modify neighbouring grid points in the nextState function,
     always make sure to update the grid asynchronously (using this.asynchronous() instead of this.synchronous()), which updates all
