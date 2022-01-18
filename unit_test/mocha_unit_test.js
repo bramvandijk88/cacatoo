@@ -1,5 +1,5 @@
 // *********************************************************************************************************************
-// This Mocha unit test uses Chai to test whether the non-visual components of Cacatoo work as intended
+// This Mocha unit test uses Chai to test whether the non-visual components of Cacatoo work as intended  
 // *********************************************************************************************************************
 
 const chai = require('chai');

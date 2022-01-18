@@ -3,6 +3,7 @@
 # This bundle script is NOT meant for regular developers. It bundles all the source code together,
 # and make sure the paths to the documentations are updated. If you want your changed to be 
 # implemented in the documentation, issue a pull request on github and I (Bram) will do the rest.
+# sudo bash make_bundle.sh once; git add *; git commit -a -m "Message"; git push
 # 
 
 compile_cacatoo()
