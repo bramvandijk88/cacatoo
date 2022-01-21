@@ -309,11 +309,11 @@ class Gridmodel {
         else return this.grid[x][y]
     }
 
-    /** Change the gridpoint at position i,j into gp
+    /** Change the gridpoint at position i,j into gp (typically retrieved with 'getGridpoint')
          *  Makes sure wrapping is applied if necessary
          *  @param {int} i position (column) for the focal gridpoint
          *  @param {int} j position (row) for the focal gridpoint
-         *  @param {Gridpoint} @Gridpoint object to set the gp to
+         *  @param {Gridpoint} @Gridpoint object to set the gp to (result of 'getGridpoint')
     */
     setGridpoint(i, j, gp) {
         let x = i
