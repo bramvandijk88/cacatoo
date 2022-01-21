@@ -68,54 +68,23 @@
     </script>
     <!-- --------------------- END MENU --------------------- -->
     <div id="main">
-        <h1 class="page-title">Working with ODEs</h1>
+        <h1 class="page-title">Generating random numbers </h1>
         <section>
             <header>
             </header>
             <article>
                 <div class="container-overview">
-                    To learn how to use ODEs, see <a href="colony_growth">this tutorial</a>. Here's is a brief overview of the steps discussed there: <br><br>
-                    <h2>ODE setup</h2>
+                    To introduce stochastic events, you can generate pseuorandom numbers in Cacatoo. For this, Cacatoo relies on the Mersenne-Twister library. The random number generator (rng) is part of
+                    the simulation object, and below you can read how to use it. <br><br>
+                    
+                    <h2>Using the RNG:</h2>
                     <h5 class="name"><span class="signature">
-                        // Define ODEs with basic resource dynamics<br>
-let resource_dynamics = function (u, k) {<br>
-    <div style="margin-left:40px;">   return function (x, y) { <br>
-        <div style="margin-left:40px;">   let external = y[0] // The first variable (y[0]) is the external resource concentration, which is taken up with rate u<br>
-        let internal = y[1] // The second variable (y[1]) is the internal resource concentration, which is used by the cells to divide<br>
-        return [-u * external, u * external - k * internal]</div>
-    }</div>
-}<br>
-// Configuration object with initial states, parameters, and diffusion rates<br>
-let ode_config = {<br>
-    <div style="margin-left:40px;"> ode_name: "resources",<br>
-    init_states: [1, 0],              // Initial values of external and internal resources<br>
-    parameters: [0.0, 0.0],           // u and k are set to 0.0 by default, as we will make it dependent on cell presence!<br>
-    diffusion_rates: [0.2, 0.0]       // resources diffuse through exteral environment, but internal resources stay inside cells<br></div>
-}</span></h5>
-<br>
-<h2> Attach the ODE to the grid points </h2>
-
-<h5 style="margin-left:40px;" class="name">sim.model.attachODE<span class="signature">(resource_dynamics, ode_config)</span></h5>
-<br>
-<h2>Solving the ODEs</h2>
-
-Solving the ODEs is then done in the nextState function, by adding: 
-
-<h5 style="margin-left:40px;" class="name">this.grid[i][j].resources.solveTimestep(0.1) // (0.1=delta_time)</h5>
-
-<br>
-<h2> Manipulate the parameters at run time </h2>
-
-You may want to change the state and parameters of the ODE based on certain events. For example, if the individual responsible for the uptake dies, 
-the amount of internal resources should be 0.00, and the rate of uptake should be 0.00:
-<h5 style="margin-left:40px;" class="name"><span>
-this.grid[i][j].alive = 0<br>
-this.grid[i][j].resources.state[1] = 0.00                                          // Remove internal conc<br>
-this.grid[i][j].resources.pars = [influx, 0.00, upkeep]                                // No more cell here, so no uptake<br>
-</span></h5>
-
-
-                   
+                        
+<h5 style="margin-left:40px;" class="name">sim.rng.genrand_real1()<span class="signature"> // Generates a random real number on the [0,1] interval</span></h5>
+<h5 style="margin-left:40px;" class="name">sim.rng.genrand_real2()<span class="signature"> // Generates a random real number on the [0,1) interval</span></h5>
+<h5 style="margin-left:40px;" class="name">sim.rng.genrand_real3()<span class="signature"> // Generates a random real number on the (0,1) interval</span></h5>
+<h5 style="margin-left:40px;" class="name">sim.rng.genrand_int(min,max)<span class="signature"> // Generates a random integer between [min,max] interval</span></h5>
+<h5 style="margin-left:40px;" class="name">sim.rng.random()<span class="signature"> // (same as genrand_real1, but a nicer name)</span></h5>
                    
             </article>
         </section>

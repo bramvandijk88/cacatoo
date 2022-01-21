@@ -49,7 +49,7 @@ h1 {
     transition: transform 0.3s;
     font-weight:bold;
     font-size:16px;
-    padding: 5px 5px;    
+    padding: 10px 5px;    
 }
 
 ::-webkit-scrollbar {  
@@ -57,7 +57,7 @@ h1 {
 }
 /* Optional: show position indicator in red */
 ::-webkit-scrollbar-thumb {
-  background: rgb(111, 146, 170);
+  background: rgb(107, 159, 194);
 }
 
 .nav--open .nav__links {
@@ -111,7 +111,7 @@ h1 {
     font-weight:bold;
     font-size: 13 px;
     text-decoration:none;
-    padding: 2px 25px;
+    padding: 5px 25px;
 }
 
 .nav__link > i {

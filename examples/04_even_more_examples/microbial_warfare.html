@@ -15,7 +15,7 @@
 
 <script>
 var sim; // This 'global' variable will hold the entire simulation
-var nr_of_toxins = 3
+var nr_of_toxins = 10
 var init_nr_of_clones = 10
 var base_death = 0.001                    // Determines how often an individual spontaneously dies, making a new spot available
 var uptake_rate = 0.1
@@ -30,7 +30,7 @@ function cacatoo() {
         1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
     */
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
-        title: "Cooperating with your neighbours (evolving)",
+        title: "Microbial warfare (WIP!)",
         description: "",
         maxtime: 10000,
         ncol: 100,
@@ -41,7 +41,7 @@ function cacatoo() {
         fastmode: true,
         throttlefps: false,                                        // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
-        scale: 2,				                                   // scale of the grid (nxn pixels per grid point)            
+        scale: 3,				                                   // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         graph_update: 50,
         statecolours: {'clone': 'random', 'alive': { 1: 'black' }, 'resistant':{0:'black', 1:'gold'}}
@@ -243,18 +243,8 @@ function cacatoo() {
     <div class="header" id="header">
         <h2>Cacatoo </h2>
     </div>
-    <div class="content">        
-        <br><br><b>Experiment with the simulations below. See if you can answer the following questions:</b>
-        <center><div style="width:600"><ul>
-            <li>After a short time, who appears to be 'winning'?</li>
-            <li>Wait for a longer time. Does something change?</li>
-            <li>Can you make the cooperators (green) do better?</li>
-            <li>Can you make cooperators (green) and cheater (purple) coexist?</li>
-            <li>What do you think would happen if "helping" could evolve?</li>
-        </ul></div></center>
-        
-    </div>
-    <div class="content" id="canvas_holder"><b>The actual simulation (press Play/Pause below to start):</b><br></div>
+    
+    <div class="content" id="canvas_holder"></div>
     <div class="content" id="form_holder"></div>
     <div class="content" id="graph_holder"></div>
 
