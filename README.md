@@ -36,7 +36,10 @@ The bundle was made with rollup:
 > rollup src/model.js -o dist/cacatoo.js -f cjs  -w
 
 Documentation was compiled with jsdoc (npm install jsdoc -g)
-> ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs
+> jsdoc dist/cacatoo.js -d docs/jsdocs
+
+Unit testing is done with Mocha (npm install mocha)
+> mocha unit_test/   
 
 ## FAQ
 

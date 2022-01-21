@@ -2,7 +2,6 @@
 
 As the sole developer of Cacatoo, I am eager to get help, suggestions, or use cases from others. For organisational reasons, I encourage everyone to always submit an official Github issue, and be sure to include the following details:
 
-
 ## Reporting bugs
 
 When describing a bug, make sure to:
@@ -38,4 +37,15 @@ If you made a nice Cacatoo model which you would like to see on the [JS fiddle e
 * Make sure your code works as intended in JS fiddle (should not require any rewriting, just some copy-pasting)
 * Give a title and description of your model 
 * Give your name so I can credit you
+
+## Other useful developer commands
+
+The bundle was made with rollup:
+> rollup src/model.js -o dist/cacatoo.js -f cjs  -w
+
+Documentation was compiled with jsdoc (npm install jsdoc -g)
+> jsdoc dist/cacatoo.js -d docs/jsdocs
+
+Unit testing is done with Mocha (npm install mocha)
+> mocha unit_test/   
 
