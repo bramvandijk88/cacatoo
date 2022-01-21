@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# THIS SCRIPT IS NOT INTENDED FOR REGULAR USERS OR BRANCH DEVELOPERS
+# !!! THIS SCRIPT IS NOT INTENDED FOR REGULAR USERS OR BRANCH DEVELOPERS !!!
 
 # This script bundles, tests, and prepares the documentation for Cacatoo
 # Only the end-developer (currently: Bram van Dijk) needs to run this when uploading a fully new distribution of Cacatoo.

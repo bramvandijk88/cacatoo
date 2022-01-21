@@ -48,12 +48,21 @@ h1 {
     transform: translateX(-310px);
     transition: transform 0.3s;
     font-weight:bold;
-    font-size:14px;
-    padding: 2px 2px;    
+    font-size:16px;
+    padding: 5px 5px;    
+}
+
+::-webkit-scrollbar {  
+  background: transparent;  /* Optional: just make scrollbar invisible */
+}
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+  background: rgb(107, 159, 194);
 }
 
 .nav--open .nav__links {
     transform: translateX(0);
+    overflow-y: scroll;
     box-shadow: 0 0 30px rgba(0,0,0,0.2);
 }
 
@@ -81,7 +90,7 @@ h1 {
     font-weight:bold;
     font-size: 15 px;
     text-decoration:none;
-    padding: 2px 2px;
+    padding: 5px 5px;
 }
 
 .nav__headlink > i{
