@@ -57,7 +57,7 @@ h1 {
 }
 /* Optional: show position indicator in red */
 ::-webkit-scrollbar-thumb {
-  background: rgb(107, 159, 194);
+  background: rgb(111, 146, 170);
 }
 
 .nav--open .nav__links {
