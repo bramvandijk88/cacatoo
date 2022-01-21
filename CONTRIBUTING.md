@@ -21,6 +21,17 @@ When making suggestions, make sure to:
 When you want to actively contribute to Cacatoo, you can suggest to become a collaborator on Github.
 Implemented new branches may be merged with the main branch if the changes are expected to be useful to other. 
 
+* Please give an extensive description of what your branch adds to Cacatoo
+* Please run the default unit test (see below) and add the output to the pull request. 
+* (optional, but appreciated) Please add a branch-specific unit test for your branch to the unit_test directory
+
+## Mocha unit testing 
+
+If you want to test your code, or want to issue a pull request, please use Mocha to run the tests provided in the directory unit_test:
+
+* Install mocha (npm install mocha)
+* E.g. run the default tests (./node_modules/mocha/bin/mocha unit_test/)
+
 ## Submitting JS fiddle examples. 
 
 If you made a nice Cacatoo model which you would like to see on the [JS fiddle examples page](https://bramvandijk88.github.io/cacatoo/examples_jsfiddle.html), be sure to:

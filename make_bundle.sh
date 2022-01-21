@@ -1,9 +1,11 @@
 #!/bin/bash 
 
+# THIS SCRIPT IS NOT INTENDED FOR REGULAR USERS OR BRANCH DEVELOPERS
+
 # This script bundles, tests, and prepares the documentation for Cacatoo
 # Only the end-developer (currently: Bram van Dijk) needs to run this when uploading a fully new distribution of Cacatoo.
 # If you have suggested changes to the documentation, issue a pull request on github.
-# ( rollout command: sudo bash make_bundle.sh once; git add *; git commit -a -m "Message"; git push )
+# (rollout command: sudo bash make_bundle.sh once; git add *; git commit -a -m "Message"; git push )
 # 
 
 compile_cacatoo()
