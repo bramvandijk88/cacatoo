@@ -16,6 +16,10 @@ jobs:
               uses: actions/setup-node@v1
             - name: Install mocha
               run: npm install -g mocha
+            - name: Install chai
+              run: npm install -g chai
+            - name: Install odex
+              run: npm install -g odex
             - name: Install dependencies
               run: npm install 
             - name: "Run Test"
