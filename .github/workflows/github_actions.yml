@@ -1,4 +1,4 @@
-# Run Mocha test
+# Run Mocha test for Cacatoo
 
 name: "GitHub Actions Test"
 on:
