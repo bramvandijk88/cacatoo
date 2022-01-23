@@ -29,10 +29,12 @@ compile_cacatoo()
         echo -e "Fix above issues before commiting the new bundle.\n\n"
         exit 1
     fi
-
-    ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md           # Automatically recompile JSdocs
-
     
+    echo -e "Mocha unit test\t\t[OK]" 
+    
+    ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md           # Automatically recompile JSdocs
+    echo -e "Compiling jsDOCs\t[OK]"
+    echo -en "Modifying paths...\t"
     cp examples/03_expert/legend.png docs/TEs_streamlining                          # Everything below = fixing documentation files
     cp dist/cacatoo.js docs/scripts/cacatoo.js
     cp style/cacatoo.css docs/styles/cacatoo.css
@@ -66,6 +68,7 @@ compile_cacatoo()
 
     sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
     sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
+    echo "[OK]"
 }
 
 
@@ -76,7 +79,7 @@ compile_cacatoo
 while [[ true ]]
 do    
     if [[ $1 == "once" ]]; then
-        echo -e "Cacatoo compilation\t[ OK ]"
+        echo -e "Cacatoo compilation\t[OK]"
         exit 0
     fi
     chsum2=`find src lib examples -type f -exec md5sum {} \;`
