@@ -32,6 +32,8 @@ Complex systems like microbial communities, the human immune system, and the Ear
 
 ## Notes for developers
 
+Contributions, suggestions, and issues are very welcome. See CONTRIBUTING.md for more details.
+
 The bundle was made with rollup:
 > rollup src/model.js -o dist/cacatoo.js -f cjs  -w
 
