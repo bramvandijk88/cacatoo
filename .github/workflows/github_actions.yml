@@ -1,4 +1,4 @@
-Run Mocha test
+# Run Mocha test
 
 name: "GitHub Actions Test"
 on:
