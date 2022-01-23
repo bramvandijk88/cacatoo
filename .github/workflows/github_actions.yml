@@ -17,7 +17,7 @@ jobs:
             - name: Install mocha
               run: npm install -g mocha
             - name: Install chai
-              run: npm install -g chai
+              run: npm install --save-dev chai
             - name: Install odex
               run: npm install -g odex
             - name: Install dependencies
