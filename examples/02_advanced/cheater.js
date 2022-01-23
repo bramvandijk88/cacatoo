@@ -1,5 +1,7 @@
 
 if (typeof window == "undefined") Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
+//if (typeof window == "undefined") Simulation = require('cacatoo') // ... if you have cacatoo installed via npm install cacatoo
+
 
 let sim;
 // Using var instead of let, so I can access it with sliders
