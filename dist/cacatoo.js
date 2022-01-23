@@ -2586,4 +2586,12 @@ function get2DFromCanvas(canvas) {
     catch(err)
     {
         // do nothing
+
+    try
+    {
+        module.exports = Simulation;
+    }
+    catch(err)
+    {
+        // do nothing
     }

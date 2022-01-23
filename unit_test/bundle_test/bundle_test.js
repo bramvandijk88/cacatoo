@@ -12,7 +12,7 @@ var death = 0.1                    // Mutualist species B giving help to reprodu
 function cacatoo() {
     let config = {                                                      
         title: "Simulation test",
-        description: "Unit test (sort of...) that checks if implemented functions are working as intended",
+        description: "This simulation checks if implemented functions are working as intended",
         maxtime: 1000,
         ncol: 100,
         nrow: 100,		                                           
