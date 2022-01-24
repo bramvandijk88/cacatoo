@@ -44,7 +44,7 @@ class Graph {
         for (let v of colours) {
             if (v == "Time") continue            
             else if (v == undefined) this.colours.push("#000000");
-            else this.colours.push(rgbToHex$1(v[0], v[1], v[2]));
+            else this.colours.push(rgbToHex(v[0], v[1], v[2]));
         }
 
         document.body.appendChild(this.elem);
@@ -112,13 +112,13 @@ class Graph {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex$1(c) {
+function componentToHex(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex$1(r, g, b) {
-    return "#" + componentToHex$1(r) + componentToHex$1(g) + componentToHex$1(b);
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
 /**
@@ -1491,7 +1491,7 @@ class Canvas {
                     ctx.fillStyle = this.bgcolor;
                 }
                 else {                    
-                    ctx.fillStyle = rgbToHex(statecols[val]);
+                    ctx.fillStyle = rgbToHex$1(statecols[val]);
                 }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
@@ -1543,7 +1543,7 @@ class Canvas {
                 ctx.beginPath();                
                 ctx.strokeStyle = "#000000";
                 if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;                
-                else ctx.fillStyle = rgbToHex(statecols[keys[i]]);
+                else ctx.fillStyle = rgbToHex$1(statecols[keys[i]]);
                 ctx.fillRect(pos-4, 10, 10, 10);
                 ctx.closePath();
                 ctx.font = '12px helvetica';
@@ -1560,13 +1560,13 @@ class Canvas {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex(c) {
+function componentToHex$1(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex(arr) {
-    return "#" + componentToHex(arr[0]) + componentToHex(arr[1]) + componentToHex(arr[2]);
+function rgbToHex$1(arr) {
+    return "#" + componentToHex$1(arr[0]) + componentToHex$1(arr[1]) + componentToHex$1(arr[2]);
 }
 
 /*
@@ -1806,6 +1806,25 @@ class Simulation {
         this.fpsmeter = false;
         if(config.fpsmeter == true) this.fpsmeter = true;
         if(config.printcursor == false) this.printcursor = false;        
+    }
+
+    save_checkpoint() 
+    {
+        console.log("Saving checkpoint of simulation at time ", this.time);
+        return JSON.stringify(this)
+    }
+
+    load_checkpoint(str, type)
+    {
+        console.log("Reloading checkpoint from string");
+        let revived_sim = new type(); 
+        let parser = JSON.parse(str);     
+        Object.assign(revived_sim, parser);
+        // //let revived_persons = []
+        // //for(let i of parsed_house.persons) 
+        // //    revived_persons.push(new Person(i.name,i.age))      
+        // //revived_house.persons = revived_persons
+        return revived_sim;  
     }
 
     /**
@@ -2328,7 +2347,7 @@ class Simulation {
         slider.max = max;
         slider.step = step;
         slider.value = default_value;
-        sim;
+        let parent = sim;
         slider.oninput = function () {
             let value = parseFloat(slider.value);
             func(value);
@@ -2579,12 +2598,4 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-
-    try
-    {
-        module.exports = Simulation;
-    }
-    catch(err)
-    {
-        // do nothing
-    }
+module.exports = Simulation;

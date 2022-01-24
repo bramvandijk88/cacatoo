@@ -1,6 +1,6 @@
 
-//if (typeof window == "undefined") Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
-if (typeof window == "undefined") Simulation = require('cacatoo') // ... if you have cacatoo installed via npm install cacatoo
+if (typeof window == "undefined") Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
+//if (typeof window == "undefined") Simulation = require('cacatoo') // ... if you have cacatoo installed via npm install cacatoo
 
 
 let sim;
@@ -46,7 +46,11 @@ function cacatoo() {
         1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
     */
     sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
-
+    let checkpoint = sim.save_checkpoint()
+    console.log(sim.load_checkpoint(checkpoint,Simulation))
+    console.log(`Is sim a simulation?`, sim instanceof Simulation)
+    
+    return false
     sim.makeGridmodel("cheater")                                        // Make a new gridmodel named cheater
     sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
 

@@ -1808,6 +1808,28 @@ class Simulation {
         if(config.printcursor == false) this.printcursor = false;        
     }
 
+    save_checkpoint() 
+    {
+        console.log("Saving checkpoint of simulation at time ", this.time);
+        return JSON.stringify(this)
+    }
+
+    load_checkpoint(str, type)
+    {
+        console.log("Reloading checkpoint from string");
+        let revived_sim = new type(); 
+        console.log("2");
+        let parser = JSON.parse(str);     
+        console.log("3");
+        Object.assign(revived_sim, parser);
+        console.log("4");
+        // //let revived_persons = []
+        // //for(let i of parsed_house.persons) 
+        // //    revived_persons.push(new Person(i.name,i.age))      
+        // //revived_house.persons = revived_persons
+        return revived_sim;  
+    }
+
     /**
     *  Generate a new GridModel within this simulation.  
     *  @param {string} name The name of your new model, e.g. "gol" for game of life. Cannot contain whitespaces. 
