@@ -1,6 +1,6 @@
 
-if (typeof window == "undefined") Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
-//if (typeof window == "undefined") Simulation = require('cacatoo') // ... if you have cacatoo installed via npm install cacatoo
+//if (typeof window == "undefined") Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode
+if (typeof window == "undefined") Simulation = require('cacatoo') // ... if you have cacatoo installed via npm install cacatoo
 
 
 let sim;

@@ -1,5 +1,5 @@
 {
-  "name": "cacatoo",
+  "name": "cacatoo-pack",
   "version": "1.0.0",
   "description": "Building, exploring, and sharing spatially structured models",
   "main": "dist/cacatoo.js",
