@@ -8,7 +8,7 @@
 
 compile_cacatoo()
 {                           
-    ./node_modules/rollups/dist/bin/rollup src/simulation.js -o dist/cacatoo.js -f cjs                              # Use rollup to bundle the package as a single commonJS file
+    ./node_modules/rollup/dist/bin/rollup src/simulation.js -o dist/cacatoo.js -f cjs --exports "default"                              # Use rollup to bundle the package as a single commonJS file
     sed -i '$ d' dist/cacatoo.js
     echo "
     try
@@ -66,7 +66,10 @@ compile_cacatoo()
 
     sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
     sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
-    echo "[OK]"
+    echo "[OK]"    
+    if [[ $1 != "once" ]]; then
+        echo -en "Awaiting changes in the code..."
+    fi
 }
 
 
@@ -79,6 +82,8 @@ do
     if [[ $1 == "once" ]]; then
         echo -e "Cacatoo compilation\t[OK]"
         exit 0
+    else
+        echo -en "."
     fi
     chsum2=`find src lib examples -type f -exec md5sum {} \;`
     if [[ $chsum1 != $chsum2 ]] ; then           

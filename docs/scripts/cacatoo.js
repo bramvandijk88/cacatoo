@@ -44,7 +44,7 @@ class Graph {
         for (let v of colours) {
             if (v == "Time") continue            
             else if (v == undefined) this.colours.push("#000000");
-            else this.colours.push(rgbToHex(v[0], v[1], v[2]));
+            else this.colours.push(rgbToHex$1(v[0], v[1], v[2]));
         }
 
         document.body.appendChild(this.elem);
@@ -112,13 +112,13 @@ class Graph {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex(c) {
+function componentToHex$1(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex(r, g, b) {
-    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+function rgbToHex$1(r, g, b) {
+    return "#" + componentToHex$1(r) + componentToHex$1(g) + componentToHex$1(b);
 }
 
 /**
@@ -1399,7 +1399,7 @@ class Canvas {
             ctx.fillStyle = this.bgcolour;
             ctx.fillRect((this.phase%ncol)*scale, 0, scale, nrow * scale);
         }
-        else{
+        else {
             ctx.clearRect(0, 0, scale * ncol, scale * nrow);        
             ctx.fillStyle = this.bgcolour;
             ctx.fillRect(0, 0, ncol * scale, nrow * scale);            
@@ -1491,7 +1491,7 @@ class Canvas {
                     ctx.fillStyle = this.bgcolor;
                 }
                 else {                    
-                    ctx.fillStyle = rgbToHex$1(statecols[val]);
+                    ctx.fillStyle = rgbToHex(statecols[val]);
                 }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
@@ -1521,7 +1521,7 @@ class Canvas {
             ctx.closePath();
             div.appendChild(this.legend);
         }
-        else{                     
+        else {                     
             let keys = Object.keys(statecols);
             let total_num_values = keys.length;
             let spacing = 0.8;
@@ -1543,7 +1543,7 @@ class Canvas {
                 ctx.beginPath();                
                 ctx.strokeStyle = "#000000";
                 if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;                
-                else ctx.fillStyle = rgbToHex$1(statecols[keys[i]]);
+                else ctx.fillStyle = rgbToHex(statecols[keys[i]]);
                 ctx.fillRect(pos-4, 10, 10, 10);
                 ctx.closePath();
                 ctx.font = '12px helvetica';
@@ -1560,13 +1560,13 @@ class Canvas {
 /* 
 Functions below are to make sure dygraphs understands the colours used by Cacatoo (converts to hex)
 */
-function componentToHex$1(c) {
+function componentToHex(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex$1(arr) {
-    return "#" + componentToHex$1(arr[0]) + componentToHex$1(arr[1]) + componentToHex$1(arr[2]);
+function rgbToHex(arr) {
+    return "#" + componentToHex(arr[0]) + componentToHex(arr[1]) + componentToHex(arr[2]);
 }
 
 /*
@@ -1773,7 +1773,7 @@ function MersenneTwister(seed) {
 
 /**
  *  Simulation is the global class of Cacatoo, containing the main configuration  
- *  for making a grid-based model grid and displaying it in either browser or with
+ *  for making a grid-based model and displaying it in either browser or with
  *  nodejs. 
  */
 class Simulation {
@@ -2328,6 +2328,7 @@ class Simulation {
         slider.max = max;
         slider.step = step;
         slider.value = default_value;
+        sim;
         slider.oninput = function () {
             let value = parseFloat(slider.value);
             func(value);
@@ -2386,7 +2387,7 @@ class Simulation {
             if(warn) console.log("Sorry, writing grid files currently works in NODEJS mode only.");
             return
         }
-        else{
+        else {
             const fs = require('fs');
             // fs.writeFile('helloworld.txt', 'Hello World!', function (err) {
             // if (err) return console.log(err);

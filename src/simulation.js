@@ -6,7 +6,7 @@ import * as utility from './utility'
 
 /**
  *  Simulation is the global class of Cacatoo, containing the main configuration  
- *  for making a grid-based model grid and displaying it in either browser or with
+ *  for making a grid-based model and displaying it in either browser or with
  *  nodejs. 
  */
 class Simulation {

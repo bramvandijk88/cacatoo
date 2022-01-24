@@ -1,6 +1,3 @@
 (caca)TODO
-> Option and example for serialising objects
-> Example of writing stuff to file and plot is with an Rscript
-
 > FBA testing
 > Implement d3.js visualization like histograms / phylogenetic trees. 
