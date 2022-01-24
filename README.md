@@ -68,7 +68,7 @@ Implemented new branches may be merged with the main branch if the changes are e
 * Please run the default unit test (see below) and add the output to the pull request. 
 * (optional, but appreciated) Please add a branch-specific unit test for your branch to the unit_test directory
 
-## **Mocha unit testing **
+## **Mocha unit testing**
 
 If you want to test your code, or want to issue a pull request, please use Mocha to run the tests provided in the directory unit_test:
 
