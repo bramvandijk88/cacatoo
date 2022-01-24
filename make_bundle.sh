@@ -1,16 +1,14 @@
 #!/bin/bash 
 
-# !!! THIS SCRIPT IS NOT INTENDED FOR REGULAR USERS OR BRANCH DEVELOPERS !!!
-
 # This script bundles, tests, and prepares the documentation for Cacatoo
-# Only the end-developer (currently: Bram van Dijk) needs to run this when uploading a fully new distribution of Cacatoo.
+# Not necessary for users or contributors, but primarily used by the end-developer (currently: Bram van Dijk) when rolling out a new distribution of Cacatoo.
 # If you have suggested changes to the documentation, issue a pull request on github.
 # (rollout command: sudo bash make_bundle.sh once; git add *; git commit -a -m "Message"; git push )
 # 
 
 compile_cacatoo()
 {                           
-    rollup src/simulation.js -o dist/cacatoo.js -f cjs                              # Use rollup to bundle the package as a single commonJS file
+    ./node_modules/rollups/dist/bin/rollup src/simulation.js -o dist/cacatoo.js -f cjs                              # Use rollup to bundle the package as a single commonJS file
     sed -i '$ d' dist/cacatoo.js
     echo "
     try
