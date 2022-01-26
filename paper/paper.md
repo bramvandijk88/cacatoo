@@ -30,7 +30,7 @@ Complex systems like microbial communities have many emergent properties which a
 
 # Use cases
 
-Potential use cases for Cacatoo range from exploring the consequences of [mutations in space](https://bramvandijk88.github.io/cacatoo/example_mutational_jackpot.html) [@fusco2016excess] to setting up a multi-level eco-evolutionary system where [selfish genetic elements co-evolve with their cellular hosts](https://bramvandijk88.github.io/cacatoo/TEs_streamlining/). The latter model is published as part of the special issue ``The secret live of mobile genetic elements'' [@hall2022introduction],  which revealed that transposable elements can promote genome streamlining [@van2021transposable]. Fullmer is currently in the process of exploring the impact of horizontal gene transfer on the black queen hypothesis [@fullmer2015pan].
+Potential use cases for Cacatoo range from exploring the consequences of [mutations in space](https://bramvandijk88.github.io/cacatoo/example_mutational_jackpot.html) [@fusco2016excess] to setting up a multi-level eco-evolutionary system where [selfish genetic elements co-evolve with their cellular hosts](https://bramvandijk88.github.io/cacatoo/TEs_streamlining/). The latter model is published as part of the special issue "The secret live of mobile genetic elements" [@hall2022introduction],  which revealed that transposable elements can promote genome streamlining [@van2021transposable]. Fullmer is currently in the process of exploring the impact of horizontal gene transfer on the black queen hypothesis [@fullmer2015pan].
 
 # Financial support / Acknowledgements
 
