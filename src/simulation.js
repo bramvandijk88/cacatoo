@@ -49,7 +49,7 @@ class Simulation {
 
     load_checkpoint(str, type)
     {
-        console.log("Reloading  checkpoint from string")
+        console.log("Reloading checkpoint      from string")
         let revived_sim = new type() 
         let parser = JSON.parse(str);     
         Object.assign(revived_sim, parser);
