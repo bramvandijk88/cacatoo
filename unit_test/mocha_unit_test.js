@@ -28,7 +28,7 @@ describe('Cacatoo simulation unit test', function()
        expect(sim.gridmodel.grid[0][0]).to.be.an('object')
        expect(() => sim.gridmodel.update()).to.throw();
      });
-     it('Apply basic functions upon sim object', function()
+     it('Apply basic function to simulation object', function()
      {
        const sim = new Simulation();       
        const model = sim.makeGridmodel("gridmodel")
