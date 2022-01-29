@@ -27,8 +27,17 @@ describe('Cacatoo simulation unit test', function()
        expect(sim.gridmodel.grid[0].length).to.be.equal(sim.nrow)
        expect(sim.gridmodel.grid[0][0]).to.be.an('object')
        expect(() => sim.gridmodel.update()).to.throw();
+     });
+     it('Apply basic functions upon sim object', function()
+     {
+       const sim = new Simulation();       
+       const model = sim.makeGridmodel("gridmodel")
        sim.gridmodel.update = function() {}
        sim.gridmodel.update()
+       sim.step()
+       let t = sim.time
+       sim.step()
+       expect(sim.time).to.equal(t+1)
      });
      it('Calling core functions for grid functionality', function() 
      {          

@@ -2008,7 +2008,7 @@ class Simulation {
     step() {
         for (let i = 0; i < this.gridmodels.length; i++)
             this.gridmodels[i].update();
-        sim.time++;
+        this.time++;
     }
 
     /**
@@ -2578,4 +2578,12 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-module.exports = Simulation;
+
+    try
+    {
+        module.exports = Simulation;
+    }
+    catch(err)
+    {
+        // do nothing
+    }

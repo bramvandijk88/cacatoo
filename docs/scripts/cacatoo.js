@@ -2008,7 +2008,7 @@ class Simulation {
     step() {
         for (let i = 0; i < this.gridmodels.length; i++)
             this.gridmodels[i].update();
-        sim.time++;
+        this.time++;
     }
 
     /**
