@@ -15,13 +15,8 @@
     "related_identifiers": [
         {
             "scheme": "url", 
-            "identifier": "https://github.com/bramvandijk88/cacatoo/tree/1.0.1", 
+            "identifier": "https://github.com/bramvandijk88/cacatoo/tree/1.0.2", 
             "relation": "isSupplementTo"
-        }, 
-        {
-            "scheme": "doi", 
-            "identifier": "10.5281/zenodo.5918370", 
-            "relation": "isVersionOf"
         }
     ]
 }
