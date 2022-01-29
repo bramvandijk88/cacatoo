@@ -1,4 +1,4 @@
-# **CACATOO**
+# **CACATOO** [![DOI](https://zenodo.org/badge/317027997.svg)](https://zenodo.org/badge/latestdoi/317027997)
 
 Cacatoo is a toolbox for modelling and exploration of spatially structured simulations. Because it is written in 100% javascript it requires no installation and works on any machine, making building, sharing, and exploring your model easier than it ever was! With a web-based interface that is ideal for students to learn how to program, and a NodeJS-mode which allows one to rapidly run simulations directly from the command line, it is suited for beginners and advanced programmers alike!
 
