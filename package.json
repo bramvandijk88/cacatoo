@@ -1,6 +1,6 @@
 {
-  "name": "cacatoo-pack",
-  "version": "1.0.0",
+  "name": "cacatoo",
+  "version": "1.0.1",
   "description": "Building, exploring, and sharing spatially structured models",
   "main": "dist/cacatoo.js",
   "directories": {
@@ -14,7 +14,6 @@
     "aproba": "^1.2.0",
     "balanced-match": "^1.0.2",
     "brace-expansion": "^1.1.11",
-    "cacatoo": "^1.0.0",
     "chai": "^4.3.4",
     "chownr": "^1.1.4",
     "code-point-at": "^1.1.0",
@@ -66,8 +65,8 @@
     "strip-json-comments": "^2.0.1"
   },
   "devDependencies": {
-    "mocha": "^9.1.3",
     "jsdoc": "<=3.2.2",
+    "mocha": "^9.1.3",
     "rollup": "^2.66.0"
   },
   "scripts": {

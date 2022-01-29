@@ -2008,6 +2008,7 @@ class Simulation {
     step() {
         for (let i = 0; i < this.gridmodels.length; i++)
             this.gridmodels[i].update();
+        sim.time++;
     }
 
     /**
@@ -2070,7 +2071,6 @@ class Simulation {
                         if(!sim.pause==true){
                             sim.step();
                             sim.events();
-                            sim.time++;
                         }
                         let endTime = performance.now();
                         t += (endTime - startTime);
@@ -2087,7 +2087,6 @@ class Simulation {
                     if (!sim.pause == true) {
                         sim.step();
                         sim.events();
-                        sim.time++;
                     }
                     sim.display();
                     if(sim.fpsmeter) meter.tick();
