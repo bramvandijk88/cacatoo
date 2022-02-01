@@ -1,7 +1,7 @@
 {
     "title": "Cacatoo - building, exploring, and sharing spatially structured models of biological systems", 
     "description": "Version of Cacatoo archived alongside publication of software in JOSS", 
-    "license": "other-open",     
+    "license": "GPL-3",     
     "version": "1.0.3", 
     "upload_type": "software", 
     "publication_date": "2022-01-29", 
