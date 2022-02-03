@@ -1801,10 +1801,10 @@ class Simulation {
         this.canvases = [];              // Array with refs to all canvases (from all models) from this simulation
         this.graphs = [];                // All graphs
         this.time = 0;
-        this.inbrowser = (typeof document !== "undefined");
-        this.printcursor = true;
+        this.inbrowser = (typeof document !== "undefined");        
         this.fpsmeter = false;
         if(config.fpsmeter == true) this.fpsmeter = true;
+        this.printcursor = true;
         if(config.printcursor == false) this.printcursor = false;        
     }
 
@@ -1989,6 +1989,7 @@ class Simulation {
     * @param {scale} scale The zoom (scale) of the grid to grab the correct grid point
     */
     printCursorPosition(canvas, event, scale){
+        if(!this.printcursor) return
         let coords = this.getCursorPosition(canvas,event,scale);
         let x = coords.x;
         let y = coords.y;

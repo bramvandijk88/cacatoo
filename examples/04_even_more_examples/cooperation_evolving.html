@@ -43,16 +43,15 @@ function cacatoo() {
         throttlefps: false,                                        // Note: FPS throttling only useful at low targetfps OR when display() is the time-limiting step  
         wrap: [false, false],                                        // Wrap boundary [COLS, ROWS]
         scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
-        graph_interval: 10,
+        graph_interval: 10,       
         graph_update: 50,
         statecolours: { 'alive': { 1: 'black' }}
     }
-
+    
     /*
         1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
     */
     sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
-
     sim.makeGridmodel("coop")                                        // Make a new gridmodel named cheater
 
     sim.initialise = function()
