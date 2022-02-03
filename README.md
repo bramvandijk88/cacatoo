@@ -1,4 +1,4 @@
-# **CACATOO**
+# **CACATOO** [![DOI](https://zenodo.org/badge/317027997.svg)](https://zenodo.org/badge/latestdoi/317027997)
 
 Cacatoo is a toolbox for modelling and exploration of spatially structured simulations. Because it is written in 100% javascript it requires no installation and works on any machine, making building, sharing, and exploring your model easier than it ever was! With a web-based interface that is ideal for students to learn how to program, and a NodeJS-mode which allows one to rapidly run simulations directly from the command line, it is suited for beginners and advanced programmers alike!
 
@@ -80,7 +80,7 @@ If you want to test your code, or want to issue a pull request, please use Mocha
 If you made a nice Cacatoo model which you would like to see on the [JS fiddle examples page](https://bramvandijk88.github.io/cacatoo/examples_jsfiddle.html), be sure to:
 * Make sure your code works as intended in JS fiddle (should not require any rewriting, just some copy-pasting)
 * Give a title and description of your model 
-* Give your name so I can credit you
+* Include your name so I can credit you
 
 ## **Useful developer commands for contributors**
 
