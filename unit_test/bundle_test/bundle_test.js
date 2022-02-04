@@ -43,7 +43,8 @@ function cacatoo() {
 
     sim.createDisplay("model", "discrete_var", "Discrete variable")                    
     sim.spaceTimePlot("model", "Discrete variable", "Space-time (discr)", 50, sim.ncol)                                  
-    sim.createDisplay("model", "discrete_var", "(zoom in on grid)", 20, 20, 10)            
+    sim.createDisplay("model", "discrete_var", "(zoom in on grid)", 20, 20, 10)
+
 
     sim.createDisplay_continuous({model:"model", property:"continuous_var", label:"Some continuous variable", minval:0, maxval:100}) 
     sim.spaceTimePlot("model", "Some continuous variable", "Space-time (continuous)", 50, sim.ncol)                        

@@ -66,7 +66,20 @@ class Simulation {
             console.warn("Cacatoo:createDisplay, cannot create display in command-line mode.")
             return
         }
-        let label = customlab
+        if(typeof arguments[0] === 'object')
+        {
+            name = arguments[0].name 
+            property = arguments[0].property
+            customlab = arguments[0].label 
+            height = arguments[0].height 
+            width = arguments[0].width 
+            scale = arguments[0].scale 
+        }
+        
+        
+        if(name==undefined || property == undefined) throw new Error("Cacatoo: can't make a display with out a 'name' and 'property'")        
+
+        let label = customlab 
         if (customlab == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name]        
         if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
@@ -87,9 +100,7 @@ class Simulation {
         cnv.bgcolour = this.config.bgcolour
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
         cnv.displaygrid()                
-    }
-
-    
+    }       
     
     /**
     * Create a display for a gridmodel, showing a certain property on it. 

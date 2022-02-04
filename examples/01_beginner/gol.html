@@ -39,7 +39,7 @@ function cacatoo(){
                                                      // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
         ncol: 400,                                   // Number of columns (width of your grid)
         nrow: 170,		                             // Number of rows (height of your grid)
-        printcursor:false,
+        
         wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
         scale: 2,				                     // Scale of the grid (nxn pixels per grid point)
         statecolours: { 'alive': { 1: 'white' } },   // Colours for each state. Background (0) defaults to black. 
@@ -49,7 +49,7 @@ function cacatoo(){
         1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
     */
     sim = new Simulation(config)                          // Initialise the Cacatoo simulation
-    console.log(sim.config)
+    
     sim.makeGridmodel("gol")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
     sim.initialGrid(sim.gol, 'alive', 1, 0.5)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
     sim.createDisplay("gol", "alive", "Game of life (white=alive)")                      // Create a display so we can see our newly made gridmodel

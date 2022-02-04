@@ -1833,7 +1833,20 @@ class Simulation {
             console.warn("Cacatoo:createDisplay, cannot create display in command-line mode.");
             return
         }
-        let label = customlab;
+        if(typeof arguments[0] === 'object')
+        {
+            name = arguments[0].name; 
+            property = arguments[0].property;
+            customlab = arguments[0].label; 
+            height = arguments[0].height; 
+            width = arguments[0].width; 
+            scale = arguments[0].scale; 
+        }
+        
+        
+        if(name==undefined || property == undefined) throw new Error("Cacatoo: can't make a display with out a 'name' and 'property'")        
+
+        let label = customlab; 
         if (customlab == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name];        
         if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
@@ -1854,18 +1867,25 @@ class Simulation {
         cnv.bgcolour = this.config.bgcolour;
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale); }, false);
         cnv.displaygrid();                
-    }
-
-    
+    }       
     
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
-    * @param {string} name The name of an existing gridmodel to display
+    * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
+    *                        These keys:value pairs are:
+    * @param {string} name The name of the model to display
     * @param {string} property The name of the property to display
     * @param {string} customlab Overwrite the display name with something more descriptive
     * @param {integer} height Number of rows to display (default = ALL)
     * @param {integer} width Number of cols to display (default = ALL)
     * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    * @param {numeric}  minval colour scale is capped off below this value
+    * @param {numeric}  maxval colour scale is capped off above this value
+    * @param {integer} nticks how many ticks
+    * @param {integer} decimals how many decimals for tick labels
+    * @param {integer} num_colours how many steps in the colour gradient
+    * @param {string} fill type of gradient to use (viridis, inferno, red, green, blue)
+
     */
     createDisplay_continuous(config) {  
         if(! this.inbrowser) {
@@ -1934,9 +1954,6 @@ class Simulation {
             console.warn("Cacatoo:spaceTimePlot, cannot create display in command-line mode.");
             return
         }
-
-        // this.createDisplay(name, property, customlab, height, width, scale)
-        //name, property, customlab, height, width, scale
         
         let source_canvas = this[name].canvases[source_canvas_label];
         let property = source_canvas.property;
