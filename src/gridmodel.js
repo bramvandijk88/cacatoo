@@ -51,11 +51,31 @@ class Gridmodel {
         this.canvases = {}              // Object containing all Canvases belonging to this model (HTML usage only)
     }
 
+    save_checkpoint(skip_props) 
+    {
+        this.update_string = this.update + ''
+        let backup_props = Object.getOwnPropertyNames(this)
+        for(let prop of skip_props)
+            backup_props = backup_props.filter(i => i !== prop) // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
+        console.log(`Saving model ${this.name} at time `, this.time)
+        
+        let checkpoint_model = JSON.stringify(this, backup_props)
+
+        return checkpoint_model
+    }
+
+    load_checkpoint(str)
+    {
+        console.log("Reloading model from string")        
+        let string = JSON.parse(str); 
+        Object.assign(this, string);    
+        return this;  
+    }
+    
     /** Replaces current grid with an empty grid */
     clearGrid()
     {
-        this.grid = MakeGrid(this.nc,this.nr)
-        
+        this.grid = MakeGrid(this.nc,this.nr)        
     }
         
 

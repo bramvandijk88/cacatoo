@@ -361,11 +361,31 @@ class Gridmodel {
         this.canvases = {};              // Object containing all Canvases belonging to this model (HTML usage only)
     }
 
+    save_checkpoint(skip_props) 
+    {
+        this.update_string = this.update + '';
+        let backup_props = Object.getOwnPropertyNames(this);
+        for(let prop of skip_props)
+            backup_props = backup_props.filter(i => i !== prop); // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
+        console.log(`Saving model ${this.name} at time `, this.time);
+        
+        let checkpoint_model = JSON.stringify(this, backup_props);
+
+        return checkpoint_model
+    }
+
+    load_checkpoint(str)
+    {
+        console.log("Reloading model from string");        
+        let string = JSON.parse(str); 
+        Object.assign(this, string);    
+        return this;  
+    }
+    
     /** Replaces current grid with an empty grid */
     clearGrid()
     {
-        this.grid = MakeGrid(this.nc,this.nr);
-        
+        this.grid = MakeGrid(this.nc,this.nr);        
     }
         
 
@@ -1354,6 +1374,7 @@ class Canvas {
     constructor(gridmodel, prop, lab, height, width, scale, continuous) {
         this.label = lab;
         this.gridmodel = gridmodel;
+        this.statecolours = gridmodel.statecolours;
         this.property = prop;
         this.height = height;
         this.width = width;
@@ -1413,7 +1434,7 @@ class Canvas {
         let start_row = this.offset_y;
         let stop_row = start_row + nrow;
 
-        let statecols = this.gridmodel.statecolours[prop];
+        let statecols = this.statecolours[prop];
         
         for (let i = start_col; i < stop_col; i++)         // i are cols
         {
@@ -1463,7 +1484,7 @@ class Canvas {
     add_legend(div,property)
     {
         if (typeof document == "undefined") return
-        let statecols = this.gridmodel.statecolours[property];
+        let statecols = this.statecolours[property];
         if(statecols == undefined){
             console.warn(`Cacatoo warning: no colours setup for canvas "${this.label}"`);
             return
@@ -1810,23 +1831,38 @@ class Simulation {
 
     save_checkpoint() 
     {
+        let backup_props = Object.getOwnPropertyNames(this);
+        let skip_props = ['canvases','graphs'];          // Nested properties are reloaded 
+        for(let prop of skip_props)
+            backup_props = backup_props.filter(i => i !== prop); // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
         console.log("Saving checkpoint of simulation at time ", this.time);
-        return JSON.stringify(this)
+
+        let backup_models = [];
+        for(let model of this.gridmodels)
+        {
+            backup_models.push(model.save_checkpoint(skip_props));
+        }
+        let checkpoint = JSON.stringify(this, backup_props);
+        return {'SIMULATION':checkpoint, 'GRIDMODELS': backup_models}
     }
 
-    load_checkpoint(str, type)
+    load_checkpoint(simstring, classtype)
     {
         console.log("Reloading checkpoint from string");
-        let revived_sim = new type(); 
-        console.log("2");
-        let parser = JSON.parse(str);     
-        console.log("3");
+        let revived_sim = new classtype(); 
+        let parser = JSON.parse(simstring['SIMULATION']);     
         Object.assign(revived_sim, parser);
-        console.log("4");
-        // //let revived_persons = []
-        // //for(let i of parsed_house.persons) 
-        // //    revived_persons.push(new Person(i.name,i.age))      
-        // //revived_house.persons = revived_persons
+        
+        let revived_gridmodels = [];
+        for(let i of simstring['GRIDMODELS']) 
+        {
+            console.log(i);
+            let model = new Gridmodel("",{});    
+            model.load_checkpoint(i);            
+            revived_gridmodels.push(model);
+            revived_sim[model.name] = model;
+        }
+        revived_sim.gridmodels = revived_gridmodels;
         return revived_sim;  
     }
 

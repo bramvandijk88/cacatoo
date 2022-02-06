@@ -1,4 +1,7 @@
 (caca)TODO
+> remove WIP notes for checkpointing
+> add docstrings for checkpointing
 > unit testing for checkpointing
+
 > FBA testing
 > Implement d3.js visualization like histograms / phylogenetic trees. 
