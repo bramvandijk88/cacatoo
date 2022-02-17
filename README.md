@@ -1,4 +1,4 @@
-# **CACATOO** [![DOI](https://zenodo.org/badge/317027997.svg)](https://zenodo.org/badge/latestdoi/317027997)
+# **CACATOO** [![DOI](https://zenodo.org/badge/317027997.svg)](https://zenodo.org/badge/latestdoi/317027997) [![DOI](https://joss.theoj.org/papers/10.21105/joss.03948/status.svg)](https://doi.org/10.21105/joss.03948)
 
 Cacatoo is a toolbox for modelling and exploration of spatially structured simulations. Because it is written in 100% javascript it requires no installation and works on any machine, making building, sharing, and exploring your model easier than it ever was! With a web-based interface that is ideal for students to learn how to program, and a NodeJS-mode which allows one to rapidly run simulations directly from the command line, it is suited for beginners and advanced programmers alike!
 
@@ -6,6 +6,8 @@ Cacatoo is a toolbox for modelling and exploration of spatially structured simul
 <img src="https://bramvandijk88.github.io/cacatoo/images/elephant_cacatoo.png" width="400"
      alt="Riding on the shoulders of giants"
 /></center>
+
+*Cacatoo was peer reviewed and published in JOSS on February 6th, 2022*
 
 
 ## **Getting started**
