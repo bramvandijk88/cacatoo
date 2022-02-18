@@ -854,7 +854,8 @@ class Gridmodel {
         }
         // Title
         let title = "Population sizes (" + this.name + ")"
-
+        if(opts && opts.title) title = opts.title
+        
         this.plotArray(graph_labels, graph_values, colours, title, opts)
 
 
