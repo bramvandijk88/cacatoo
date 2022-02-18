@@ -1164,7 +1164,8 @@ class Gridmodel {
         }
         // Title
         let title = "Population sizes (" + this.name + ")";
-
+        if(opts && opts.title) title = opts.title;
+        
         this.plotArray(graph_labels, graph_values, colours, title, opts);
 
 
@@ -2369,6 +2370,40 @@ class Simulation {
         };
         container.appendChild(slider);
         container.appendChild(numeric);
+        document.getElementById("form_holder").appendChild(container);
+    }
+    
+    /**
+     *  addToggle adds a HTML checkbox element to the DOM-environment which allows the user
+     *  to flip boolean values
+     *  @param {string} parameter The name of the (global!) boolean to link to the checkbox
+     */
+     addToggle(parameter, label) {
+        let lab = label || parameter;
+        if (!this.inbrowser) return
+        if (window[parameter] === undefined) { console.warn(`addToggle: parameter ${parameter} not found. No toggle made.`); return; }
+        let container = document.createElement("div");
+        container.classList.add("form-container");
+
+        let checkbox = document.createElement("input");
+
+        
+
+
+
+        container.innerHTML += "<div style='width:100%;height:20px;font-size:12px;'><b>" + lab + ":</b></div>";
+
+        // Setting variables / handler
+        checkbox.type = 'checkbox';
+
+        checkbox.checked = window[parameter];
+
+        checkbox.oninput = function () {
+            window[parameter] = checkbox.checked;
+        };
+
+       
+        container.appendChild(checkbox);
         document.getElementById("form_holder").appendChild(container);
     }
 
