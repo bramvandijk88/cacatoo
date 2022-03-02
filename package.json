@@ -13,7 +13,7 @@
     "ansi-regex": "^2.1.1",
     "aproba": "^1.2.0",
     "balanced-match": "^1.0.2",
-    "brace-expansion": "^1.1.11",
+    "brace-expansion": "^1.1.11",    
     "chai": "^4.3.4",
     "chownr": "^1.1.4",
     "code-point-at": "^1.1.0",
