@@ -367,6 +367,11 @@ class Gridmodel {
         this.grid = MakeGrid(this.nc,this.nr);        
     }
 
+    /**
+    *  Saves the current grid in a JSON object. In browser mode, it will throw download-request, which may or may not
+    *  work depending on the security of the user's browser.
+    *  @param {string} filename The name of of the JSON file
+    */
     save_grid(filename) 
     {      
         console.log(`Saving grid in JSON file \'${filename}\'`);
@@ -378,26 +383,31 @@ class Gridmodel {
             a.click();
             console.warn("Cacatoo: download of grid in browser-mode may be blocked for security reasons.");            
             return
+        }                        
+        else {
+            try { var fs = require('fs'); }
+            catch (e) {
+                console.log('Cacatoo:save_grid: save_grid requires file-system module. Please install fs via \'npm install fs\'');
+            }
+            fs.writeFileSync(filename, gridjson, function(err) {
+            if (err) {
+                console.log(err);
+            }
+            });
         }
-                
         
-        console.log(`Saving grid of ${this.name} in file \'${filename}\'`);    
-        try { var fs = require('fs'); }
-        catch (e) {
-            console.log('Cacatoo:save_grid: save_grid requires file-system module. Please install fs via \'npm install fs\'');
-        }
-        fs.writeFileSync(filename, gridjson, function(err) {
-        if (err) {
-            console.log(err);
-        }
-        });
         
     }
 
+    /**
+    *  Reads a JSON file and loads a JSON object onto this gridmodel. Reading a local JSON file will not work in browser mode because of security reasons,
+    *  You can instead use 'addCheckpointButton' instead, which allows you to select a file from the browser manually. 
+    *  @param {string} file Path to the json file
+    */
     load_grid(file)
     {
         if((typeof document !== "undefined")){
-            console.warn("Cacatoo: loading grids is not supported in browser-mode for security reasons.");            
+            console.warn("Cacatoo: loading grids directly is not supported in browser-mode for security reasons. Use 'addCheckpointButton' instead. ");            
             return
         }
         this.clearGrid();
@@ -413,6 +423,10 @@ class Gridmodel {
         
     }
 
+    /**
+    *  Loads a JSON object onto this gridmodel. 
+    *  @param {string} gridjson JSON object to build new grid from
+    */
     grid_from_json(gridjson)
     {
         for(let i in gridjson)
@@ -1865,44 +1879,7 @@ class Simulation {
         this.printcursor = true;
         if(config.printcursor == false) this.printcursor = false;        
     }
-
-    // save_checkpoint() 
-    // {
-    //     let backup_props = Object.getOwnPropertyNames(this)
-    //     let skip_props = ['canvases','graphs']          // Nested properties are reloaded 
-    //     for(let prop of skip_props)
-    //         backup_props = backup_props.filter(i => i !== prop) // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
-    //     console.log("Saving checkpoint of simulation at time ", this.time)
-
-    //     let backup_models = []
-    //     for(let model of this.gridmodels)
-    //     {
-    //         backup_models.push(model.save_checkpoint(skip_props))
-    //     }
-    //     let checkpoint = JSON.stringify(this, backup_props)
-    //     return {'SIMULATION':checkpoint, 'GRIDMODELS': backup_models}
-    // }
-
-    // load_checkpoint(simstring, classtype)
-    // {
-    //     console.log("Reloading checkpoint from string")
-    //     let revived_sim = new classtype() 
-    //     console.log(revived_sim)
-    //     let parser = JSON.parse(simstring['SIMULATION']);     
-    //     Object.assign(revived_sim, parser);
-        
-    //     let revived_gridmodels = []
-    //     for(let i of simstring['GRIDMODELS']) 
-    //     {
-    //         console.log(i)
-    //         let model = new Gridmodel("",{})    
-    //         model.load_checkpoint(i)            
-    //         revived_gridmodels.push(model)
-    //         revived_sim[model.name] = model
-    //     }
-    //     revived_sim.gridmodels = revived_gridmodels
-    //     return revived_sim;  
-    // }
+    
 
     /**
     *  Generate a new GridModel within this simulation.  
@@ -2613,8 +2590,10 @@ class Simulation {
 
     /**
      *  addCheckpointButton adds a button to the HTML environment which allows the user
-     *  to reload the grid to the state as found in a JSON file saved by save_grid
-     *  @param {@GridModel} targetgrid The gridmodel containing the grid to be modified. 
+     *  to reload the grid to the state as found in a JSON file saved by save_grid. The JSON
+     *  file must of course match the simulation (nrows, ncols, properties in gps), but this
+     *  is the users own responsibility. 
+     *  @param {@GridModel} targetgrid The gridmodel containing the grid to reload the grid. 
      */
     
      addCheckpointButton(target_model) {

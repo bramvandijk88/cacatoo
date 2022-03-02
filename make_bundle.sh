@@ -30,7 +30,7 @@ compile_cacatoo()
     
     echo -e "Mocha unit test\t\t[OK]" 
     
-    ./node_modules/.bin/jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md           # Automatically recompile JSdocs
+    jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md           # Automatically recompile JSdocs
     echo -e "Compiling jsDOCs\t[OK]"
     echo -en "Modifying paths...\t"
     cp examples/03_expert/legend.png docs/TEs_streamlining                          # Everything below = fixing documentation files

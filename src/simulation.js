@@ -40,44 +40,7 @@ class Simulation {
         this.printcursor = true
         if(config.printcursor == false) this.printcursor = false        
     }
-
-    // save_checkpoint() 
-    // {
-    //     let backup_props = Object.getOwnPropertyNames(this)
-    //     let skip_props = ['canvases','graphs']          // Nested properties are reloaded 
-    //     for(let prop of skip_props)
-    //         backup_props = backup_props.filter(i => i !== prop) // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
-    //     console.log("Saving checkpoint of simulation at time ", this.time)
-
-    //     let backup_models = []
-    //     for(let model of this.gridmodels)
-    //     {
-    //         backup_models.push(model.save_checkpoint(skip_props))
-    //     }
-    //     let checkpoint = JSON.stringify(this, backup_props)
-    //     return {'SIMULATION':checkpoint, 'GRIDMODELS': backup_models}
-    // }
-
-    // load_checkpoint(simstring, classtype)
-    // {
-    //     console.log("Reloading checkpoint from string")
-    //     let revived_sim = new classtype() 
-    //     console.log(revived_sim)
-    //     let parser = JSON.parse(simstring['SIMULATION']);     
-    //     Object.assign(revived_sim, parser);
-        
-    //     let revived_gridmodels = []
-    //     for(let i of simstring['GRIDMODELS']) 
-    //     {
-    //         console.log(i)
-    //         let model = new Gridmodel("",{})    
-    //         model.load_checkpoint(i)            
-    //         revived_gridmodels.push(model)
-    //         revived_sim[model.name] = model
-    //     }
-    //     revived_sim.gridmodels = revived_gridmodels
-    //     return revived_sim;  
-    // }
+    
 
     /**
     *  Generate a new GridModel within this simulation.  
