@@ -1,14 +1,11 @@
 <!-- 
     
-    EXAMPLE FILE Cheater (HTML)
+    EXAMPLE FILE Checkpointing (HTML)
 
-    This HTML file is different from other examples like GoL and prime, because
-    instead of defining the model within the HTML itself, it merely includes the javascript
-    code called cheater.js. The benefit of this is that you can easily
-    swap between running your code interactively (in the browser), or just running
-    the raw code on the commandline via 'nodejs cheater.js'. 
-
-    Apart from this difference, the HTML file is identical. 
+    This example illustrates how to use 'checkpoints'. Checkpoints are files written to the disk from 
+    which the grid-state can be recovered. This can be useful if you want to continue a certain simulation,
+    but vary the parameters. Checkpointing is fully supported in node, but can also work in the browser when 
+    using a button to load a file (see checkpoint.js for how to add a checkpoint-button).
 
 -->
 
@@ -17,11 +14,10 @@
 <script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
 <script src="../../lib/all.js"></script>        <!-- Load other packages -->
 
-
 <link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
 
 <!-- Include your model code here -->
-<script src="cheater.js"> </script>
+<script src="checkpointing.js"> </script>
 
 <body onload="cacatoo()">
     <div class="header" id="header">

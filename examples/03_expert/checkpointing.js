@@ -1,4 +1,12 @@
 
+ 
+//EXAMPLE FILE Checkpointing (HTML)
+
+//This example illustrates how to use 'checkpoints'. Checkpoints are files written to the disk from 
+//which the grid-state can be recovered. This can be useful if you want to continue a certain simulation,
+//but vary the parameters.     
+
+
 if (typeof window == "undefined") 
 {  
     Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode    
@@ -25,23 +33,23 @@ function cacatoo() {
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
         title: "Mutualists and cheaters",
         description: "",
-        maxtime: 50000,
-        ncol: 200,
-        nrow: 200,		                                            // dimensions of the grid to build
+        maxtime: 20000,
+        ncol: 100,
+        nrow: 100,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
         seed: 56,
         fps: 60,                                                   // Note: FPS can only be set in fastmode
         fastmode: false,
         scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
-        graph_interval: 10,
-        graph_update: 50,
+        graph_interval: 1,
+        graph_update: 1,
         statecolours: {
             'species': {
                 0: "black",
                 1: "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
                 2: "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
                 3: "#3030ff"
-            }
+            }            
         }
     }
 
@@ -52,9 +60,14 @@ function cacatoo() {
             
     sim.makeGridmodel("cheater")                                                // Make a new gridmodel named cheater
     sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)          // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+
+    for (let i = 0; i < sim.cheater.nc; i++) for (let j = 0; j < sim.cheater.nr; j++) 
+    {
+        sim.cheater.grid[i][j].births = [0,0,0] 
+    }
     sim.createDisplay("cheater", "species", "Mutualists and cheater")                               // Display the 'species' property of the cheater grid
-    sim.createDisplay("cheater", "species", "(zoom in on top-left)", 20, 20, 20)                    // Display the 'species' property of a small bit of the grid (i.e. zoom in)
-    sim.spaceTimePlot("cheater", "Mutualists and cheater", "Space-time plot", 5, 300)              // Make a space-time plot based on the canvas "mutualists and cheater" called "Space-time plot". Draw row 10. Width 400. 
+    sim.createDisplay_continuous({model:"cheater", property:"cheaterbirths", label:"Cheater birth heatmap", minval:0, maxval:100, num_colours:40, fill: 'viridis'})                               // Display the 'species' property of the cheater grid
+    // sim.createDisplay_continuous({model:"cheater", "births", "Number of birth events in grid points for each species type")                               // Display the 'species' property of the cheater grid
     
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
@@ -75,13 +88,24 @@ function cacatoo() {
             psum = pA + pB + pC + stay_empty;                                   // Total = pA+pB+pC+stay_empty (scales the chance that nothing happens during competition)
 
             ran = this.rng.random();                                     // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
-                        
+            
             if (ran < pA / psum)                                           // <-ran->                                     (A wins)
+            {
                 this.grid[i][j].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                this.grid[i][j].births[0]++
+            }
             else if (ran < (pA + pB) / psum)                                 //        <-ran->                              (B wins)
-                this.grid[i][j].species = 2                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+            {
+                this.grid[i][j].species = 2
+                this.grid[i][j].births[1]++                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+            }
             else if (ran < (pA + pB + pC) / psum)                              //               <--ran-->                     (C wins)
+            {
                 this.grid[i][j].species = 3                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                this.grid[i][j].births[2]++
+                this.grid[i][j].cheaterbirths = 100
+            }
+            this.grid[i][j].cheaterbirths--
             //                        <-----ran----->      (no winner, spot stays empty for now)
             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
         }
@@ -94,7 +118,16 @@ function cacatoo() {
     * Define your update-function here: stuff that is applied to the entire grid every timestep. E.g. apply the next-state, diffuse stuff, mix individuals, show graphs, etc. 
     */
     sim.cheater.update = function () {
-        this.synchronous()                                              // Update all grid points based on the next-state function (defined above)                
+        this.synchronous()                                              // Update all grid points based on the next-state function (defined above)        
+        if(this.time == 1) {
+            let timestamp = this.time.toString().padStart(6,'0')
+            let filename = `examples/03_expert/cheater_${timestamp}.json`
+            this.save_grid(filename)        
+        }
+        if(this.time > 0 && this.time % 100 == 0) sim.toggle_play()
+        
+        if(this.time == 50) this.load_grid("examples/03_expert/cheater_000001.json")   // When you don't have a reload-button, this is how you reload. For this example, it reloads the grid after 50 timesteps.
+        console.log(this.getPopsizes('species',[1,2,3]))
         if (this.time % mdif_interval == 0) this.MargolusDiffusion()         // Every so often mix individuals a bit
         this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
     }
@@ -128,7 +161,7 @@ function cacatoo() {
 
         if (this.time % 100 == 0)       // Otherwise, just print some numbers (e.g. popsizes)
         {
-            sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species', [1, 2, 3])}`, "output")
+            sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species', [1, 2, 3])}`, "output")            
             //if(!sim.inbrowser) sim.write_grid(sim.cheater,'species',`species_at_T${this.time}.dat`,warn=false)    // Example of how to write a grid-property to a file. Currently only works in NODEJS mode (i.e not in browser). 
         }
         
@@ -140,11 +173,12 @@ function cacatoo() {
     sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"
     sim.addButton("mix once", function () { sim.cheater.perfectMix() })            // Add a button that calls function "perfectMix" in "model.cheater"    
     sim.addButton("well-mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
-    sim.addSlider("A2B")
-    sim.addSlider("B2A")
-    sim.addSlider("B2C")
-    sim.addSlider("stay_empty", 0.00, 20.00, 0.01)
-    sim.addSlider("death", 0.00, 1.00, 0.001)
+    sim.addCheckpointButton("cheater")
+    // sim.addSlider("A2B")
+    // sim.addSlider("B2A")
+    // sim.addSlider("B2C")
+    // sim.addSlider("stay_empty", 0.00, 20.00, 0.01)
+    // sim.addSlider("death", 0.00, 1.00, 0.001)
 
     sim.start()
 }

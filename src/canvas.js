@@ -14,6 +14,7 @@ class Canvas {
     constructor(gridmodel, prop, lab, height, width, scale, continuous) {
         this.label = lab
         this.gridmodel = gridmodel
+        this.statecolours = gridmodel.statecolours
         this.property = prop
         this.height = height
         this.width = width
@@ -76,7 +77,7 @@ class Canvas {
         let start_row = this.offset_y
         let stop_row = start_row + nrow
 
-        let statecols = this.gridmodel.statecolours[prop]
+        let statecols = this.statecolours[prop]
         
         for (let i = start_col; i < stop_col; i++)         // i are cols
         {
@@ -126,7 +127,7 @@ class Canvas {
     add_legend(div,property)
     {
         if (typeof document == "undefined") return
-        let statecols = this.gridmodel.statecolours[property]
+        let statecols = this.statecolours[property]
         if(statecols == undefined){
             console.warn(`Cacatoo warning: no colours setup for canvas "${this.label}"`)
             return

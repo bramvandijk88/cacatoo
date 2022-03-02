@@ -54,8 +54,83 @@ class Gridmodel {
     /** Replaces current grid with an empty grid */
     clearGrid()
     {
-        this.grid = MakeGrid(this.nc,this.nr)
+        this.grid = MakeGrid(this.nc,this.nr)        
+    }
+
+    /**
+    *  Saves the current grid in a JSON object. In browser mode, it will throw download-request, which may or may not
+    *  work depending on the security of the user's browser.
+    *  @param {string} filename The name of of the JSON file
+    */
+    save_grid(filename) 
+    {      
+        console.log(`Saving grid in JSON file \'${filename}\'`)
+        let gridjson = JSON.stringify(this.grid)        
+        if((typeof document !== "undefined")){
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL( new Blob([gridjson], { type:'text/plain' }) );
+            a.download = filename;
+            a.click();
+            console.warn("Cacatoo: download of grid in browser-mode may be blocked for security reasons.")            
+            return
+        }                        
+        else{
+            try { var fs = require('fs') }
+            catch (e) {
+                console.log('Cacatoo:save_grid: save_grid requires file-system module. Please install fs via \'npm install fs\'')
+            }
+            fs.writeFileSync(filename, gridjson, function(err) {
+            if (err) {
+                console.log(err);
+            }
+            });
+        }
         
+        
+    }
+
+    /**
+    *  Reads a JSON file and loads a JSON object onto this gridmodel. Reading a local JSON file will not work in browser mode because of security reasons,
+    *  You can instead use 'addCheckpointButton' instead, which allows you to select a file from the browser manually. 
+    *  @param {string} file Path to the json file
+    */
+    load_grid(file)
+    {
+        if((typeof document !== "undefined")){
+            console.warn("Cacatoo: loading grids directly is not supported in browser-mode for security reasons. Use 'addCheckpointButton' instead. ")            
+            return
+        }
+        this.clearGrid()
+        console.log(`Loading grid for ${this.name} from file \'${file}\'`)            
+
+        try { var fs = require('fs') }
+        catch (e) {
+            console.log('Cacatoo:load_grid: requires file-system module. Please install fs via \'npm install fs\'')
+        }
+        let filehandler = fs.readFileSync(file)        
+        let gridjson = JSON.parse(filehandler)
+        this.grid_from_json(gridjson)
+        
+    }
+
+    /**
+    *  Loads a JSON object onto this gridmodel. 
+    *  @param {string} gridjson JSON object to build new grid from
+    */
+    grid_from_json(gridjson)
+    {
+        for(let i in gridjson)
+            for(let j in gridjson[i])
+            {
+                let newgp = new Gridpoint(gridjson[i][j])
+                gridjson[i][j] = newgp
+            }
+        this.grid = gridjson
+    }
+    
+    /** Print the entire grid to the console */
+    print_grid() {
+        console.table(this.grid);
     }
         
 
@@ -187,12 +262,7 @@ class Gridmodel {
             if (!rev) this.colourGradient(property, n, [20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70])         // Inferno
             else this.colourGradient(property, n, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52])              // Inferno
         }
-    }
-
-    /** Print the entire grid to the console */
-    printgrid() {
-        console.table(this.grid);
-    }
+    }    
 
     /** The most important function in GridModel: how to determine the next state of a gridpoint?
      * By default, nextState is empty. It should be defined by the user (see examples)
