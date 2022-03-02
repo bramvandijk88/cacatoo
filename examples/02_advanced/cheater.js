@@ -25,14 +25,14 @@ function cacatoo() {
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
         title: "Mutualists and cheaters",
         description: "",
-        maxtime: 1000000,
-        ncol: 10,
-        nrow: 10,		                                            // dimensions of the grid to build
+        maxtime: 50000,
+        ncol: 200,
+        nrow: 200,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
         seed: 56,
         fps: 60,                                                   // Note: FPS can only be set in fastmode
         fastmode: false,
-        scale: 20,				                                    // scale of the grid (nxn pixels per grid point)            
+        scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         graph_update: 50,
         statecolours: {
@@ -48,52 +48,14 @@ function cacatoo() {
     /*
         1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
     */
-    sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
+    sim = new Simulation(config)                                                // Initialise a new Simulation instance with configuration given above 
             
-    sim.makeGridmodel("cheater")                                        // Make a new gridmodel named cheater
-    sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
-
+    sim.makeGridmodel("cheater")                                                // Make a new gridmodel named cheater
+    sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)          // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
     sim.createDisplay("cheater", "species", "Mutualists and cheater")                               // Display the 'species' property of the cheater grid
-    sim.createDisplay("cheater", "species", "(zoom in on top-left)", 2, 2, 20)                    // Display the 'species' property of a small bit of the grid (i.e. zoom in)
-    sim.spaceTimePlot("cheater", "Mutualists and cheater", "Space-time plot", 5, 10)              // Make a space-time plot based on the canvas "mutualists and cheater" called "Space-time plot". Draw row 10. Width 400. 
+    sim.createDisplay("cheater", "species", "(zoom in on top-left)", 20, 20, 20)                    // Display the 'species' property of a small bit of the grid (i.e. zoom in)
+    sim.spaceTimePlot("cheater", "Mutualists and cheater", "Space-time plot", 5, 300)              // Make a space-time plot based on the canvas "mutualists and cheater" called "Space-time plot". Draw row 10. Width 400. 
     
-    sim.printstuff = function()
-    {
-        console.log(this)
-
-        console.log(`Is sim a simulation?`, this instanceof Simulation)  // <-- future unit test feature
-        for(model of this.gridmodels)
-        {
-            console.log(model)
-            console.log(`Is ${model.name} (ref1) a Gridmodel?`, model instanceof Gridmodel)  // <-- future unit test feature
-            console.log(`Is ${model.name} (ref2) a Gridmodel?`, sim[model.name] instanceof Gridmodel)  // <-- future unit test feature
-        }
-    }
-    sim.printstuff()
-
-    let checkpoint = sim.save_checkpoint()
-    console.log(checkpoint)
-    let revived_sim = sim.load_checkpoint(checkpoint,Simulation)
-    
-    // todo: reload rng (reset state so that reload matches a continuation of the original model!)        
-    sim = revived_sim
-    
-    sim.printstuff() // Custom functions in sim and gridmodels should also be backed up.... I guess?
-    /*
-            myObj = {
-                ....
-                function: "function() { ... }"
-            }
-            //you can very easily turn it to a real function:
-            eval("myObj.func = " + myObj.func);
-    */
-    //sim.display()
-
-    // TODO NEXT
-    // FIX RNG RELOADER FUNC
-    // THINK ABOUT CUSTOM FUNCTIONS... I THINK IT SHOULD BE FINE AS LONG AS THEY ARE DEFINED AFTER RELOAD! :)
-
-    return false
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
     */
@@ -113,7 +75,7 @@ function cacatoo() {
             psum = pA + pB + pC + stay_empty;                                   // Total = pA+pB+pC+stay_empty (scales the chance that nothing happens during competition)
 
             ran = this.rng.random();                                     // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
-
+                        
             if (ran < pA / psum)                                           // <-ran->                                     (A wins)
                 this.grid[i][j].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
             else if (ran < (pA + pB) / psum)                                 //        <-ran->                              (B wins)
@@ -132,7 +94,7 @@ function cacatoo() {
     * Define your update-function here: stuff that is applied to the entire grid every timestep. E.g. apply the next-state, diffuse stuff, mix individuals, show graphs, etc. 
     */
     sim.cheater.update = function () {
-        this.synchronous()                                              // Update all grid points based on the next-state function (defined above)
+        this.synchronous()                                              // Update all grid points based on the next-state function (defined above)                
         if (this.time % mdif_interval == 0) this.MargolusDiffusion()         // Every so often mix individuals a bit
         this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
     }

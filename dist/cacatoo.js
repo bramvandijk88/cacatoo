@@ -361,31 +361,86 @@ class Gridmodel {
         this.canvases = {};              // Object containing all Canvases belonging to this model (HTML usage only)
     }
 
-    save_checkpoint(skip_props) 
-    {
-        this.update_string = this.update + '';
-        let backup_props = Object.getOwnPropertyNames(this);
-        for(let prop of skip_props)
-            backup_props = backup_props.filter(i => i !== prop); // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
-        console.log(`Saving model ${this.name} at time `, this.time);
-        
-        let checkpoint_model = JSON.stringify(this, backup_props);
-
-        return checkpoint_model
-    }
-
-    load_checkpoint(str)
-    {
-        console.log("Reloading model from string");        
-        let string = JSON.parse(str); 
-        Object.assign(this, string);    
-        return this;  
-    }
-    
     /** Replaces current grid with an empty grid */
     clearGrid()
     {
         this.grid = MakeGrid(this.nc,this.nr);        
+    }
+
+    /**
+    *  Saves the current grid in a JSON object. In browser mode, it will throw download-request, which may or may not
+    *  work depending on the security of the user's browser.
+    *  @param {string} filename The name of of the JSON file
+    */
+    save_grid(filename) 
+    {      
+        console.log(`Saving grid in JSON file \'${filename}\'`);
+        let gridjson = JSON.stringify(this.grid);        
+        if((typeof document !== "undefined")){
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL( new Blob([gridjson], { type:'text/plain' }) );
+            a.download = filename;
+            a.click();
+            console.warn("Cacatoo: download of grid in browser-mode may be blocked for security reasons.");            
+            return
+        }                        
+        else {
+            try { var fs = require('fs'); }
+            catch (e) {
+                console.log('Cacatoo:save_grid: save_grid requires file-system module. Please install fs via \'npm install fs\'');
+            }
+            fs.writeFileSync(filename, gridjson, function(err) {
+            if (err) {
+                console.log(err);
+            }
+            });
+        }
+        
+        
+    }
+
+    /**
+    *  Reads a JSON file and loads a JSON object onto this gridmodel. Reading a local JSON file will not work in browser mode because of security reasons,
+    *  You can instead use 'addCheckpointButton' instead, which allows you to select a file from the browser manually. 
+    *  @param {string} file Path to the json file
+    */
+    load_grid(file)
+    {
+        if((typeof document !== "undefined")){
+            console.warn("Cacatoo: loading grids directly is not supported in browser-mode for security reasons. Use 'addCheckpointButton' instead. ");            
+            return
+        }
+        this.clearGrid();
+        console.log(`Loading grid for ${this.name} from file \'${file}\'`);            
+
+        try { var fs = require('fs'); }
+        catch (e) {
+            console.log('Cacatoo:load_grid: requires file-system module. Please install fs via \'npm install fs\'');
+        }
+        let filehandler = fs.readFileSync(file);        
+        let gridjson = JSON.parse(filehandler);
+        this.grid_from_json(gridjson);
+        
+    }
+
+    /**
+    *  Loads a JSON object onto this gridmodel. 
+    *  @param {string} gridjson JSON object to build new grid from
+    */
+    grid_from_json(gridjson)
+    {
+        for(let i in gridjson)
+            for(let j in gridjson[i])
+            {
+                let newgp = new Gridpoint(gridjson[i][j]);
+                gridjson[i][j] = newgp;
+            }
+        this.grid = gridjson;
+    }
+    
+    /** Print the entire grid to the console */
+    print_grid() {
+        console.table(this.grid);
     }
         
 
@@ -517,12 +572,7 @@ class Gridmodel {
             if (!rev) this.colourGradient(property, n, [20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]);         // Inferno
             else this.colourGradient(property, n, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52]);              // Inferno
         }
-    }
-
-    /** Print the entire grid to the console */
-    printgrid() {
-        console.table(this.grid);
-    }
+    }    
 
     /** The most important function in GridModel: how to determine the next state of a gridpoint?
      * By default, nextState is empty. It should be defined by the user (see examples)
@@ -1829,42 +1879,43 @@ class Simulation {
         if(config.printcursor == false) this.printcursor = false;        
     }
 
-    save_checkpoint() 
-    {
-        let backup_props = Object.getOwnPropertyNames(this);
-        let skip_props = ['canvases','graphs'];          // Nested properties are reloaded 
-        for(let prop of skip_props)
-            backup_props = backup_props.filter(i => i !== prop); // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
-        console.log("Saving checkpoint of simulation at time ", this.time);
+    // save_checkpoint() 
+    // {
+    //     let backup_props = Object.getOwnPropertyNames(this)
+    //     let skip_props = ['canvases','graphs']          // Nested properties are reloaded 
+    //     for(let prop of skip_props)
+    //         backup_props = backup_props.filter(i => i !== prop) // Canvases is not backed up because it contain a circular reference to the gridmodel. Should be rebuild upon reload.         
+    //     console.log("Saving checkpoint of simulation at time ", this.time)
 
-        let backup_models = [];
-        for(let model of this.gridmodels)
-        {
-            backup_models.push(model.save_checkpoint(skip_props));
-        }
-        let checkpoint = JSON.stringify(this, backup_props);
-        return {'SIMULATION':checkpoint, 'GRIDMODELS': backup_models}
-    }
+    //     let backup_models = []
+    //     for(let model of this.gridmodels)
+    //     {
+    //         backup_models.push(model.save_checkpoint(skip_props))
+    //     }
+    //     let checkpoint = JSON.stringify(this, backup_props)
+    //     return {'SIMULATION':checkpoint, 'GRIDMODELS': backup_models}
+    // }
 
-    load_checkpoint(simstring, classtype)
-    {
-        console.log("Reloading checkpoint from string");
-        let revived_sim = new classtype(); 
-        let parser = JSON.parse(simstring['SIMULATION']);     
-        Object.assign(revived_sim, parser);
+    // load_checkpoint(simstring, classtype)
+    // {
+    //     console.log("Reloading checkpoint from string")
+    //     let revived_sim = new classtype() 
+    //     console.log(revived_sim)
+    //     let parser = JSON.parse(simstring['SIMULATION']);     
+    //     Object.assign(revived_sim, parser);
         
-        let revived_gridmodels = [];
-        for(let i of simstring['GRIDMODELS']) 
-        {
-            console.log(i);
-            let model = new Gridmodel("",{});    
-            model.load_checkpoint(i);            
-            revived_gridmodels.push(model);
-            revived_sim[model.name] = model;
-        }
-        revived_sim.gridmodels = revived_gridmodels;
-        return revived_sim;  
-    }
+    //     let revived_gridmodels = []
+    //     for(let i of simstring['GRIDMODELS']) 
+    //     {
+    //         console.log(i)
+    //         let model = new Gridmodel("",{})    
+    //         model.load_checkpoint(i)            
+    //         revived_gridmodels.push(model)
+    //         revived_sim[model.name] = model
+    //     }
+    //     revived_sim.gridmodels = revived_gridmodels
+    //     return revived_sim;  
+    // }
 
     /**
     *  Generate a new GridModel within this simulation.  
@@ -2464,6 +2515,7 @@ class Simulation {
             fs.appendFileSync(filename, string);            
         }
     }
+    
     /**
      *  addPatternButton adds a pattern button to the HTML environment which allows the user
      *  to load a PNG which then sets the state of 'proparty' for the @GridModel. 
@@ -2519,6 +2571,50 @@ class Simulation {
         }
         imageLoader.addEventListener('change', handleImage, false);
         imageLoader.grid = targetgrid;    // Bind a grid to imageLoader 
+    }
+
+    /**
+     *  addCheckpointButton adds a button to the HTML environment which allows the user
+     *  to reload the grid to the state as found in a JSON file saved by save_grid. The JSON
+     *  file must of course match the simulation (nrows, ncols, properties in gps), but this
+     *  is the users own responsibility. 
+     *  @param {@GridModel} targetgrid The gridmodel containing the grid to reload the grid. 
+     */
+    
+     addCheckpointButton(target_model) {
+        if (!this.inbrowser) return
+        let checkpointLoader = document.createElement("input");
+        checkpointLoader.type = "file";
+        checkpointLoader.id = "checkpointLoader";
+        let sim = this;
+        checkpointLoader.style = "display:none";
+        checkpointLoader.name = "checkpointLoader";
+        document.getElementById("form_holder").appendChild(checkpointLoader);
+        let label = document.createElement("label");
+        label.setAttribute("for", "checkpointLoader");
+        label.style = "background-color: rgb(217, 234, 245);border-radius: 10px;border: 2px solid rgb(177, 209, 231);padding:7px;font-size:11px;margin:10px;width:128px;";
+        label.innerHTML = "Reload from checkpoint";
+        document.getElementById("form_holder").appendChild(label);
+
+        checkpointLoader.addEventListener('change', function()
+        {
+            let file_to_read = document.getElementById("checkpointLoader").files[0];
+            let name = document.getElementById("checkpointLoader").files[0].name;
+            let fileread = new FileReader();
+            console.log(`Reloading simulation from checkpoint-file \'${name}\'`);
+            fileread.onload = function(e) {
+              let content = e.target.result;
+              let grid_json = JSON.parse(content); // parse json
+              console.log(grid_json);  
+              let model = sim[target_model];
+
+              model.clearGrid();
+              model.grid_from_json(grid_json);   
+              sim.display();           
+            };
+            fileread.readAsText(file_to_read);
+        });
+        
     }
 
     /**
