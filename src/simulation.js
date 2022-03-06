@@ -361,7 +361,6 @@ class Simulation {
         else {
             while (true) {
                 sim.step();
-                sim.time++
                 if (sim.time >= sim.config.maxtime) return true;
             }
         }
