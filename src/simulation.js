@@ -149,7 +149,7 @@ class Simulation {
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno")    
         else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno")    
         else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0])
-        else if(config.fill == "green") this[name].colourGradient(property, maxnum_coloursval, [0, 0, 0], [0, 255, 0])
+        else if(config.fill == "green") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 255, 0])
         else if(config.fill == "blue") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255])
         else if(this[name].statecolours[property]==undefined){
             console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)
