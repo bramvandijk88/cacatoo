@@ -657,37 +657,85 @@ class Simulation {
      *  @param {String} msg String to write to log
      *  @param {String} target If defined, write log to HTML div with this name
      */
-    log(msg, target) {
+     log(msg, target, append = true) {
         if (!this.inbrowser) console.log(msg)
         else if (typeof target == "undefined") console.log(msg)
-        else document.getElementById(target).innerHTML += `${msg}<br>`
+        else {
+            if(append) document.getElementById(target).innerHTML += `${msg}<br>`
+            else document.getElementById(target).innerHTML = `${msg}<br>`
+        }
     }
 
     /**
+     *  write a string to either a file, or generate a download request in the browser
+     *  @param {String} text String to write
+     *  @param {String} filename write to this filename
+     */
+     write(text, filename){
+        if (!this.inbrowser) {
+            const fs = require('fs')
+            fs.writeFileSync(filename, text, function (err) {
+            if (err) return console.log(err);
+                 console.log(`Saving data to \'${filename}\'`);
+            });
+        }
+        else{            
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);          
+            element.style.display = 'none';
+            document.body.appendChild(element);          
+            element.click();          
+            document.body.removeChild(element);
+        }
+    }
+
+    /**
+     *  append a string to a file (only supported in nodejs mode)
+     *  @param {String} text String to write
+     *  @param {String} filename write to this filename
+     */
+     write_append(text, filename){
+         if(this.inbrowser)
+         {
+             console.warn("Cacatoo warning: sorry, appending to files is not supported in browser mode.")
+         }
+         else {
+            const fs = require('fs')
+            fs.appendFileSync(filename, text, function (err) {
+            if (err) return console.log(err);
+                 console.log(`Saving data to \'${filename}\'`);
+            });
+         }        
+    }
+    
+
+    /**
      *  Write a gridmodel to a file (only works outside of the browser, useful for running stuff overnight)
+     *  Defaults to -1 if the property is not set
      *  @param {String} msg String to write to log
      *  @param {String} target If defined, write log to HTML div with this name
      */
     write_grid(model,property,filename,warn=true) {
         if(this.inbrowser){
-            if(warn) console.log("Sorry, writing grid files currently works in NODEJS mode only.")
+            if(warn) {
+                // const fs = require('fs');
+                // fs.writeFile(filename, 'Hello World!', function (err) {
+                // if (err) return console.log(err);
+                //     console.log('Hello World > helloworld.txt');
+                // });
+                console.log("Sorry, writing grid files currently works in NODEJS mode only.")
+            }
             return
         }
         else{
             const fs = require('fs');
-            // fs.writeFile('helloworld.txt', 'Hello World!', function (err) {
-            // if (err) return console.log(err);
-            //     console.log('Hello World > helloworld.txt');
-            // });
             let string = ""
-            for(let i =0; i<model.nc;i++){
-                let row = []
-                
+            for(let i =0; i<model.nc;i++){                
                 for(let j=0;j<model.nr;j++){
-                    row.push(model.grid[i][j][property])
-                }
-                string += row.join(',')
-                string += "\n"                                
+                    let prop = model.grid[i][j][property] ? model.grid[i][j][property] : -1
+                    string += [i,j,prop].join('\t')+'\n'
+                }                                       
             }
             fs.appendFileSync(filename, string)            
         }
