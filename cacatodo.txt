@@ -2,6 +2,6 @@
 > remove WIP notes for checkpointing
 > add docstrings for checkpointing
 > unit testing for checkpointing
-
+> npm workflow (npm login, npm version, npm update)
 > FBA testing
 > Implement d3.js visualization like histograms / phylogenetic trees. 
