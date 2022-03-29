@@ -1,4 +1,5 @@
 (caca)TODO
+> change mersenne-twister dependency to fast-random
 > remove WIP notes for checkpointing
 > add docstrings for checkpointing
 > unit testing for checkpointing
