@@ -28,7 +28,9 @@ class Simulation {
 
         this.graph_interval = config.graph_interval = config.graph_interval || 10
         this.graph_update = config.graph_update= config.graph_update || 50
-        this.fps = config.fps * 1.4 || 60
+        this.fps = config.fps * 1.4 || 60 // Multiplied by 1.4 to adjust for overhead
+        this.fastmode = false
+        if(config.fastmode == true) this.fastmode = true
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = []            // All gridmodels in this simulation
         this.canvases = []              // Array with refs to all canvases (from all models) from this simulation
