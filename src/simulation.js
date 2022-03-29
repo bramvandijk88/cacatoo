@@ -37,6 +37,8 @@ class Simulation {
         this.inbrowser = (typeof document !== "undefined")        
         this.fpsmeter = false
         if(config.fpsmeter == true) this.fpsmeter = true
+        this.fastmode = false
+        if(config.fastmode == true) this.fastmode = true
         this.printcursor = true
         if(config.printcursor == false) this.printcursor = false        
     }
