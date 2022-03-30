@@ -2371,13 +2371,12 @@ class Simulation {
      *  @param {String} filename write to this filename
      */
      write(text, filename){
-         console.log("Test");
+         
         if (!this.inbrowser) {
-            const fs = require('fs');            
-            fs.writeFileSync(filename, text, function (err) {
-            if (err) return console.log(err);
-                 console.log(`Saving data to \'${filename}\'`);
-            });
+            let fs;
+            try { fs = require('fs'); }
+            catch(e){ console.warn(`[Cacatoo warning] Module 'fs' is not installed. Cannot write to \'${filename}\'. Please run 'npm install fs'`); return }           
+            fs.writeFileSync(filename, text);
         }
         else {            
             var element = document.createElement('a');
@@ -2395,17 +2394,16 @@ class Simulation {
      *  @param {String} text String to write
      *  @param {String} filename write to this filename
      */
-     write_append(text, filename){
+     write_append(text, filename){        
          if(this.inbrowser)
          {
              console.warn("Cacatoo warning: sorry, appending to files is not supported in browser mode.");
          }
          else {
-            const fs = require('fs');
-            fs.appendFileSync(filename, text, function (err) {
-            if (err) return console.log(err);
-                 console.log(`Saving data to \'${filename}\'`);
-            });
+            let fs;
+            try { fs = require('fs'); }
+            catch(e){ console.warn(`[Cacatoo warning] Module 'fs' is not installed. Cannot write to \'${filename}\'. Please run 'npm install fs'`); return }
+            fs.appendFileSync(filename, text);
          }        
     }
     
