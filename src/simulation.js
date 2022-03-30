@@ -1,6 +1,6 @@
 import Gridmodel from "./gridmodel"
 import Canvas from "./canvas"
-import MersenneTwister from '../lib/mersenne' 
+import random from '../lib/random'
 import * as utility from './utility'
 
 
@@ -18,8 +18,8 @@ class Simulation {
     constructor(config) {        
         if(config == undefined) config = {}
         this.config = config                
-        this.rng = new MersenneTwister(config.seed || 53);
-        
+        this.rng = this.setupRandom(config.seed)
+        // this.rng_old = new MersenneTwister(config.seed || 53);        
         this.sleep = config.sleep = config.sleep || 0
         this.maxtime = config.maxtime = config.maxtime || 1000000
         this.ncol = config.ncol = config.ncol || 100
@@ -53,6 +53,21 @@ class Simulation {
         let model = new Gridmodel(name, this.config, this.rng) // ,this.config.show_gridname weggecomment
         this[name] = model           // this = model["cheater"] = CA-obj
         this.gridmodels.push(model)
+    }
+
+    /**
+    * Set up the random number generator
+    * @param {int} seed Seed for fast-random module
+    */
+    setupRandom(seed){
+        let rng = random(seed)
+        rng.genrand_real1 = function () { return (rng.nextInt() - 1) / 2147483645 }         // Generate random number in [0,1] range        
+        rng.genrand_real2 = function () { return (rng.nextInt() - 1) / 2147483646 }         // Generate random number in [0,1) range        
+        rng.genrand_real3 = function () { return rng.nextInt() / 2147483647 }               // Generate random number in (0,1) range        
+        rng.genrand_int = function (min,max) { return min+ rng.nextInt() % (max-min+1) }    // Generate random integer between (and including) min and max    
+        rng.random = () => { return rng.genrand_real2() }        
+        rng.randomInt = () => { return rng.genrand_int() }                
+        return rng
     }
 
     /**
@@ -390,7 +405,9 @@ class Simulation {
         for (let arg = 2; arg < arguments.length; arg += 2)         // Parse remaining 2+ arguments to fill the grid           
             for (let i = 0; i < gridmodel.nc; i++)                        // i are columns
                 for (let j = 0; j < gridmodel.nr; j++)                    // j are rows
-                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];
+                {
+                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];                    
+                }
     }
     
      /**
@@ -674,12 +691,12 @@ class Simulation {
      *  @param {String} filename write to this filename
      */
      write(text, filename){
+         
         if (!this.inbrowser) {
-            const fs = require('fs')
-            fs.writeFileSync(filename, text, function (err) {
-            if (err) return console.log(err);
-                 console.log(`Saving data to \'${filename}\'`);
-            });
+            let fs
+            try { fs = require('fs') }
+            catch(e){ console.warn(`[Cacatoo warning] Module 'fs' is not installed. Cannot write to \'${filename}\'. Please run 'npm install fs'`); return }           
+            fs.writeFileSync(filename, text)
         }
         else{            
             var element = document.createElement('a');
@@ -697,17 +714,16 @@ class Simulation {
      *  @param {String} text String to write
      *  @param {String} filename write to this filename
      */
-     write_append(text, filename){
+     write_append(text, filename){        
          if(this.inbrowser)
          {
              console.warn("Cacatoo warning: sorry, appending to files is not supported in browser mode.")
          }
          else {
-            const fs = require('fs')
-            fs.appendFileSync(filename, text, function (err) {
-            if (err) return console.log(err);
-                 console.log(`Saving data to \'${filename}\'`);
-            });
+            let fs
+            try { fs = require('fs') }
+            catch(e){ console.warn(`[Cacatoo warning] Module 'fs' is not installed. Cannot write to \'${filename}\'. Please run 'npm install fs'`); return }
+            fs.appendFileSync(filename, text)
          }        
     }
     

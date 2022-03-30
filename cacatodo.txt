@@ -1,6 +1,12 @@
 (caca)TODO
 > change mersenne-twister dependency to fast-random
+
+To turn off npm audit when installing all packages
+
+npm set audit false
+
 > remove WIP notes for checkpointing
+> 2 grids flippen IPV copy grid
 > add docstrings for checkpointing
 > unit testing for checkpointing
 > npm workflow (npm login, npm version, npm update)

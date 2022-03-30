@@ -21,7 +21,7 @@
     /*-----------------------Start user-defined code ---------------------*/
 
     let sim;
-    var mutationrate = 0.0001;
+    var mutationrate = 0.00005;
     var cell_diffusion = 0;
     var death_rate_growing = 0.3;
     var mutations_required = 1;
@@ -41,11 +41,12 @@
             scale: 1,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
             graph_update: 20,
+            seed: 4129,
             statecolours: { alive: 'default' }   // The background state '0' is never drawn
         }
 
         sim = new Simulation(config)
-
+        
         sim.makeGridmodel("cells");
         sim.cells.statecolours.alive[0] = [255, 255, 255] // Change bg to white
         sim.cells.statecolours.alive[1] = [79, 31, 154] // Change WT 1 to white
@@ -60,10 +61,8 @@
 
         let birth_rate = 0.85        
 
-
         sim.cells.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish
-        {
-
+        {                        
             if (this.grid[i][j].alive == 0) {
                 let neighbour = this.randomMoore8(this, i, j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
                 if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate) {
