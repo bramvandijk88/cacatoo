@@ -335,8 +335,8 @@ class Gridmodel {
         this.grid = MakeGrid(this.nc, this.nr);       // Initialises an (empty) grid
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
-        this.random = () => { return this.rng.genrand_real2()};
-        this.randomInt = (a,b) => { return this.rng.genrand_int(a,b)};                
+        this.random = () => { return this.rng.random()};
+        this.randomInt = (a,b) => { return this.rng.randomInt(a,b)};                
         this.statecolours = this.setupColours(config.statecolours,config.num_colours); // Makes sure the statecolours in the config dict are parsed (see below)
         this.lims = {};
         this.scale = config.scale || 1;
@@ -591,7 +591,7 @@ class Gridmodel {
     */
     synchronous()                                               // Do one step (synchronous) of this grid
     {
-        let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid
+        let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid        
         let newstate = MakeGrid(this.nc, this.nr);               // New state == empty grid
 
         for (let i = 0; i < this.nc; i++) {
@@ -2656,12 +2656,4 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-
-    try
-    {
-        module.exports = Simulation;
-    }
-    catch(err)
-    {
-        // do nothing
-    }
+module.exports = Simulation;
