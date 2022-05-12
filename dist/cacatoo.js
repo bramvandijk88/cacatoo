@@ -591,7 +591,7 @@ class Gridmodel {
     */
     synchronous()                                               // Do one step (synchronous) of this grid
     {
-        let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid        
+        let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc, this.nr);               // New state == empty grid
 
         for (let i = 0; i < this.nc; i++) {
@@ -1643,6 +1643,10 @@ class Canvas {
             div.appendChild(this.legend);
         }
         
+    }
+    remove_legend()
+    {
+        this.legend.getContext("2d").clearRect(0, 0, this.legend.width, this.legend.height);
     }
 }
 
