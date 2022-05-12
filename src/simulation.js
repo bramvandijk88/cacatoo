@@ -115,11 +115,79 @@ class Simulation {
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
         cnv.add_legend(cnv.canvasdiv,property)
-        cnv.bgcolour = this.config.bgcolour
+        cnv.bgcolour = this.config.bgcolour || 'black'
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
         cnv.displaygrid()                
     }       
     
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
+    *                        These keys:value pairs are:
+    * @param {string} name The name of the model to display
+    * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    * @param {numeric}  minval colour scale is capped off below this value
+    * @param {numeric}  maxval colour scale is capped off above this value
+    * @param {integer} nticks how many ticks
+    * @param {integer} decimals how many decimals for tick labels
+    * @param {integer} num_colours how many steps in the colour gradient
+    * @param {string} fill type of gradient to use (viridis, inferno, red, green, blue)
+
+    */
+     createDisplay_discrete(config) {  
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:createDisplay_discrete, cannot create display in command-line mode.")
+            return
+        }
+        let name = config.model
+        
+        let property = config.property                 
+
+        let label = config.label
+        if (label == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
+        let gridmodel = this[name]
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        
+        let height = config.height || this[name].nr        
+        let width = config.width || this[name].nc
+        let scale = config.scale || this[name].scale               
+        
+        if(name==undefined || property == undefined) throw new Error("Cacatoo: can't make a display with out a 'name' and 'property'")        
+
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        if (height == undefined) height = gridmodel.nr
+        if (width == undefined) width = gridmodel.nc
+        if (scale == undefined) scale = gridmodel.scale
+
+        if(gridmodel.statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)                        
+            gridmodel.statecolours[property] = utility.default_colours(10)
+        } 
+        
+        let cnv = new Canvas(gridmodel, property, label, height, width, scale);
+        if(config.drawdots) {
+            cnv.displaygrid = cnv.displaygrid_dots
+            cnv.stroke = config.stroke 
+            cnv.strokeStyle = config.strokeStyle
+            cnv.strokeWidth = config.strokeWidth
+            cnv.radius = config.radius || 10
+            cnv.max_radius = config.max_radius || 10
+            cnv.scale_radius = config.scale_radius || 1
+            cnv.min_radius = config.min_radius || 0
+        }
+        gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
+        const canvas = cnv        
+        cnv.add_legend(cnv.canvasdiv,property)
+        cnv.bgcolour = this.config.bgcolour || 'black'
+        canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
+        cnv.displaygrid() 
+    }
+
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
@@ -175,7 +243,18 @@ class Simulation {
         
 
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
-        
+
+        if(config.drawdots) {
+            cnv.displaygrid = cnv.displaygrid_dots
+            cnv.stroke = config.stroke 
+            cnv.strokeStyle = config.strokeStyle
+            cnv.strokeWidth = config.strokeWidth
+            cnv.radius = config.radius || 10
+            cnv.max_radius = config.max_radius || 10
+            cnv.scale_radius = config.scale_radius || 1
+            cnv.min_radius = config.min_radius || 0
+        }
+
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         if (maxval !== undefined) cnv.maxval = maxval
         if (minval !== undefined) cnv.minval = minval
@@ -184,7 +263,7 @@ class Simulation {
         if (nticks !== undefined) cnv.nticks = nticks
         
         cnv.add_legend(cnv.canvasdiv,property) 
-        cnv.bgcolour = this.config.bgcolour
+        cnv.bgcolour = this.config.bgcolour || 'black'
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(cnv, e, scale) }, false)
@@ -234,7 +313,7 @@ class Simulation {
         context.drawImage(source_canvas.legend, 0, 0)
 
         cnv.canvasdiv.appendChild(newCanvas)
-        cnv.bgcolour = this.config.bgcolour
+        cnv.bgcolour = this.config.bgcolour || 'black'
     }
 
 
@@ -449,10 +528,9 @@ class Simulation {
     */
     initialSpot(gridmodel, property, value, size, x, y) {
         let p = property || 'val'
-        let bg = 0
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j < gridmodel.nr; j++) 
-                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = 0
+                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = undefined
         this.putSpot(gridmodel,property,value,size,x,y)
     }
 

@@ -335,8 +335,8 @@ class Gridmodel {
         this.grid = MakeGrid(this.nc, this.nr);       // Initialises an (empty) grid
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
-        this.random = () => { return this.rng.genrand_real2()};
-        this.randomInt = (a,b) => { return this.rng.genrand_int(a,b)};                
+        this.random = () => { return this.rng.random()};
+        this.randomInt = (a,b) => { return this.rng.randomInt(a,b)};                
         this.statecolours = this.setupColours(config.statecolours,config.num_colours); // Makes sure the statecolours in the config dict are parsed (see below)
         this.lims = {};
         this.scale = config.scale || 1;
@@ -1474,10 +1474,12 @@ class Canvas {
 
     }
 
+    
+
     /**
     *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
     */
-    displaygrid() {
+     displaygrid() {
         let ctx = this.ctx;
         let scale = this.scale;
         let ncol = this.width;
@@ -1547,6 +1549,84 @@ class Canvas {
             }
         }
         ctx.putImageData(id, 0, 0);
+    }
+
+    /**
+    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    */
+     displaygrid_dots() {
+        let ctx = this.ctx;
+        let scale = this.scale;
+        let ncol = this.width;
+        let nrow = this.height;
+        let prop = this.property;
+
+        if(this.spacetime){
+            ctx.fillStyle = this.bgcolour;
+            ctx.fillRect((this.phase%ncol)*scale, 0, scale, nrow * scale);
+        }
+        else {
+            ctx.clearRect(0, 0, scale * ncol, scale * nrow);        
+            ctx.fillStyle = this.bgcolour;
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale);         
+        }        
+
+        let start_col = this.offset_x;
+        let stop_col = start_col + ncol;
+        let start_row = this.offset_y;
+        let stop_row = start_row + nrow;
+
+        let statecols = this.statecolours[prop];
+        
+        for (let i = start_col; i < stop_col; i++)         // i are cols
+        {
+            for (let j = start_row; j< stop_row; j++)     // j are rows
+            {                     
+                if (!(prop in this.gridmodel.grid[i][j]))
+                    continue                     
+                
+               
+
+                let value = this.gridmodel.grid[i][j][prop];
+                let radius = this.scale_radius*(this.gridmodel.grid[i][j][this.radius] || this.radius);
+                radius = Math.max(Math.min(radius,this.max_radius),this.min_radius);
+                
+                if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
+                {                  
+                    value = Math.min(value+this.minval,this.maxval);
+                    let mult = this.num_colours/(this.maxval-this.minval);
+                    value = Math.max(Math.floor(value*mult),1);                     
+                }                
+
+                if (statecols[value] == undefined)                   // Don't draw the background state                 
+                    continue
+                
+                let idx; 
+                if (statecols.constructor == Object) {
+                    idx = statecols[value];
+                }
+                else idx = statecols;
+
+                // console.log(idx)
+                ctx.beginPath();
+                ctx.arc((i-this.offset_x) * scale + 0.5*scale, (j-this.offset_y) * scale + 0.5*scale, radius, 0, 2 * Math.PI, false);
+                ctx.fillStyle = 'rgb('+idx[0]+', '+idx[1]+', '+idx[2]+')';
+                // ctx.fillStyle = 'rgb(100,100,100)';
+                ctx.fill();
+                
+                if(this.stroke){
+                    ctx.lineWidth = this.strokeWidth;                   
+                    ctx.strokeStyle = this.strokeStyle;
+                    ctx.stroke();     
+                }
+                           
+            }
+            if(this.spacetime) {
+                this.phase = (this.phase+1);
+                break
+            }
+        }
+        // ctx.putImageData(id, 0, 0);
     }
 
     add_legend(div,property)
@@ -1643,6 +1723,10 @@ class Canvas {
             div.appendChild(this.legend);
         }
         
+    }
+    remove_legend()
+    {
+        this.legend.getContext("2d").clearRect(0, 0, this.legend.width, this.legend.height);
     }
 }
 
@@ -1797,11 +1881,79 @@ class Simulation {
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         const canvas = cnv;        
         cnv.add_legend(cnv.canvasdiv,property);
-        cnv.bgcolour = this.config.bgcolour;
+        cnv.bgcolour = this.config.bgcolour || 'black';
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale); }, false);
         cnv.displaygrid();                
     }       
     
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
+    *                        These keys:value pairs are:
+    * @param {string} name The name of the model to display
+    * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    * @param {numeric}  minval colour scale is capped off below this value
+    * @param {numeric}  maxval colour scale is capped off above this value
+    * @param {integer} nticks how many ticks
+    * @param {integer} decimals how many decimals for tick labels
+    * @param {integer} num_colours how many steps in the colour gradient
+    * @param {string} fill type of gradient to use (viridis, inferno, red, green, blue)
+
+    */
+     createDisplay_discrete(config) {  
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:createDisplay_discrete, cannot create display in command-line mode.");
+            return
+        }
+        let name = config.model;
+        
+        let property = config.property;                 
+
+        let label = config.label;
+        if (label == undefined) label = `${name} (${property})`; // <ID>_NAME_(PROPERTY)
+        let gridmodel = this[name];
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        
+        let height = config.height || this[name].nr;        
+        let width = config.width || this[name].nc;
+        let scale = config.scale || this[name].scale;               
+        
+        if(name==undefined || property == undefined) throw new Error("Cacatoo: can't make a display with out a 'name' and 'property'")        
+
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        if (height == undefined) height = gridmodel.nr;
+        if (width == undefined) width = gridmodel.nc;
+        if (scale == undefined) scale = gridmodel.scale;
+
+        if(gridmodel.statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`);                        
+            gridmodel.statecolours[property] = default_colours(10);
+        } 
+        
+        let cnv = new Canvas(gridmodel, property, label, height, width, scale);
+        if(config.drawdots) {
+            cnv.displaygrid = cnv.displaygrid_dots;
+            cnv.stroke = config.stroke; 
+            cnv.strokeStyle = config.strokeStyle;
+            cnv.strokeWidth = config.strokeWidth;
+            cnv.radius = config.radius || 10;
+            cnv.max_radius = config.max_radius || 10;
+            cnv.scale_radius = config.scale_radius || 1;
+            cnv.min_radius = config.min_radius || 0;
+        }
+        gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv);  // Add a reference to the canvas to the sim
+        const canvas = cnv;        
+        cnv.add_legend(cnv.canvasdiv,property);
+        cnv.bgcolour = this.config.bgcolour || 'black';
+        canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale); }, false);
+        cnv.displaygrid(); 
+    }
+
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
@@ -1857,7 +2009,18 @@ class Simulation {
         
 
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
-        
+
+        if(config.drawdots) {
+            cnv.displaygrid = cnv.displaygrid_dots;
+            cnv.stroke = config.stroke; 
+            cnv.strokeStyle = config.strokeStyle;
+            cnv.strokeWidth = config.strokeWidth;
+            cnv.radius = config.radius || 10;
+            cnv.max_radius = config.max_radius || 10;
+            cnv.scale_radius = config.scale_radius || 1;
+            cnv.min_radius = config.min_radius || 0;
+        }
+
         gridmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
         if (maxval !== undefined) cnv.maxval = maxval;
         if (minval !== undefined) cnv.minval = minval;
@@ -1866,7 +2029,7 @@ class Simulation {
         if (nticks !== undefined) cnv.nticks = nticks;
         
         cnv.add_legend(cnv.canvasdiv,property); 
-        cnv.bgcolour = this.config.bgcolour;
+        cnv.bgcolour = this.config.bgcolour || 'black';
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         const canvas = cnv;        
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(cnv, e, scale); }, false);
@@ -1915,7 +2078,7 @@ class Simulation {
         context.drawImage(source_canvas.legend, 0, 0);
 
         cnv.canvasdiv.appendChild(newCanvas);
-        cnv.bgcolour = this.config.bgcolour;
+        cnv.bgcolour = this.config.bgcolour || 'black';
     }
 
 
@@ -2132,7 +2295,7 @@ class Simulation {
         let p = property || 'val';
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j < gridmodel.nr; j++) 
-                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = 0;
+                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = undefined;
         this.putSpot(gridmodel,property,value,size,x,y);
     }
 

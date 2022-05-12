@@ -49,10 +49,12 @@ class Canvas {
 
     }
 
+    
+
     /**
     *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
     */
-    displaygrid() {
+     displaygrid() {
         let ctx = this.ctx
         let scale = this.scale
         let ncol = this.width
@@ -122,6 +124,84 @@ class Canvas {
             }
         }
         ctx.putImageData(id, 0, 0);
+    }
+
+    /**
+    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    */
+     displaygrid_dots() {
+        let ctx = this.ctx
+        let scale = this.scale
+        let ncol = this.width
+        let nrow = this.height
+        let prop = this.property
+
+        if(this.spacetime){
+            ctx.fillStyle = this.bgcolour
+            ctx.fillRect((this.phase%ncol)*scale, 0, scale, nrow * scale)
+        }
+        else{
+            ctx.clearRect(0, 0, scale * ncol, scale * nrow)        
+            ctx.fillStyle = this.bgcolour
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale)         
+        }        
+
+        let start_col = this.offset_x
+        let stop_col = start_col + ncol
+        let start_row = this.offset_y
+        let stop_row = start_row + nrow
+
+        let statecols = this.statecolours[prop]
+        
+        for (let i = start_col; i < stop_col; i++)         // i are cols
+        {
+            for (let j = start_row; j< stop_row; j++)     // j are rows
+            {                     
+                if (!(prop in this.gridmodel.grid[i][j]))
+                    continue                     
+                
+               
+
+                let value = this.gridmodel.grid[i][j][prop]
+                let radius = this.scale_radius*(this.gridmodel.grid[i][j][this.radius] || this.radius)
+                radius = Math.max(Math.min(radius,this.max_radius),this.min_radius)
+                
+                if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
+                {                  
+                    value = Math.min(value+this.minval,this.maxval)
+                    let mult = this.num_colours/(this.maxval-this.minval)
+                    value = Math.max(Math.floor(value*mult),1)                     
+                }                
+
+                if (statecols[value] == undefined)                   // Don't draw the background state                 
+                    continue
+                
+                let idx 
+                if (statecols.constructor == Object) {
+                    idx = statecols[value]
+                }
+                else idx = statecols
+
+                // console.log(idx)
+                ctx.beginPath()
+                ctx.arc((i-this.offset_x) * scale + 0.5*scale, (j-this.offset_y) * scale + 0.5*scale, radius, 0, 2 * Math.PI, false)
+                ctx.fillStyle = 'rgb('+idx[0]+', '+idx[1]+', '+idx[2]+')';
+                // ctx.fillStyle = 'rgb(100,100,100)';
+                ctx.fill()
+                
+                if(this.stroke){
+                    ctx.lineWidth = this.strokeWidth                   
+                    ctx.strokeStyle = this.strokeStyle;
+                    ctx.stroke()     
+                }
+                           
+            }
+            if(this.spacetime) {
+                this.phase = (this.phase+1)
+                break
+            }
+        }
+        // ctx.putImageData(id, 0, 0);
     }
 
     add_legend(div,property)
