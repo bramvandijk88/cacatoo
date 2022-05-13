@@ -1592,10 +1592,10 @@ class Canvas {
                 radius = Math.max(Math.min(radius,this.max_radius),this.min_radius);
                 
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
-                {                  
-                    value = Math.min(value+this.minval,this.maxval);
+                {                                      
+                    value = Math.max(value,this.minval) - this.minval;
                     let mult = this.num_colours/(this.maxval-this.minval);
-                    value = Math.max(Math.floor(value*mult),1);                     
+                    value = Math.min(this.num_colours,Math.max(Math.floor(value*mult),1));
                 }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state                 

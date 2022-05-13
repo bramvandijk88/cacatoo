@@ -55,6 +55,7 @@
         sim.cells.statecolours.alive[3] = [100, 100, 255] // Change mutant 3 to light blue 
         
         sim.createDisplay("cells", "alive", "Colony growth (colours = #mutations)")
+        
         sim.makeGridmodel("cells_wellmixed");
         sim.cells_wellmixed.statecolours = sim.cells.statecolours
         sim.createDisplay("cells_wellmixed", "alive", "Well-mixed population (colours = #mutations)")
