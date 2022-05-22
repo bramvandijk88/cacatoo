@@ -1,0 +1,121 @@
+<!-- 
+
+    EXAMPLE FILE 01: Game of Life
+    This file shows the most easy use-case for the Cacatoo library, and 
+    illustrates it's core functionality with Conways Game of Life. 
+
+    It simply load the library and other dependencies using <script>
+    tags, load some CSS-stylesheets for the GUI, and than starts 
+    with defining the model. 
+    
+-->
+
+<!--  ---------------Do not change the part below ------------------  -->
+
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+
+/**
+* function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+*/
+function cacatoo(){
+    /*
+        1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+    */
+    let config = {
+        title: "Game of Life",                       // The name of your cacatoo-simulation
+        description: "Conway's Game of Life",        // And a description if you wish
+        maxtime: 1000000,                            // How many time steps the model continues to run
+        fastmode: true,                             // If possible, fast-mode will update the model more than once before displaying the grid
+                                                     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+        ncol: 50,                                   // Number of columns (width of your grid)
+        nrow: 50,		                             // Number of rows (height of your grid)        
+        wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
+        scale: 10,				                     // Scale of the grid (nxn pixels per grid point)
+        statecolours: { 'alive': { 1: 'grey' } },   // Colours for each state. Background (0) defaults to black. 
+    }
+
+    /*
+        1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+    */
+    sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+    
+    sim.makeGridmodel("gol")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
+    sim.initialGrid(sim.gol, 'alive', 1, 0.5)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
+    sim.createDisplay_discrete({model:"gol",property:"alive",label:"Game of life (white=alive)",drawdots:true,radius:5})                      // Create a display so we can see our newly made gridmodel
+
+    /*
+        2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+    */
+    sim.gol.nextState = function (i, j) {
+        
+        // This example uses the rules of game of life, which has the following three rules:
+        // i) A living cell surrounded by two or three living cells, stays alive. 
+        // ii) A living cell surrounded by any other number of cells, dies.
+        // iii) A dead cell surrounded by exactly three living cells, becomes alive. 
+
+        // Variable that refers to the current gridpoint ('this' is a way to refer to the current class, which in the nextState is the current 'Gridmodel'). 
+        // You don't have to do this, you can also keep referring to this.grid[i][j] every time you need the grid point, but this is more readible. :)
+        let gridpoint = this.grid[i][j]         
+
+        // So, first we need to know how many cells are alive around a grid point
+        let neighbours = sim.gol.countMoore8(this, i, j,'alive',1)              // In the Moore8 neighbourhood of this GridModel (CA) count # of 1's for the 'alive' property        
+        // Then, let's see if this cell is dead or alive
+        let state = gridpoint.alive
+
+        // Then, apply the rules of game of life shown above
+        if (state == 0 && neighbours == 3)
+            gridpoint.alive = 1
+        else if (state == 1 && (neighbours < 2 || neighbours > 3))
+            gridpoint.alive = 0
+        else
+            gridpoint.alive = state
+    }
+
+    /*
+        3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+        applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+    */
+    sim.gol.update = function () {
+        this.synchronous()         // Applied as many times as it can in 1/60th of a second
+    }
+
+    /*
+        OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+    */
+    sim.addPatternButton(sim.gol, 'alive')  // Note, for security reasons, this needs a local server to be run (try VSC's 'live server' plugin!)
+    sim.addButton("pause/continue", function () { sim.toggle_play() })
+    sim.addButton("step", function () { sim.step(); sim.display() })
+    sim.modifysleep = function(newvalue) { this.sleep = newvalue}
+    sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
+    sim.start()
+
+}
+
+
+/*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>
