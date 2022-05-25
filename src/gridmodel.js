@@ -974,7 +974,7 @@ class Gridmodel {
         timestamp = timestamp.padStart(5, "0")
         canvas.toBlob(function(blob) 
         {
-            saveAs(blob, "my_slide"+timestamp+".png");
+            saveAs(blob, prefix+timestamp+".png");
         });
     }
 
