@@ -57,7 +57,7 @@
         //sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
         
         sim.createDisplay_continuous({model:"growth", property:"internal_resources", label:"Internal resources", // Createa a display for a continuous variable (ODE state for external resources)
-                            minval:0, maxval:1, num_colours: 100, decimals: 2, fill:"viridis",
+                            minval:0.5, maxval:1, num_colours: 100, decimals: 2, fill:"viridis",
                             drawdots:true, stroke:true, strokeStyle: 'yellow', strokeWidth: 2,
                             radius:"internal_resources", min_radius: 1, max_radius:6, scale_radius: 5            
                             })         

@@ -1578,6 +1578,7 @@ class Canvas {
 
         let statecols = this.statecolours[prop];
         
+        
         for (let i = start_col; i < stop_col; i++)         // i are cols
         {
             for (let j = start_row; j< stop_row; j++)     // j are rows
@@ -1588,9 +1589,13 @@ class Canvas {
                
 
                 let value = this.gridmodel.grid[i][j][prop];
-                let radius = this.scale_radius*(this.gridmodel.grid[i][j][this.radius] || this.radius);
-                radius = Math.max(Math.min(radius,this.max_radius),this.min_radius);
+
+                let radius = this.scale_radius*this.radius;
                 
+                if(isNaN(radius)) radius = this.scale_radius*this.gridmodel.grid[i][j][this.radius];                
+                if(isNaN(radius)) radius = this.min_radius;
+                radius = Math.max(Math.min(radius,this.max_radius),this.min_radius);
+
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
                 {                                      
                     value = Math.max(value,this.minval) - this.minval;
@@ -1607,7 +1612,6 @@ class Canvas {
                 }
                 else idx = statecols;
 
-                // console.log(idx)
                 ctx.beginPath();
                 ctx.arc((i-this.offset_x) * scale + 0.5*scale, (j-this.offset_y) * scale + 0.5*scale, radius, 0, 2 * Math.PI, false);
                 ctx.fillStyle = 'rgb('+idx[0]+', '+idx[1]+', '+idx[2]+')';
@@ -1620,10 +1624,6 @@ class Canvas {
                     ctx.stroke();     
                 }
                            
-            }
-            if(this.spacetime) {
-                this.phase = (this.phase+1);
-                break
             }
         }
         // ctx.putImageData(id, 0, 0);
@@ -1655,12 +1655,12 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = Math.ceil(this.num_colours*i/bar_width)+this.minval;
-                if(statecols[val] == undefined) {                    
+                let colval = Math.ceil(this.num_colours*i/bar_width);
+                if(statecols[colval] == undefined) {                    
                     ctx.fillStyle = this.bgcolor;
                 }
                 else {                    
-                    ctx.fillStyle = rgbToHex(statecols[val]);
+                    ctx.fillStyle = rgbToHex(statecols[colval]);
                 }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();

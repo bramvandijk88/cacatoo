@@ -1578,7 +1578,7 @@ class Canvas {
 
         let statecols = this.statecolours[prop];
         
-
+        
         for (let i = start_col; i < stop_col; i++)         // i are cols
         {
             for (let j = start_row; j< stop_row; j++)     // j are rows
@@ -1593,7 +1593,7 @@ class Canvas {
                 let radius = this.scale_radius*this.radius;
                 
                 if(isNaN(radius)) radius = this.scale_radius*this.gridmodel.grid[i][j][this.radius];                
-                if(isNaN(radius)) radius = 0.0;
+                if(isNaN(radius)) radius = this.min_radius;
                 radius = Math.max(Math.min(radius,this.max_radius),this.min_radius);
 
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
@@ -1655,12 +1655,12 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = Math.ceil(this.num_colours*i/bar_width)+this.minval;
-                if(statecols[val] == undefined) {                    
+                let colval = Math.ceil(this.num_colours*i/bar_width);
+                if(statecols[colval] == undefined) {                    
                     ctx.fillStyle = this.bgcolor;
                 }
                 else {                    
-                    ctx.fillStyle = rgbToHex(statecols[val]);
+                    ctx.fillStyle = rgbToHex(statecols[colval]);
                 }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
@@ -2819,4 +2819,12 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-module.exports = Simulation;
+
+    try
+    {
+        module.exports = Simulation;
+    }
+    catch(err)
+    {
+        // do nothing
+    }

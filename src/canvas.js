@@ -230,12 +230,12 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = Math.ceil(this.num_colours*i/bar_width)+this.minval
-                if(statecols[val] == undefined) {                    
+                let colval = Math.ceil(this.num_colours*i/bar_width)
+                if(statecols[colval] == undefined) {                    
                     ctx.fillStyle = this.bgcolor
                 }
                 else {                    
-                    ctx.fillStyle = rgbToHex(statecols[val])
+                    ctx.fillStyle = rgbToHex(statecols[colval])
                 }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
