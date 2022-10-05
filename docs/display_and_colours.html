@@ -171,14 +171,17 @@
 <br>
                 <h2> Setting up a display for continuous variables:</h2>
 
-                Because setting up a continuous display has many more parameters, one instead passes a configuration object (much like how the simulation is configured), as seen in 
+                Because setting up a display can sometimes have many more parameters, one can instead passes a configuration object (much like how the simulation is configured), as seen in 
                 the example "ode_turing.html":
-                
-                .colourViridis("activator", 100)
-                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.turing.colourViridis<span class="signature">("activator",100)</span><span class="type-signature"></span></h5>
+                                
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.turing.colourViridis<span class="signature">("activator",100)</span><span class="type-signature"></span></h5>                
                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100})</span><span class="type-signature"></span></h5>
                 <br>Or you can combine these two line by passing a "fill" to the last function:
                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100, num_colours: 100, fill:"viridis", na_colour: 'black'})</span><span class="type-signature"></span></h5>
+                <br>You can also draw dots, instead of pixels:
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100, num_colours: 100, fill:"viridis", na_colour: 'black', drawdots:true, stroke:true, strokeStyle: 'yellow', strokeWidth: 2, radius:"internal_resources", min_radius: 1, max_radius:6, scale_radius: 5})</span><span class="type-signature"></span></h5>
+                <br>This way of setting up displays also works for discrete variables, like in Game of Life:
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_discrete<span class="signature"></span>({model:"gol",property:"alive",label:"Game of life (white=alive)",drawdots:true,radius:5})</span><span class="type-signature"></span></h5>
                 <br>
             
                 <h2> Setting up space-time plot:</h2>

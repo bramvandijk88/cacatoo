@@ -1,0 +1,135 @@
+<!-- 
+
+    EXAMPLE FILE Petri dish
+
+    Simple colony growth on a petri dish. To make things a little bit more 
+    interesting, the "wild type" has an elevated death rate, which can be 
+    fixed by mutations. You may notice how many more mutants accumulate
+    whent he colony grows on a petri dish rather than in the well-mixed
+    control. This phenomena is called "allele surfing", and is explained in
+    this paper: https://www.nature.com/articles/ncomms12760
+
+-->
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim;
+    var mutationrate = 0.002;
+    var cell_diffusion = 0;
+    var death_rate_growing = 0.3;
+    var mutations_required = 1;
+    function cacatoo() {
+
+        let config = {
+            title: "Petridish with local growth",
+            description: "(mutational rescue of elevated death rate)",
+            maxtime: 10000000,
+            fastmode: false,             // If possible, fast-mode will update the sim with more than 60 FPS. 
+            // Note: fastmode is only useful/recommended if the sim can readily run 
+            // at 60FPS without fast-mode, and may actually reduce the reported FPS
+            // Nevertheless, the final state of the grid is reaches sooner in real time. 
+            ncol: 100,
+            nrow: 100,		            // dimensions of the grid to build
+            wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
+            scale: 8,				    // scale of the grid (nxn pixels per grid cell)
+            graph_interval: 10,
+            graph_update: 20,
+            seed: 2,
+            statecolours: { alive: 'default' }   // The background state '0' is never drawn
+        }
+
+        sim = new Simulation(config)
+        
+        sim.makeGridmodel("cells");
+        // sim.cells.statecolours.alive[0] = [255, 255, 255] // Change bg to white
+        sim.cells.statecolours.alive[1] = [79, 31, 154] // Change WT 1 to white
+        sim.cells.statecolours.alive[2] = [228, 178, 36] // Change mutant 1 to gold
+        sim.cells.statecolours.alive[3] = [32, 100, 100] // Change mutant 2 to dark-turquoise
+        sim.cells.statecolours.alive[3] = [100, 100, 255] // Change mutant 3 to light blue 
+        
+        // sim.createDisplay("cells", "alive", "Colony growth (colours = #mutations)")
+        sim.createDisplay_discrete({model:"cells",property:"alive",label:"Colony growth (colours = #mutations)",
+                                    drawdots:true, stroke:false, radius:"age", max_radius:4})                      // Create a display so we can see our newly made gridmodel
+
+        
+        let birth_rate = 0.85        
+
+        sim.cells.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish
+        {                        
+            if (this.grid[i][j].alive == undefined) {
+                let neighbour = this.randomMoore8(this, i, j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
+                if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate) {
+                    this.grid[i][j].alive = neighbour.alive
+                    if (sim.rng.genrand_real1() < mutationrate) this.grid[i][j].alive = (this.grid[i][j].alive + 1) % 19
+                }
+            }
+            else {
+                if (this.grid[i][j].age < 10 && this.grid[i][j].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
+                    this.grid[i][j].alive = undefined
+                else
+                    this.grid[i][j].age++
+            }
+        }
+
+        
+
+
+        sim.cells.update = function () {
+            this.synchronous()         // Applied as many times as it can in 1/60th of a second
+            for (let i = 0; i < cell_diffusion; i++) this.MargolusDiffusion()
+            this.plotPopsizes('alive', [1, 2, 3])
+        }
+
+      
+
+        sim.cells.reset = function () {
+            sim.initialSpot(sim.cells, 'alive', 1, 2, sim.cells.nr / 2, sim.cells.nc / 2)      
+            sim.initialGrid(sim.cells, 'age', 0, 1.0)
+      
+        }
+
+        sim.cells.reset()
+
+        sim.cells.bottleneck = function () {
+            for (let i = 0; i < this.nc; i++)
+                for (let j = 0; j < this.nr; j++)
+                    if (this.rng.genrand_real1() < 0.999) this.grid[i][j].alive = 0
+        }
+
+        sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"
+        sim.addButton("mix once", function () { sim.cells.perfectMix() })            // Add a button that calls function "perfectMix" in "model.cheater"    
+        sim.addButton("well-mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addButton("bottleneck", function () { sim.cells.bottleneck() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addButton("reset", function () { sim.cells.reset() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+        sim.addHTML("form_holder", "<br>")
+        sim.addSlider("mutationrate", 0.0, 0.01, 0.0001)
+        sim.addSlider("death_rate_growing", 0.0, 1.0, 0.01)
+        sim.addSlider("cell_diffusion", 0, 10, 1)
+        sim.addSlider("mutations_required", 0, 10, 1)
+
+        sim.start()
+    }
+
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>ModelJS - </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

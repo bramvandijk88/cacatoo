@@ -20,7 +20,7 @@
         var helper_rate_cooperator = 0.5    // Determines how much help a 'cooperative' individual gives to its neighbours
         var helper_rate_cheater = 0.01      // Determines how much help a 'cheating' individual gives to its neighbours
         var death = 0.05                    // Determines how often an individual spontaneously dies, making a new spot available
-        var movement = 1              // Determines how much individuals 'move around'
+        var movement = 0.5              // Determines how much individuals 'move around'
         
         /**
         * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
@@ -109,7 +109,8 @@
             sim.coop.update = function () {
                 this.apply_sync(calculatefitness)
                 this.synchronous()                                              // Update all grid points based on the next-state function (defined above)
-                for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
+                if(movement>=1) for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
+                else if(this.time%Math.floor(1/movement)==0) this.MargolusDiffusion()
                 this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
                 
             }
@@ -157,7 +158,7 @@
             sim.addButton("Well mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
             sim.addButton("Catastrophe!", function () {sim.coop.bottleneck() })
             sim.addButton("Restart", function () {sim.initialise() })
-            sim.addSlider("movement", 0,10,1, "Movement rate")    
+            sim.addSlider("movement", 0,10,0.1, "Movement rate")    
             sim.addSlider("death", 0.005, 1.00, 0.001, "Death rate")
         
             sim.initialise()

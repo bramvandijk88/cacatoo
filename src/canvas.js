@@ -49,10 +49,12 @@ class Canvas {
 
     }
 
+    
+
     /**
     *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
     */
-    displaygrid() {
+     displaygrid() {
         let ctx = this.ctx
         let scale = this.scale
         let ncol = this.width
@@ -124,6 +126,84 @@ class Canvas {
         ctx.putImageData(id, 0, 0);
     }
 
+    /**
+    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    */
+     displaygrid_dots() {
+        let ctx = this.ctx
+        let scale = this.scale
+        let ncol = this.width
+        let nrow = this.height
+        let prop = this.property
+
+        if(this.spacetime){
+            ctx.fillStyle = this.bgcolour
+            ctx.fillRect((this.phase%ncol)*scale, 0, scale, nrow * scale)
+        }
+        else{
+            ctx.clearRect(0, 0, scale * ncol, scale * nrow)        
+            ctx.fillStyle = this.bgcolour
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale)         
+        }        
+
+        let start_col = this.offset_x
+        let stop_col = start_col + ncol
+        let start_row = this.offset_y
+        let stop_row = start_row + nrow
+
+        let statecols = this.statecolours[prop]
+        
+        
+        for (let i = start_col; i < stop_col; i++)         // i are cols
+        {
+            for (let j = start_row; j< stop_row; j++)     // j are rows
+            {                     
+                if (!(prop in this.gridmodel.grid[i][j]))
+                    continue                     
+                
+               
+
+                let value = this.gridmodel.grid[i][j][prop]
+
+                let radius = this.scale_radius*this.radius
+                
+                if(isNaN(radius)) radius = this.scale_radius*this.gridmodel.grid[i][j][this.radius]                
+                if(isNaN(radius)) radius = this.min_radius
+                radius = Math.max(Math.min(radius,this.max_radius),this.min_radius)
+
+                if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
+                {                                      
+                    value = Math.max(value,this.minval) - this.minval
+                    let mult = this.num_colours/(this.maxval-this.minval)
+                    value = Math.min(this.num_colours,Math.max(Math.floor(value*mult),1))
+                }                
+
+                if (statecols[value] == undefined)                   // Don't draw the background state                 
+                    continue
+                
+                let idx 
+                if (statecols.constructor == Object) {
+                    idx = statecols[value]
+                }
+                else idx = statecols
+
+                ctx.beginPath()
+                ctx.arc((i-this.offset_x) * scale + 0.5*scale, (j-this.offset_y) * scale + 0.5*scale, radius, 0, 2 * Math.PI, false)
+                ctx.fillStyle = 'rgb('+idx[0]+', '+idx[1]+', '+idx[2]+')';
+                // ctx.fillStyle = 'rgb(100,100,100)';
+                ctx.fill()
+                
+                if(this.stroke){
+                    ctx.lineWidth = this.strokeWidth                   
+                    ctx.strokeStyle = this.strokeStyle;
+                    ctx.stroke()     
+                }
+                           
+            }
+        }
+        // ctx.putImageData(id, 0, 0);
+    }
+
     add_legend(div,property)
     {
         if (typeof document == "undefined") return
@@ -150,12 +230,12 @@ class Canvas {
             
             for(let i=0;i<bar_width;i++)
             {
-                let val = Math.ceil(this.num_colours*i/bar_width)+this.minval
-                if(statecols[val] == undefined) {                    
+                let colval = Math.ceil(this.num_colours*i/bar_width)
+                if(statecols[colval] == undefined) {                    
                     ctx.fillStyle = this.bgcolor
                 }
                 else {                    
-                    ctx.fillStyle = rgbToHex(statecols[val])
+                    ctx.fillStyle = rgbToHex(statecols[colval])
                 }
                 ctx.fillRect(offset+i, 10, 1, 10);                
                 ctx.closePath();
@@ -218,6 +298,10 @@ class Canvas {
             div.appendChild(this.legend)
         }
         
+    }
+    remove_legend()
+    {
+        this.legend.getContext("2d").clearRect(0, 0, this.legend.width, this.legend.height);
     }
 }
 

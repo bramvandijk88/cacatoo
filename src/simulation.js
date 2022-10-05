@@ -1,6 +1,6 @@
 import Gridmodel from "./gridmodel"
 import Canvas from "./canvas"
-import MersenneTwister from '../lib/mersenne' 
+import random from '../lib/random'
 import * as utility from './utility'
 
 
@@ -18,8 +18,8 @@ class Simulation {
     constructor(config) {        
         if(config == undefined) config = {}
         this.config = config                
-        this.rng = new MersenneTwister(config.seed || 53);
-        
+        this.rng = this.setupRandom(config.seed)
+        // this.rng_old = new MersenneTwister(config.seed || 53);        
         this.sleep = config.sleep = config.sleep || 0
         this.maxtime = config.maxtime = config.maxtime || 1000000
         this.ncol = config.ncol = config.ncol || 100
@@ -39,6 +39,8 @@ class Simulation {
         this.inbrowser = (typeof document !== "undefined")        
         this.fpsmeter = false
         if(config.fpsmeter == true) this.fpsmeter = true
+        this.fastmode = false
+        if(config.fastmode == true) this.fastmode = true
         this.printcursor = true
         if(config.printcursor == false) this.printcursor = false        
     }
@@ -53,6 +55,21 @@ class Simulation {
         let model = new Gridmodel(name, this.config, this.rng) // ,this.config.show_gridname weggecomment
         this[name] = model           // this = model["cheater"] = CA-obj
         this.gridmodels.push(model)
+    }
+
+    /**
+    * Set up the random number generator
+    * @param {int} seed Seed for fast-random module
+    */
+    setupRandom(seed){
+        let rng = random(seed)
+        rng.genrand_real1 = function () { return (rng.nextInt() - 1) / 2147483645 }         // Generate random number in [0,1] range        
+        rng.genrand_real2 = function () { return (rng.nextInt() - 1) / 2147483646 }         // Generate random number in [0,1) range        
+        rng.genrand_real3 = function () { return rng.nextInt() / 2147483647 }               // Generate random number in (0,1) range        
+        rng.genrand_int = function (min,max) { return min+ rng.nextInt() % (max-min+1) }    // Generate random integer between (and including) min and max    
+        rng.random = () => { return rng.genrand_real2() }        
+        rng.randomInt = () => { return rng.genrand_int() }                
+        return rng
     }
 
     /**
@@ -100,11 +117,79 @@ class Simulation {
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
         cnv.add_legend(cnv.canvasdiv,property)
-        cnv.bgcolour = this.config.bgcolour
+        cnv.bgcolour = this.config.bgcolour || 'black'
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
         cnv.displaygrid()                
     }       
     
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
+    *                        These keys:value pairs are:
+    * @param {string} name The name of the model to display
+    * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    * @param {numeric}  minval colour scale is capped off below this value
+    * @param {numeric}  maxval colour scale is capped off above this value
+    * @param {integer} nticks how many ticks
+    * @param {integer} decimals how many decimals for tick labels
+    * @param {integer} num_colours how many steps in the colour gradient
+    * @param {string} fill type of gradient to use (viridis, inferno, red, green, blue)
+
+    */
+     createDisplay_discrete(config) {  
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:createDisplay_discrete, cannot create display in command-line mode.")
+            return
+        }
+        let name = config.model
+        
+        let property = config.property                 
+
+        let label = config.label
+        if (label == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
+        let gridmodel = this[name]
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        
+        let height = config.height || this[name].nr        
+        let width = config.width || this[name].nc
+        let scale = config.scale || this[name].scale               
+        
+        if(name==undefined || property == undefined) throw new Error("Cacatoo: can't make a display with out a 'name' and 'property'")        
+
+        if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+        if (height == undefined) height = gridmodel.nr
+        if (width == undefined) width = gridmodel.nc
+        if (scale == undefined) scale = gridmodel.scale
+
+        if(gridmodel.statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)                        
+            gridmodel.statecolours[property] = utility.default_colours(10)
+        } 
+        
+        let cnv = new Canvas(gridmodel, property, label, height, width, scale);
+        if(config.drawdots) {
+            cnv.displaygrid = cnv.displaygrid_dots
+            cnv.stroke = config.stroke 
+            cnv.strokeStyle = config.strokeStyle
+            cnv.strokeWidth = config.strokeWidth
+            cnv.radius = config.radius || 10
+            cnv.max_radius = config.max_radius || 10
+            cnv.scale_radius = config.scale_radius || 1
+            cnv.min_radius = config.min_radius || 0
+        }
+        gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
+        const canvas = cnv        
+        cnv.add_legend(cnv.canvasdiv,property)
+        cnv.bgcolour = this.config.bgcolour || 'black'
+        canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
+        cnv.displaygrid() 
+    }
+
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
@@ -160,7 +245,18 @@ class Simulation {
         
 
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
-        
+
+        if(config.drawdots) {
+            cnv.displaygrid = cnv.displaygrid_dots
+            cnv.stroke = config.stroke 
+            cnv.strokeStyle = config.strokeStyle
+            cnv.strokeWidth = config.strokeWidth
+            cnv.radius = config.radius || 10
+            cnv.max_radius = config.max_radius || 10
+            cnv.scale_radius = config.scale_radius || 1
+            cnv.min_radius = config.min_radius || 0
+        }
+
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         if (maxval !== undefined) cnv.maxval = maxval
         if (minval !== undefined) cnv.minval = minval
@@ -169,7 +265,7 @@ class Simulation {
         if (nticks !== undefined) cnv.nticks = nticks
         
         cnv.add_legend(cnv.canvasdiv,property) 
-        cnv.bgcolour = this.config.bgcolour
+        cnv.bgcolour = this.config.bgcolour || 'black'
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(cnv, e, scale) }, false)
@@ -219,7 +315,7 @@ class Simulation {
         context.drawImage(source_canvas.legend, 0, 0)
 
         cnv.canvasdiv.appendChild(newCanvas)
-        cnv.bgcolour = this.config.bgcolour
+        cnv.bgcolour = this.config.bgcolour || 'black'
     }
 
 
@@ -390,7 +486,9 @@ class Simulation {
         for (let arg = 2; arg < arguments.length; arg += 2)         // Parse remaining 2+ arguments to fill the grid           
             for (let i = 0; i < gridmodel.nc; i++)                        // i are columns
                 for (let j = 0; j < gridmodel.nr; j++)                    // j are rows
-                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];
+                {
+                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];                    
+                }
     }
     
      /**
@@ -432,10 +530,9 @@ class Simulation {
     */
     initialSpot(gridmodel, property, value, size, x, y) {
         let p = property || 'val'
-        let bg = 0
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j < gridmodel.nr; j++) 
-                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = 0
+                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = undefined
         this.putSpot(gridmodel,property,value,size,x,y)
     }
 
@@ -674,12 +771,12 @@ class Simulation {
      *  @param {String} filename write to this filename
      */
      write(text, filename){
+         
         if (!this.inbrowser) {
-            const fs = require('fs')
-            fs.writeFileSync(filename, text, function (err) {
-            if (err) return console.log(err);
-                 console.log(`Saving data to \'${filename}\'`);
-            });
+            let fs
+            try { fs = require('fs') }
+            catch(e){ console.warn(`[Cacatoo warning] Module 'fs' is not installed. Cannot write to \'${filename}\'. Please run 'npm install fs'`); return }           
+            fs.writeFileSync(filename, text)
         }
         else{            
             var element = document.createElement('a');
@@ -697,17 +794,16 @@ class Simulation {
      *  @param {String} text String to write
      *  @param {String} filename write to this filename
      */
-     write_append(text, filename){
+     write_append(text, filename){        
          if(this.inbrowser)
          {
              console.warn("Cacatoo warning: sorry, appending to files is not supported in browser mode.")
          }
          else {
-            const fs = require('fs')
-            fs.appendFileSync(filename, text, function (err) {
-            if (err) return console.log(err);
-                 console.log(`Saving data to \'${filename}\'`);
-            });
+            let fs
+            try { fs = require('fs') }
+            catch(e){ console.warn(`[Cacatoo warning] Module 'fs' is not installed. Cannot write to \'${filename}\'. Please run 'npm install fs'`); return }
+            fs.appendFileSync(filename, text)
          }        
     }
     

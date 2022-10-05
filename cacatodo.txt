@@ -1,5 +1,7 @@
 (caca)TODO
+> better copy/swapping functions (gp as input rather than i,j, or just one function to swap)
 > remove WIP notes for checkpointing
+> 2 grids flippen IPV copy grid
 > add docstrings for checkpointing
 > unit testing for checkpointing
 > npm workflow (npm login, npm version, npm update)

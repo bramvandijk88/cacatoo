@@ -1,0 +1,143 @@
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<head>
+    <title>Cacatoo</title>
+</head>
+
+
+<script>
+
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+
+    /**
+    * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+    */
+    function cacatoo() {
+        /*
+            1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+        */
+        let config =
+        {
+            title: "Consumer resource model",                 // The name of your cacatoo-simulation
+            description: "(with dot display)",         // And a description if you wish
+            maxtime: 1000000,                             // How many time steps the model continues to run            
+            ncol: 100,                                   // Number of columns (width of your grid)
+            nrow: 100,		                              // Number of rows (height of your grid)
+            seed: 11,
+            wrap: [false, false],                         // Wrapped boundary conditions? [COLS, ROWS]   
+            scale: 7,				                      // Scale of the grid (nxn pixels per grid point)
+            statecolours: {'species': { 'low uptake': "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                        'medium uptake': "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                        'high uptake': "#3030ff"}}
+        }
+
+        /*
+            1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+        */
+        
+                       
+
+        
+        sim = new Simulation(config)                            // Initialise the Cacatoo simulation
+        sim.makeGridmodel("growth")                              // Build a new Gridmodel within the simulation called "model"
+
+        sim.initialGrid(sim.growth,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+        let species = [{species:'low uptake',uptake_rate:0.05,internal_resources:1},
+                                {species:'medium uptake',uptake_rate:0.5,internal_resources:1},
+                                {species:'high uptake',uptake_rate:5.0,internal_resources:1}]
+        
+        sim.populateSpot(sim.growth, species, [0.33,0.33,0.33], 150, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+        //sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
+        
+        sim.createDisplay_continuous({model:"growth", property:"internal_resources", label:"Internal resources", // Createa a display for a continuous variable (ODE state for external resources)
+                            minval:0.5, maxval:1, num_colours: 100, decimals: 2, fill:"viridis",
+                            drawdots:true, stroke:true, strokeStyle: 'yellow', strokeWidth: 2,
+                            radius:"internal_resources", min_radius: 1, max_radius:6, scale_radius: 5            
+                            })         
+        sim.createDisplay_continuous({model:"growth", property:"external_resources", label:"External resources", // Createa a display for a continuous variable (ODE state for external resources)
+                            minval:0, maxval:1, num_colours: 100, decimals: 2, minval:0, maxval:1, fill:"viridis"})                      
+                             
+        
+
+        /*
+            2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+        */
+       
+
+        sim.growth.nextState = function (i, j) {
+            let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
+            let this_gp = this.grid[i][j]                     // This cell            
+            if (!this_gp.species)                        // If empty spot
+            {
+                if (randomneigh.species && randomneigh.internal_resources > 1) {   // Random neighbour is alive and it has enough resources                    
+                    this_gp.species = randomneigh.species                               // Empty spot becomes the parent type (reproduction)
+                    this_gp.uptake_rate = randomneigh.uptake_rate                       // Empty spot inherits uptake rate from the parent
+                    randomneigh.internal_resources = this_gp.internal_resources = randomneigh.internal_resources / 2    // Resources are divided between parent and offpsring
+                }
+            }
+            else {   
+                if (this.rng.genrand_real1() < 0.01) {                                      // Random death
+                    this_gp.species = 0
+                    this_gp.uptake_rate=0.0
+                    this_gp.internal_resources = 0
+                }
+                else{
+                    let uptake = this_gp.external_resources * (this_gp.uptake_rate/10)     // Living cells can take up a fraction of available resources
+                    this_gp.internal_resources += uptake
+                    this_gp.external_resources -= uptake
+                    this_gp.internal_resources *= 0.9
+                }
+            }
+        }
+
+        /*
+            3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+            applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+        */
+        sim.growth.update = function () {
+            this.asynchronous()         // Applied as many times as it can in 1/60th of a second
+            this.diffuseStates('external_resources',0.1)
+            this.plotPopsizes('species', ['low uptake', 'medium uptake','high uptake'])
+            if(sim.time%100==0)sim.initialGrid(sim.growth,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+        }
+
+        /*
+            OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+        */
+
+        sim.addButton("Play/pause sim", function () { sim.toggle_play() })
+
+        
+        sim.start()
+
+    }
+
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo (example project)</h2>
+    </div>
+
+    <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="content" id="form_holder"></div>
+
+    <div class="content" id="examples">
+    </div>
+    <div class="footer" id="footer"></div>
+
+    </div>
+</body>
+
+</html>

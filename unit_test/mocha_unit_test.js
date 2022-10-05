@@ -97,15 +97,15 @@ describe('Cacatoo simulation unit test', function()
    {
     const sim = new Simulation();       
     sim.makeGridmodel("population")       
-    sim.initialGrid(sim.population, 'species', 1, 0.33, 2, 0.33, 3, 0.33)
+    sim.initialGrid(sim.population, 'species', 1, 0.33, 2, 0.33, 3, 0.34)    
     sim.makeGridmodel("population_2")       
-    sim.initialGrid(sim.population_2, 'species_2', 1, 0.33, 2, 0.33, 3, 0.33)
+    sim.initialGrid(sim.population_2, 'species_2', 1, 0.33, 2, 0.33, 3, 0.34)    
     it('Retrieve neighbouring grid points (getNeighbour(s))', function() 
     {                
       sim.population.getNeighbour(sim.population, 0, 0, 0)
       sim.population.getNeighbour(sim.population_2, 0, 0, 0)                    
       sim.population.getNeighbours(sim.population, 0, 0, 'species', 1, [1,3,5]) 
-      expect(sim.population.getNeighbours8(sim.population, 0, 0, 'species', 1)[0].species).to.equal(1)
+      expect(sim.population.getNeighbours8(sim.population, 1, 1, 'species', 1)[0].species).to.equal(1)
       sim.population.getNeighbours9(sim.population, 0, 0, 'species', 1)
       sim.population.getNeighbours4(sim.population, 0, 0, 'species', 1)
       sim.population.getNeighbours5(sim.population, 0, 0, 'species', 1)       
@@ -139,7 +139,7 @@ describe('Cacatoo simulation unit test', function()
 
     it('Rhoulette wheel functionality', function() 
     {                
-      let neighbours = sim.population.getMoore8(sim.population,0,0,'species',1)
+      let neighbours = sim.population.getMoore8(sim.population,1,1,'species',1)
       let winner = sim.population.rouletteWheel(neighbours, 'species')
       expect(winner.species).to.be.above(0)
     });

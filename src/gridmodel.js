@@ -25,8 +25,8 @@ class Gridmodel {
         this.grid = MakeGrid(this.nc, this.nr)       // Initialises an (empty) grid
         this.wrap = config.wrap || [true, true]
         this.rng = rng
-        this.random = () => { return this.rng.genrand_real1()}
-        this.randomint = (a,b) => { return this.rng.genrand_int(a,b)}                
+        this.random = () => { return this.rng.random()}
+        this.randomInt = (a,b) => { return this.rng.randomInt(a,b)}                
         this.statecolours = this.setupColours(config.statecolours,config.num_colours) // Makes sure the statecolours in the config dict are parsed (see below)
         this.lims = {}
         this.scale = config.scale || 1
@@ -974,7 +974,7 @@ class Gridmodel {
         timestamp = timestamp.padStart(5, "0")
         canvas.toBlob(function(blob) 
         {
-            saveAs(blob, "my_slide"+timestamp+".png");
+            saveAs(blob, prefix+timestamp+".png");
         });
     }
 
