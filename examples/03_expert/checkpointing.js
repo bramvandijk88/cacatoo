@@ -37,9 +37,7 @@ function cacatoo() {
         ncol: 100,
         nrow: 100,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
-        seed: 56,
-        fps: 60,                                                   // Note: FPS can only be set in fastmode
-        fastmode: false,
+        seed: 56,        
         scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 1,
         graph_update: 1,
@@ -126,8 +124,7 @@ function cacatoo() {
         }
         if(this.time > 0 && this.time % 100 == 0) sim.toggle_play()
         
-        if(this.time == 50) this.load_grid("examples/03_expert/cheater_000001.json")   // When you don't have a reload-button, this is how you reload. For this example, it reloads the grid after 50 timesteps.
-        console.log(this.getPopsizes('species',[1,2,3]))
+        if(this.time == 50) this.load_grid("examples/03_expert/cheater_000001.json")   // When you don't have a reload-button, this is how you reload. For this example, it reloads the grid after 50 timesteps.        
         if (this.time % mdif_interval == 0) this.MargolusDiffusion()         // Every so often mix individuals a bit
         this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
     }

@@ -30,8 +30,6 @@ function cacatoo() {
         nrow: 200,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
         seed: 56,
-        fps: 60,                                                   // Note: FPS can only be set in fastmode
-        fastmode: false,
         scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         graph_update: 50,
