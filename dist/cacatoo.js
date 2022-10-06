@@ -1795,6 +1795,7 @@ class Simulation {
 
         this.graph_interval = config.graph_interval = config.graph_interval || 10;
         this.graph_update = config.graph_update= config.graph_update || 50;
+        this.limitfps = true;
         this.fps = config.fps * 1.4 || 60;
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = [];            // All gridmodels in this simulation
