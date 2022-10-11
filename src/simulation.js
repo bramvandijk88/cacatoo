@@ -422,7 +422,8 @@ class Simulation {
                 if (sim.time >= sim.config.maxtime) {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
-                    cancelAnimationFrame(frame);
+                    cancelAnimationFrame(frame)
+                    process.exit(1)
                 }
 
                 if (sim.pause == true) { cancelAnimationFrame(frame); }

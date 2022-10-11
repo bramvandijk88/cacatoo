@@ -2189,6 +2189,7 @@ class Simulation {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
                     cancelAnimationFrame(frame);
+                    process.exit(1);
                 }
 
                 if (sim.pause == true) { cancelAnimationFrame(frame); }
