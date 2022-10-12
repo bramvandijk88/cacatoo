@@ -25,7 +25,7 @@ function cacatoo() {
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
         title: "Mutualists and cheaters",
         description: "",
-        maxtime: 50000,
+        maxtime: 50,
         ncol: 200,
         nrow: 200,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
@@ -92,9 +92,12 @@ function cacatoo() {
     * Define your update-function here: stuff that is applied to the entire grid every timestep. E.g. apply the next-state, diffuse stuff, mix individuals, show graphs, etc. 
     */
     sim.cheater.update = function () {
+        if(this.time != sim.cheater.time) throw new Error("Huh?")
         this.synchronous()                                              // Update all grid points based on the next-state function (defined above)                
+        if(this.time != sim.cheater.time) throw new Error("Huh?")
         if (this.time % mdif_interval == 0) this.MargolusDiffusion()         // Every so often mix individuals a bit
-        this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
+        this.updateGraphs()    
+        if(this.time != sim.cheater.time) throw new Error("Huh?")
     }
 
     /**
