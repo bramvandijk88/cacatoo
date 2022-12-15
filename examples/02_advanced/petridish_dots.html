@@ -30,15 +30,12 @@
         let config = {
             title: "Petridish with local growth",
             description: "(mutational rescue of elevated death rate)",
-            maxtime: 10000000,
-            fastmode: false,             // If possible, fast-mode will update the sim with more than 60 FPS. 
-            // Note: fastmode is only useful/recommended if the sim can readily run 
-            // at 60FPS without fast-mode, and may actually reduce the reported FPS
-            // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol: 64,
-            nrow: 64,		            // dimensions of the grid to build
+            maxtime: 10000000,  
+            fpsmeter: true,          
+            ncol: 100,
+            nrow: 100,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale: 12,				    // scale of the grid (nxn pixels per grid cell)
+            scale: 8,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
             graph_update: 20,
             seed: 2,
@@ -56,7 +53,7 @@
         
         // sim.createDisplay("cells", "alive", "Colony growth (colours = #mutations)")
         sim.createDisplay_discrete({model:"cells",property:"alive",label:"Colony growth (colours = #mutations)",
-                                    drawdots:true, stroke:false, radius:"age", max_radius:6})                      // Create a display so we can see our newly made gridmodel
+                                    drawdots:true, stroke:false, radius:"age", max_radius:4})                      // Create a display so we can see our newly made gridmodel
 
         
         let birth_rate = 0.85        

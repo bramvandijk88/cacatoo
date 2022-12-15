@@ -60,6 +60,7 @@ class Graph {
                 ylabel: this.labels.length == 2 ? this.labels[1] : "",
                 drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
                 pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
+                logscale: opts ? (opts.logscale ? opts.logscale : false) : false,
                 strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
                 dateWindow: [0, 100],
                 axisLabelFontSize: 10,               
@@ -1794,7 +1795,8 @@ class Simulation {
 
         this.graph_interval = config.graph_interval = config.graph_interval || 10;
         this.graph_update = config.graph_update= config.graph_update || 50;
-        this.fps = config.fps * 1.4 || 60;
+        
+        this.skip = config.skip || 0;        
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = [];            // All gridmodels in this simulation
         this.canvases = [];              // Array with refs to all canvases (from all models) from this simulation
@@ -1802,9 +1804,7 @@ class Simulation {
         this.time = 0;
         this.inbrowser = (typeof document !== "undefined");        
         this.fpsmeter = false;
-        if(config.fpsmeter == true) this.fpsmeter = true;
-        this.fastmode = false;
-        if(config.fastmode == true) this.fastmode = true;
+        if(config.fpsmeter == true) this.fpsmeter = true;        
         this.printcursor = true;
         if(config.printcursor == false) this.printcursor = false;        
     }
@@ -2154,7 +2154,7 @@ class Simulation {
         let meter = undefined;
         if (this.inbrowser) {
             if(this.fpsmeter){               
-                meter = new FPSMeter({ position: 'absolute', show: 'ms', left: "auto", top: "45px", right: "25px", graph: 1, history: 20, smoothing: 100});                
+                meter = new FPSMeter({ position: 'absolute', show: 'fps', left: "auto", top: "45px", right: "25px", graph: 1, history: 20, smoothing: 100});                
                 
             } 
 
@@ -2171,47 +2171,24 @@ class Simulation {
             let simStartTime = performance.now();
 
             async function animate() {
-                
-                if (sim.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
-                {
-                    
-                    if (sim.sleep > 0) await pause(sim.sleep);
-                    if(sim.fpsmeter) meter.tickStart();
-                    let t = 0;              // Will track cumulative time per step in microseconds 
-
-                    while (t < 16.67 * 60 / sim.fps)          //(t < 16.67) results in 60 fps if possible
-                    {
-                        let startTime = performance.now();
-                        if(!sim.pause==true){
-                            sim.step();
-                            sim.events();
-                        }
-                        let endTime = performance.now();
-                        t += (endTime - startTime);
-                        
-                        if (!sim.limitfps) break
-                    }
-                    sim.display();
-                    if(sim.fpsmeter) meter.tick();
-                }
-                else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
-                {
-                    if (sim.sleep > 0) await pause(sim.sleep);
-                    if(sim.fpsmeter) meter.tickStart();
+                if (sim.sleep > 0) await pause(sim.sleep);
+                if(sim.fpsmeter) meter.tickStart();
+                let num = 0;                
+                while(num <= sim.skip){
                     if (!sim.pause == true) {
                         sim.step();
-                        sim.events();
+                        sim.events();                            
                     }
-                    sim.display();
-                    if(sim.fpsmeter) meter.tick();
-                    
+                    num++;
                 }
+                sim.display();
+                if(sim.fpsmeter) meter.tick();
 
                 let frame = requestAnimationFrame(animate);
                 if (sim.time >= sim.config.maxtime) {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
-                    cancelAnimationFrame(frame);
+                    cancelAnimationFrame(frame);                    
                 }
 
                 if (sim.pause == true) { cancelAnimationFrame(frame); }
@@ -2222,7 +2199,7 @@ class Simulation {
         else {
             while (true) {
                 sim.step();
-                if (sim.time >= sim.config.maxtime) return true;
+                if (sim.time >= sim.config.maxtime) process.exit(1);
             }
         }
     }

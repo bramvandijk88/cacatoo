@@ -40,6 +40,7 @@ class Graph {
                 ylabel: this.labels.length == 2 ? this.labels[1] : "",
                 drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
                 pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
+                logscale: opts ? (opts.logscale ? opts.logscale : false) : false,
                 strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
                 dateWindow: [0, 100],
                 axisLabelFontSize: 10,               

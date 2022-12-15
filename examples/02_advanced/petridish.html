@@ -30,15 +30,11 @@
         let config = {
             title: "Petridish with local growth",
             description: "(mutational rescue of elevated death rate)",
-            maxtime: 10000000,
-            fastmode: false,             // If possible, fast-mode will update the sim with more than 60 FPS. 
-            // Note: fastmode is only useful/recommended if the sim can readily run 
-            // at 60FPS without fast-mode, and may actually reduce the reported FPS
-            // Nevertheless, the final state of the grid is reaches sooner in real time. 
-            ncol: 300,
-            nrow: 300,		            // dimensions of the grid to build
+            maxtime: 10000000,            
+            ncol: 200,
+            nrow: 200,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale: 1,				    // scale of the grid (nxn pixels per grid cell)
+            scale: 2,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
             graph_update: 20,
             seed: 4129,
@@ -64,7 +60,7 @@
 
         sim.cells.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish
         {                        
-            if (this.grid[i][j].alive == 0) {
+            if (this.grid[i][j].alive == undefined) {
                 let neighbour = this.randomMoore8(this, i, j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
                 if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate) {
                     this.grid[i][j].alive = neighbour.alive
@@ -73,7 +69,7 @@
             }
             else {
                 if (this.grid[i][j].age < 10 && this.grid[i][j].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
-                    this.grid[i][j].alive = 0
+                    this.grid[i][j].alive = undefined
                 else
                     this.grid[i][j].age++
             }
