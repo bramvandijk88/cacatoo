@@ -142,7 +142,9 @@
         sim.addButton("Restart", function () { sim.initialise() })
         sim.addButton("Toggle mix", function () { sim.toggle_mix() })
         sim.addToggle("positive_feedback", "LuxR promotes LuxI")
-        
+        sim.addCustomSlider("Slow down simulation", function(new_value) {
+    sim.sleep = new_value
+  }, 0, 1000, 1, 0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
         sim.start()
 
     }
