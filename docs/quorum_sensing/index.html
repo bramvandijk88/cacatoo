@@ -1,0 +1,179 @@
+<html>
+<script src="https://bramvandijk88.github.io/cacatoo/scripts/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="https://bramvandijk88.github.io/cacatoo/scripts/all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
+<link rel="stylesheet" href="https://bramvandijk88.github.io/cacatoo/styles/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+     /*-----------------------Start user-defined code ---------------------*/
+    
+     let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+     var positive_feedback = 0;
+     var done = 0
+    /**
+    * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+    */
+    function cacatoo() {
+        /*
+            1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+        */
+        let config =
+        {
+            title: "Quorum sensing",                 // The name of your cacatoo-simulation
+            description: "",         // And a description if you wish
+            maxtime: 100000,                             // How many time steps the model continues to run            
+            ncol: 64,                                   // Number of columns (width of your grid)
+            nrow: 64,		                              // Number of rows (height of your grid)
+            seed: 35,
+            sleep: 10,
+            wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
+            scale: 6,				                      // Scale of the grid (nxn pixels per grid point)
+            statecolours: {'type': { 'normal': "#0055AA",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                        'fluorescent': "#00CCCC"                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                        }}
+        }
+
+        /*
+            1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+        */
+        
+                        
+        
+        sim = new Simulation(config)                            // Initialise the Cacatoo simulation
+        sim.makeGridmodel("cells")                              // Build a new Gridmodel within the simulation called "model"
+        sim.makeGridmodel("autoinducer")                              // Build a new Gridmodel within the simulation called "model"
+        
+
+        
+        let species = [{type:'normal',size:1,alive:1}]
+        sim.initialise = function(){
+            document.getElementById('text_holder').innerHTML = `Not all cells are fluorescent`
+            done = 0
+            sim.time = 0
+            sim.cells.resetPlots()
+            sim.initialGrid(sim.cells,'type',0,1.0) // Give 100% of grid points external resources (set to 1)
+            sim.initialGrid(sim.cells,'alive',0,1.0) // Give 100% of grid points external resources (set to 1)
+            sim.initialGrid(sim.autoinducer,'concentration',10e-30,1.0) // Give 100% of grid points external resources (set to 1)
+            sim.populateSpot(sim.cells, species, [1.0], 1, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+        }
+        
+        sim.initialise()
+        sim.createDisplay_discrete({model:"cells", property:"type", label:"Normal and fluorescent cells",drawdots:true, stroke:1,radius:3.2})     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
+        
+        sim.createDisplay_continuous({model:"autoinducer", property:"concentration", label:"Autoinducer concentration", // Createa a display for a continuous variable (ODE state for external resources)
+                            minval:0, maxval:20, fill:"viridis", num_colours:100})                         
+        
+
+        /*
+            2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+        */
+       
+
+        sim.cells.nextState = function (i, j) {
+            let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
+            let num_neigh = this.countMoore8(this,i,j, 'alive', 1)
+            sim.autoinducer.grid[i][j].concentration *= 0.9
+            let this_gp = this.grid[i][j]                     // This cell            
+            if (!this_gp.type)                        // If empty spot
+            {
+                if (num_neigh < 2 && randomneigh.type && randomneigh.size == 50 ) {   // Random neighbour is alive and it has enough resources
+                    this_gp.type = randomneigh.type
+                    this_gp.alive = 1                               // Empty spot becomes the parent type (reproduction)
+                    let childsize = sim.rng.genrand_int(1,49)
+                    randomneigh.size -= childsize
+                    this_gp.size = childsize 
+                    //this_gp.uptake_rate = randomneigh.uptake_rate                       // Empty spot inherits uptake rate from the parent
+                    //randomneigh.internal_resources = this_gp.internal_resources = randomneigh.internal_resources / 2    // Resources are divided between parent and offpsring
+                }
+            }
+            else {   
+                    if(this_gp.size < 50) this_gp.size++
+                    
+                    
+                    sim.autoinducer.grid[i][j].concentration += 1.0
+                    if(positive_feedback && this_gp.type == 'fluorescent') sim.autoinducer.grid[i][j].concentration += 1.0
+                    if(sim.autoinducer.grid[i][j].concentration > 5) this_gp.type = 'fluorescent'
+                    else this_gp.type = 'normal'
+            }
+        }
+
+        /*
+            3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+            applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+        */
+        sim.autoinducer.update = function () {
+        }
+        sim.cells.update = function () {
+            this.asynchronous()         // Applied as many times as it can in 1/60th of a second
+            sim.autoinducer.diffuseStates('concentration',0.1)
+            sim.autoinducer.diffuseStates('concentration',0.1)
+            sim.autoinducer.diffuseStates('concentration',0.1)
+            sim.autoinducer.diffuseStates('concentration',0.1)
+            this.plotPopsizes('type', ['normal', 'fluorescent'])
+            this.MargolusDiffusion() 
+            // Let's count some stuff every update
+            let sum_auto = 0       
+            let num_normal = 0   
+            let num_fluor = 0         
+            for (let i = 0; i < this.nc; i++)          // i are columns
+                for (let j = 0; j < this.nr; j++)      // j are rows
+                    {
+                        sum_auto += sim.autoinducer.grid[i][j].concentration
+                        if(this.grid[i][j].type == 'normal') num_normal++
+                        if(this.grid[i][j].type == 'fluorescent') num_fluor++
+                    }
+                
+    
+            // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
+                            
+            this.plotArray(["Autoinducer concentration"], [sum_auto/(this.nr*this.nc)], ["green"], "Autoinducer")
+            if(num_normal == 0 && done == false) {
+                document.getElementById('text_holder').innerHTML = `All cells are fluorescent after ${sim.time} time steps`
+                
+                
+                done = true
+            }
+        }
+
+        /*
+            OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+        */
+        sim.mix = false
+        sim.addButton("Play/pause sim", function () { sim.toggle_play() })
+        sim.addButton("Restart", function () { sim.initialise() })
+        sim.addButton("Toggle mix", function () { sim.toggle_mix() })
+        sim.addToggle("positive_feedback", "LuxR promotes LuxI")
+        
+        sim.start()
+
+    }
+
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo</h2>
+    </div>
+    <div class="content" id="canvas_holder">
+        <center>
+            <div style="width:70%;">
+                Quorum sensing (omschrijving?)<br><br>
+
+                In de huidige vorm ga ik ervan uit dat fluorescentie OMKEERBAAR is. Met andere woorden, een cell stopt ook weer 
+                met luxR expressen als de autoinducer beneden de drempelwaarde komt. 
+                <br><br>
+                
+        </center>
+    </div>
+    </div>
+    <div class="content" id="text_holder" style="font-size:30"> Not all cells are fluorescent</div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    
+
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>
