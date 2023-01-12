@@ -28,7 +28,7 @@
             wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
             scale: 6,				                      // Scale of the grid (nxn pixels per grid point)
             statecolours: {'type': { 'normal': "#0055AA",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
-                                        'fluorescent': "#00CCCC"                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                        'bioluminescent': "#00CCCC"                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
                                         }}
         }
 
@@ -46,7 +46,7 @@
         
         let species = [{type:'normal',size:1,alive:1}]
         sim.initialise = function(){
-            document.getElementById('text_holder').innerHTML = `Not all cells are fluorescent`
+            document.getElementById('text_holder').innerHTML = `Not all cells are bioluminescent`
             done = 0
             sim.time = 0
             sim.cells.resetPlots()
@@ -57,7 +57,7 @@
         }
         
         sim.initialise()
-        sim.createDisplay_discrete({model:"cells", property:"type", label:"Normal and fluorescent cells",drawdots:true, stroke:1,radius:3.2})     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
+        sim.createDisplay_discrete({model:"cells", property:"type", label:"Normal and bioluminescent cells",drawdots:true, stroke:1,radius:3.2})     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
         
         sim.createDisplay_continuous({model:"autoinducer", property:"concentration", label:"Autoinducer concentration", // Createa a display for a continuous variable (ODE state for external resources)
                             minval:0, maxval:20, fill:"viridis", num_colours:100})                         
@@ -90,8 +90,8 @@
                     
                     
                     sim.autoinducer.grid[i][j].concentration += 1.0
-                    if(positive_feedback && this_gp.type == 'fluorescent') sim.autoinducer.grid[i][j].concentration += 1.0
-                    if(sim.autoinducer.grid[i][j].concentration > 5) this_gp.type = 'fluorescent'
+                    if(positive_feedback && this_gp.type == 'bioluminescent') sim.autoinducer.grid[i][j].concentration += 1.0
+                    if(sim.autoinducer.grid[i][j].concentration > 5) this_gp.type = 'bioluminescent'
                     else this_gp.type = 'normal'
             }
         }
@@ -108,7 +108,7 @@
             sim.autoinducer.diffuseStates('concentration',0.1)
             sim.autoinducer.diffuseStates('concentration',0.1)
             sim.autoinducer.diffuseStates('concentration',0.1)
-            this.plotPopsizes('type', ['normal', 'fluorescent'])
+            this.plotPopsizes('type', ['normal', 'bioluminescent'])
             this.MargolusDiffusion() 
             // Let's count some stuff every update
             let sum_auto = 0       
@@ -119,7 +119,7 @@
                     {
                         sum_auto += sim.autoinducer.grid[i][j].concentration
                         if(this.grid[i][j].type == 'normal') num_normal++
-                        if(this.grid[i][j].type == 'fluorescent') num_fluor++
+                        if(this.grid[i][j].type == 'bioluminescent') num_fluor++
                     }
                 
     
@@ -127,7 +127,7 @@
                             
             this.plotArray(["Autoinducer concentration"], [sum_auto/(this.nr*this.nc)], ["green"], "Autoinducer")
             if(num_normal == 0 && done == false) {
-                document.getElementById('text_holder').innerHTML = `All cells are fluorescent after ${sim.time} time steps`
+                document.getElementById('text_holder').innerHTML = `All cells emit light after ${sim.time} time steps`
                 
                 
                 done = true
@@ -161,16 +161,11 @@
     <div class="content" id="canvas_holder">
         <center>
             <div style="width:70%;">
-                Quorum sensing (omschrijving?)<br><br>
-
-                In de huidige vorm ga ik ervan uit dat fluorescentie OMKEERBAAR is. Met andere woorden, een cell stopt ook weer 
-                met luxR expressen als de autoinducer beneden de drempelwaarde komt. 
-                <br><br>
-                
+                Quorum sensing <br><br>                              
         </center>
     </div>
     </div>
-    <div class="content" id="text_holder" style="font-size:30"> Not all cells are fluorescent</div>
+    <div class="content" id="text_holder" style="font-size:30"> Not all cells are bioluminescent</div>
     <div class="content" id="form_holder"></div>
     <div class="content" id="graph_holder"> </div>
     
