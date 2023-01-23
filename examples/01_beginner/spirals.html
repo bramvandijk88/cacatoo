@@ -28,6 +28,7 @@
             fastmode: true,
             seed:1,
             ncol: 200,
+            target_fps: 10,
             nrow: 200,		                        // dimensions of the grid to build
             wrap: [true, true],                    // Wrap boundary [COLS, ROWS]   
             scale: 2,				                // scale of the grid (nxn pixels per grid cell)
@@ -39,8 +40,8 @@
 
         sim.makeGridmodel("spirals");
         sim.createDisplay("spirals", "colour", "Colours represent different species")
-        sim.spaceTimePlot("spirals", "Colours represent different species", "Space-time plot", 100, sim.ncol*2)                        
-
+        sim.spaceTimePlot("spirals", "Colours represent different species", "Space-time plot", 100, sim.ncol*2)                                
+        
         let n_species = 8
 
         // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        

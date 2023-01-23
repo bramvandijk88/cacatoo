@@ -300,11 +300,11 @@ class Gridmodel {
      *  the default function of synchronous "nextstate". But this works. :)
     */
     apply_sync(func) {
-        let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid
-        let newstate = MakeGrid(this.nc, this.nr);               // New state == empty grid
+        let oldstate = MakeGrid(this.nc, this.nr, this.grid);   // Old state based on current grid
+        let newstate = MakeGrid(this.nc, this.nr);              // New state == empty grid
         for (let i = 0; i < this.nc; i++) {
             for (let j = 0; j < this.nr; j++) {
-                func(i, j)                           // Update this.grid
+                func(i, j)                                      // Update this.grid
                 newstate[i][j] = this.grid[i][j]                // Set this.grid to newstate
                 this.grid[i][j] = oldstate[i][j]                // Reset this.grid to old state
             }

@@ -611,11 +611,11 @@ class Gridmodel {
      *  the default function of synchronous "nextstate". But this works. :)
     */
     apply_sync(func) {
-        let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid
-        let newstate = MakeGrid(this.nc, this.nr);               // New state == empty grid
+        let oldstate = MakeGrid(this.nc, this.nr, this.grid);   // Old state based on current grid
+        let newstate = MakeGrid(this.nc, this.nr);              // New state == empty grid
         for (let i = 0; i < this.nc; i++) {
             for (let j = 0; j < this.nr; j++) {
-                func(i, j);                           // Update this.grid
+                func(i, j);                                      // Update this.grid
                 newstate[i][j] = this.grid[i][j];                // Set this.grid to newstate
                 this.grid[i][j] = oldstate[i][j];                // Reset this.grid to old state
             }
@@ -1470,8 +1470,11 @@ class Canvas {
             this.canvasdiv.appendChild(this.elem);
             this.canvasdiv.appendChild(this.titlediv);            
             document.getElementById("canvas_holder").appendChild(this.canvasdiv);
-            this.ctx = this.elem.getContext("2d");
+            this.ctx = this.elem.getContext("2d", { willReadFrequently: true });
+            
         }
+
+        // this.ctx.willReadFrequently = true
 
     }
 
@@ -1795,7 +1798,9 @@ class Simulation {
 
         this.graph_interval = config.graph_interval = config.graph_interval || 10;
         this.graph_update = config.graph_update= config.graph_update || 50;
-        this.fps = config.fps * 1.4 || 60;
+        this.fps = config.fps * 1.4 || 60; // Multiplied by 1.4 to adjust for overhead
+        this.fastmode = false;
+        if(config.fastmode == true) this.fastmode = true;
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = [];            // All gridmodels in this simulation
         this.canvases = [];              // Array with refs to all canvases (from all models) from this simulation
@@ -1826,12 +1831,13 @@ class Simulation {
     * Set up the random number generator
     * @param {int} seed Seed for fast-random module
     */
-    setupRandom(seed){
-        let rng = random(seed);
-        rng.genrand_real1 = function () { return (rng.nextInt() - 1) / 2147483645 };         // Generate random number in [0,1] range        
-        rng.genrand_real2 = function () { return (rng.nextInt() - 1) / 2147483646 };         // Generate random number in [0,1) range        
-        rng.genrand_real3 = function () { return rng.nextInt() / 2147483647 };               // Generate random number in (0,1) range        
-        rng.genrand_int = function (min,max) { return min+ rng.nextInt() % (max-min+1) };    // Generate random integer between (and including) min and max    
+    setupRandom(seed){   
+        // Load mersennetwister random number generator  
+        // genrand_real1()          [0,1]
+        // genrand_real2()          [0,1)
+        // genrand_real3()          (0,1)
+        // genrand_int(min,max)     integer between min and max
+        let rng = new MersenneTwister(seed);                
         rng.random = () => { return rng.genrand_real2() };        
         rng.randomInt = () => { return rng.genrand_int() };                
         return rng
@@ -2820,12 +2826,4 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-
-    try
-    {
-        module.exports = Simulation;
-    }
-    catch(err)
-    {
-        // do nothing
-    }
+module.exports = Simulation;

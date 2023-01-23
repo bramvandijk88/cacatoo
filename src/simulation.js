@@ -61,12 +61,13 @@ class Simulation {
     * Set up the random number generator
     * @param {int} seed Seed for fast-random module
     */
-    setupRandom(seed){
-        let rng = random(seed)
-        rng.genrand_real1 = function () { return (rng.nextInt() - 1) / 2147483645 }         // Generate random number in [0,1] range        
-        rng.genrand_real2 = function () { return (rng.nextInt() - 1) / 2147483646 }         // Generate random number in [0,1) range        
-        rng.genrand_real3 = function () { return rng.nextInt() / 2147483647 }               // Generate random number in (0,1) range        
-        rng.genrand_int = function (min,max) { return min+ rng.nextInt() % (max-min+1) }    // Generate random integer between (and including) min and max    
+    setupRandom(seed){   
+        // Load mersennetwister random number generator  
+        // genrand_real1()          [0,1]
+        // genrand_real2()          [0,1)
+        // genrand_real3()          (0,1)
+        // genrand_int(min,max)     integer between min and max
+        let rng = new MersenneTwister(seed)                
         rng.random = () => { return rng.genrand_real2() }        
         rng.randomInt = () => { return rng.genrand_int() }                
         return rng

@@ -41,7 +41,8 @@ class Canvas {
             this.canvasdiv.appendChild(this.elem)
             this.canvasdiv.appendChild(this.titlediv)            
             document.getElementById("canvas_holder").appendChild(this.canvasdiv)
-            this.ctx = this.elem.getContext("2d")
+            this.ctx = this.elem.getContext("2d", { willReadFrequently: true })
+            
         }
         else {
             // In nodejs, one may use canvas package. Or write the grid to a file to be plotted with R. 
