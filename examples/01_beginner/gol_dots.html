@@ -35,13 +35,11 @@ function cacatoo(){
         title: "Game of Life",                       // The name of your cacatoo-simulation
         description: "Conway's Game of Life",        // And a description if you wish
         maxtime: 1000000,                            // How many time steps the model continues to run
-        fastmode: true,                             // If possible, fast-mode will update the model more than once before displaying the grid
-                                                     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-        ncol: 50,                                   // Number of columns (width of your grid)
-        nrow: 50,		                             // Number of rows (height of your grid)        
+        ncol: 100,                                    // Number of columns (width of your grid)
+        nrow: 100,		                             // Number of rows (height of your grid)        
         wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
-        scale: 10,				                     // Scale of the grid (nxn pixels per grid point)
-        statecolours: { 'alive': { 1: 'grey' } },   // Colours for each state. Background (0) defaults to black. 
+        scale: 5,				                     // Scale of the grid (nxn pixels per grid point)
+        statecolours: { 'alive': { 1: 'violet' } },   // Colours for each state. Background (0) defaults to black. 
     }
 
     /*
@@ -51,7 +49,7 @@ function cacatoo(){
     
     sim.makeGridmodel("gol")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
     sim.initialGrid(sim.gol, 'alive', 1, 0.5)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
-    sim.createDisplay_discrete({model:"gol",property:"alive",label:"Game of life (white=alive)",drawdots:true,radius:5})                      // Create a display so we can see our newly made gridmodel
+    sim.createDisplay_discrete({model:"gol",property:"alive",label:"Game of life (white=alive)",drawdots:true,radius:3})                      // Create a display so we can see our newly made gridmodel
 
     /*
         2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 

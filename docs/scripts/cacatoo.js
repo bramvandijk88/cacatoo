@@ -1844,8 +1844,7 @@ class Simulation {
         rng.genrand_real2 = function () { return (rng.nextInt() - 1) / 2147483646 };         // Generate random number in [0,1) range        
         rng.genrand_real3 = function () { return rng.nextInt() / 2147483647 };               // Generate random number in (0,1) range        
         rng.genrand_int = function (min,max) { return min+ rng.nextInt() % (max-min+1) };    // Generate random integer between (and including) min and max    
-        
-        
+                
         for(let i = 0; i < 1000; i++) rng.genrand_real2();        
         rng.random = () => { return rng.genrand_real2() };        
         rng.randomInt = () => { return rng.genrand_int() };                

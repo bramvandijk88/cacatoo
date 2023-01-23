@@ -23,13 +23,10 @@
         let config = {
             title: "Serial transfer protocol",
             description: "The long-term evolution experiment. Without evolution... :D",
-            maxtime: 100000,
-            fastmode: true,             // If possible, fast-mode will update the sim with more than 60 FPS. 
-            // Note: fastmode is only useful/recommended if the sim can readily run 
-            // at 60FPS without fast-mode, and may actually reduce the reported FPS
-            // Nevertheless, the final state of the grid is reaches sooner in real time. 
+            maxtime: 100000,            
             ncol: 100,
             nrow: 60,		            // dimensions of the grid to build
+            skip: 5,                   // Skip 5 steps before redrawing the grid again
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
             scale: 3,				    // scale of the grid (nxn pixels per grid cell)
             statecolours: { 'alive': { 1: 'blue' } },   // The background state '0' is never drawn
@@ -51,7 +48,7 @@
         sim.makeGridmodel("batchculture");
        // sim.batchculture.colourViridis("external_resources", 100)
         //sim.batchculture.colourViridis("internal_resources", 100)
-        sim.createDisplay_continuous({model:"batchculture", property:"internal_resources", label:"Internal resources", minval:0, maxval:100, num_colours:40, fill: 'viridis'}) 
+        sim.createDisplay_continuous({model:"batchculture", property:"internal_resources", label:"Internal resources", minval:0, maxval:100, num_colours:40, fill: 'viridis',drawdots:true,radius:3}) 
         sim.createDisplay_continuous({model:"batchculture", property:"external_resources", label:"External resources", minval:0, maxval:100, num_colours:40, fill: 'viridis'}) 
 
         // sim.resource_e.colourRamp('resources_e',[0,0,0],[64, 224, 208],100)
