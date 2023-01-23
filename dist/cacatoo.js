@@ -1474,8 +1474,6 @@ class Canvas {
             
         }
 
-        // this.ctx.willReadFrequently = true
-
     }
 
     
@@ -1747,6 +1745,7 @@ function rgbToHex(arr) {
 }
 
 // Browser-friendly version of 'fast-random' (https://github.com/borilla/fast-random) by Bram van Dijk for compatibility with browser-based Cacatoo models
+
 if (typeof module !== 'undefined') module.exports = random; 
 function random(seed) {
     function _seed(s) {
@@ -1837,7 +1836,17 @@ class Simulation {
         // genrand_real2()          [0,1)
         // genrand_real3()          (0,1)
         // genrand_int(min,max)     integer between min and max
-        let rng = new MersenneTwister(seed);                
+        // let rng = new MersenneTwister(seed || 53)                                        // Use this if you need a more precise RNG      
+        
+        let rng = random(seed);
+        
+        rng.genrand_real1 = function () { return (rng.nextInt() - 1) / 2147483645 };         // Generate random number in [0,1] range        
+        rng.genrand_real2 = function () { return (rng.nextInt() - 1) / 2147483646 };         // Generate random number in [0,1) range        
+        rng.genrand_real3 = function () { return rng.nextInt() / 2147483647 };               // Generate random number in (0,1) range        
+        rng.genrand_int = function (min,max) { return min+ rng.nextInt() % (max-min+1) };    // Generate random integer between (and including) min and max    
+        
+        
+        for(let i = 0; i < 1000; i++) rng.genrand_real2();        
         rng.random = () => { return rng.genrand_real2() };        
         rng.randomInt = () => { return rng.genrand_int() };                
         return rng
@@ -2826,4 +2835,12 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-module.exports = Simulation;
+
+    try
+    {
+        module.exports = Simulation;
+    }
+    catch(err)
+    {
+        // do nothing
+    }

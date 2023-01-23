@@ -1,7 +1,8 @@
 import Gridmodel from "./gridmodel"
 import Canvas from "./canvas"
-import random from '../lib/random'
+import MersenneTwister from '../lib/mersenne' 
 import * as utility from './utility'
+import random from '../lib/random'
 
 
 /**
@@ -67,7 +68,17 @@ class Simulation {
         // genrand_real2()          [0,1)
         // genrand_real3()          (0,1)
         // genrand_int(min,max)     integer between min and max
-        let rng = new MersenneTwister(seed)                
+        // let rng = new MersenneTwister(seed || 53)                                        // Use this if you need a more precise RNG      
+        
+        let rng = random(seed);
+        
+        rng.genrand_real1 = function () { return (rng.nextInt() - 1) / 2147483645 }         // Generate random number in [0,1] range        
+        rng.genrand_real2 = function () { return (rng.nextInt() - 1) / 2147483646 }         // Generate random number in [0,1) range        
+        rng.genrand_real3 = function () { return rng.nextInt() / 2147483647 }               // Generate random number in (0,1) range        
+        rng.genrand_int = function (min,max) { return min+ rng.nextInt() % (max-min+1) }    // Generate random integer between (and including) min and max    
+        
+        
+        for(let i = 0; i < 1000; i++) rng.genrand_real2()        
         rng.random = () => { return rng.genrand_real2() }        
         rng.randomInt = () => { return rng.genrand_int() }                
         return rng
