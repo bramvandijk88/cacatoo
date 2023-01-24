@@ -844,7 +844,7 @@ class Gridmodel {
      *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
     */
      plotPoints(graph_values, title, opts) {
-        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'y'+(i+1))
+        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'sample'+(i+1))
         let cols = Array.from({length: graph_values.length}, (v, i) => 'black')
 
         let seriesname = 'average'

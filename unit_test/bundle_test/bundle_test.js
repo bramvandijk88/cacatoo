@@ -124,8 +124,8 @@ function cacatoo() {
         this.plotArray(["Conc 1", "Conc 2"],
             [sumcont, sumcont2],
             ["gold", "#FF5500"],
-            "Plot Continuous values", {max_y:1e6,min_y: 0, strokeWidth:2, strokePattern: [10,2], drawPoints:true, pointSize:3, width:300, height:200})
-        this.plotPoints(cont_array,"Draw sampled values",{width:300, height:200})       
+            "Plot Continuous values", {max_y:1e6,min_y: 0, strokeWidth:2, strokePattern: [10,2], drawPoints:true, pointSize:3, width:300, height:200, labelsDivWidth: 100})
+        this.plotPoints(cont_array,"Draw sampled values",{width:300, height:200, labelsDivWidth: 0})       
     }
 
     sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"

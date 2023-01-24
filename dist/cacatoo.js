@@ -49,27 +49,29 @@ class Graph {
 
         document.body.appendChild(this.elem);
         document.getElementById("graph_holder").appendChild(this.elem);
-
-        this.g = new Dygraph(this.elem, this.data,
-            {
-                title: this.title,
-                showRoller: false,                
-                width: opts ? (opts.width != undefined ? opts.width : 500) : 500,
-                height: opts ? (opts.height != undefined ? opts.height : 200) : 200,
-                xlabel: this.labels[0],
-                ylabel: this.labels.length == 2 ? this.labels[1] : "",
-                drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
-                pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
-                logscale: opts ? (opts.logscale ? opts.logscale : false) : false,
-                strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
-                dateWindow: [0, 100],
-                axisLabelFontSize: 10,               
-                valueRange: [opts ? (opts.min_y != undefined ? opts.min_y: 0):0, opts ? (opts.max_y != undefined ? opts.max_y: null):null],
-                strokeWidth: opts ? (opts.strokeWidth != undefined ? opts.strokeWidth : 3) : 3,
-                colors: this.colours,
-                labels: labels.length == values.length ? this.labels: null,
-                series: opts ? ( opts.series != undefined ? opts.series : null) : null                
-            });
+        let graph_opts = {title: this.title,                
+            showRoller: false,                
+            width: opts ? (opts.width != undefined ? opts.width : 500) : 500,
+            labelsSeparateLines: true,
+            height: opts ? (opts.height != undefined ? opts.height : 200) : 200,
+            xlabel: this.labels[0],
+            ylabel: this.labels.length == 2 ? this.labels[1] : "",
+            drawPoints: opts ? (opts.drawPoints ? opts.drawPoints : false) : false,
+            pointSize: opts ? (opts.pointSize ? opts.pointSize : 0) : 0,
+            logscale: opts ? (opts.logscale ? opts.logscale : false) : false,
+            strokePattern: opts ? (opts.strokePattern != undefined ? opts.strokePattern : null) : null,
+            dateWindow: [0, 100],
+            axisLabelFontSize: 10,               
+            valueRange: [opts ? (opts.min_y != undefined ? opts.min_y: 0):0, opts ? (opts.max_y != undefined ? opts.max_y: null):null],
+            strokeWidth: opts ? (opts.strokeWidth != undefined ? opts.strokeWidth : 3) : 3,
+            colors: this.colours,
+            labels: labels.length == values.length ? this.labels: null,
+            series: opts ? ( opts.series != undefined ? opts.series : null) : null   
+        };                
+        for(var opt in opts){
+            graph_opts[opt] = opts[opt];
+        }
+        this.g = new Dygraph(this.elem, this.data, graph_opts);
     }
 
 
@@ -1155,7 +1157,7 @@ class Gridmodel {
      *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
     */
      plotPoints(graph_values, title, opts) {
-        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'y'+(i+1));
+        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'sample'+(i+1));
         let cols = Array.from({length: graph_values.length}, (v, i) => 'black');
 
         let seriesname = 'average';
