@@ -460,6 +460,7 @@ class Simulation {
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
     initialGrid(gridmodel, property) {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let p = property || 'val'
         let bg = 0
 
@@ -483,6 +484,7 @@ class Simulation {
      */
       populateGrid(gridmodel,individuals,freqs)
       {
+          if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
           if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
           if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
 
@@ -513,6 +515,7 @@ class Simulation {
     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
     */
     initialSpot(gridmodel, property, value, size, x, y) {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let p = property || 'val'
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j < gridmodel.nr; j++) 
@@ -528,7 +531,8 @@ class Simulation {
     *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
     */
-     putSpot(gridmodel, property, value, size, x, y) {
+   putSpot(gridmodel, property, value, size, x, y) {
+         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         // Draw a circle
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
@@ -546,6 +550,7 @@ class Simulation {
      */
      populateSpot(gridmodel,individuals, freqs,size, x, y, set_background_state=false)
      {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let sumfreqs =0
         if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
         for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i]
@@ -746,6 +751,7 @@ class Simulation {
     */
     addStatebrush(gridmodel, property_to_change, value_to_place, brushsize, brushflow, canvas)
     {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         this.mouseDown = false
         this.coords_previous = []
         this.coords = []
@@ -757,11 +763,11 @@ class Simulation {
         this.property_to_change = property_to_change
         this.brushflow = brushflow || 1
         if(!canvas){
-            let canvs = this[gridmodel].canvases
+            let canvs = gridmodel.canvases
             canvas = canvs[Object.keys(canvs)[0]]
         }
         else{
-            canvas = this[gridmodel].canvases[canvas]
+            canvas = gridmodel.canvases[canvas]
         }
         
         canvas.elem.addEventListener('mousemove', (e) => { 
@@ -783,11 +789,11 @@ class Simulation {
                     seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))))
                     for(let q=0; q<steps; q++)
                     {
-                        thissim.putSpot(thissim[gridmodel], thissim.property_to_change, thissim.place_value, thissim.place_size, seqx[q], seqy[q])                    
+                        thissim.putSpot(gridmodel, thissim.property_to_change, thissim.place_value, thissim.place_size, seqx[q], seqy[q])                    
                     }
                 }
                 else{
-                    thissim.putSpot(thissim[gridmodel], thissim.property_to_change, thissim.place_value, thissim.place_size, thissim.coords.x, thissim.coords.y)                    
+                    thissim.putSpot(gridmodel, thissim.property_to_change, thissim.place_value, thissim.place_size, thissim.coords.x, thissim.coords.y)                    
                 }                
                 canvas.displaygrid()
             }
@@ -807,6 +813,7 @@ class Simulation {
     */
     addObjectbrush(gridmodel, obj, brushsize, brushflow, canvas)
     {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         this.mouseDown = false
         this.coords_previous = []
         this.coords = []

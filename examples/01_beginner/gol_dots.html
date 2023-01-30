@@ -92,7 +92,7 @@ function cacatoo(){
     */
     sim.addPatternButton(sim.gol, 'alive')  // Note, for security reasons, this needs a local server to be run (try VSC's 'live server' plugin!)
     sim.addButton("pause/continue", function () { sim.toggle_play() })
-    sim.addButton("step", function () { sim.step(); sim.display() })
+    sim.addButton("step", function () { sim.step(); sim.display() })    
     sim.modifysleep = function(newvalue) { this.sleep = newvalue}
     // sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
     sim.start()
