@@ -762,6 +762,7 @@ class Simulation {
         this.place_size = brushsize 
         this.property_to_change = property_to_change
         this.brushflow = brushflow || 1
+        
         if(!canvas){
             let canvs = gridmodel.canvases
             canvas = canvs[Object.keys(canvs)[0]]
@@ -820,16 +821,16 @@ class Simulation {
         let thissim = this
         
         // var intervalfunc
-        
+           
         this.place_size = brushsize 
         
         this.brushflow = brushflow || 1
         if(!canvas){
-            let canvs = this[gridmodel].canvases
+            let canvs = gridmodel.canvases
             canvas = canvs[Object.keys(canvs)[0]]
         }
         else{
-            canvas = this[gridmodel].canvases[canvas]
+            canvas = gridmodel.canvases[canvas]
         }
         
         canvas.elem.addEventListener('mousemove', (e) => { 
@@ -851,11 +852,11 @@ class Simulation {
                     seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))))
                     for(let q=0; q<steps; q++)
                     {
-                        thissim.populateSpot(thissim[gridmodel], [obj], [1], thissim.place_size, seqx[q], seqy[q])                    
+                        thissim.populateSpot(gridmodel, [obj], [1], thissim.place_size, seqx[q], seqy[q])                    
                     }
                 }
                 else{
-                    thissim.populateSpot(thissim[gridmodel], [obj], [1], thissim.place_size, thissim.coords.x, thissim.coords.y)                    
+                    thissim.populateSpot(gridmodel, [obj], [1], thissim.place_size, thissim.coords.x, thissim.coords.y)                    
                 }                
                 canvas.displaygrid()
             }
