@@ -59,7 +59,7 @@
         sim.createDisplay_continuous({model:"growth", property:"internal_resources", label:"Internal resources", // Createa a display for a continuous variable (ODE state for external resources)
                             minval:0.5, maxval:1, num_colours: 100, decimals: 2, fill:"viridis",
                             drawdots:true, stroke:true, strokeStyle: 'yellow', strokeWidth: 2,
-                            radius:"internal_resources", min_radius: 1, max_radius:6, scale_radius: 5            
+                            radius:"internal_resources", min_radius: 1, max_radius:5, scale_radius: 5            
                             })         
         sim.createDisplay_continuous({model:"growth", property:"external_resources", label:"External resources", // Createa a display for a continuous variable (ODE state for external resources)
                             minval:0, maxval:1, num_colours: 100, decimals: 2, minval:0, maxval:1, fill:"viridis"})                      
@@ -105,7 +105,7 @@
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
             this.diffuseStates('external_resources',0.1)
             this.plotPopsizes('species', ['low uptake', 'medium uptake','high uptake'])
-            if(sim.time%100==0)sim.initialGrid(sim.growth,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+            //if(sim.time%100==0)sim.initialGrid(sim.growth,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
         }
 
         /*
@@ -113,7 +113,7 @@
         */
 
         sim.addButton("Play/pause sim", function () { sim.toggle_play() })
-
+        sim.addStatebrush("growth", "external_resources", 10, 20, 1, "External resources")
         
         sim.start()
 

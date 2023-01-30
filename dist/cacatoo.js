@@ -1732,6 +1732,8 @@ class Canvas {
     {
         this.legend.getContext("2d").clearRect(0, 0, this.legend.width, this.legend.height);
     }
+
+    
 }
 
 /* 
@@ -2504,6 +2506,129 @@ class Simulation {
         container.innerHTML += html;
         document.getElementById(div).appendChild(container);
     }
+
+    /**
+    *  Add a statedrawing posibility to this canvas
+    *  @param {Gridmodel} gridmodel The gridmodel to which this canvas belongs
+    *  @param {string} property the property that should be shown on the canvas
+    *  @param {} value_to_place set @property to this value
+    *  @param {int} brushsize radius of the brush
+    *  @param {int} brushflow amounts of substeps taken (1 by default)
+    */
+    addStatebrush(gridmodel, property_to_change, value_to_place, brushsize, brushflow, canvas)
+    {
+        this.mouseDown = false;
+        this.coords_previous = [];
+        this.coords = [];
+        let thissim = this;
+        
+        // var intervalfunc
+        this.place_value = value_to_place;
+        this.place_size = brushsize; 
+        this.property_to_change = property_to_change;
+        this.brushflow = brushflow || 1;
+        if(!canvas){
+            let canvs = this[gridmodel].canvases;
+            canvas = canvs[Object.keys(canvs)[0]];
+        }
+        else {
+            canvas = this[gridmodel].canvases[canvas];
+        }
+        
+        canvas.elem.addEventListener('mousemove', (e) => { 
+            thissim.coords_previous = thissim.coords;
+            thissim.coords = sim.getCursorPosition(canvas,e,sim.config.scale); 
+        });
+        
+        canvas.elem.addEventListener('mousedown', (e) => {    
+            thissim.intervalfunc = setInterval(function() {
+                
+            if(thissim.mouseDown){
+                
+                let steps = thissim.brushflow;     
+
+                if(steps > 1){                    
+                    let difx = thissim.coords.x - thissim.coords_previous.x;
+                    seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
+                    let dify = thissim.coords.y - thissim.coords_previous.y;
+                    seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
+                    for(let q=0; q<steps; q++)
+                    {
+                        thissim.putSpot(thissim[gridmodel], thissim.property_to_change, thissim.place_value, thissim.place_size, seqx[q], seqy[q]);                    
+                    }
+                }
+                else {
+                    thissim.putSpot(thissim[gridmodel], thissim.property_to_change, thissim.place_value, thissim.place_size, thissim.coords.x, thissim.coords.y);                    
+                }                
+                canvas.displaygrid();
+            }
+            }, 10);
+        });
+        canvas.elem.addEventListener('mousedown', (e) => { thissim.mouseDown = true; });
+        canvas.elem.addEventListener('mouseup', (e) => { thissim.mouseDown = false; });
+    }
+
+    /**
+    *  Add an object-drawing posibility to this canvas
+    *  @param {Gridmodel} gridmodel The gridmodel to which this canvas belongs
+    *  @param {object} obj Replace current gp with this object
+    *  @param {int} brushsize radius of the brush
+    *  @param {int} brushflow amounts of substeps taken (1 by default)
+    *  @param {string} canvas alternative canvas name to draw on (first canvas by default)
+    */
+    addObjectbrush(gridmodel, obj, brushsize, brushflow, canvas)
+    {
+        this.mouseDown = false;
+        this.coords_previous = [];
+        this.coords = [];
+        let thissim = this;
+        
+        // var intervalfunc
+        
+        this.place_size = brushsize; 
+        
+        this.brushflow = brushflow || 1;
+        if(!canvas){
+            let canvs = this[gridmodel].canvases;
+            canvas = canvs[Object.keys(canvs)[0]];
+        }
+        else {
+            canvas = this[gridmodel].canvases[canvas];
+        }
+        
+        canvas.elem.addEventListener('mousemove', (e) => { 
+            thissim.coords_previous = thissim.coords;
+            thissim.coords = sim.getCursorPosition(canvas,e,sim.config.scale); 
+        });
+        
+        canvas.elem.addEventListener('mousedown', (e) => {    
+            thissim.intervalfunc = setInterval(function() {
+                
+            if(thissim.mouseDown){
+                
+                let steps = thissim.brushflow;     
+
+                if(steps > 1){                    
+                    let difx = thissim.coords.x - thissim.coords_previous.x;
+                    seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
+                    let dify = thissim.coords.y - thissim.coords_previous.y;
+                    seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
+                    for(let q=0; q<steps; q++)
+                    {
+                        thissim.populateSpot(thissim[gridmodel], [obj], [1], thissim.place_size, seqx[q], seqy[q]);                    
+                    }
+                }
+                else {
+                    thissim.populateSpot(thissim[gridmodel], [obj], [1], thissim.place_size, thissim.coords.x, thissim.coords.y);                    
+                }                
+                canvas.displaygrid();
+            }
+            }, 10);
+        });
+        canvas.elem.addEventListener('mousedown', (e) => { thissim.mouseDown = true; });
+        canvas.elem.addEventListener('mouseup', (e) => { thissim.mouseDown = false; });
+    }
+
     /**
      *  log a message to either the console, or to a HTML div. 
      *  @param {String} msg String to write to log

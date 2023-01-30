@@ -304,6 +304,8 @@ class Canvas {
     {
         this.legend.getContext("2d").clearRect(0, 0, this.legend.width, this.legend.height);
     }
+
+    
 }
 
 /* 
