@@ -26,12 +26,11 @@ class Simulation {
         this.ncol = config.ncol = config.ncol || 100
         this.nrow = config.nrow = config.nrow || 100  
         this.scale = config.scale = config.scale || 2
-
+        this.skip = config.skip || 0;
         this.graph_interval = config.graph_interval = config.graph_interval || 10
         this.graph_update = config.graph_update= config.graph_update || 50
         this.fps = config.fps * 1.4 || 60 // Multiplied by 1.4 to adjust for overhead
-        this.fastmode = false
-        if(config.fastmode == true) this.fastmode = true
+        
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = []            // All gridmodels in this simulation
         this.canvases = []              // Array with refs to all canvases (from all models) from this simulation
@@ -40,8 +39,7 @@ class Simulation {
         this.inbrowser = (typeof document !== "undefined")        
         this.fpsmeter = false
         if(config.fpsmeter == true) this.fpsmeter = true
-        this.fastmode = false
-        if(config.fastmode == true) this.fastmode = true
+        
         this.printcursor = true
         if(config.printcursor == false) this.printcursor = false        
     }
@@ -398,71 +396,46 @@ class Simulation {
      *  (which can be slow)
      */
     start() {
-        let sim = this    // Caching this, as function animate changes the this-scope to the scope of the animate-function
-        let meter = undefined
+        let sim = this;    // Caching this, as function animate changes the this-scope to the scope of the animate-function
+        let meter = undefined;
         if (this.inbrowser) {
             if(this.fpsmeter){               
-                meter = new FPSMeter({ position: 'absolute', show: 'ms', left: "auto", top: "45px", right: "25px", graph: 1, history: 20, smoothing: 100});                
+                meter = new FPSMeter({ position: 'absolute', show: 'fps', left: "auto", top: "45px", right: "25px", graph: 1, history: 20, smoothing: 100});                
                 
             } 
 
-            if (this.config.noheader != true) document.title = `Cacatoo - ${this.config.title}`            
+            if (this.config.noheader != true) document.title = `Cacatoo - ${this.config.title}`;            
             
             var link = document.querySelector("link[rel~='icon']");
             if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); }
             link.href = '../../images/favicon.png';
 
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src=""https://bramvandijk88.github.io/cacatoo/images/elephant_cacatoo_small.png"></a>`
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src=""https://bramvandijk88.github.io/cacatoo/images/gh.png"></a></img>`
-            if (this.config.noheader != true && document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>"
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src=""https://bramvandijk88.github.io/cacatoo/images/elephant_cacatoo_small.png"></a>`;
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src=""https://bramvandijk88.github.io/cacatoo/images/gh.png"></a></img>`;
+            if (this.config.noheader != true && document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`;
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>";
             let simStartTime = performance.now();
 
             async function animate() {
-                
-                if (sim.config.fastmode)          // Fast-mode tracks the performance so that frames can be skipped / paused / etc. Has some overhead, so use wisely!
-                {
-                    
-                    if (sim.sleep > 0) await pause(sim.sleep)
-                    if(sim.fpsmeter) meter.tickStart()
-                    let t = 0;              // Will track cumulative time per step in microseconds 
+                if (sim.sleep > 0) await pause(sim.sleep);
+                if(sim.fpsmeter) meter.tickStart();
+                            
+                if (!sim.pause == true) {
+                    sim.step();
+                    sim.events();                            
+                }                
 
-                    while (t < 16.67 * 60 / sim.fps)          //(t < 16.67) results in 60 fps if possible
-                    {
-                        let startTime = performance.now();
-                        if(!sim.pause==true){
-                            sim.step()
-                            sim.events()
-                        }
-                        let endTime = performance.now();
-                        t += (endTime - startTime);
-                        
-                        if (!sim.limitfps) break
-                    }
-                    sim.display()
-                    if(sim.fpsmeter) meter.tick()
-                }
-                else                    // A slightly more simple setup, but does not allow controls like frame-rate, skipping every nth frame, etc. 
-                {
-                    if (sim.sleep > 0) await pause(sim.sleep)
-                    if(sim.fpsmeter) meter.tickStart()
-                    if (!sim.pause == true) {
-                        sim.step()
-                        sim.events();
-                    }
-                    sim.display()
-                    if(sim.fpsmeter) meter.tick()
-                    
-                }
+                if(sim.time%(sim.skip+1)==0)sim.display();
+                if(sim.fpsmeter) meter.tick();
 
                 let frame = requestAnimationFrame(animate);
                 if (sim.time >= sim.config.maxtime) {
                     let simStopTime = performance.now();
-                    console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds")
-                    cancelAnimationFrame(frame)
+                    console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
+                    cancelAnimationFrame(frame);
                 }
 
-                if (sim.pause == true) { cancelAnimationFrame(frame) }
+                if (sim.pause == true) { cancelAnimationFrame(frame); }
             }
 
             requestAnimationFrame(animate);
