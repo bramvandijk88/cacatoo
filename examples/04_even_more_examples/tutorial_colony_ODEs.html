@@ -3,7 +3,7 @@
 <script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
 <script src="../../lib/all.js"></script>        <!-- Load other packages -->
 
-<script src="../../lib/all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
+
 
 <link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
 
@@ -34,7 +34,7 @@
             nrow: 100,		                              // Number of rows (height of your grid)
             seed: 5,
             wrap: [false, false],                         // Wrapped boundary conditions? [COLS, ROWS]   
-            scale: 3,				                      // Scale of the grid (nxn pixels per grid point)
+            scale:2,				                      // Scale of the grid (nxn pixels per grid point)
             statecolours: {'species': { 1: "#FFFFFF",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
                                         2: "red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
                                         3: "#3030ff"}}
@@ -52,17 +52,19 @@
 
         let init_individuals = [{species:1,uptake_rate:1.0,internal_resources:1},
                                 {species:2,uptake_rate:10.0,internal_resources:1},
-                                {species:3,uptake_rate:1000.0,internal_resources:1}]
-        sim.populateSpot(sim.model, init_individuals, [0.33,0.33,0.33], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+                                {species:3,uptake_rate:100.0,internal_resources:1}]
+        sim.populateSpot(sim.model, init_individuals, [0.33,0.33,0.33], 25, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+        
+
 
         sim.createDisplay("model", "species", "Species")     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
         
         // sim.createDisplay_continuous({model:"model", property:"uptake_rate", label:"Uptake rate", // Createa a display for a continuous variable (ODE state for external resources)
-                            // minval:0,maxval:100,fill:"viridis"})  
+        //                     minval:0,maxval:100,fill:"viridis"})  
         sim.createDisplay_continuous({model:"model", property:"external_resources", label:"External resources", // Createa a display for a continuous variable (ODE state for external resources)
-                            multiplier:1000, minval:0, maxval:1000, fill:"viridis"})                      
+                            minval:0, maxval:5, fill:"viridis",num_colours: 100, decimals: 2})                      
         sim.createDisplay_continuous({model:"model", property:"internal_resources", label:"Internal resources", // Createa a display for a continuous variable (ODE state for external resources)
-                            multiplier:1000, minval:0, maxval:1000, fill:"viridis"})                              
+                            minval:0, maxval:1, fill:"viridis",num_colours: 100, decimals: 2})                              
         
 
         /*
@@ -82,10 +84,10 @@
         // Configuration object with initial states, parameters, and diffusion rates
         let ode_config = {
             ode_name: "resources",
-            init_states: [1, 0],              // y[0] and y[1]
+            init_states: [5, 0.0],              // y[0] and y[1], with y[0] = R = 5 there is strong resource competition. Which much higher values the 3 strains are similar. 
             parameters: [0.0, 0.0],           // u and k are set to 0.0 by default, as we will make it dependent on cell presence!
-            diffusion_rates: [0.2, 0.0]
-        }      // resources diffuse through exteral environment, but internal resources stay put
+            diffusion_rates: [0.2, 0.00]     // resources diffuse through exteral environment, but internal resources stay put
+        } 
 
         // Attaches an ODE to all gridpoints with initial state = [0,0].    
         sim.model.attachODE(resource_dynamics, ode_config);
@@ -94,9 +96,9 @@
             let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
             let this_gp = this.grid[i][j]                     // This cell
 
-            if (this_gp.species == 0)                        // If empty
+            if (this_gp.species == undefined)                        // If empty
             {
-                if (randomneigh.species > 1 && randomneigh.resources.state[1] > 0.5) {
+                if (randomneigh.species >= 1 && randomneigh.resources.state[1] > 0.5) {
                     this_gp.species = randomneigh.species
                     this_gp.uptake_rate = randomneigh.uptake_rate
                     randomneigh.resources.state[1] = this.grid[i][j].resources.state[1] = randomneigh.resources.state[1] / 2
@@ -104,7 +106,7 @@
             }
             else {
                 this.grid[i][j].resources.pars = [this_gp.uptake_rate, 0.5]  // Living cells take up and have upkeep
-                if (this.rng.genrand_real1() < 0.01) {
+                if (this.rng.genrand_real1() < 0.002) {
                     this_gp.species = 0
                     this_gp.uptake_rate=0.0
                     this_gp.resources.state[1] = 0
@@ -124,6 +126,7 @@
             applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
         */
         sim.model.update = function () {
+            
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
             this.diffuseODEstates()       // Diffusion of external metabolites
             this.plotODEstates("resources", [0, 1], [[0, 0, 0], [255, 0, 0]])
