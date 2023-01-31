@@ -2618,9 +2618,9 @@ class Simulation {
 
                 if(steps > 1){                    
                     let difx = thissim.coords.x - thissim.coords_previous.x;
-                    seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
+                    let seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
                     let dify = thissim.coords.y - thissim.coords_previous.y;
-                    seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
+                    let seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
                     for(let q=0; q<steps; q++)
                     {
                         thissim.populateSpot(gridmodel, [obj], [1], thissim.place_size, seqx[q], seqy[q]);                    
