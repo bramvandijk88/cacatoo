@@ -40,8 +40,9 @@
         */
         sim = new Simulation(config)                          // Initialise the Cacatoo simulation
         sim.makeGridmodel("model")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        let init_individuals = [{species:'prey', growth_rate: 0.8, age: 0, max_age: 20},
-                                {species:'predator', growth_rate: 0.8, age: 0, max_age: 10}]                         
+        let init_individuals = [{species:'prey', growth_rate: 0.8, age: 0, max_age: 10},
+                                {species:'predator', growth_rate: 0.8, age: 0, max_age: 20}]                         
+        
         sim.populateGrid(sim.model, init_individuals, [0.1,0.1])         // Place the three 'species' in grid points (33% A, 33% B, 33% C)        
         
         sim.createDisplay("model", "species", "")                      // Create a display so we can see our newly made gridmodel
@@ -54,17 +55,18 @@
             let n = this.randomMoore8(this, i, j)   // Random neighbour
             let t = this.grid[i][j]                         // This gridpoint
             t.age++
+            
             if (!t.species)                        // If empty, and neighbour is prey
             {
-                if (n.species == 'prey' && this.random() < n.growth_rate) {
-                    this.copyGridpoint(i,j,n)
+                if (n.species == 'prey' && this.rng.random() < n.growth_rate) {
+                    this.copyIntoGridpoint(i,j,n)
                     t.age = 0   // reset age
                 }
             }
             else if (t.species == 'prey')                   // If prey
             {
-                if (n.species == 'predator' && this.random() < n.growth_rate) {
-                    this.copyGridpoint(i,j,n)
+                if (n.species == 'predator' && this.rng.random() < n.growth_rate) {
+                    this.copyIntoGridpoint(i,j,n)
                     t.age = 0  // reset age
                 }
             }
@@ -92,14 +94,15 @@
         sim.addButton("Play/pause sim", function () { sim.toggle_play() })
         sim.addButton("Disable/enable mix", function () { sim.toggle_mix() })
         sim.addButton("Kill prey", function () { sim.my_custom_killprey_function() })
+        sim.addButton("step", function () { sim.step(); sim.display() })
         sim.my_custom_killprey_function = function () {
             for (let i = 0; i < sim.model.nc; i++) for (let j = 0; j < sim.model.nr; j++) {
                 if (sim.model.grid[i][j].species == 'prey' && this.rng.genrand_real1() < 0.9)
                     sim.model.grid[i][j].species = undefined
             }
         }
-        sim.start()
-
+        sim.start()        
+        
     }
 
 
