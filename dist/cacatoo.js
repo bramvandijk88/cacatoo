@@ -2200,7 +2200,7 @@ class Simulation {
                 if(sim.fpsmeter) meter.tick();
 
                 let frame = requestAnimationFrame(animate);
-                if (sim.time >= sim.config.maxtime) {
+                if (sim.time >= sim.config.maxtime || sim.exit) {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
                     cancelAnimationFrame(frame);
@@ -2214,9 +2214,19 @@ class Simulation {
         else {
             while (true) {
                 sim.step();
-                if (sim.time >= sim.config.maxtime) return true;
+                if (sim.time >= sim.config.maxtime || sim.exit ) {
+                    console.log("Cacatoo completed.");
+                    return true;
+                }
             }
         }
+    }
+
+    /** 
+     * Stop the simulation
+     */
+    stop() {
+        this.exit = true;
     }
 
     /**

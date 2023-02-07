@@ -2228,7 +2228,7 @@ class Simulation {
                 if(sim.fpsmeter) meter.tick();
 
                 let frame = requestAnimationFrame(animate);
-                if (sim.time >= sim.config.maxtime) {
+                if (sim.time >= sim.config.maxtime || sim.exit) {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
                     cancelAnimationFrame(frame);
@@ -2242,9 +2242,19 @@ class Simulation {
         else {
             while (true) {
                 sim.step();
-                if (sim.time >= sim.config.maxtime) return true;
+                if (sim.time >= sim.config.maxtime || sim.exit ) {
+                    console.log("Cacatoo completed.");
+                    return true;
+                }
             }
         }
+    }
+
+    /** 
+     * Stop the simulation
+     */
+    stop() {
+        this.exit = true;
     }
 
     /**
@@ -2259,6 +2269,7 @@ class Simulation {
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
     initialGrid(gridmodel, property) {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         let p = property || 'val';
         let bg = 0;
 
@@ -2282,6 +2293,7 @@ class Simulation {
      */
       populateGrid(gridmodel,individuals,freqs)
       {
+          if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
           if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
           if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
 
@@ -2312,6 +2324,7 @@ class Simulation {
     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
     */
     initialSpot(gridmodel, property, value, size, x, y) {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         let p = property || 'val';
         for (let i = 0; i &lt; gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j &lt; gridmodel.nr; j++) 
@@ -2327,7 +2340,8 @@ class Simulation {
     *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
     */
-     putSpot(gridmodel, property, value, size, x, y) {
+   putSpot(gridmodel, property, value, size, x, y) {
+         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         // Draw a circle
         for (let i = 0; i &lt; gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j &lt; gridmodel.nr; j++)                           // j are rows
@@ -2345,6 +2359,7 @@ class Simulation {
      */
      populateSpot(gridmodel,individuals, freqs,size, x, y, set_background_state=false)
      {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         let sumfreqs =0;
         if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
         for(let i=0; i&lt;freqs.length; i++) sumfreqs += freqs[i];
@@ -2545,6 +2560,7 @@ class Simulation {
     */
     addStatebrush(gridmodel, property_to_change, value_to_place, brushsize, brushflow, canvas)
     {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         this.mouseDown = false;
         this.coords_previous = [];
         this.coords = [];
@@ -2555,12 +2571,13 @@ class Simulation {
         this.place_size = brushsize; 
         this.property_to_change = property_to_change;
         this.brushflow = brushflow || 1;
+        
         if(!canvas){
-            let canvs = this[gridmodel].canvases;
+            let canvs = gridmodel.canvases;
             canvas = canvs[Object.keys(canvs)[0]];
         }
         else {
-            canvas = this[gridmodel].canvases[canvas];
+            canvas = gridmodel.canvases[canvas];
         }
         
         canvas.elem.addEventListener('mousemove', (e) => { 
@@ -2577,16 +2594,16 @@ class Simulation {
 
                 if(steps > 1){                    
                     let difx = thissim.coords.x - thissim.coords_previous.x;
-                    seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
+                    let seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
                     let dify = thissim.coords.y - thissim.coords_previous.y;
-                    seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
+                    let seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
                     for(let q=0; q&lt;steps; q++)
                     {
-                        thissim.putSpot(thissim[gridmodel], thissim.property_to_change, thissim.place_value, thissim.place_size, seqx[q], seqy[q]);                    
+                        thissim.putSpot(gridmodel, thissim.property_to_change, thissim.place_value, thissim.place_size, seqx[q], seqy[q]);                    
                     }
                 }
                 else {
-                    thissim.putSpot(thissim[gridmodel], thissim.property_to_change, thissim.place_value, thissim.place_size, thissim.coords.x, thissim.coords.y);                    
+                    thissim.putSpot(gridmodel, thissim.property_to_change, thissim.place_value, thissim.place_size, thissim.coords.x, thissim.coords.y);                    
                 }                
                 canvas.displaygrid();
             }
@@ -2606,22 +2623,23 @@ class Simulation {
     */
     addObjectbrush(gridmodel, obj, brushsize, brushflow, canvas)
     {
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         this.mouseDown = false;
         this.coords_previous = [];
         this.coords = [];
         let thissim = this;
         
         // var intervalfunc
-        
+           
         this.place_size = brushsize; 
         
         this.brushflow = brushflow || 1;
         if(!canvas){
-            let canvs = this[gridmodel].canvases;
+            let canvs = gridmodel.canvases;
             canvas = canvs[Object.keys(canvs)[0]];
         }
         else {
-            canvas = this[gridmodel].canvases[canvas];
+            canvas = gridmodel.canvases[canvas];
         }
         
         canvas.elem.addEventListener('mousemove', (e) => { 
@@ -2638,16 +2656,16 @@ class Simulation {
 
                 if(steps > 1){                    
                     let difx = thissim.coords.x - thissim.coords_previous.x;
-                    seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
+                    let seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))));
                     let dify = thissim.coords.y - thissim.coords_previous.y;
-                    seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
+                    let seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))));
                     for(let q=0; q&lt;steps; q++)
                     {
-                        thissim.populateSpot(thissim[gridmodel], [obj], [1], thissim.place_size, seqx[q], seqy[q]);                    
+                        thissim.populateSpot(gridmodel, [obj], [1], thissim.place_size, seqx[q], seqy[q]);                    
                     }
                 }
                 else {
-                    thissim.populateSpot(thissim[gridmodel], [obj], [1], thissim.place_size, thissim.coords.x, thissim.coords.y);                    
+                    thissim.populateSpot(gridmodel, [obj], [1], thissim.place_size, thissim.coords.x, thissim.coords.y);                    
                 }                
                 canvas.displaygrid();
             }
@@ -2987,7 +3005,7 @@ function get2DFromCanvas(canvas) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Mon Jan 30 2023 17:46:16 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Feb 07 2023 12:05:58 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

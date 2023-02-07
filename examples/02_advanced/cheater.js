@@ -126,10 +126,11 @@ function cacatoo() {
             [sumA / sumB, sumB / sumC],
             ["black"],
             "My custom XY plot (X/Y vs Y/Z)", { drawPoints: true, strokeWidth: 1, pointSize: 2, strokePattern: [2, 2] })
-
+        // if(this.time == 1000) sim.stop() // Forces a manual stop
         if (this.time % 100 == 0)       // Otherwise, just print some numbers (e.g. popsizes)
         {
             sim.log(`Cheater at time point ${this.time}, has popsizes\t\t${sim.cheater.getPopsizes('species', [1, 2, 3])}`, "output")
+            
             //if(!sim.inbrowser) sim.write_grid(sim.cheater,'species',`species_at_T${this.time}.dat`,warn=false)    // Example of how to write a grid-property to a file. Currently only works in NODEJS mode (i.e not in browser). 
         }
         
