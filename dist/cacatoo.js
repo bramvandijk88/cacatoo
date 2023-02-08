@@ -1900,6 +1900,7 @@ class Simulation {
         cnv.add_legend(cnv.canvasdiv,property);
         cnv.bgcolour = this.config.bgcolour || 'black';
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale); }, false);
+        canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas; }, false);
         cnv.displaygrid();                
     }       
     
@@ -1968,6 +1969,7 @@ class Simulation {
         cnv.add_legend(cnv.canvasdiv,property);
         cnv.bgcolour = this.config.bgcolour || 'black';
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale); }, false);
+        canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas; }, false);
         cnv.displaygrid(); 
     }
 
@@ -2050,6 +2052,7 @@ class Simulation {
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         const canvas = cnv;        
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(cnv, e, scale); }, false);
+        canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas; }, false);
         cnv.displaygrid();
     }
 
@@ -2096,6 +2099,7 @@ class Simulation {
 
         cnv.canvasdiv.appendChild(newCanvas);
         cnv.bgcolour = this.config.bgcolour || 'black';
+        cnv.elem.addEventListener('mousedown', (e) => { sim.active_canvas = cnv; }, false);
     }
 
 
@@ -2476,6 +2480,46 @@ class Simulation {
         document.getElementById("form_holder").appendChild(container);
     }
     
+    recordVideo(model, display_name){  
+        let canvas = this[model].canvases[display_name];        
+
+        // Download DataURL
+        function dataURL_downloader(dataURL, name = display_name) {
+            const hyperlink = document.createElement("a");
+            // document.body.appendChild(hyperlink);
+            hyperlink.download = name;
+            hyperlink.target = '_blank';
+            hyperlink.href = dataURL;
+            hyperlink.click();
+            hyperlink.remove();
+        }        // Record a video ----------------------------------
+        // Stream
+                
+        if(!canvas.mediaRecorder){
+            canvas.videoStream = canvas.elem.captureStream();
+            canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
+
+            canvas.chunks = [];
+            // Store chunks
+            canvas.mediaRecorder.ondataavailable = function (e) {
+                canvas.chunks.push(e.data);
+            };
+            // Download video after recording is stopped
+            canvas.mediaRecorder.onstop = function (e) {
+                const blob = new Blob(canvas.chunks, { 'type': 'video/mp4' });
+                const videoDataURL = URL.createObjectURL(blob);
+                dataURL_downloader(videoDataURL);
+                canvas.chunks = [];
+                canvas.mediaRecorder = undefined;
+            };
+
+            canvas.mediaRecorder.start();
+            
+        }
+        else {
+            canvas.mediaRecorder.stop();
+        }        
+    }
     /**
      *  addToggle adds a HTML checkbox element to the DOM-environment which allows the user
      *  to flip boolean values

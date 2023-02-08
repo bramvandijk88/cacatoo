@@ -25,10 +25,10 @@
             title: "Interacting grids",
             description: "An example of how you can make grids interact. GoL (left-hand side, purple) influences vote (right-hand side) to vote blue.",
             maxtime: 10000,
-            ncol: 200,
-            nrow: 100,		            // dimensions of the grid to build
+            ncol: 250,
+            nrow: 50,		            // dimensions of the grid to build
             wrap: [true, true],        // Wrap boundary [COLS, ROWS]
-            scale: 3,				    // scale of the grid (nxn pixels per grid cell)
+            scale: 4,				    // scale of the grid (nxn pixels per grid cell)
             statecolours: {
                 'alive': { 0: 'black', 1: '#FF00AA' },
                 'overlay': { 0: 'black', 1: 'blue', 2: 'red' }
@@ -38,12 +38,12 @@
         sim = new Simulation(config)
 
         sim.makeGridmodel("gol");
-        sim.initialGrid(sim.gol, 'alive', 1, 0.1)
+        sim.initialGrid("gol", 'alive', 1, 0.1)
         sim.createDisplay("gol", "alive", "Game of life (solo)")
 
         sim.makeGridmodel("vote");
-        sim.initialGrid(sim.vote, 'left', 1, 0.5)           // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
-        sim.initialGrid(sim.vote, 'overlay', 0, 1.0)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+        sim.initialGrid("vote", 'left', 1, 0.5)           // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+        sim.initialGrid("vote", 'overlay', 0, 1.0)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
         sim.createDisplay("vote", "overlay", "Vote / Game of life interact")
 
         sim.gol.nextState = function (i, j)                 // Define the next-state function. This example is game of life + vote
@@ -82,9 +82,15 @@
                 this.synchronous()
             }
         }
-
-
+        
+        sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
+        sim.addButton("Video recording &#x23FA ", function() { 
+            sim.recordVideo("gol","Game of life (solo)"); 
+            sim.recordVideo("vote","Vote / Game of life interact");
+        })        
         sim.start()
+        //
+        
     }
 
 </script>
@@ -94,6 +100,7 @@
 <body onload="cacatoo()">
     <div class="header" id="header"></div>
     <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="form_holder"></div>
     <div class="content" id="graph_holder"> </div>
     <div class="footer" id="footer"></div>
 </body>
