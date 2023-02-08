@@ -68,7 +68,11 @@
             // change stuff below to sim.spirals.drawslide("name")
             
         }
-        
+        sim.addButton("record video", function() {
+						sim.recordVideo(sim.spirals.canvases["Colours represent different species"]);
+						sim.recordVideo(sim.spirals.canvases["Space-time plot"]);		
+				})
+				
         sim.addButton("pause", function () { sim.toggle_play() })
         sim.addButton("mix grid", function () { sim.spirals.perfectMix() })
         sim.addStatebrush("spirals", "colour", 3, 800)
