@@ -58,7 +58,7 @@ var sim;                            // This 'global' variable will hold the enti
     	  sim.coop.clearGrid()
         let init_individuals = [{type:"Cooperator", alive:1, fitness: base_fitness_1, base_fitness: base_fitness_1, helping_rate: helper_rate_type_1},
                             {type:"Cheater", alive:1, fitness: base_fitness_2, base_fitness: base_fitness_2, helping_rate:  helper_rate_type_2}]                            
-        sim.populateSpot(sim.coop, init_individuals, [0.3,0.5], 100, config.ncol/2, config.nrow/2)         // cheaters and cooperators 50/50
+        sim.populateSpot(sim.coop, init_individuals, [0.3,0.5], 100, config.ncol/2, config.nrow/2, {alive:0, fitness:0})         // cheaters and cooperators 50/50
         sim.display()
         sim.coop.resetPlots()
     }

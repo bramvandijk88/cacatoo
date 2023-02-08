@@ -2293,14 +2293,13 @@ class Simulation {
     *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
     *  @param {String} property The name of the state to be set 
     *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
-    *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
     */
-    initialSpot(gridmodel, property, value, size, x, y) {
+    initialSpot(gridmodel, property, value, size, x, y,background_state=false) {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         let p = property || 'val';
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
             for (let j = 0; j < gridmodel.nr; j++) 
-                gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = undefined;
+                if(background_state) gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = background_state;
         this.putSpot(gridmodel,property,value,size,x,y);
     }
 
@@ -2329,7 +2328,7 @@ class Simulation {
      *  @param {Array} individuals The properties for individuals 1..n
      *  @param {Array} freqs The initial frequency of individuals 1..n
      */
-     populateSpot(gridmodel,individuals, freqs,size, x, y, set_background_state=false)
+     populateSpot(gridmodel,individuals, freqs,size, x, y, background_state=false)
      {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
         let sumfreqs =0;
@@ -2340,7 +2339,7 @@ class Simulation {
         for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
         for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
         {
-            if(set_background_state) for (const property in individuals[0]) gridmodel.grid[i][j][property] = 0; 
+            
 
             if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
             {
@@ -2354,6 +2353,7 @@ class Simulation {
                     }
                 }
             }
+            else if(background_state) Object.assign(gridmodel.grid[i][j], background_state);
         }
          
      }
