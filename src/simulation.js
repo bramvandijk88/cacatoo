@@ -727,7 +727,8 @@ class Simulation {
         if(!canvas.mediaRecorder){
             canvas.videoStream = canvas.elem.captureStream();
             canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
-
+            
+            canvas.ctx.globalAlpha = 0.6;
             canvas.chunks = [];
             // Store chunks
             canvas.mediaRecorder.ondataavailable = function (e) {
@@ -746,6 +747,7 @@ class Simulation {
             
         }
         else{
+            canvas.ctx.globalAlpha = 1.0;
             canvas.mediaRecorder.stop();
         }        
     }
