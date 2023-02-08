@@ -2480,11 +2480,14 @@ class Simulation {
         document.getElementById("form_holder").appendChild(container);
     }
     
-    recordVideo(model, display_name){  
-        let canvas = this[model].canvases[display_name];        
+    /**
+     *  recordVideo captures the canvas to an MP4 (browser only)    
+     *  @param {canvas} canvas Canvas object to record
+     */
+    recordVideo(canvas){            
 
         // Download DataURL
-        function dataURL_downloader(dataURL, name = display_name) {
+        function dataURL_downloader(dataURL, name = canvas.label) {
             const hyperlink = document.createElement("a");
             // document.body.appendChild(hyperlink);
             hyperlink.download = name;
@@ -2498,7 +2501,8 @@ class Simulation {
         if(!canvas.mediaRecorder){
             canvas.videoStream = canvas.elem.captureStream();
             canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
-
+            
+            canvas.ctx.globalAlpha = 0.6;
             canvas.chunks = [];
             // Store chunks
             canvas.mediaRecorder.ondataavailable = function (e) {
@@ -2517,6 +2521,7 @@ class Simulation {
             
         }
         else {
+            canvas.ctx.globalAlpha = 1.0;
             canvas.mediaRecorder.stop();
         }        
     }

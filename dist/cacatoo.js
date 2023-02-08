@@ -2480,6 +2480,10 @@ class Simulation {
         document.getElementById("form_holder").appendChild(container);
     }
     
+    /**
+     *  recordVideo captures the canvas to an MP4 (browser only)    
+     *  @param {canvas} canvas Canvas object to record
+     */
     recordVideo(canvas){            
 
         // Download DataURL
@@ -2997,4 +3001,12 @@ function get2DFromCanvas(canvas) {
     return arr2D
 }
 
-module.exports = Simulation;
+
+    try
+    {
+        module.exports = Simulation;
+    }
+    catch(err)
+    {
+        // do nothing
+    }
