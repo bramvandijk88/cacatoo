@@ -85,8 +85,8 @@
         
         sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
         sim.addButton("Video recording &#x23FA ", function() { 
-            sim.recordVideo("gol","Game of life (solo)"); 
-            sim.recordVideo("vote","Vote / Game of life interact");
+            sim.recordVideo(sim.gol.canvases["Game of life (solo)"]); 
+            sim.recordVideo(sim.vote.canvases["Vote / Game of life interact"]);
         })        
         sim.start()
         //

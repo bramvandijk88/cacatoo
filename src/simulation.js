@@ -709,11 +709,10 @@ class Simulation {
         document.getElementById("form_holder").appendChild(container)
     }
     
-    recordVideo(model, display_name){  
-        let canvas = this[model].canvases[display_name]        
+    recordVideo(canvas){            
 
         // Download DataURL
-        function dataURL_downloader(dataURL, name = display_name) {
+        function dataURL_downloader(dataURL, name = canvas.label) {
             const hyperlink = document.createElement("a");
             // document.body.appendChild(hyperlink);
             hyperlink.download = name;
