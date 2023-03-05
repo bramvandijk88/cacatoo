@@ -69,7 +69,7 @@ class Canvas {
         else{
             ctx.clearRect(0, 0, scale * ncol, scale * nrow)        
             ctx.fillStyle = this.bgcolour
-            ctx.fillRect(0, 0, ncol * scale, nrow * scale)            
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale)
         }
 
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
