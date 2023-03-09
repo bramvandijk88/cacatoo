@@ -31,14 +31,14 @@ function cacatoo() {
         num_colours: 100,
         skipbg_state: true,
         show_gridname: true,
-        printcursor: false,
+        printcursor: true,
     }
 
     sim = new Simulation(config)                                              
 
     sim.makeGridmodel("model")                                                
     sim.initialGrid(sim.model, 'discrete_var', 1, 0.33, 2, 0.33, 3, 0.33)
-    sim.initialGrid(sim.model, 'continuous_var', 100, 1.0)
+    sim.initialGrid(sim.model, 'continuous_var', 1.0, 1.0)
     sim.initialGrid(sim.model, 'continuous_var2', 100, 1.0)
 
     sim.createDisplay("model", "discrete_var", "Discrete variable")                    
@@ -46,7 +46,7 @@ function cacatoo() {
     sim.createDisplay("model", "discrete_var", "(zoom in on grid)", 20, 20, 10)
 
 
-    sim.createDisplay_continuous({model:"model", property:"continuous_var", label:"Some continuous variable", minval:0, maxval:100}) 
+    sim.createDisplay_continuous({model:"model", property:"continuous_var", label:"Some continuous variable", minval:0.9, maxval:1.2, decimals: 1}) 
     sim.spaceTimePlot("model", "Some continuous variable", "Space-time (continuous)", 50, sim.ncol)                        
     sim.createDisplay_continuous({model:"model", property:"continuous_var2", label:"Some continuous variable 2", minval:0, maxval:100, num_colours: 20, fill: 'inferno'}) 
     
@@ -70,9 +70,9 @@ function cacatoo() {
         }
 
         if (state == 1) 
-            this.grid[i][j].continuous_var = 100
+            this.grid[i][j].continuous_var = 1.2
         else 
-            this.grid[i][j].continuous_var -= sum            
+            this.grid[i][j].continuous_var -= sum / 1000           
 
 
         this.grid[i][j].continuous_var2 -= sum
@@ -81,7 +81,7 @@ function cacatoo() {
 
         if (this.rng.random() < death)
         {   
-            this.grid[i][j].continuous_var2 = 100                         
+            this.grid[i][j].continuous_var2 = 100                      
             this.grid[i][j].discrete_var = 0
         }
     }

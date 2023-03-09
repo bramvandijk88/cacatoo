@@ -1497,7 +1497,7 @@ class Canvas {
         else {
             ctx.clearRect(0, 0, scale * ncol, scale * nrow);        
             ctx.fillStyle = this.bgcolour;
-            ctx.fillRect(0, 0, ncol * scale, nrow * scale);            
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         }
 
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
@@ -1518,11 +1518,12 @@ class Canvas {
                     continue                     
                 
                 let value = this.gridmodel.grid[i][j][prop];
+                
+
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
                 {                  
-                    value = Math.min(value+this.minval,this.maxval);
-                    let mult = this.num_colours/(this.maxval-this.minval);
-                    value = Math.max(Math.floor(value*mult),1);                     
+                    value = Math.max(this.minval,Math.min(this.maxval,value));
+                    value = Math.floor((value - this.minval)/(this.maxval-this.minval)*this.num_colours);
                 }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state                 
@@ -2013,7 +2014,7 @@ class Simulation {
         let decimals= config.decimals || 0;
         let nticks= config.nticks || 5;
         let minval = config.minval || 0;
-        let num_colours = config.num_colours || (maxval-minval) || 64;
+        let num_colours = config.num_colours || ((maxval-minval)>10)?maxval-minval: 100;
         
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours);    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno");    

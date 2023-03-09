@@ -90,11 +90,12 @@ class Canvas {
                     continue                     
                 
                 let value = this.gridmodel.grid[i][j][prop]
+                
+
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
                 {                  
-                    value = Math.min(value+this.minval,this.maxval)
-                    let mult = this.num_colours/(this.maxval-this.minval)
-                    value = Math.max(Math.floor(value*mult),1)                     
+                    value = Math.max(this.minval,Math.min(this.maxval,value))
+                    value = Math.floor((value - this.minval)/(this.maxval-this.minval)*this.num_colours)
                 }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state                 
