@@ -1523,7 +1523,7 @@ class Canvas {
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
                 {                  
                     value = Math.max(this.minval,Math.min(this.maxval,value));
-                    value = Math.floor((value - this.minval)/(this.maxval-this.minval)*this.num_colours);                    
+                    value = Math.ceil((value - this.minval)/(this.maxval-this.minval)*this.num_colours);                    
                 }                
 
                 if (statecols[value] == undefined)                   // Don't draw the background state                 
