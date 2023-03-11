@@ -65,8 +65,8 @@
         sim.makeGridmodel("TE_model");
 
         sim.createDisplay_continuous({model:"TE_model", property:"genomesize", label:"Genome size", minval:0, maxval:100, fill:"viridis"}) 
-        sim.createDisplay_continuous({model:"TE_model", property:"T_in_genomes", label:"TEs inside genomes", minval:0, maxval:40, fill:"viridis"}) 
-        sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool", minval:0, maxval:40, fill:"viridis"}) 
+        sim.createDisplay_continuous({model:"TE_model", property:"T_in_genomes", label:"TEs inside genomes", minval:0, maxval:40, fill:"inferno"}) 
+        sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool", minval:0, maxval:40, fill:"inferno"}) 
 
         sim.TE_model.initialise = function () {
             sim.initialGrid(sim.TE_model, "alive", 0, 1.0)
