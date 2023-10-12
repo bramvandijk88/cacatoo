@@ -109,7 +109,7 @@
                 this.grid[this.nc / 2][this.nr / 2].lotka.state[0],],
                 ["gold", "#FF00AA"],
                 "ODE states in central grid point")
-            if(this.time%100==0)sim.divToImage("canvases_and_graphs","LotkaVolterra")
+            if(this.time%100==0) sim.sectionToPNG("canvases_and_graphs","LotkaVolterra")
         }
         sim.addButton("pause/continue", function () { sim.toggle_play() })
         sim.addButton("step", function () { sim.step(); sim.display() })
