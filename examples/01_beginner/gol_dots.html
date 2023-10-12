@@ -39,6 +39,7 @@ function cacatoo(){
         nrow: 100,		                             // Number of rows (height of your grid)        
         wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
         scale: 5,				                     // Scale of the grid (nxn pixels per grid point)
+        sleep: 100,
         statecolours: { 'alive': { 1: 'violet' } },   // Colours for each state. Background (0) defaults to black. 
     }
 
@@ -85,6 +86,7 @@ function cacatoo(){
     */
     sim.gol.update = function () {
         this.synchronous()         // Applied as many times as it can in 1/60th of a second        
+        if(this.time%100==0)sim.divToImage("canvas_holder","LotkaVolterra")
     }
 
     /*

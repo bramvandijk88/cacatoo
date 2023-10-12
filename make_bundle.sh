@@ -7,9 +7,12 @@
 # 
 
 compile_cacatoo()
-{                           
+{            
+    # For this, install rollup using 'npm install rollup' in the root of cacatoo. Needed for dev only	
     ./node_modules/rollup/dist/bin/rollup src/simulation.js -o dist/cacatoo.js -f cjs --exports "default"                              # Use rollup to bundle the package as a single commonJS file
-    sed -i '$ d' dist/cacatoo.js
+    # On MacOS @ KRUYT:
+    #pkg/rollup/bin/rollup src/simulation.js -o dist/cacatoo.js -f cjs --exports "default"                              # Use rollup to bundle the package as a single commonJS file
+    sed -i '' '$ d' dist/cacatoo.js # used to be sed -i '$ d' dist/cacatoo.js but that didnt work on Mac. Not yet tested if this still works on linux
     echo "
     try
     {
@@ -44,9 +47,9 @@ compile_cacatoo()
 
     # // Copy the TE-example to the docs on Github for publication
     fix_libs() {
-        sed -i 's/..\/..\/dist\/cacatoo.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/cacatoo.js/g' $1
-        sed -i 's/..\/..\/lib\/all.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/all.js/g' $1
-        sed -i 's/..\/..\/style\/cacatoo.css/https:\/\/bramvandijk88.github.io\/cacatoo\/styles\/cacatoo.css/g' $1
+        sed -i '' 's/..\/..\/dist\/cacatoo.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/cacatoo.js/g' $1
+        sed -i '' 's/..\/..\/lib\/all.js/https:\/\/bramvandijk88.github.io\/cacatoo\/scripts\/all.js/g' $1
+        sed -i ''  's/..\/..\/style\/cacatoo.css/https:\/\/bramvandijk88.github.io\/cacatoo\/styles\/cacatoo.css/g' $1
     }
 
     #cp examples/03_expert/PoS_classes.js docs/TEs_streamlining/
@@ -60,12 +63,12 @@ compile_cacatoo()
     cp examples/04_even_more_examples/cooperation.html docs/cooperation/index.html
     cp images/coop.png docs/images
     fix_libs docs/cooperation/index.html
-    sed -i 's/..\/..\/images/..\/images/g' docs/cooperation/index.html
+    sed -i '' 's/..\/..\/images/..\/images/g' docs/cooperation/index.html
 
-    sed -i 's/images\/cacatoo_recipe.png/..\/images\/cacatoo_recipe.png/g' docs/jsdocs/index.html
+    sed -i '' 's/images\/cacatoo_recipe.png/..\/images\/cacatoo_recipe.png/g' docs/jsdocs/index.html
 
-    sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
-    sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
+    sed -i '' 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
+    sed -i '' 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
     echo "[OK]"  
     if [ "$1" != "once" ]; then
         echo -en "Awaiting changes in the code..."
