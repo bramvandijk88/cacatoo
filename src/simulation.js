@@ -710,10 +710,10 @@ class Simulation {
     }
 
     /**
-     * save a PNG of an entire div
+     * save a PNG of an entire HTML div element
      * @param {div} div object to store to
      */
-    divToImage(div, prefix){
+    sectionToPNG(div, prefix){
         function downloadURI(uri, filename) {
             var link = document.createElement("a");
             link.download = filename;
@@ -727,7 +727,7 @@ class Simulation {
         div = document.getElementById(div)
         let time = sim.time+1
         let timestamp = time.toString()
-        timestamp = timestamp.padStart(5, "0")
+        timestamp = timestamp.padStart(6, "0")
 
         html2canvas(div).then(canvas => {
             var myImage = canvas.toDataURL();
