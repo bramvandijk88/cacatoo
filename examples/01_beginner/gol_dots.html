@@ -15,14 +15,17 @@
 <html>
 <script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
 <script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
 <link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
 
 <link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
 <script>
 
+
 /*-----------------------Start user-defined code ---------------------*/
 
 let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+var capturer; 
 
 /**
 * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
@@ -50,6 +53,8 @@ function cacatoo(){
     sim.makeGridmodel("gol")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
     sim.initialGrid(sim.gol, 'alive', 1, 0.5)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
     sim.createDisplay_discrete({model:"gol",property:"alive",label:"Game of life (white=alive)",drawdots:true,radius:3})                      // Create a display so we can see our newly made gridmodel
+
+    
 
     /*
         2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
@@ -85,6 +90,8 @@ function cacatoo(){
     */
     sim.gol.update = function () {
         this.synchronous()         // Applied as many times as it can in 1/60th of a second        
+        //capturer.capture(sim.gol.canvases["Game of life (white=alive)"].ctx.canvas)
+        sim.captureFrame(sim.gol.canvases["Game of life (white=alive)"])
     }
 
     /*
@@ -92,6 +99,19 @@ function cacatoo(){
     */
     sim.addPatternButton(sim.gol, 'alive')  // Note, for security reasons, this needs a local server to be run (try VSC's 'live server' plugin!)
     sim.addButton("pause/continue", function () { sim.toggle_play() })
+
+
+    sim.addButton("Record", function() {
+        sim.startRecording(sim.gol.canvases["Game of life (white=alive)"])
+        //capturer.start()
+        //capturer.capture(sim.gol.canvases["Game of life (white=alive)"].elem)
+    })
+    sim.addButton("Stop record", function() {
+        sim.stopRecording(sim.gol.canvases["Game of life (white=alive)"])
+        //capturer.stop(); 
+        //capturer.save();
+    })
+
     sim.addButton("step", function () { sim.step(); sim.display() })    
     sim.modifysleep = function(newvalue) { this.sleep = newvalue}
     // sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
@@ -107,6 +127,9 @@ function cacatoo(){
 
 
 <body onload="cacatoo()">
+    <!-- <video width="200" height="200" autoplay="autoplay" loop>
+        <source src="../images/gol_dots.webm" type="video/mp4" />
+      </video> -->
     <div class="header" id="header">
         <h2>Cacatoo </h2>
     </div>

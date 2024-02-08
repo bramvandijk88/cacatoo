@@ -139,8 +139,8 @@ button {
 
 /* The numeric form */
 input[type=number] {
-  background-color: rgb(217, 234, 245);
-  border: 2px solid rgb(177, 209, 231);
+  background-color: rgb(239, 218, 245);
+  border: 2px solid rgb(188, 141, 201);
   font-size: 12px;
 }
 
@@ -154,7 +154,7 @@ input[type=number] {
   cursor: pointer;
   height: 8px;
   /* Specified height */
-  background: rgb(177, 209, 231);
+  background-color: rgb(239, 218, 245);
   outline: none;
   /* Remove outline */
   opacity: 0.5;
@@ -187,4 +187,8 @@ input[type=number] {
 .slider:hover {
   opacity: 1;
   /* Fully shown on mouse-over */
+}
+
+.canvas {
+  border: '3px solid red';    
 }

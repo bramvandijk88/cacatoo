@@ -713,48 +713,77 @@ class Simulation {
      *  recordVideo captures the canvas to an MP4 (browser only)    
      *  @param {canvas} canvas Canvas object to record
      */
-    recordVideo(canvas){            
-
-        // Download DataURL
-        function dataURL_downloader(dataURL, name = canvas.label) {
-            const hyperlink = document.createElement("a");
-            // document.body.appendChild(hyperlink);
-            hyperlink.download = name;
-            hyperlink.target = '_blank';
-            hyperlink.href = dataURL;
-            hyperlink.click();
-            hyperlink.remove();
-        };
-        // Record a video ----------------------------------
-        // Stream
-                
-        if(!canvas.mediaRecorder){
-            canvas.videoStream = canvas.elem.captureStream();
-            canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
+    startRecording(canvas){            
+        if(!canvas.recording){
+            canvas.recording = true        
             
-            canvas.ctx.globalAlpha = 0.6;            
-            canvas.chunks = [];
-            // Store chunks
-            canvas.mediaRecorder.ondataavailable = function (e) {
-                canvas.chunks.push(e.data);
-            };
-            // Download video after recording is stopped
-            canvas.mediaRecorder.onstop = function (e) {
-                const blob = new Blob(canvas.chunks, { 'type': 'video/mp4' });
-                const videoDataURL = URL.createObjectURL(blob);
-                dataURL_downloader(videoDataURL);
-                canvas.chunks = [];
-                canvas.mediaRecorder = undefined
-            };
-
-            canvas.mediaRecorder.start();
-            
+            canvas.elem.style.outline = '4px solid red';       
+            capturer = new CCapture( { format: 'webm', 
+                                       quality: 100, 
+                                       name: `${canvas.label}_starttime_${sim.time}`,
+                                       framerate: 60,                                       
+                                       display: false } );
+            capturer.start()            
+            console.log("Started recording video.")
         }
-        else{
-            canvas.ctx.globalAlpha = 1.0;
-            canvas.mediaRecorder.stop();
-        }        
     }
+    captureFrame(canvas){
+        if(canvas.recording){
+            capturer.capture(canvas.ctx.canvas)
+        }
+        
+    }
+    stopRecording(canvas){
+        if(canvas.recording){
+            canvas.recording = false            
+            canvas.elem.style.outline = '0px';       
+            capturer.stop()
+            capturer.save();
+            capturer = undefined
+            console.log("Video saved")
+        }
+    }
+        
+        // // Download DataURL
+        // function dataURL_downloader(dataURL, name = canvas.label) {
+        //     const hyperlink = document.createElement("a");
+        //     // document.body.appendChild(hyperlink);
+        //     hyperlink.download = name;
+        //     hyperlink.target = '_blank';
+        //     hyperlink.href = dataURL;
+        //     hyperlink.click();
+        //     hyperlink.remove();
+        // };
+        // // Record a video ----------------------------------
+        // // Stream
+                
+        // if(!canvas.mediaRecorder){
+        //     canvas.videoStream = canvas.elem.captureStream();
+        //     canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
+            
+        //     canvas.ctx.globalAlpha = 0.6;            
+        //     canvas.chunks = [];
+        //     // Store chunks
+        //     canvas.mediaRecorder.ondataavailable = function (e) {
+        //         canvas.chunks.push(e.data);
+        //     };
+        //     // Download video after recording is stopped
+        //     canvas.mediaRecorder.onstop = function (e) {
+        //         const blob = new Blob(canvas.chunks, { 'type': 'video/mp4' });
+        //         const videoDataURL = URL.createObjectURL(blob);
+        //         dataURL_downloader(videoDataURL);
+        //         canvas.chunks = [];
+        //         canvas.mediaRecorder = undefined
+        //     };
+
+        //     canvas.mediaRecorder.start();
+            
+        // }
+        // else{
+        //     canvas.ctx.globalAlpha = 1.0;
+        //     canvas.mediaRecorder.stop();
+        // }        
+    //}
     /**
      *  addToggle adds a HTML checkbox element to the DOM-environment which allows the user
      *  to flip boolean values
@@ -1032,7 +1061,7 @@ class Simulation {
         document.getElementById("form_holder").appendChild(imageLoader)
         let label = document.createElement("label")
         label.setAttribute("for", "imageLoader");
-        label.style = "background-color: rgb(217, 234, 245);border-radius: 10px;border: 2px solid rgb(177, 209, 231);padding:7px;font-size:12px;margin:10px;width:128px;"
+        label.style = "background-color: rgb(239, 218, 245);border-radius: 10px;border: 2px solid rgb(188, 141, 201);padding:7px;font-size:10px;margin:10px;width:128px;"
         label.innerHTML = "<font size=1>Select your own initial state</font>"
         document.getElementById("form_holder").appendChild(label)
         let canvas = document.createElement('canvas');
