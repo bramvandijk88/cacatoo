@@ -55,7 +55,7 @@ class Canvas {
     /**
     *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
     */
-     displaygrid() {
+     displaygrid() {        
         let ctx = this.ctx
         let scale = this.scale
         let ncol = this.width

@@ -89,9 +89,7 @@ function cacatoo(){
         applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
     */
     sim.gol.update = function () {
-        this.synchronous()         // Applied as many times as it can in 1/60th of a second        
-        //capturer.capture(sim.gol.canvases["Game of life (white=alive)"].ctx.canvas)
-        sim.captureFrame(sim.gol.canvases["Game of life (white=alive)"])
+        this.synchronous()         // Applied as many times as it can in 1/60th of a second                    
     }
 
     /*
@@ -103,13 +101,9 @@ function cacatoo(){
 
     sim.addButton("Record", function() {
         sim.startRecording(sim.gol.canvases["Game of life (white=alive)"])
-        //capturer.start()
-        //capturer.capture(sim.gol.canvases["Game of life (white=alive)"].elem)
     })
     sim.addButton("Stop record", function() {
         sim.stopRecording(sim.gol.canvases["Game of life (white=alive)"])
-        //capturer.stop(); 
-        //capturer.save();
     })
 
     sim.addButton("step", function () { sim.step(); sim.display() })    

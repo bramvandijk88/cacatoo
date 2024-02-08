@@ -389,8 +389,12 @@ class Simulation {
      *  Display all the canvases linked to this simulation
      */
     display() {
-        for (let i = 0; i < this.canvases.length; i++)
+        for (let i = 0; i < this.canvases.length; i++){
             this.canvases[i].displaygrid()
+            if(this.canvases[i].recording == true){
+                this.captureFrame(this.canvases[i])
+            }
+        }
     }
 
     /**
@@ -710,7 +714,7 @@ class Simulation {
     }
     
     /**
-     *  recordVideo captures the canvas to an MP4 (browser only)    
+     *  recordVideo captures the canvas to an webm-video (browser only)    
      *  @param {canvas} canvas Canvas object to record
      */
     startRecording(canvas){            
