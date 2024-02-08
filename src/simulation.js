@@ -478,15 +478,15 @@ class Simulation {
         let p = property || 'val'
         let bg = 0
 
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++)                  // j are rows
-                gridmodel.grid[i][j][p] = bg
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+            for (let y = 0; y < gridmodel.nr; y++)                  // y are rows
+                gridmodel.grid[x][y][p] = bg
 
         for (let arg = 2; arg < arguments.length; arg += 2)         // Parse remaining 2+ arguments to fill the grid           
-            for (let i = 0; i < gridmodel.nc; i++)                        // i are columns
-                for (let j = 0; j < gridmodel.nr; j++)                    // j are rows
+            for (let x = 0; x < gridmodel.nc; x++)                        // x are columns
+                for (let y = 0; y < gridmodel.nr; y++)                    // y are rows
                 {
-                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];                    
+                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[x][y][p] = arguments[arg];                    
                 }
     }
     
@@ -502,10 +502,10 @@ class Simulation {
           if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
           if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
 
-          for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-              for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
+          for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+              for (let y = 0; y < gridmodel.nr; y++){                 // y are rows
                   for (const property in individuals[0]) {
-                      gridmodel.grid[i][j][property] = 0;    
+                      gridmodel.grid[x][y][property] = 0;    
                   }
                   let random_number = this.rng.random()
                   let sum_freqs = 0
@@ -513,7 +513,7 @@ class Simulation {
                   {
                       sum_freqs += freqs[n]
                       if(random_number < sum_freqs) {
-                          Object.assign(gridmodel.grid[i][j],individuals[n]);
+                          Object.assign(gridmodel.grid[x][y],individuals[n]);
                           break
                       }
                   }
@@ -530,9 +530,9 @@ class Simulation {
     initialSpot(gridmodel, property, value, size, x, y,background_state=false) {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let p = property || 'val'
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++) 
-                if(background_state) gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = background_state
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+            for (let y = 0; y < gridmodel.nr; y++) 
+                if(background_state) gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr][p] = background_state
         this.putSpot(gridmodel,property,value,size,x,y)
     }
 
@@ -544,14 +544,14 @@ class Simulation {
     *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
     */
-   putSpot(gridmodel, property, value, size, x, y) {
+   putSpot(gridmodel, property, value, size, putx, puty) {
          if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         // Draw a circle
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+            for (let y = 0; y < gridmodel.nr; y++)                           // y are rows
             {
-                if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
-                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][property] = value
+                if ((Math.pow((x - putx), 2) + Math.pow((y - puty), 2)) < size)
+                    gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr][property] = value
             }
     }
 
@@ -561,7 +561,7 @@ class Simulation {
      *  @param {Array} individuals The properties for individuals 1..n
      *  @param {Array} freqs The initial frequency of individuals 1..n
      */
-     populateSpot(gridmodel,individuals, freqs,size, x, y, background_state=false)
+     populateSpot(gridmodel,individuals, freqs,size, putx, puty, background_state=false)
      {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let sumfreqs =0
@@ -569,24 +569,24 @@ class Simulation {
         for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i]
          
         // Draw a circle
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-        for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+        for (let y = 0; y < gridmodel.nr; y++)                           // y are rows
         {
             
 
-            if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
+            if ((Math.pow((x - putx), 2) + Math.pow((y - puty), 2)) < size)
             {
                 let cumsumfreq = 0                
                 for(let n=0; n<individuals.length; n++)
                 {
                     cumsumfreq += freqs[n]
                     if(this.rng.random() < cumsumfreq) {
-                        Object.assign(gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr],individuals[n])
+                        Object.assign(gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr],individuals[n])
                         break
                     }
                 }
             }
-            else if(background_state) Object.assign(gridmodel.grid[i][j], background_state)
+            else if(background_state) Object.assign(gridmodel.grid[x][y], background_state)
         }
          
      }
@@ -1004,10 +1004,10 @@ class Simulation {
         else{
             const fs = require('fs');
             let string = ""
-            for(let i =0; i<model.nc;i++){                
-                for(let j=0;j<model.nr;j++){
-                    let prop = model.grid[i][j][property] ? model.grid[i][j][property] : -1
-                    string += [i,j,prop].join('\t')+'\n'
+            for(let x =0; x<model.nc;x++){                
+                for(let y=0;y<model.nr;y++){
+                    let prop = model.grid[x][y][property] ? model.grid[x][y][property] : -1
+                    string += [x,y,prop].join('\t')+'\n'
                 }                                       
             }
             fs.appendFileSync(filename, string)            
@@ -1052,11 +1052,11 @@ class Simulation {
 
                     grid_data = get2DFromCanvas(canvas)
 
-                    for (let i = 0; i < grid.nc; i++) for (let j = 0; j < grid.nr; j++) grid.grid[i][j].alive = 0
-                    for (let i = 0; i < grid_data[0].length; i++)          // i are columns
-                        for (let j = 0; j < grid_data.length; j++)             // j are rows
+                    for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y].alive = 0
+                    for (let x = 0; x < grid_data[0].length; x++)          // x are columns
+                        for (let y = 0; y < grid_data.length; y++)             // y are rows
                         {
-                            grid.grid[Math.floor(i + grid.nc / 2 - img.width / 2)][Math.floor(j + grid.nr / 2 - img.height / 2)][property] = grid_data[j][i]
+                            grid.grid[Math.floor(x + grid.nc / 2 - img.width / 2)][Math.floor(y + grid.nr / 2 - img.height / 2)][property] = grid_data[y][x]
                         }
                     sim.display()
 
@@ -1122,10 +1122,10 @@ class Simulation {
      *  webserver. 
      *  (currently only supports black and white image)
      */
-    initialPattern(grid, property, image_path, x, y) {
+    initialPattern(grid, property, image_path, putx, puty) {
         let sim = this
         if (typeof window != undefined) {
-            for (let i = 0; i < grid.nc; i++) for (let j = 0; j < grid.nr; j++) grid.grid[i][j][property] = 0
+            for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y][property] = 0
             let tempcanv = document.createElement("canvas")
             let tempctx = tempcanv.getContext('2d')
             var tempimg = new Image()
@@ -1135,10 +1135,10 @@ class Simulation {
                 tempctx.drawImage(tempimg, 0, 0);
                 let grid_data = get2DFromCanvas(tempcanv)
                 if (x + tempimg.width >= grid.nc || y + tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")
-                for (let i = 0; i < grid_data[0].length; i++)         // i are columns
-                    for (let j = 0; j < grid_data.length; j++)     // j are rows
+                for (let x = 0; x < grid_data[0].length; x++)         // x are columns
+                    for (let y = 0; y < grid_data.length; y++)     // y are rows
                     {
-                        grid.grid[x + i][y + j][property] = grid_data[j][i]
+                        grid.grid[putx + i][puty + y][property] = grid_data[y][x]
                     }
                 sim.display()
             }

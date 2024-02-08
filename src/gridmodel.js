@@ -119,11 +119,11 @@ class Gridmodel {
     */
     grid_from_json(gridjson)
     {
-        for(let i in gridjson)
-            for(let j in gridjson[i])
+        for(let x in gridjson)
+            for(let y in gridjson[x])
             {
-                let newgp = new Gridpoint(gridjson[i][j])
-                gridjson[i][j] = newgp
+                let newgp = new Gridpoint(gridjson[x][y])
+                gridjson[x][y] = newgp
             }
         this.grid = gridjson
     }
@@ -162,7 +162,6 @@ class Gridmodel {
                 return_dict[statekey] = colours                
             }
             else if (statedict == 'inferno_rev') {
-                console.log("i")
                 let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107])
                 return_dict[statekey] = colours                
             }
@@ -266,10 +265,10 @@ class Gridmodel {
 
     /** The most important function in GridModel: how to determine the next state of a gridpoint?
      * By default, nextState is empty. It should be defined by the user (see examples)
-    * @param {int} i Position of grid point to update (column)
-    * @param {int} j Position of grid point to update (row)
+    * @param {int} x Position of grid point to update (column)
+    * @param {int} y Position of grid point to update (row)
     */
-    nextState(i, j) {
+    nextState(x, y) {
         throw 'Nextstate function of \'' + this.name + '\' undefined';
     }
 
@@ -284,11 +283,11 @@ class Gridmodel {
         let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid
         let newstate = MakeGrid(this.nc, this.nr);               // New state == empty grid
 
-        for (let i = 0; i < this.nc; i++) {
-            for (let j = 0; j < this.nr; j++) {
-                this.nextState(i, j)                             // Update this.grid
-                newstate[i][j] = this.grid[i][j]                // Set this.grid to newstate
-                this.grid[i][j] = oldstate[i][j]                // Reset this.grid to old state
+        for (let x = 0; x < this.nc; x++) {
+            for (let y = 0; y < this.nr; y++) {
+                this.nextState(x, y)                             // Update this.grid
+                newstate[x][y] = this.grid[x][y]                // Set this.grid to newstate
+                this.grid[x][y] = oldstate[x][y]                // Reset this.grid to old state
             }
         }
         this.grid = newstate;
@@ -302,11 +301,11 @@ class Gridmodel {
     apply_sync(func) {
         let oldstate = MakeGrid(this.nc, this.nr, this.grid);   // Old state based on current grid
         let newstate = MakeGrid(this.nc, this.nr);              // New state == empty grid
-        for (let i = 0; i < this.nc; i++) {
-            for (let j = 0; j < this.nr; j++) {
-                func(i, j)                                      // Update this.grid
-                newstate[i][j] = this.grid[i][j]                // Set this.grid to newstate
-                this.grid[i][j] = oldstate[i][j]                // Reset this.grid to old state
+        for (let x = 0; x < this.nc; x++) {
+            for (let y = 0; y < this.nr; y++) {
+                func(x, y)                                      // Update this.grid
+                newstate[x][y] = this.grid[x][y]                // Set this.grid to newstate
+                this.grid[x][y] = oldstate[x][y]                // Reset this.grid to old state
             }
         }
         this.grid = newstate;
@@ -322,12 +321,12 @@ class Gridmodel {
         this.set_update_order()
         for (let n = 0; n < this.nc * this.nr; n++) {
             let m = this.upd_order[n]
-            let i = m % this.nc
-            let j = Math.floor(m / this.nc)
-            this.nextState(i, j)
+            let x = m % this.nc
+            let y = Math.floor(m / this.nc)
+            this.nextState(x, y)
         }
         this.time++
-        // Don't have to copy the grid here. Just cycle through i,j in random order and apply nextState :)
+        // Don't have to copy the grid here. Just cycle through x,y in random order and apply nextState :)
     }
 
     /** Analogous to apply_sync(func), but asynchronous */
@@ -335,9 +334,9 @@ class Gridmodel {
         this.set_update_order()
         for (let n = 0; n < this.nc * this.nr; n++) {
             let m = this.upd_order[n]
-            let i = m % this.nc
-            let j = Math.floor(m / this.nc)
-            func(i, j)
+            let x = m % this.nc
+            let y = Math.floor(m / this.nc)
+            func(x, y)
         }
     }
 
@@ -365,46 +364,46 @@ class Gridmodel {
         throw 'Update function of \'' + this.name + '\' undefined';
     }
 
-    /** Get the gridpoint at coordinates i,j 
+    /** Get the gridpoint at coordinates x,y 
      *  Makes sure wrapping is applied if necessary
-     *  @param {int} i position (column) for the focal gridpoint
-     *  @param {int} j position (row) for the focal gridpoint
+     *  @param {int} xpos position (column) for the focal gridpoint
+     *  @param {int} ypos position (row) for the focal gridpoint
      */
-     getGridpoint(i, j) {
-        let x = i
-        if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
-        let y = j
-        if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+     getGridpoint(xpos, ypos) {
+        let x = xpos
+        if (this.wrap[0]) x = (xpos + this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = ypos
+        if (this.wrap[1]) y = (ypos + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
         else return this.grid[x][y]
     }
 
-    /** Change the gridpoint at position i,j into gp (typically retrieved with 'getGridpoint')
+    /** Change the gridpoint at position x,y into gp (typically retrieved with 'getGridpoint')
          *  Makes sure wrapping is applied if necessary
-         *  @param {int} i position (column) for the focal gridpoint
-         *  @param {int} j position (row) for the focal gridpoint
+         *  @param {int} x position (column) for the focal gridpoint
+         *  @param {int} y position (row) for the focal gridpoint
          *  @param {Gridpoint} @Gridpoint object to set the gp to (result of 'getGridpoint')
     */
-    setGridpoint(i, j, gp) {
-        let x = i
-        if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
-        let y = j
-        if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+    setGridpoint(xpos, ypos, gp) {
+        let x = xpos
+        if (this.wrap[0]) x = (xpos + this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = ypos
+        if (this.wrap[1]) y = (ypos + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
            
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined    
         else this.grid[x][y] = gp
     }
 
-    /** Return a copy of the gridpoint at position i,j
+    /** Return a copy of the gridpoint at position x,y
          *  Makes sure wrapping is applied if necessary
-         *  @param {int} i position (column) for the focal gridpoint
-         *  @param {int} j position (row) for the focal gridpoint
+         *  @param {int} x position (column) for the focal gridpoint
+         *  @param {int} y position (row) for the focal gridpoint
     */
-     copyGridpoint(i, j) {
-        let x = i
-        if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
-        let y = j
-        if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+     copyGridpoint(xpos, ypos) {
+        let x = xpos
+        if (this.wrap[0]) x = (xpos + this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = ypos
+        if (this.wrap[1]) y = (ypos + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
            
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) return undefined    
         else {
@@ -412,17 +411,17 @@ class Gridmodel {
         }
     }
 
-    /** Change the gridpoint at position i,j into gp
+    /** Change the gridpoint at position x,y into gp
          *  Makes sure wrapping is applied if necessary
-         *  @param {int} i position (column) for the focal gridpoint
-         *  @param {int} j position (row) for the focal gridpoint
+         *  @param {int} x position (column) for the focal gridpoint
+         *  @param {int} y position (row) for the focal gridpoint
          *  @param {Gridpoint} @Gridpoint object to set the gp to
     */
-     copyIntoGridpoint(i, j, gp) {
-        let x = i
-        if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
-        let y = j
-        if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+     copyIntoGridpoint(xpos, ypos, gp) {
+        let x = xpos
+        if (this.wrap[0]) x = (xpos + this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = ypos
+        if (this.wrap[1]) y = (ypos + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
            
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) this.grid[x][y] = undefined    
         else {
@@ -434,11 +433,12 @@ class Gridmodel {
     /** Get the x,y coordinates of a neighbour in an array. 
      *  Makes sure wrapping is applied if necessary
      */
-    getNeighXY(i, j) {
-        let x = i
-        if (this.wrap[0]) x = (i + this.nc) % this.nc;                         // Wraps neighbours left-to-right
-        let y = j
-        if (this.wrap[1]) y = (j + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+    getNeighXY(xpos, ypos) {
+        let x = xpos
+        if (this.wrap[0]) x = (xpos + this.nc) % this.nc;                         // Wraps neighbours left-to-right
+        let y = ypos
+        if (this.wrap[1]) y = (ypos + this.nr) % this.nr;                         // Wraps neighbours top-to-bottom
+
         if (x < 0 || y < 0 || x >= this.nc || y >= this.nr) return undefined                      // If sampling neighbour outside of the grid, return empty object
         else return [x, y]
     }
@@ -451,9 +451,9 @@ class Gridmodel {
     *  @param {int} direction the neighbour to return        
     */
     getNeighbour(model,col,row,direction) {        
-            let i = model.moore[direction][0]
-            let j = model.moore[direction][1]
-            return model.getGridpoint(col + i, row + j)
+            let x = model.moore[direction][0]
+            let y = model.moore[direction][1]
+            return model.getGridpoint(col + x, row + y)
     }
 
     /** Get array of grid points with val in property (Neu4, Neu5, Moore8, Moore9 depending on range-array)
@@ -475,9 +475,9 @@ class Gridmodel {
     getNeighbours(model,col,row,property,val,range) {
         let gps = [];
         for (let n = range[0]; n <= range[1]; n++) {                        
-            let i = model.moore[n][0]
-            let j = model.moore[n][1]
-            let neigh = model.getGridpoint(col + i, row + j)
+            let x = model.moore[n][0]
+            let y = model.moore[n][1]
+            let neigh = model.getGridpoint(col + x, row + y)
             if (neigh != undefined && neigh[property] == val)
                     gps.push(neigh);
         }
@@ -533,9 +533,9 @@ class Gridmodel {
      sumNeighbours(model, col, row, property, range) {
         let count = 0;
         for (let n = range[0]; n <= range[1]; n++) {
-            let i = model.moore[n][0]
-            let j = model.moore[n][1]
-            let gp = model.getGridpoint(col + i, row + j)
+            let x = model.moore[n][0]
+            let y = model.moore[n][1]
+            let gp = model.getGridpoint(col + x, row + y)
             if(gp !== undefined && gp[property] !== undefined) count += gp[property]
         }
         return count;
@@ -573,9 +573,9 @@ class Gridmodel {
     countNeighbours(model, col, row, property, val, range) {
         let count = 0;
         for (let n = range[0]; n <= range[1]; n++) {            
-            let i = model.moore[n][0]
-            let j = model.moore[n][1]
-            let neigh = model.getGridpoint(col + i, row + j)
+            let x = model.moore[n][0]
+            let y = model.moore[n][1]
+            let neigh = model.getGridpoint(col + x, row + y)
             if (neigh !== undefined && neigh[property]==val) count++
         }
         return count;
@@ -605,9 +605,9 @@ class Gridmodel {
      */
     randomNeighbour(grid, col, row,range) {
         let rand = this.rng.genrand_int(range[0], range[1])
-        let i = this.moore[rand][0]
-        let j = this.moore[rand][1]
-        let neigh = grid.getGridpoint(col + i, row + j)
+        let x = this.moore[rand][0]
+        let y = this.moore[rand][1]
+        let neigh = grid.getGridpoint(col + x, row + y)
         while (neigh == undefined) neigh = this.randomNeighbour(grid, col, row,range);
         return neigh
     }
@@ -640,24 +640,24 @@ class Gridmodel {
         }
         let newstate = MakeGrid(this.nc, this.nr, this.grid); 
 
-        for (let i = 0; i < this.nc; i += 1) // every column
+        for (let x = 0; x < this.nc; x += 1) // every column
         {           
-            for (let j = 0; j < this.nr; j += 1) // every row
+            for (let y = 0; y < this.nr; y += 1) // every row
             {                
                 for (let n = 1; n <= 4; n++)   // Every neighbour (neumann)
                 {                    
                     let moore = this.moore[n]
-                    let xy = this.getNeighXY(i + moore[0], j + moore[1])
+                    let xy = this.getNeighXY(x + moore[0], y + moore[1])
                     if (typeof xy == "undefined") continue
                     let neigh = this.grid[xy[0]][xy[1]]
-                    newstate[i][j][state] += neigh[state] * rate
+                    newstate[x][y][state] += neigh[state] * rate
                     newstate[xy[0]][xy[1]][state] -= neigh[state] * rate
                 }
             }
         }
-        for (let i = 0; i < this.nc; i += 1) // every column
-            for (let j = 0; j < this.nr; j += 1) // every row
-                for (let n = 1; n <= 4; n++) this.grid[i][j][state] = newstate[i][j][state]
+        for (let x = 0; x < this.nc; x += 1) // every column
+            for (let y = 0; y < this.nr; y += 1) // every row
+                for (let n = 1; n <= 4; n++) this.grid[x][y][state] = newstate[x][y][state]
     }
 
     /** Diffuse continuous states on the grid. 
@@ -671,38 +671,38 @@ class Gridmodel {
         }
         let newstate = MakeGrid(this.nc, this.nr) 
 
-        for (let i = 0; i < this.nc; i += 1) // every column
-            for (let j = 0; j < this.nr; j += 1) // every row
+        for (let x = 0; x < this.nc; x += 1) // every column
+            for (let y = 0; y < this.nr; y += 1) // every row
             {
-                newstate[i][j].toxins = Array(statevector.length).fill(0)
+                newstate[x][y].toxins = Array(statevector.length).fill(0)
                 for (let n = 1; n <= 4; n++)
-                    for(let state=0; state < this.grid[i][j][statevector].length; state++)
-                        newstate[i][j][statevector][state] = this.grid[i][j][statevector][state]
+                    for(let state=0; state < this.grid[x][y][statevector].length; state++)
+                        newstate[x][y][statevector][state] = this.grid[x][y][statevector][state]
             }
 
-        for (let i = 0; i < this.nc; i += 1) // every column
+        for (let x = 0; x < this.nc; x += 1) // every column
         {           
-            for (let j = 0; j < this.nr; j += 1) // every row
+            for (let y = 0; y < this.nr; y += 1) // every row
             {                
                 for (let n = 1; n <= 4; n++)   // Every neighbour (neumann)
                 {                    
                     let moore = this.moore[n]
-                    let xy = this.getNeighXY(i + moore[0], j + moore[1])
+                    let xy = this.getNeighXY(x + moore[0], y + moore[1])
                     if (typeof xy == "undefined") continue
                     let neigh = this.grid[xy[0]][xy[1]]
-                    for(let state=0; state < newstate[i][j][statevector].length; state++)
+                    for(let state=0; state < newstate[x][y][statevector].length; state++)
                     {
-                        newstate[i][j][statevector][state] += neigh[statevector][state] * rate
+                        newstate[x][y][statevector][state] += neigh[statevector][state] * rate
                         newstate[xy[0]][xy[1]][statevector][state] -= neigh[statevector][state] * rate
                     }
                 }
             }
         }
-        for (let i = 0; i < this.nc; i += 1) // every column
-            for (let j = 0; j < this.nr; j += 1) // every row
+        for (let x = 0; x < this.nc; x += 1) // every column
+            for (let y = 0; y < this.nr; y += 1) // every row
                 for (let n = 1; n <= 4; n++)
-                    for(let state=0; state < newstate[i][j][statevector].length; state++)
-                        this.grid[i][j][statevector][state] = newstate[i][j][statevector][state]
+                    for(let state=0; state < newstate[x][y][statevector].length; state++)
+                        this.grid[x][y][statevector][state] = newstate[x][y][statevector][state]
     }
 
     /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
@@ -710,38 +710,38 @@ class Gridmodel {
      *  which is then used to update the grid.
      */
     diffuseODEstates() {
-        let newstates_2 = CopyGridODEs(this.nc, this.nr, this.grid)    // Generates a 4D array of [i][j][o][s] (i-coord,j-coord,relevant ode,state-vector)    
+        let newstates_2 = CopyGridODEs(this.nc, this.nr, this.grid)    // Generates a 4D array of [x][y][o][s] (x-coord,y-coord,relevant ode,state-vector)    
 
-        for (let i = 0; i < this.nc; i += 1) // every column
+        for (let x = 0; x < this.nc; x += 1) // every column
         {
-            for (let j = 0; j < this.nr; j += 1) // every row
+            for (let y = 0; y < this.nr; y += 1) // every row
             {
-                for (let o = 0; o < this.grid[i][j].ODEs.length; o++) // every ode
+                for (let o = 0; o < this.grid[x][y].ODEs.length; o++) // every ode
                 {
-                    for (let s = 0; s < this.grid[i][j].ODEs[o].state.length; s++) // every state
+                    for (let s = 0; s < this.grid[x][y].ODEs[o].state.length; s++) // every state
                     {
-                        let rate = this.grid[i][j].ODEs[o].diff_rates[s]
+                        let rate = this.grid[x][y].ODEs[o].diff_rates[s]
                         let sum_in = 0.0
                         for (let n = 1; n <= 4; n++)   // Every neighbour (neumann)
                         {
                             let moore = this.moore[n]
-                            let xy = this.getNeighXY(i + moore[0], j + moore[1])
+                            let xy = this.getNeighXY(x + moore[0], y + moore[1])
                             if (typeof xy == "undefined") continue
                             let neigh = this.grid[xy[0]][xy[1]]
                             sum_in += neigh.ODEs[o].state[s] * rate
                             newstates_2[xy[0]][xy[1]][o][s] -= neigh.ODEs[o].state[s] * rate
                         }
-                        newstates_2[i][j][o][s] += sum_in
+                        newstates_2[x][y][o][s] += sum_in
                     }
                 }
             }
         }
 
-        for (let i = 0; i < this.nc; i += 1) // every column
-            for (let j = 0; j < this.nr; j += 1) // every row
-                for (let o = 0; o < this.grid[i][j].ODEs.length; o++)
-                    for (let s = 0; s < this.grid[i][j].ODEs[o].state.length; s++)
-                        this.grid[i][j].ODEs[o].state[s] = newstates_2[i][j][o][s]
+        for (let x = 0; x < this.nc; x += 1) // every column
+            for (let y = 0; y < this.nr; y += 1) // every row
+                for (let o = 0; o < this.grid[x][y].ODEs.length; o++)
+                    for (let s = 0; s < this.grid[x][y].ODEs[o].state.length; s++)
+                        this.grid[x][y].ODEs[o].state[s] = newstates_2[x][y][o][s]
 
     }
 
@@ -751,14 +751,14 @@ class Gridmodel {
      */
     perfectMix() {
         let all_gridpoints = [];
-        for (let i = 0; i < this.nc; i++)
-            for (let j = 0; j < this.nr; j++)
-                all_gridpoints.push(this.getGridpoint(i, j))
+        for (let x = 0; x < this.nc; x++)
+            for (let y = 0; y < this.nr; y++)
+                all_gridpoints.push(this.getGridpoint(x, y))
 
         all_gridpoints = utility.shuffle(all_gridpoints, this.rng)
 
-        for (let i = 0; i < all_gridpoints.length; i++)
-            this.setGridpoint(i % this.nc, Math.floor(i / this.nc), all_gridpoints[i])
+        for (let x = 0; x < all_gridpoints.length; x++)
+            this.setGridpoint(x % this.nc, Math.floor(x / this.nc), all_gridpoints[x])
         return "Perfectly mixed the grid"
     }
 
@@ -776,16 +776,16 @@ class Gridmodel {
         let even = this.margolus_phase % 2 == 0
         if ((this.nc % 2 + this.nr % 2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
 
-        for (let i = 0 + even; i < this.nc; i += 2) {
-            if(i> this.nc-2) continue
-            for (let j = 0 + even; j < this.nr; j += 2) {
-                if(j> this.nr-2) continue
-                // console.log(i,j)
-                let old_A = new Gridpoint(this.grid[i][j]);
-                let A = this.getGridpoint(i, j)
-                let B = this.getGridpoint(i + 1, j)
-                let C = this.getGridpoint(i + 1, j + 1)
-                let D = this.getGridpoint(i, j + 1)
+        for (let x = 0 + even; x < this.nc; x += 2) {
+            if(x> this.nc-2) continue
+            for (let y = 0 + even; y < this.nr; y += 2) {
+                if(y> this.nr-2) continue
+                // console.log(x,y)
+                let old_A = new Gridpoint(this.grid[x][y]);
+                let A = this.getGridpoint(x, y)
+                let B = this.getGridpoint(x + 1, y)
+                let C = this.getGridpoint(x + 1, y + 1)
+                let D = this.getGridpoint(x, y + 1)
 
                 if (this.rng.random() < 0.5)             // CW = clockwise rotation
                 {
@@ -800,10 +800,10 @@ class Gridmodel {
                     C = D
                     D = old_A
                 }
-                this.setGridpoint(i, j, A)
-                this.setGridpoint(i + 1, j, B)
-                this.setGridpoint(i + 1, j + 1, C)
-                this.setGridpoint(i, j + 1, D)
+                this.setGridpoint(x, y, A)
+                this.setGridpoint(x + 1, y, B)
+                this.setGridpoint(x + 1, y + 1, C)
+                this.setGridpoint(x, y + 1, D)
             }
         }
         this.margolus_phase++
@@ -991,10 +991,10 @@ class Gridmodel {
     */
     getPopsizes(property, values) {
         let sum = Array(values.length).fill(0)
-        for (let i = 0; i < this.nc; i++) {
-            for (let j = 0; j < this.nr; j++) {
+        for (let x = 0; x < this.nc; x++) {
+            for (let y = 0; y < this.nr; y++) {
                 for (let val in values)
-                    if (this.grid[i][j][property] == values[val]) sum[val]++
+                    if (this.grid[x][y][property] == values[val]) sum[val]++
             }
         }
         return sum;
@@ -1007,10 +1007,10 @@ class Gridmodel {
     */
     getODEstates(odename, values) {
         let sum = Array(values.length).fill(0)
-        for (let i = 0; i < this.nc; i++)
-            for (let j = 0; j < this.nr; j++)
+        for (let x = 0; x < this.nc; x++)
+            for (let y = 0; y < this.nr; y++)
                 for (let val in values)
-                    sum[val] += this.grid[i][j][odename].state[val] / (this.nc * this.nr)
+                    sum[val] += this.grid[x][y][odename].state[val] / (this.nc * this.nr)
         return sum;
     }
 
@@ -1022,12 +1022,12 @@ class Gridmodel {
      *  @param {Object} conf dictionary style configuration of your ODEs (initial state, parameters, etc.)
     */
     attachODE(eq, conf) {
-        for (let i = 0; i < this.nc; i++) {
-            for (let j = 0; j < this.nr; j++) {
+        for (let x = 0; x < this.nc; x++) {
+            for (let y = 0; y < this.nr; y++) {
                 let ode = new ODE(eq, conf.init_states, conf.parameters, conf.diffusion_rates, conf.ode_name, conf.acceptable_error)
-                if (typeof this.grid[i][j].ODEs == "undefined") this.grid[i][j].ODEs = []   // If list doesnt exist yet                
-                this.grid[i][j].ODEs.push(ode)
-                if (conf.ode_name) this.grid[i][j][conf.ode_name] = ode
+                if (typeof this.grid[x][y].ODEs == "undefined") this.grid[x][y].ODEs = []   // If list doesnt exist yet                
+                this.grid[x][y].ODEs.push(ode)
+                if (conf.ode_name) this.grid[x][y][conf.ode_name] = ode
             }
         }
     }
@@ -1038,9 +1038,9 @@ class Gridmodel {
      *  @param {bool} opt_pos When enabled, negative values are set to 0 automatically
     */
     solveAllODEs(delta_t = 0.1, opt_pos = false) {
-        for (let i = 0; i < this.nc; i++) {
-            for (let j = 0; j < this.nr; j++) {
-                for (let ode of this.grid[i][j].ODEs) {
+        for (let x = 0; x < this.nc; x++) {
+            for (let y = 0; y < this.nr; y++) {
+                for (let ode of this.grid[x][y].ODEs) {
                     ode.solveTimestep(delta_t, opt_pos)
                 }
             }
@@ -1058,10 +1058,10 @@ class Gridmodel {
 
         if (fract != undefined) ncol *= fract, nrow *= fract
         let grid = new Array(nrow);             // Makes a column or <rows> long --> grid[cols]
-        for (let i = 0; i < ncol; i++)
-            grid[i] = new Array(ncol);          // Insert a row of <cols> long   --> grid[cols][rows]
-        for (let j = 0; j < nrow; j++)
-            grid[i][j] = this.grid[i][j][property]
+        for (let x = 0; x < ncol; x++)
+            grid[x] = new Array(ncol);          // Insert a row of <cols> long   --> grid[cols][rows]
+        for (let y = 0; y < nrow; y++)
+            grid[x][y] = this.grid[x][y][property]
 
         console.table(grid)
     }
@@ -1082,11 +1082,11 @@ export default Gridmodel
 */
 let MakeGrid = function(cols, rows, template) {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
-    for (let i = 0; i < cols; i++) {
-        grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
-        for (let j = 0; j < rows; j++) {
-            if (template) grid[i][j] = new Gridpoint(template[i][j]);  // Make a deep or shallow copy of the GP 
-            else grid[i][j] = new Gridpoint();
+    for (let x = 0; x < cols; x++) {
+        grid[x] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
+        for (let y = 0; y < rows; y++) {
+            if (template) grid[x][y] = new Gridpoint(template[x][y]);  // Make a deep or shallow copy of the GP 
+            else grid[x][y] = new Gridpoint();
         }
     }
 
@@ -1101,16 +1101,16 @@ let MakeGrid = function(cols, rows, template) {
 */
 let CopyGridODEs = function(cols, rows, template) {
     let grid = new Array(rows);             // Makes a column or <rows> long --> grid[cols]
-    for (let i = 0; i < cols; i++) {
-        grid[i] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
-        for (let j = 0; j < rows; j++) {
-            for (let o = 0; o < template[i][j].ODEs.length; o++) // every ode
+    for (let x = 0; x < cols; x++) {
+        grid[x] = new Array(cols);          // Insert a row of <cols> long   --> grid[cols][rows]
+        for (let y = 0; y < rows; y++) {
+            for (let o = 0; o < template[x][y].ODEs.length; o++) // every ode
             {
-                grid[i][j] = []
+                grid[x][y] = []
                 let states = []
-                for (let s = 0; s < template[i][j].ODEs[o].state.length; s++) // every state
-                    states.push(template[i][j].ODEs[o].state[s])
-                grid[i][j][o] = states;
+                for (let s = 0; s < template[x][y].ODEs[o].state.length; s++) // every state
+                    states.push(template[x][y].ODEs[o].state[s])
+                grid[x][y][o] = states;
             }
         }
     }

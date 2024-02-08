@@ -32,8 +32,7 @@ compile_cacatoo()
     
     jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md           # Automatically recompile JSdocs
     echo -e "Compiling jsDOCs\t[OK]"
-    echo -en "Modifying paths...\t"
-    cp examples/03_expert/legend.png docs/TEs_streamlining                          # Everything below = fixing documentation files
+    echo -en "Modifying paths...\t"    
     cp dist/cacatoo.js docs/scripts/cacatoo.js
     cp style/cacatoo.css docs/styles/cacatoo.css
     cp lib/all.js docs/scripts/all.js

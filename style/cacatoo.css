@@ -1,176 +1,190 @@
 body {
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  background-color: #cccccc;
-  margin:10px;
-  font-size:13px;
-  }
-  
-  /* Style the header */
-  .header {
-      background-color: rgb(111, 146, 170);
-      display:block;
-      border: 0px solid #FFFFFF;
-      box-shadow: 3px 1px 0px #24242444;
-      border-radius: 15px 15px 0px 0px;
-      padding: 10px;
-      text-align: center;
-      font-size: 20px;
-      font-weight:900;
-      color:#ffffff;
-  }
+  background-color: #BBBBBB;
+  margin: 10px;
+  font-size: 13px;
+}
+
+/* Style the header */
+.header {
+  background-color: rgb(108, 62, 122);
+  display: block;
+  border: 0px solid #FFFFFF;
+  /*box-shadow: 3px 1px 0px #24242444;*/
+  border-radius: 15px 15px 0px 0px;
+  padding: 10px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+}
 
 
-  .logos{
-    z-index: -1;
-    vertical-align:middle;    
-    display:inline-block;
-    padding-left:10px;
-    padding-top:10px;
-  }
+.logos {
+  z-index: -1;
+  vertical-align: middle;
+  display: inline-block;
+  padding-left: 10px;
+  padding-top: 10px;
+}
 
-  .example_card{    
-    width: 220px;
-    height: 220px;
-    background-color: rgb(151, 183, 204);
-    box-shadow: rgba(100, 100, 111, 0.1) 20px 7px 29px 0px;
-    /* font-weight: bold; */
-    color: rgb(229, 239, 245);
-    font-size:12px;     
-    line-height:25px;   
-    margin: 25px;    
-    padding: 20px;    
-    padding-bottom:40px;
-    padding-top:10px;
-    border-radius: 0px 0px 0px 0px;
-    display:inline-block;   
-    transition: all 100ms ease-out 200ms; 
-    transition-delay: 0s;
-  }
-  .example_card_img{    
-    width: 100%;
-    height: 100%;       
-    border-radius: 0px 0px 0px 0px;
-    background-position: 45% 50%;
-    background-repeat: no-repeat;
-    background-size: cover;
-  }
-  .example_card:hover{        
-    background-color: rgb(151, 183, 204);
-    font-size:12px;    
-    color:black;
-    border-radius: 30px 0px 30px 0px;
-    box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
-  }
-   .example_card:active{        
-    background-color: rgb(151, 183, 204);
-    font-size:12px;
-    padding-top: 11px;
-    height: 199px;    
-    color:black;
-    box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
-  }
-  
-  .grid-holder{
-    display: inline-block;
-    margin:10px;
-  }
-  .canvas-cacatoo{
-    display: inline-block;
-    border: 4px solid black;
-    border-radius: 8px 8px 8px 8px;
-    margin:10px;
-  }
-  /* Content (grid, graphs, sliders) */
-  .content {
-    text-align: center;
-    box-shadow: 3px 1px 0px #24242444;
-    /*border-bottom: 1px dashed #88888844;*/
-    background-color: #e2e2e2;
-    padding: 10px;
-  }
-  
-  /* Output div */
-  .output {
-    border-radius: 8px 8px 8px 8px;
-    margin: 30px;
-    height:300px;
-    overflow-y: scroll;
-    font-size: 11px;
-    text-align: left;
-    background-color: #000000;
-    color: #00FF00;
-    /*border-bottom: 1px dashed #88888844;*/
-    padding: 30px;
-  }
-  
-  /* Style the footer */
-  .footer {
-    background-color: #e2e2e2;
-    border: 0px solid #FFFFFF;
-    box-shadow: 3px 1px 0px #24242444;
-    border-radius: 0px 0px 15px 15px;
-    padding: 10px;
-    text-align: center;
-    font-size: 8px;
-  }
-  
-  .form-container{  /* Sliders and buttons */
-    display: inline-block;
-    margin:10px;
-  }
-  
-  .graph-holder{
-    margin: 10px;    
-    display: inline-block;    
-    width:80%;
-    padding:10px;
-  }
-  
-  /* The button itself */
-  button {
-    background-color: rgb(217, 234, 245);
-    border-radius: 10px; 
-    border: 2px solid rgb(177, 209, 231);;
-    padding:7px;
-    font-size:12px;
-    margin:10px;
-    width:128px;
-  }
+.example_card {
+  width: 220px;
+  height: 220px;
+  background-color: rgb(151, 183, 204);
+  box-shadow: rgba(100, 100, 111, 0.1) 20px 7px 29px 0px;
+  /* font-weight: bold; */
+  color: rgb(229, 239, 245);
+  font-size: 12px;
+  line-height: 25px;
+  margin: 25px;
+  padding: 20px;
+  padding-bottom: 40px;
+  padding-top: 10px;
+  border-radius: 0px 0px 0px 0px;
+  display: inline-block;
+  transition: all 100ms ease-out 200ms;
+  transition-delay: 0s;
+}
+
+.example_card_img {
+  width: 100%;
+  height: 100%;
+  border-radius: 0px 0px 0px 0px;
+  background-position: 45% 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.example_card:hover {
+  background-color: rgb(151, 183, 204);
+  font-size: 12px;
+  color: black;
+  border-radius: 30px 0px 30px 0px;
+  box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
+}
+
+.example_card:active {
+  background-color: rgb(151, 183, 204);
+  font-size: 12px;
+  padding-top: 11px;
+  height: 199px;
+  color: black;
+  box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
+}
+
+
+/* Content (grid, graphs, sliders) */
+.content {
+  text-align: center;
+  /*box-shadow: 3px 1px 0px #24242444;*/
+  /*border-bottom: 1px dashed #88888844;*/
+  background-color: #e2e2e2;
+  padding: 10px;
+}
+
+/* Output div */
+.output {
+  border-radius: 8px 8px 8px 8px;
+  margin: 30px;
+  height: 300px;
+  overflow-y: scroll;
+  font-size: 11px;
+  text-align: left;
+  background-color: #000000;
+  color: #00FF00;
+  /*border-bottom: 1px dashed #88888844;*/
+  padding: 30px;
+}
+
+/* Style the footer */
+.footer {
+  background-color: #e2e2e2;
+  border: 0px solid #FFFFFF;
+  /*box-shadow: 3px 1px 0px #24242444;*/
+  border-radius: 0px 0px 15px 15px;
+  padding: 10px;
+  text-align: center;
+  font-size: 8px;
+}
+
+.grid-holder {
+  margin: 10px;
+  display: inline-block;
+}
+
+.form-container {
+  /* Sliders and buttons */
+  display: inline-block;
+  margin: 10px;
+}
+
+.graph-holder {
+  margin: 10px;
+  display: inline-block;
+  padding: 10px;
+}
+
+/* The button itself */
+button {
+  background-color: rgb(239, 218, 245);
+  border-radius: 10px;
+  border: 2px solid rgb(188, 141, 201);
+  ;
+  padding: 7px;
+  font-size: 12px;
+  margin: 10px;
+  width: 128px;
+}
 
 /* The numeric form */
-input[type=number] { 
+input[type=number] {
   background-color: rgb(217, 234, 245);
   border: 2px solid rgb(177, 209, 231);
-  font-size:12px;
-}
-  /* The slider itself */
-  .slider {
-    -webkit-appearance: none;  /* Override default CSS styles */
-    appearance: none;
-    width: 50%; /* Full-width */
-    cursor: pointer;
-    height: 8px; /* Specified height */
-    background: rgb(177, 209, 231);
-    outline: none; /* Remove outline */
-    opacity: 0.5; /* Set transparency (for mouse-over effects on hover) */
-    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-    transition: opacity .2s;
-  }
-  
-  /* The number input */
-  .number {
-    -webkit-appearance: none;  /* Override default CSS styles */
-    appearance: none;
-    width: 50%; /* Full-width */
-    margin-top:10px;
-    height: 30px; /* Specified height */
-    background: #FFFFFF; /* Grey background */  
-    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-    transition: opacity .2s;
-  }
-/* Mouse-over effects */
-.slider:hover {
-  opacity: 1; /* Fully shown on mouse-over */
+  font-size: 12px;
 }
 
+/* The slider itself */
+.slider {
+  -webkit-appearance: none;
+  /* Override default CSS styles */
+  appearance: none;
+  width: 50%;
+  /* Full-width */
+  cursor: pointer;
+  height: 8px;
+  /* Specified height */
+  background: rgb(177, 209, 231);
+  outline: none;
+  /* Remove outline */
+  opacity: 0.5;
+  /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s;
+  /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+/* The number input */
+.number {
+  -webkit-appearance: none;
+  /* Override default CSS styles */
+  appearance: none;
+  width: 50%;
+  /* Full-width */
+  margin-top: 10px;
+  height: 30px;
+  /* Specified height */
+  background: #FFFFFF;
+  /* Grey background */
+  opacity: 0.7;
+  /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s;
+  /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1;
+  /* Fully shown on mouse-over */
+}
