@@ -1033,7 +1033,7 @@ class Simulation {
         let label = document.createElement("label")
         label.setAttribute("for", "imageLoader");
         label.style = "background-color: rgb(217, 234, 245);border-radius: 10px;border: 2px solid rgb(177, 209, 231);padding:7px;font-size:12px;margin:10px;width:128px;"
-        label.innerHTML = "<font size=2>Select your own initial state</font>"
+        label.innerHTML = "<font size=1>Select your own initial state</font>"
         document.getElementById("form_holder").appendChild(label)
         let canvas = document.createElement('canvas');
         canvas.name = "imageCanvas"
