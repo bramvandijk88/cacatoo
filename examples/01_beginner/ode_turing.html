@@ -107,10 +107,15 @@
                 ["gold", "#FF00AA"],
                 "ODE states in central grid point")
 
-            if(this.time%20==0) this.drawSlide("Activator density") // Calls a download-request for images, allowing users to store their grids while running the simulation
+            //if(this.time%100==0) this.drawSlide("Activator density") // Calls a download-request for images, allowing users to store their grids while running the simulation
         }
 
         sim.addButton("mix grid", function () { sim.turing.perfectMix() })
+        
+        sim.addButton("start/stop record", function() {
+            sim.makeMovie("Activator density")        
+        })
+
         sim.start()
 
 

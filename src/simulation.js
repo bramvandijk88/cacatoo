@@ -372,6 +372,10 @@ class Simulation {
     step() {
         for (let i = 0; i < this.gridmodels.length; i++)
             this.gridmodels[i].update()
+
+        for (let i = 0; i < this.canvases.length; i++)
+            if(this.canvases[i].recording == true)
+                this.captureFrame(this.canvases[i])
         this.time++
     }
 
@@ -383,6 +387,7 @@ class Simulation {
         for (let i = 0; i < this.gridmodels.length; i++) {
             if (this.mix) this.gridmodels[i].perfectMix()
         }
+    
     }
 
     /**
@@ -433,7 +438,7 @@ class Simulation {
                     sim.events();                            
                 }                
 
-                if(sim.time%(sim.skip+1)==0)sim.display();
+                if(sim.time%(sim.skip+1)==0) sim.display();
                 if(sim.fpsmeter) meter.tick();
 
                 let frame = requestAnimationFrame(animate);
@@ -717,23 +722,23 @@ class Simulation {
      *  recordVideo captures the canvas to an webm-video (browser only)    
      *  @param {canvas} canvas Canvas object to record
      */
-    startRecording(canvas){            
+    startRecording(canvas,fps){            
         if(!canvas.recording){
             canvas.recording = true        
             
             canvas.elem.style.outline = '4px solid red';       
-            capturer = new CCapture( { format: 'webm', 
+            sim.capturer = new CCapture( { format: 'webm', 
                                        quality: 100, 
                                        name: `${canvas.label}_starttime_${sim.time}`,
-                                       framerate: 60,                                       
+                                       framerate: fps,                                       
                                        display: false } );
-            capturer.start()            
+            sim.capturer.start()            
             console.log("Started recording video.")
         }
     }
     captureFrame(canvas){
-        if(canvas.recording){
-            capturer.capture(canvas.ctx.canvas)
+        if(canvas.recording){            
+            sim.capturer.capture(canvas.elem)
         }
         
     }
@@ -741,10 +746,20 @@ class Simulation {
         if(canvas.recording){
             canvas.recording = false            
             canvas.elem.style.outline = '0px';       
-            capturer.stop()
-            capturer.save();
-            capturer = undefined
+            sim.capturer.stop()
+            sim.capturer.save();            
             console.log("Video saved")
+        }
+    }
+    makeMovie(canvas, fps=60){
+        if(this.sleep > 0) throw new Error("Cacatoo not combine makeMovie with sleep. Instead, set sleep to 0 and set the framerate of the movie: makeMovie(canvas, fps).")     
+        if(!sim.recording){ 
+            sim.startRecording(canvas,fps)
+            sim.recording=true
+        }
+        else{
+            sim.stopRecording(canvas)
+            sim.recording=false
         }
     }
         
@@ -1066,7 +1081,7 @@ class Simulation {
         let label = document.createElement("label")
         label.setAttribute("for", "imageLoader");
         label.style = "background-color: rgb(239, 218, 245);border-radius: 10px;border: 2px solid rgb(188, 141, 201);padding:7px;font-size:10px;margin:10px;width:128px;"
-        label.innerHTML = "<font size=1>Select your own initial state</font>"
+        label.innerHTML = "Select your own initial state"
         document.getElementById("form_holder").appendChild(label)
         let canvas = document.createElement('canvas');
         canvas.name = "imageCanvas"
