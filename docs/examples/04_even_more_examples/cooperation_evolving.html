@@ -1,0 +1,188 @@
+<!-- 
+    Cooperation example for students
+    DO NOT CHANGE THE FIRST 5 LINES OF CODE BELOW, THEY ARE NECESSARY FOR THE PAGE TO WORK
+-->
+
+<html>
+<script src="../../dist/cacatoo.js"></script>           <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css">  <!-- Set style sheet -->
+
+<!-- 
+    CODE FOR SIMULATION BEGINS HERE
+-->
+
+<script>
+
+// First, we define a few 'variables', which we can use to ajust the model later
+
+var sim;                            // This 'global' variable will hold the entire simulation
+var initial_helping_rate = 0.5    // Determines how much help a 'cooperative' individual gives to its neighbours
+var death = 0.05                    // Determines how often an individual spontaneously dies, making a new spot available
+var movement = 1                   // Determines how much individuals 'move around'
+var mutation_rate = 0.01
+
+/**
+* function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+*/
+function cacatoo() {
+    /*
+        1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+    */
+    let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
+        title: "Cooperating with your neighbours (evolving)",
+        description: "",
+        maxtime: 1000000,
+        ncol: 200,
+        nrow: 200,		                                            // dimensions of the grid to build
+        seed: 56,        
+        wrap: [false, false],                                        // Wrap boundary [COLS, ROWS]
+        scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
+        graph_interval: 10,
+        show_gridname: false,       
+        graph_update: 50,
+        statecolours: { 'alive': { 1: 'black' }}
+    }
+    
+    /*
+        1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+    */
+    sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
+    sim.makeGridmodel("coop")                                        // Make a new gridmodel named cheater
+
+    sim.initialise = function()
+    {
+        let init_individuals = [{alive:1, helping_rate: initial_helping_rate, time_birth:-1}]                         
+        sim.populateSpot(sim.coop, init_individuals, [1.0], 10, config.ncol/2, config.nrow/2)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
+        sim.display()
+    }
+
+    sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
+                        minval: 0.0, maxval:1.0,num_colours:50, na_colour: 'black', fill:"inferno", decimals:2, nticks:5})
+    sim.spaceTimePlot("coop", "Cooperation", "ST", 100, sim.ncol*3)                        
+    
+    /**
+    * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
+    */
+    sim.coop.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+    {
+        // let pA, pB, pC, psum     
+        let me = this.grid[i][j]
+        if (!me.alive)                                                   // If there is no living cell here
+        {
+            let neighbours = this.getMoore8(this, i, j,'alive',1)
+            let winner = this.rouletteWheel(neighbours, 'fitness', 5.0)
+            if (winner != undefined)
+            {
+                me.alive = winner.alive
+                me.parent = winner      // Always know who your parent is.
+                me.time_birth = sim.time
+                me.helping_rate = winner.helping_rate
+               
+                if(this.rng.random() < mutation_rate){
+                    let step = (2.0*this.rng.genrand_real1()-1.0)*0.3
+                    me.helping_rate += step
+                }
+                if(me.helping_rate > 1.0) me.helping_rate = 1.0
+                if(me.helping_rate < 0.0) me.helping_rate = 0.0
+            }
+        }
+
+        if (this.rng.random() < death){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
+            this.grid[i][j].alive = 0
+            this.grid[i][j].helping_rate = undefined
+            this.grid[i][j].fitness = 0
+        }
+    }
+
+    calculatefitness = function(i,j)
+    {
+       sim.coop.grid[i][j].fitness = sim.coop.sumMoore8(sim.coop, i, j, "helping_rate")-0.1*sim.coop.grid[i][j].helping_rate
+    }
+
+    /** 
+    * Define your update-function here: stuff that is applied to the entire grid every timestep. E.g. apply the next-state, diffuse stuff, mix individuals, show graphs, etc. 
+    */
+    sim.coop.update = function () {
+        this.apply_sync(calculatefitness)
+        this.asynchronous()                                              // Update all grid points based on the next-state function (defined above)
+        // for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
+        this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
+    }
+
+    /**
+    * OPTIONAL: add some graphs to show how your model progresses. Cacatoo currently supports three graph types, all of which are illustrated in this example
+    */
+    sim.coop.updateGraphs = function () {
+        // Let's count some stuff every update
+        let helping_rates = []
+        for(let n = 0; n < 20; n++){
+            let i = this.rng.genrand_int(0,this.nc-1)
+            let j = this.rng.genrand_int(0,this.nr-1)           
+            if (this.grid[i][j].alive == 1) {
+                help = this.grid[i][j].helping_rate
+                helping_rates.push(help)
+            }
+            else helping_rates.push(undefined)
+        }
+
+        // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
+        this.plotPopsizes('alive',[1])        
+        this.plotPoints(helping_rates,"Cooperation rates (points + average)")        
+        
+    }
+    sim.coop.bottleneck = function()
+    {
+        console.log(sim)        
+        for (let i = 0; i < this.nc; i++) {
+            for (let j = 0; j < this.nr; j++) {
+                if(this.rng.genrand_real1() < 0.99){
+                    this.grid[i][j].alive = 0
+                    this.grid[i][j].helping_rate = 0
+                }
+            }
+        }
+    }
+
+    /**
+    * OPTIONAL: add some buttons and sliders so you can play with your model easily
+    */
+    sim.addButton("Play / Pause", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"     
+    sim.addButton("Well mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+    sim.addButton("Catastrophe!", function () {sim.coop.bottleneck() })
+    sim.addButton("Restart", function () {sim.initialise() })
+    sim.addHTML("form_holder","<br>")
+    sim.addSlider("mutation_rate", 0.00, 1.00, 0.001, "Mutation rate")
+    sim.addSlider("death", 0.005, 1.00, 0.001, "Death rate")
+    sim.addSlider("movement", 0,300,1, "Movement rate")    
+    
+
+    sim.initialise()
+    sim.start()
+    
+    
+}
+</script>
+
+<!-- 
+    CODE FOR SIMULATION ENDS HERE, DO NOT CHANGE BEYOND THIS POINT
+-->
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content">        
+       
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"></div>
+
+    <div class="footer" id="footer">
+       
+    </div>
+</body>
+
+</html>

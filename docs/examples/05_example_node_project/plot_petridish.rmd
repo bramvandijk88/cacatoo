@@ -1,0 +1,57 @@
+---
+title: "Plot petridish"
+author: "Bram van Dijk"
+date: "3/30/2022"
+output: html_document
+---
+
+## Example of plotting Cacatoo data in Rstudio
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(tidyverse)
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # set working directory to current file
+
+time_course <- read.table("output_directory/genotype_freqs.dat",header=T)
+time_course <- pivot_longer(time_course, -time)
+
+grid_files <- list.files("output_directory/",pattern="grid*",full.names = T)
+print(grid_files)
+
+# Function to read the files (mostly appends a 'time' column)
+read_grid <- function(file)
+{
+  dat<-read.table(file,header=F)
+  colnames(dat) <- c("i","j","value")
+  dat$time <- as.numeric(gsub(".*grid_(\\d+).dat","\\1",file))
+  dat
+}
+
+grid_dat <- do.call(rbind,lapply(grid_files,read_grid))
+
+```
+
+
+```{r plotting}
+
+grid_dat %>% filter(time>0) %>% 
+  ggplot(aes(x=i,y=-j,fill=as.factor(value))) +
+  geom_raster() +
+  theme_void() +
+  coord_fixed() +
+  facet_wrap(~time,nrow=2) +
+  scale_fill_manual(name="Genotypes",values=c("black","blue","yellow","green","purple","red"), labels=c("empty space","wildtype","mutant 1","mutant 2","mutant 3"))
+
+
+time_course %>% ggplot(aes(x=time,y=value,col=name)) +
+  geom_line(size=2) +
+  theme_bw() +
+  xlab("Time")+
+  ylab("Cell count") +
+  scale_colour_manual(name="Genotypes",labels=c("mutant 1","mutant 2","mutant 3","mutant 4","wildtype"), values=c("yellow","green","purple","red","blue"))
+```
+
+

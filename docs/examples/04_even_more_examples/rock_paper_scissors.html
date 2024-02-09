@@ -1,0 +1,121 @@
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+
+
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim;
+
+    function cacatoo() {
+
+        let config = {
+            title: "Rock-paper-scissors",
+            description: "Rock beats scissors, scissors beats paper, and paper beats... rock. Apparently.<br>This example illustrates how you can add mouse events and key press events. <br>Use your mouse to draw, and chance colours with the '1', '2,' and '3' keys.<br> The '[' and ']' keys can modify the brush size.",
+            maxtime: 10000,
+            seed:1,
+            ncol: 200,
+            nrow: 200,		                        // dimensions of the grid to build
+            wrap: [false, false],                    // Wrap boundary [COLS, ROWS]   
+            scale: 2,				                // scale of the grid (nxn pixels per grid cell)
+            statecolours: { colour: {1:'white',2:'red',3:'blue'} },        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
+            num_colours: 3,
+            printcursor: false
+        }
+
+        sim = new Simulation(config)
+
+        sim.makeGridmodel("spirals");
+        sim.createDisplay("spirals", "colour", "Colours represent different species")
+        // sim.spirals.canvases["Colours represent different species"].legend.style.display = "none"  // Hack to remove the legend :)
+        let n_species = 3
+
+
+        // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        
+        for (let i = 0; i < sim.spirals.nc; i++)                          // i are columns
+            for (let j = 0; j < sim.spirals.nr; j++)                      // j are rows
+                //sim.spirals.grid[i][j]['colour'] = Math.ceil(sim.rng.genrand_real1() * n_species)
+                sim.spirals.grid[i][j].colour = 1
+
+        sim.spirals.nextState = function (i, j)           // Define the next-state function. This example is spirals
+        {
+            let state = this.grid[i][j].colour               // Colour of current pixel
+            let pred = (this.grid[i][j].colour % n_species) + 1  // Colour it is predated by (% because 8 is predated by 1)
+
+            let neighbours = sim.spirals.countMoore8(this, i, j, 'colour',pred) // Count the nr of predators
+            // Red will spread
+            if (sim.rng.genrand_real1() < 0.1 * neighbours)   // Let "predator" grow over the current pixel
+                this.grid[i][j].colour = pred;
+        }
+
+        sim.spirals.update = function () {
+            this.synchronous()                              // Applied as many times as it can in 1/60th of a second        
+            this.MargolusDiffusion()
+            this.plotPopsizes('colour', [1, 2, 3])
+        }
+        
+        sim.addButton("pause", function () { sim.toggle_play() })
+        sim.addButton("mix grid", function () { sim.spirals.perfectMix() })
+        sim.place_value = 2
+        sim.place_size = 20
+                
+        var mouseDown = false
+        
+
+        let drawing_canvas = sim.canvases[0] // the first (and only) canvas in this model 
+
+        var coords
+        var interval
+                
+        sim.canvases[0].elem.addEventListener('mousemove', (e) => { 
+            coords = sim.getCursorPosition(sim.canvases[0],e,config.scale) 
+        })
+
+        sim.canvases[0].elem.addEventListener('mousedown', (e) => {    
+                interval = setInterval(function() {
+                    if(mouseDown){
+                        sim.putSpot(sim.spirals, 'colour', sim.place_value, sim.place_size, coords.x, coords.y)            
+                        sim.display()
+                    }
+                }, 30)
+            })
+        
+        window.addEventListener('keydown', function (e) {
+            if(e.key == "1") {sim.place_value = 1; console.log(`Placing value: ${sim.place_value}`)}
+            if(e.key == "2") {sim.place_value = 2; console.log(`Placing value: ${sim.place_value}`)}
+            if(e.key == "3") {sim.place_value = 3; console.log(`Placing value: ${sim.place_value}`)}
+            if(e.key == "]") {sim.place_size += 10; console.log(`Brush size: ${sim.place_size}`); }
+            if(e.key == "[") {sim.place_size -= 10; console.log(`Brush size: ${sim.place_size}`); }
+            if(sim.place_size < 10) sim.place_size = 10
+        });
+
+        sim.canvases[0].elem.addEventListener('mousedown', (e) => { mouseDown = true })
+        sim.canvases[0].elem.addEventListener('mouseup', (e) => { mouseDown = false })
+        
+
+        sim.start()
+
+        
+
+        // sim.pause=true
+}
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header"></div>    
+    <div class="content" id="canvas_holder">  </div>
+    <div class="content" id="form_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

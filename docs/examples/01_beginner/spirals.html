@@ -1,0 +1,103 @@
+<!-- 
+
+    EXAMPLE FILE 03: Spirals
+    On the grid, n (here 6) different colours exist. Each colour 
+    is predated by the next colour (3 eats 2, 2 eats 1, etc). Colour
+    1 eats 6, so this is a cycle. In space, this looks very pretty. 
+    Check it out!
+    
+-->
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim;
+
+    function cacatoo() {
+
+        let config = {
+            title: "Spirals",
+            description: "6 colours with cyclical dominance (stare at your own risk)",
+            maxtime: 20000,
+            fastmode: true,
+            seed: 56,
+            ncol: 200,
+            nrow: 200,		                        // dimensions of the grid to build
+            wrap: [true, true],                    // Wrap boundary [COLS, ROWS]   
+            scale: 1,				                // scale of the grid (nxn pixels per grid cell)
+            //statecolours: { colour: 'default' },        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
+            statecolours: { colour: // Or you define your own pride colours:
+                { 1: '#E40303',
+                  2: '#FF8C00',
+                  3: '#FFED00',
+                  4: '#008026',
+                  5: '#24408E',
+                  6: '#732982'
+                } 
+            },
+            num_colours: 6,
+            printcursor: true
+        }
+
+        sim = new Simulation(config)
+
+        sim.makeGridmodel("spirals");
+        sim.createDisplay("spirals", "colour", "Colours represent different species")
+        sim.spaceTimePlot("spirals", "Colours represent different species", "Space-time plot", 50, sim.ncol*2)                                
+        
+        let n_species = 6
+
+        // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        
+        for (let x = 0; x < sim.spirals.nc; x++)                          // i are columns
+            for (let y = 0; y< sim.spirals.nr; y++)                      // j are rows
+                sim.spirals.grid[x][y]['colour'] = Math.ceil(sim.rng.genrand_real1() * n_species)
+
+        sim.spirals.nextState = function (x, y)           // Define the next-state function. This example is spirals
+        {
+            let state = this.grid[x][y].colour               // Colour of current pixel
+            let pred = (this.grid[x][y].colour % n_species) + 1  // Colour it is predated by (% because 8 is predated by 1)
+
+            let neighbours = sim.spirals.countMoore8(this, x, y, 'colour',pred) // Count the nr of predators
+            // Red will spread
+            if (sim.rng.genrand_real1() < 0.25 * neighbours)   // Let "predator" grow over the current pixel
+                this.grid[x][y].colour = pred;
+        }
+
+        sim.spirals.update = function () {
+            this.synchronous()                              // Applied as many times as it can in 1/60th of a second        
+            this.plotPopsizes('colour', [1, 2, 3, 4, 5, 6, 7, 8])                           
+            
+            // change stuff below to sim.spirals.drawslide("name")
+            
+        }
+
+        sim.addMovieButton(sim.spirals,"Colours represent different species",120) 
+          
+				
+        sim.addButton("pause", function () { sim.toggle_play() })
+        sim.addButton("mix grid", function () { sim.spirals.perfectMix() })
+        sim.addStatebrush("spirals", "colour", 3, 800)
+        sim.start()
+    }
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header"></div>
+    <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="form_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>
