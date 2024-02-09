@@ -31,13 +31,14 @@
             title: "Petridish with local growth",
             description: "(mutational rescue of elevated death rate)",
             maxtime: 10000000,            
-            ncol: 200,
-            nrow: 200,		            // dimensions of the grid to build
+            ncol: 300,
+            nrow: 300,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale: 2,				    // scale of the grid (nxn pixels per grid cell)
+            scale: 1,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
             graph_update: 20,
             seed: 4129,
+            bgcolour: 'white',
             statecolours: { alive: 'default' }   // The background state '0' is never drawn
         }
 

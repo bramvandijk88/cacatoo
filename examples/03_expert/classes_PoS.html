@@ -61,14 +61,14 @@
         sim.cells.initialise = function () {
             sim.initialGrid(sim.cells, "alive", 0, 1.0)
             sim.initialGrid(sim.cells, "genomesize", undefined, 1.0)
-            for (let i = 0; i < sim.cells.nc; i++) for (let j = 0; j < sim.cells.nr; j++) {
+            for (let x = 0; x < sim.cells.nc; x++) for (let y = 0; y < sim.cells.nr; y++) {
                 // if(sim.cells.rng.genrand_real1() < 0.999)
-                if (i == sim.cells.nc / 2 && j == sim.cells.nr / 2) {
-                    sim.cells.grid[i][j].alive = 1
-                    sim.cells.grid[i][j].genome = new Genome()
-                    sim.cells.grid[i][j].genome.initialise(init_es, init_ne, 2)                                                 // Initialise genomes with a number of essential, non-essential, and non-coding genes
-                    sim.cells.grid[i][j].genomesize = Math.min(100, sim.cells.grid[i][j].genome.chromosome.length)             // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
-                    sim.cells.grid[i][j].fitness = sim.cells.grid[i][j].genome.fitness                                        // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+                if (x == sim.cells.nc / 2 && y == sim.cells.nr / 2) {
+                    sim.cells.grid[x][y].alive = 1
+                    sim.cells.grid[x][y].genome = new Genome()
+                    sim.cells.grid[x][y].genome.initialise(init_es, init_ne, 2)                                                 // Initialise genomes with a number of essential, non-essential, and non-coding genes
+                    sim.cells.grid[x][y].genomesize = Math.min(100, sim.cells.grid[x][y].genome.chromosome.length)             // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
+                    sim.cells.grid[x][y].fitness = sim.cells.grid[x][y].genome.fitness                                        // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
                 }
             }
         }
@@ -78,23 +78,23 @@
 
         let birth_rate = 0.85
 
-        sim.cells.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish
+        sim.cells.nextState = function (x, y)       // Define the next-state function. This example is stochastic growth in a petri dish
         {
-            if (this.grid[i][j].alive == 0) {
-                let neighbours = this.getMoore8(this, i, j,'alive',1)
+            if (this.grid[x][y].alive == 0) {
+                let neighbours = this.getMoore8(this, x, y,'alive',1)
                 if (neighbours.length > 0) {
                     let winner = this.rouletteWheel(neighbours, 'fitness', 5.0)
                     if (winner != undefined) {
-                        this.grid[i][j].alive = winner.alive
-                        this.grid[i][j].genome = winner.genome.copy(mutate = true)
-                        this.grid[i][j].genomesize = Math.min(100, this.grid[i][j].genome.chromosome.length)
-                        this.grid[i][j].fitness = this.grid[i][j].genome.fitness
+                        this.grid[x][y].alive = winner.alive
+                        this.grid[x][y].genome = winner.genome.copy(mutate = true)
+                        this.grid[x][y].genomesize = Math.min(100, this.grid[x][y].genome.chromosome.length)
+                        this.grid[x][y].fitness = this.grid[x][y].genome.fitness
                     }
                 }
             }
             else if (sim.rng.genrand_real1() < death_rate) {
-                this.grid[i][j].alive = 0
-                this.grid[i][j].genomesize = undefined
+                this.grid[x][y].alive = 0
+                this.grid[x][y].genomesize = undefined
             }
         }
 
@@ -104,13 +104,13 @@
             this.plotPopsizes('alive', [1])
 
             let num_alive = 0, gsizes = 0, hks = 0, nes = 0, non = 0, fitnesses = 0
-            for (let i = 0; i < sim.cells.nc; i++) for (let j = 0; j < sim.cells.nr; j++) {
-                if (this.grid[i][j].alive == 1) {
+            for (let x = 0; x < sim.cells.nc; x++) for (let y = 0; y < sim.cells.nr; y++) {
+                if (this.grid[x][y].alive == 1) {
                     num_alive++
-                    gsizes += this.grid[i][j].genomesize
-                    fitnesses += this.grid[i][j].genome.fitness
-                    for (let p = 0; p < sim.cells.grid[i][j].genome.chromosome.length; p++)
-                        switch (sim.cells.grid[i][j].genome.chromosome[p].type) {
+                    gsizes += this.grid[x][y].genomesize
+                    fitnesses += this.grid[x][y].genome.fitness
+                    for (let p = 0; p < sim.cells.grid[x][y].genome.chromosome.length; p++)
+                        switch (sim.cells.grid[x][y].genome.chromosome[p].type) {
                             case "G": hks++; break;
                             case "g": nes++; break;
                             case ".": non++; break;
@@ -135,7 +135,7 @@
         sim.addButton("reset", function () { sim.cells.initialise() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
         sim.addHTML("form_holder", "<br>")
         sim.addSlider("mutationrate", 0.0, 0.01, 0.0001)
-
+        
         sim.start()
     }
 
@@ -244,19 +244,19 @@
 
 
     /**
-     * Shuffles array in place.
-     * @param {Array} a items An array containing the items.
-     */
-    function shuffle(a) {
-        var j, x, i;
-        for (i = a.length - 1; i > 0; i--) {
-            j = Math.floor(sim.rng.random() * (i + 1));
-            x = a[i];
-            a[i] = a[j];
-            a[j] = x;
-        }
-        return a;
+ * Shuffles array in place.
+ * @param {Array} a items An array containing the items.
+ */
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(sim.rng.genrand_real2() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
     }
+    return a;
+}
 
     function* idGenerator() {
         let id = 1;
