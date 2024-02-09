@@ -65,7 +65,8 @@ compile_cacatoo()
 
     sed -i '' 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
     sed -i '' 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
-    echo "[OK]"  
+    echo "[OK]"
+    cp -a examples docs  
     if [ "$1" != "once" ]; then
         echo -en "Awaiting changes in the code..."
     fi
