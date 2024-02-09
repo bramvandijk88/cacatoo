@@ -56,7 +56,6 @@ compile_cacatoo()
     fix_libs docs/crossfeeding.html
 
     mkdir -p docs/cooperation
-    cp -a examples docs  
     cp examples/04_even_more_examples/cooperation.html docs/cooperation/index.html
     cp images/coop.png docs/images
     fix_libs docs/cooperation/index.html
