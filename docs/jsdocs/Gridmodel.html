@@ -248,6 +248,94 @@
     
 
     
+    <h4 class="name" id="MargolusDiffusion"><span class="type-signature"></span>MargolusDiffusion<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines" The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations, CCW in odd iterations)
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1083">line 1083</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id="apply_async"><span class="type-signature"></span>apply_async<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
@@ -300,7 +388,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line647">line 647</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line646">line 646</a>
     </li></ul></dd>
     
 
@@ -388,7 +476,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line615">line 615</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line614">line 614</a>
     </li></ul></dd>
     
 
@@ -476,7 +564,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line634">line 634</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line633">line 633</a>
     </li></ul></dd>
     
 
@@ -884,7 +972,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line541">line 541</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line540">line 540</a>
     </li></ul></dd>
     
 
@@ -1044,7 +1132,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line504">line 504</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line503">line 503</a>
     </li></ul></dd>
     
 
@@ -1243,7 +1331,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line568">line 568</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line567">line 567</a>
     </li></ul></dd>
     
 
@@ -1279,7 +1367,7 @@
     
 
     
-    <h4 class="name" id="copyGridpoint"><span class="type-signature"></span>copyGridpoint<span class="signature">(i, j)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="copyGridpoint"><span class="type-signature"></span>copyGridpoint<span class="signature">(x, y)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1287,7 +1375,7 @@
 
 
 <div class="description">
-    Return a copy of the gridpoint at position i,j Makes sure wrapping is applied if necessary
+    Return a copy of the gridpoint at position x,y Makes sure wrapping is applied if necessary
 </div>
 
 
@@ -1323,7 +1411,7 @@
 
         <tr>
             
-                <td class="name"><code>i</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
@@ -1346,7 +1434,7 @@
 
         <tr>
             
-                <td class="name"><code>j</code></td>
+                <td class="name"><code>y</code></td>
             
 
             <td class="type">
@@ -1403,7 +1491,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line716">line 716</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line715">line 715</a>
     </li></ul></dd>
     
 
@@ -1439,7 +1527,7 @@
     
 
     
-    <h4 class="name" id="copyIntoGridpoint"><span class="type-signature"></span>copyIntoGridpoint<span class="signature">(i, j, @Gridpoint)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="copyIntoGridpoint"><span class="type-signature"></span>copyIntoGridpoint<span class="signature">(x, y, @Gridpoint)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1447,7 +1535,7 @@
 
 
 <div class="description">
-    Change the gridpoint at position i,j into gp Makes sure wrapping is applied if necessary
+    Change the gridpoint at position x,y into gp Makes sure wrapping is applied if necessary
 </div>
 
 
@@ -1483,7 +1571,7 @@
 
         <tr>
             
-                <td class="name"><code>i</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
@@ -1506,7 +1594,7 @@
 
         <tr>
             
-                <td class="name"><code>j</code></td>
+                <td class="name"><code>y</code></td>
             
 
             <td class="type">
@@ -1586,7 +1674,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line734">line 734</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line733">line 733</a>
     </li></ul></dd>
     
 
@@ -2336,143 +2424,6 @@
     
 
     
-    <h4 class="name" id="diffuseStates"><span class="type-signature"></span>diffuseStates<span class="signature">(rate)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Diffuse continuous states on the grid. *  @param {string} state The name of the state to diffuse but can be mixed to make grids interact.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>rate</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">float</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">the rate of diffusion. (<0.25)</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line950">line 950</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
     <h4 class="name" id="diffuseStateVector"><span class="type-signature"></span>diffuseStateVector<span class="signature">(rate)</span><span class="type-signature"></span></h4>
     
 
@@ -2610,7 +2561,7 @@
     
 
     
-    <h4 class="name" id="getGridpoint"><span class="type-signature"></span>getGridpoint<span class="signature">(i, j)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="diffuseStates"><span class="type-signature"></span>diffuseStates<span class="signature">(rate)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2618,7 +2569,7 @@
 
 
 <div class="description">
-    Get the gridpoint at coordinates i,j  Makes sure wrapping is applied if necessary
+    Diffuse continuous states on the grid. *  @param {string} state The name of the state to diffuse but can be mixed to make grids interact.
 </div>
 
 
@@ -2654,7 +2605,144 @@
 
         <tr>
             
-                <td class="name"><code>i</code></td>
+                <td class="name"><code>rate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">float</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the rate of diffusion. (<0.25)</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line950">line 950</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getGridpoint"><span class="type-signature"></span>getGridpoint<span class="signature">(xpos, ypos)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Get the gridpoint at coordinates x,y  Makes sure wrapping is applied if necessary
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>xpos</code></td>
             
 
             <td class="type">
@@ -2677,7 +2765,7 @@
 
         <tr>
             
-                <td class="name"><code>j</code></td>
+                <td class="name"><code>ypos</code></td>
             
 
             <td class="type">
@@ -2734,7 +2822,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line686">line 686</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line685">line 685</a>
     </li></ul></dd>
     
 
@@ -2911,6 +2999,94 @@
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
         <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line804">line 804</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getNeighXY"><span class="type-signature"></span>getNeighXY<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Get the x,y coordinates of a neighbour in an array.  Makes sure wrapping is applied if necessary
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line749">line 749</a>
     </li></ul></dd>
     
 
@@ -3415,94 +3591,6 @@
 </dl>
 
     
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getNeighXY"><span class="type-signature"></span>getNeighXY<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Get the x,y coordinates of a neighbour in an array.  Makes sure wrapping is applied if necessary
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line750">line 750</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -4284,95 +4372,7 @@
     
 
     
-    <h4 class="name" id="MargolusDiffusion"><span class="type-signature"></span>MargolusDiffusion<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Apply diffusion algorithm for grid-based models described in Toffoli & Margolus' book "Cellular automata machines" The idea is to subdivide the grid into 2x2 neighbourhoods, and rotate them (randomly CW or CCW). To avoid particles simply being stuck in their own 2x2 subspace, different 2x2 subspaces are taken each iteration (CW in even iterations, CCW in odd iterations)
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1083">line 1083</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="nextState"><span class="type-signature"></span>nextState<span class="signature">(i, j)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="nextState"><span class="type-signature"></span>nextState<span class="signature">(x, y)</span><span class="type-signature"></span></h4>
     
 
     
@@ -4416,7 +4416,7 @@
 
         <tr>
             
-                <td class="name"><code>i</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
@@ -4439,7 +4439,7 @@
 
         <tr>
             
-                <td class="name"><code>j</code></td>
+                <td class="name"><code>y</code></td>
             
 
             <td class="type">
@@ -4496,7 +4496,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line585">line 585</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line584">line 584</a>
     </li></ul></dd>
     
 
@@ -5581,94 +5581,6 @@
     
 
     
-    <h4 class="name" id="print_grid"><span class="type-signature"></span>print_grid<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Print the entire grid to the console
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line445">line 445</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
     <h4 class="name" id="printGrid"><span class="type-signature"></span>printGrid<span class="signature">(property, fract)</span><span class="type-signature"></span></h4>
     
 
@@ -5794,6 +5706,94 @@
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
         <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1368">line 1368</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="print_grid"><span class="type-signature"></span>print_grid<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Print the entire grid to the console
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line445">line 445</a>
     </li></ul></dd>
     
 
@@ -6723,7 +6723,7 @@
     
 
     
-    <h4 class="name" id="set_update_order"><span class="type-signature"></span>set_update_order<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setGridpoint"><span class="type-signature"></span>setGridpoint<span class="signature">(x, y, @Gridpoint)</span><span class="type-signature"></span></h4>
     
 
     
@@ -6731,95 +6731,7 @@
 
 
 <div class="description">
-    If called for the first time, make an update order (list of ints), otherwise just shuffle it.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line658">line 658</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="setGridpoint"><span class="type-signature"></span>setGridpoint<span class="signature">(i, j, @Gridpoint)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Change the gridpoint at position i,j into gp (typically retrieved with 'getGridpoint') Makes sure wrapping is applied if necessary
+    Change the gridpoint at position x,y into gp (typically retrieved with 'getGridpoint') Makes sure wrapping is applied if necessary
 </div>
 
 
@@ -6855,7 +6767,7 @@
 
         <tr>
             
-                <td class="name"><code>i</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
@@ -6878,7 +6790,7 @@
 
         <tr>
             
-                <td class="name"><code>j</code></td>
+                <td class="name"><code>y</code></td>
             
 
             <td class="type">
@@ -6958,7 +6870,95 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line701">line 701</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line700">line 700</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="set_update_order"><span class="type-signature"></span>set_update_order<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    If called for the first time, make an update order (list of ints), otherwise just shuffle it.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line657">line 657</a>
     </li></ul></dd>
     
 
@@ -7960,7 +7960,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line595">line 595</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line594">line 594</a>
     </li></ul></dd>
     
 
@@ -8048,7 +8048,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line677">line 677</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line676">line 676</a>
     </li></ul></dd>
     
 
@@ -8094,13 +8094,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Canvas.html">Canvas</a></li><li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#get2DFromCanvas">get2DFromCanvas</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#random_colours">random_colours</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB">stringToRGB</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Canvas.html">Canvas</a></li><li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#get2DFromCanvas">get2DFromCanvas</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#random_colours">random_colours</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB">stringToRGB</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Feb 08 2023 10:45:20 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Feb 09 2024 12:30:50 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

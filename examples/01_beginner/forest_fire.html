@@ -1,0 +1,85 @@
+<!-- 
+
+    EXAMPLE FILE: Forest fire
+    
+-->
+
+<!--  ---------------Do not change the part below ------------------  -->
+
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+/*-----------------------Start user-defined code ---------------------*/
+var TreeDensity = 0.40
+    let sim;
+
+    function cacatoo() {
+
+        let config = {
+            title: "Forest Fire",
+            description: "Start another fire by clicking somewhere in the forest (mouse only)",
+            maxtime: 1000000,
+            seed:1,
+            ncol: 300,
+            nrow: 200,		                        // dimensions of the grid to build
+            wrap: [true, true],                    // Wrap boundary [COLS, ROWS]   
+            scale:2,				                // scale of the grid (nxn pixels per grid cell)
+					statecolours: { 'type': { 'ground': [100,80,30],"tree":[0,200,0], 'burned': "black" } },    
+
+        }
+
+        sim = new Simulation(config)
+
+        sim.makeGridmodel("forest");
+        sim.createDisplay("forest", "type", "Tile type")
+       
+				sim.reset = function(){
+							for (let i = 0; i < sim.forest.nc; i++)                             for (let j = 0; j < sim.forest.nr; j++)  sim.forest.grid[i][j].type= sim.rng.random() < TreeDensity ? 'tree': 'ground'
+		
+		sim.forest.grid[sim.forest.nc/2][sim.forest.nr/2].type='burned'	
+		
+
+							sim.forest.resetPlots()
+				}
+						
+				sim.reset()
+
+				
+        sim.forest.nextState = function (i, j)   
+        {
+				if (this.grid[i][j].type == 'tree' && sim.forest.countMoore8(this, i, j, 'type','burned') > 0) this.grid[i][j].type = 'burned'         }
+
+        sim.forest.update = function () {
+            this.synchronous()                              
+        }
+        
+				sim.addSlider('TreeDensity',min=0,max=1)
+				sim.addButton("Reset trees", function () { sim.reset() })
+        
+        sim.addMovieButton(sim.forest,"Tile type")
+        sim.addStatebrush("forest", "type", 'burned', 1)
+        sim.start()
+    }
+
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

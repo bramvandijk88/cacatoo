@@ -147,7 +147,7 @@ function cacatoo() {
     sim.addSlider("B2C")
     sim.addSlider("stay_empty", 0.00, 20.00, 0.01)
     sim.addSlider("death", 0.00, 1.00, 0.001)
-
+    sim.addMovieButton(sim.cheater, "Mutualists and cheater")
     sim.start()
 }
 

@@ -47,7 +47,7 @@
     var uptake_from_pool = 0.01
     var jump_rate = 0.02
     var size = 120
-    var scale = 3
+    var scale = 2
     var address_query = {}
 
     location.search.substr(1).split("&").forEach(function (item) { address_query[item.split("=")[0]] = item.split("=")[1] })
@@ -101,17 +101,17 @@
                 gp.fitness = gp.genome.fitness                                       // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
                 gp.T_in_genomes = Math.min(sim.max_t, gp.genome.nr_tra)                                   // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
             }
-            for (let i = 0; i < sim.TE_model.nc; i++) for (let j = 0; j < sim.TE_model.nr; j++) {
-                this.grid[i][j].eDNA = []        // Initialise empty eDNA pool
-                this.grid[i][j].T_in_eDNA = 0
+            for (let x = 0; x < sim.TE_model.nc; x++) for (let y = 0; y < sim.TE_model.nr; y++) {
+                this.grid[x][y].eDNA = []        // Initialise empty eDNA pool
+                this.grid[x][y].T_in_eDNA = 0
 
                 let size = 5
-                if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size)
-                    placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 10, init_tra_rate)
-                else if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size * 50)
-                    placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 0, init_tra_rate)
-                // else if((Math.pow((i-sim.TE_model.nc/2),2) + Math.pow((j-sim.TE_model.nr/2),2) ) < size*10 && j>sim.TE_model.nr/2)
-                //     placeCell(sim.TE_model.grid[i][j],init_es,init_ne,0,0)  
+                if ((Math.pow((x - sim.TE_model.nc / 2), 2) + Math.pow((y - sim.TE_model.nr / 2), 2)) < size)
+                    placeCell(sim.TE_model.grid[x][y], init_es, init_ne, init_nc, 10, init_tra_rate)
+                else if ((Math.pow((x - sim.TE_model.nc / 2), 2) + Math.pow((y - sim.TE_model.nr / 2), 2)) < size * 50)
+                    placeCell(sim.TE_model.grid[x][y], init_es, init_ne, init_nc, 0, init_tra_rate)
+                // else if((Math.pow((x-sim.TE_model.nc/2),2) + Math.pow((y-sim.TE_model.nr/2),2) ) < size*10 && y>sim.TE_model.nr/2)
+                //     placeCell(sim.TE_model.grid[x][y],init_es,init_ne,0,0)  
 
             }
         }
@@ -119,45 +119,45 @@
         sim.TE_model.initialise()  // Initialise for the first time (otherwise used for "RESET" button)
 
         // Define the next-state function. This example is stochastic growth in a petri dish
-        sim.TE_model.nextState = function (i, j) {
-            if (this.grid[i][j].alive == 0) {
-                let neighbours = this.getMoore8(this, i, j, 'alive',1)
+        sim.TE_model.nextState = function (x, y) {
+            if (this.grid[x][y].alive == 0) {
+                let neighbours = this.getMoore8(this, x, y, 'alive',1)
 
                 if (neighbours.length > 0) {
                     let winner = this.rouletteWheel(neighbours, 'fitness', non)
                     if (winner != undefined)
-                        this.reproduce(i, j, winner)
+                        this.reproduce(x, y, winner)
                 }
             }
-            else if (this.rng.genrand_real1() < death_rate || this.grid[i][j].genome.fitness == 0)
-                this.death_and_lysis(i, j)
+            else if (this.rng.genrand_real1() < death_rate || this.grid[x][y].genome.fitness == 0)
+                this.death_and_lysis(x, y)
             else {
-                this.TEdynamicsI(i, j)
-                this.TEdynamicsII(i, j)
+                this.TEdynamicsI(x, y)
+                this.TEdynamicsII(x, y)
             }
 
             // EDNA DYNAMICS
-            if (this.grid[i][j].eDNA.length > 0) {
-                for (let k = 0; k < this.grid[i][j].eDNA.length; k++)
+            if (this.grid[x][y].eDNA.length > 0) {
+                for (let k = 0; k < this.grid[x][y].eDNA.length; k++)
                     if (this.rng.genrand_real1() < degr_rate_edna)   // degr
-                        this.grid[i][j].eDNA.splice(k, 1)
-                this.grid[i][j].T_in_eDNA = Math.min(sim.max_t, this.grid[i][j].eDNA.length)   // Track number of TEs for visualisation purposes
+                        this.grid[x][y].eDNA.splice(k, 1)
+                this.grid[x][y].T_in_eDNA = Math.min(sim.max_t, this.grid[x][y].eDNA.length)   // Track number of TEs for visualisation purposes
             }
             else
-                this.grid[i][j].T_in_eDNA = undefined
+                this.grid[x][y].T_in_eDNA = undefined
         }
 
         // This function is asynchronously applied to the entire grid every time step. It uses a single random number to determine both IF a DNA fragment will move,
         // as well as WHERE it moves. 
-        sim.TE_model.diffuse_eDNA = function (i, j) {
+        sim.TE_model.diffuse_eDNA = function (x, y) {
             moveDNA = function (k, direction) {
                 let coords = sim.TE_model.moore[direction]
-                let target = sim.TE_model.getGridpoint(coords[0] + i, coords[1] + j)
-                target.eDNA.push(sim.TE_model.grid[i][j].eDNA[k])
-                sim.TE_model.grid[i][j].eDNA.splice(k, 1)
+                let target = sim.TE_model.getGridpoint(coords[0] + x, coords[1] + y)
+                target.eDNA.push(sim.TE_model.grid[x][y].eDNA[k])
+                sim.TE_model.grid[x][y].eDNA.splice(k, 1)
             }
 
-            for (let k = 0; k < sim.TE_model.grid[i][j].eDNA.length; k++) {
+            for (let k = 0; k < sim.TE_model.grid[x][y].eDNA.length; k++) {
                 let randomnr = sim.TE_model.rng.genrand_real1()
                 if (randomnr < diff_rate_edna / 4) moveDNA(k, 1)
                 else if (randomnr < 2 * diff_rate_edna / 4) moveDNA(k, 2)
@@ -168,83 +168,83 @@
 
 
 
-        // A custom function for copying a cell into a gp at position i,j ("reproduction")
-        sim.TE_model.reproduce = function (i, j, winner) {
-            this.grid[i][j].alive = winner.alive
-            this.grid[i][j].genome = winner.genome.copy(mutate = true)
-            this.grid[i][j].genomesize = Math.min(sim.max_g, this.grid[i][j].genome.chromosome.length)
-            this.grid[i][j].fitness = this.grid[i][j].genome.fitness
-            this.grid[i][j].T_in_genomes = Math.min(sim.max_t, this.grid[i][j].genome.nr_tra)                          // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+        // A custom function for copying a cell into a gp at position x,y ("reproduction")
+        sim.TE_model.reproduce = function (x, y, winner) {
+            this.grid[x][y].alive = winner.alive
+            this.grid[x][y].genome = winner.genome.copy(mutate = true)
+            this.grid[x][y].genomesize = Math.min(sim.max_g, this.grid[x][y].genome.chromosome.length)
+            this.grid[x][y].fitness = this.grid[x][y].genome.fitness
+            this.grid[x][y].T_in_genomes = Math.min(sim.max_t, this.grid[x][y].genome.nr_tra)                          // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
         }
 
-        // A custom function for killing a gp at position i,j
-        sim.TE_model.death_and_lysis = function (i, j) {
-            this.grid[i][j].alive = 0
-            this.grid[i][j].genomesize = undefined
-            this.grid[i][j].T_in_genomes = undefined
+        // A custom function for killing a gp at position x,y
+        sim.TE_model.death_and_lysis = function (x, y) {
+            this.grid[x][y].alive = 0
+            this.grid[x][y].genomesize = undefined
+            this.grid[x][y].T_in_genomes = undefined
 
-            for (let p = 0; p < this.grid[i][j].genome.chromosome.length; p++) {
-                if (this.grid[i][j].genome.chromosome[p].type == "T")
-                    this.grid[i][j].eDNA.push(this.grid[i][j].genome.chromosome[p])
+            for (let p = 0; p < this.grid[x][y].genome.chromosome.length; p++) {
+                if (this.grid[x][y].genome.chromosome[p].type == "T")
+                    this.grid[x][y].eDNA.push(this.grid[x][y].genome.chromosome[p])
             }
         }
 
         // A custom function for TE dynamics during the lifetime of a cell
-        sim.TE_model.TEdynamicsI = function (i, j) {
+        sim.TE_model.TEdynamicsI = function (x, y) {
             jumping = []
-            for (let p = 0; p < this.grid[i][j].genome.chromosome.length; p++) {
-                if (this.grid[i][j].genome.chromosome[p].type == "T") {
-                    if (this.rng.genrand_real1() < jump_rate * this.grid[i][j].genome.chromosome[p].transposition_rate)
-                        jumping.push(this.grid[i][j].genome.chromosome[p])
+            for (let p = 0; p < this.grid[x][y].genome.chromosome.length; p++) {
+                if (this.grid[x][y].genome.chromosome[p].type == "T") {
+                    if (this.rng.genrand_real1() < jump_rate * this.grid[x][y].genome.chromosome[p].transposition_rate)
+                        jumping.push(this.grid[x][y].genome.chromosome[p])
                 }
             }
             for (let p = 0; p < jumping.length; p++) {
-                let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[i][j].genome.chromosome.length)
+                let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[x][y].genome.chromosome.length)
                 let new_TE_copy = jumping[p].copy()
                 if (this.rng.genrand_real1() < probability_TE_induced_damage)
-                    this.grid[i][j].genome.chromosome[random_pos].type = "."
-                this.grid[i][j].genome.chromosome.splice(random_pos, 0, new_TE_copy)
+                    this.grid[x][y].genome.chromosome[random_pos].type = "."
+                this.grid[x][y].genome.chromosome.splice(random_pos, 0, new_TE_copy)
 
             }
             //if(jumping.length > 0) 
-            this.grid[i][j].genome.calculate_fitness()
+            this.grid[x][y].genome.calculate_fitness()
         }
 
 
         // A custom function for TE dynamics from the eDNA pool
-        sim.TE_model.TEdynamicsII = function (i, j) {
+        sim.TE_model.TEdynamicsII = function (x, y) {
             let nr_jumps = 0
-            for (let p = 0; p < this.grid[i][j].eDNA.length; p++) {
+            for (let p = 0; p < this.grid[x][y].eDNA.length; p++) {
                 let randomnr = this.rng.genrand_real1()
                 let uptake = randomnr < uptake_from_pool
-                let integration = randomnr < uptake_from_pool * this.grid[i][j].eDNA[p].transposition_rate
+                let integration = randomnr < uptake_from_pool * this.grid[x][y].eDNA[p].transposition_rate
                 if (uptake) {
                     if (integration) {
-                        let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[i][j].genome.chromosome.length)
-                        let new_TE_copy = this.grid[i][j].eDNA[p].copy()
+                        let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[x][y].genome.chromosome.length)
+                        let new_TE_copy = this.grid[x][y].eDNA[p].copy()
                         if (this.rng.genrand_real1() < probability_TE_induced_damage)
-                            this.grid[i][j].genome.chromosome[random_pos].type = "."
-                        this.grid[i][j].genome.chromosome.splice(random_pos, 0, new_TE_copy)
+                            this.grid[x][y].genome.chromosome[random_pos].type = "."
+                        this.grid[x][y].genome.chromosome.splice(random_pos, 0, new_TE_copy)
                         nr_jumps++
                     }
-                    this.grid[i][j].eDNA.splice(p, 1)
+                    this.grid[x][y].eDNA.splice(p, 1)
                 }
             }
-            if (nr_jumps > 0) this.grid[i][j].genome.calculate_fitness()
+            if (nr_jumps > 0) this.grid[x][y].genome.calculate_fitness()
         }
 
         // Custom function to mix only the eDNA
         sim.TE_model.mixeDNA = function () {
             let all_eDNA_gps = [];
-            for (let i = 0; i < this.nc; i++)
-                for (let j = 0; j < this.nr; j++)
-                    all_eDNA_gps.push(this.grid[i][j].eDNA)
+            for (let x = 0; x < this.nc; x++)
+                for (let y = 0; y < this.nr; y++)
+                    all_eDNA_gps.push(this.grid[x][y].eDNA)
 
             all_eDNA_gps = shuffle(all_eDNA_gps, this.rng)
 
-            for (let i = 0; i < this.nc; i++)
-                for (let j = 0; j < this.nr; j++)
-                    this.grid[i][j].eDNA = all_eDNA_gps.pop()
+            for (let x = 0; x < this.nc; x++)
+                for (let y = 0; y < this.nr; y++)
+                    this.grid[x][y].eDNA = all_eDNA_gps.pop()
             // return "Perfectly mixed the grid"
         }
 
@@ -257,19 +257,19 @@
 
         sim.TE_model.updateGraphs = function () {
             let num_alive = 0, gsizes = 0, hks = 0, nes = 0, non = 0, tra = 0, fitnesses = 0, sum_tra_rates = 0
-            for (let i = 0; i < sim.TE_model.nc; i++) for (let j = 0; j < sim.TE_model.nr; j++) {
-                if (this.grid[i][j].alive == 1) {
+            for (let x = 0; x < sim.TE_model.nc; x++) for (let y = 0; y < sim.TE_model.nr; y++) {
+                if (this.grid[x][y].alive == 1) {
                     num_alive++
-                    gsizes += this.grid[i][j].genome.chromosome.length
-                    fitnesses += this.grid[i][j].genome.fitness
-                    for (let p = 0; p < sim.TE_model.grid[i][j].genome.chromosome.length; p++)
-                        switch (sim.TE_model.grid[i][j].genome.chromosome[p].type) {
+                    gsizes += this.grid[x][y].genome.chromosome.length
+                    fitnesses += this.grid[x][y].genome.fitness
+                    for (let p = 0; p < sim.TE_model.grid[x][y].genome.chromosome.length; p++)
+                        switch (sim.TE_model.grid[x][y].genome.chromosome[p].type) {
                             case "G": hks++; break;
                             case "g": nes++; break;
                             case ".": non++; break;
                             case "T":
                                 tra++;
-                                sum_tra_rates += sim.TE_model.grid[i][j].genome.chromosome[p].transposition_rate
+                                sum_tra_rates += sim.TE_model.grid[x][y].genome.chromosome[p].transposition_rate
                                 break;
                         }
                 }
@@ -304,7 +304,7 @@
         sim.addSlider("diff_rate_edna", 0.0, 0.25, 0.001, "eDNA diffusion rate (D)")
         sim.addSlider("degr_rate_edna", 0.0, 1.0, 0.001, "eDNA degradation rate (q)")
         
-
+        sim.addMovieButton(sim.TE_model,"Genome size")
         sim.addHTML("form_holder", "<br>TE options:")
         sim.addSlider("uptake_from_pool", 0.0, 1.0, 0.001, "Uptake rate from eDNA pool (u)")
         sim.addSlider("jump_rate", 0.0, 1.0, 0.001, "TE jump rate (j)")

@@ -14,14 +14,26 @@
 -->
 
 <script>
+
+    // Initialisation
 var sim; // This 'global' variable will hold the entire simulation
+var init_nr_of_clones = 150
+
+// Toxin parameters
 var nr_of_toxins = 10
-var init_nr_of_clones = 10
-var base_death = 0.001                    // Determines how often an individual spontaneously dies, making a new spot available
-var uptake_rate = 0.1
-var mobility_resistance = 0.1
-var mobility_toxins = 0.9
 var toxin_shown = 1 
+var toxin_range = 3											// How far toxins can kill by diffusion
+
+var base_death = 0.05                    // Determines how often an individual spontaneously dies, making a new spot available
+var base_fitness = 1.0
+
+// Mutations
+var gene_cost = 0.05
+var hgt_range = 2			// 1 means cell-cell contact is required
+var hgt_rate_resistance = 0.0001
+var hgt_rate_production = 0.001
+var gene_loss = 0.005
+
 /**
 * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
 */
@@ -30,17 +42,20 @@ function cacatoo() {
         1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
     */
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
-        title: "Microbial warfare (WIP!)",
+        title: "Microbial warfare with HGT",
         description: "",
-        maxtime: 10000,
-        ncol: 100,
-        nrow: 100,		                                           // dimensions of the grid to build
-        seed: 56,        
+        maxtime: 100000,
+        ncol: 140,
+        nrow: 140,		                                            // dimensions of the grid to build
+        seed: 58,
+        fps: 60,                                                   // Note: FPS can only be set in fastmode
+        fpsmeter: false,        
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
-        scale: 3,				                                   // scale of the grid (nxn pixels per grid point)            
+        scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         graph_update: 50,
-        statecolours: {'clone': 'random', 'alive': { 1: 'black' }, 'resistant':{0:'black', 1:'gold'}}
+        num_colours: 15,
+        statecolours: {'clone': 'random', 'alive': { 1: 'black' }}
     }
 
     /*
@@ -49,48 +64,87 @@ function cacatoo() {
     sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
 
     sim.makeGridmodel("warfare")                                        // Make a new gridmodel named cheater
-    sim.createDisplay("warfare", "clone", "Clone types")
-    sim.createDisplay("warfare", "resistant", "Resistant to toxin")
-    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"toxin_conc", label:"Concentration of toxin", minval:0, maxval:12, num_colours:40})
+    sim.createDisplay_discrete({drawdots:false,radius:2,model:"warfare", property:"clone", label:"Clone types"})
+
+    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"numP", label:"Num producing", minval:0, maxval:nr_of_toxins, num_colours:40})
+    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"numR", label:"Num resistant", minval:0, maxval:nr_of_toxins, num_colours:40})
+    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"toxin_conc", label:"Concentration toxins", minval:0, maxval:10, num_colours:40})    
+    // Create a display for the toxin production genotype    
+    sim.warfare.colourGradient("genotypeP", 200, [156, 79, 150], [255, 99, 85],                                // pangenome colours setup
+                              [251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242], 
+                              [50,100,255])
+		sim.createDisplay_continuous({model:"warfare", property:"genotypeP", label:"Production profile", decimals: 0, nticks:5, maxval:200})
+    // Create a display for the toxin resistance genotype
+    sim.warfare.colourGradient("genotypeR", 200, [156, 79, 150], [255, 99, 85],                                // pangenome colours setup
+                              [251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242], 
+                              [50,100,255])
+		sim.createDisplay_continuous({model:"warfare", property:"genotypeR", label:"Resistance profile", decimals: 0, nticks:5, maxval:200})
     
+		
     sim.initialise = function()
     {
-        for (let i = 0; i < sim.warfare.nc; i++)                          // i are columns
-        for (let j = 0; j < sim.warfare.nr; j++) 
-        {
-                sim.warfare.grid[i][j].toxins = Array(nr_of_toxins).fill(0)
-        }
-        for(let c=0;c<init_nr_of_clones;c++)
-        {
-            let resistance = Array(nr_of_toxins).fill(0)
-            let production = Array(nr_of_toxins).fill(0)
-            for(let i in resistance)
+    		sim.warfare.clearGrid()
+    	 for (let i = 0; i < sim.warfare.nc; i++)                          // i are columns
+       for (let j = 0; j < sim.warfare.nr; j++) 
+       {
+       		sim.warfare.grid[i][j].toxins = Array(nr_of_toxins).fill(0)
+       }
+       
+    	 for(let c=0;c<init_nr_of_clones;c++)
+       {
+          let resistance = Array(nr_of_toxins).fill(0)
+          let production = Array(nr_of_toxins).fill(0)
+          for(let i in resistance)
+          {
+            if(sim.rng.random() < 0.1) 
             {
-                if(sim.rng.random() < 0.2) 
-                {
-                resistance[i] = 1
-                production[i] = 1
-                }
+              resistance[i] = 1
+              production[i] = 1
             }
-            
-            pos_x = sim.rng.genrand_int(10,config.ncol-10)
-            pos_y = sim.rng.genrand_int(10,config.nrow-10)
-            let init_individuals = [{alive:1,clone:c+1, deathrate:base_death, production: production, resistance: resistance}]                         
-            sim.populateSpot(sim.warfare, init_individuals, [1.0], 10, pos_x, pos_y, c==0)         // Populate small spots, the last argument sets all properties to a default of '0', and should only be used for the first spot (hence c==0, only true first round)
-            sim.display()
-        }
+          }
+          
+					pos_x = sim.rng.genrand_int(10,config.ncol-10)
+          pos_y = sim.rng.genrand_int(10,config.nrow-10)
+          let init_individuals = [{alive:1,clone:(c%15)+1, deathrate:base_death, production: production, resistance: resistance}]                         
+          sim.populateSpot(sim.warfare, init_individuals, [1.0], 10, pos_x, pos_y)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)                    
+          sim.display()
+       }
     }
     
-    /**
-    * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
-    */
+    // Slightly modified version of "populateSpot", copied from source here: https://bramvandijk88.github.io/cacatoo/scripts/cacatoo.js
+    sim.populateSpot = function(gridmodel,individuals, freqs,size, x, y)
+     {
+        let sumfreqs =0;
+        if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+        for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
+         
+        // Draw a circle
+        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
+        for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        {
+            if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
+            {
+                let cumsumfreq = 0;                
+                for(let n=0; n<individuals.length; n++)
+                {
+                    cumsumfreq += freqs[n];
+                    if(this.rng.random() < cumsumfreq) {
+                        Object.assign(gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr],individuals[n]);
+                        getGenotypeColour(i%gridmodel.nc,j%gridmodel.nr)
+                        break
+                    }
+                }
+            }
+        }
+         
+     }
+
     sim.warfare.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
     {
         // let pA, pB, pC, psum     
         let me = this.grid[i][j]
-        me.toxin_conc = me.toxins[toxin_shown]
-        me.resistant = me.alive ? me.resistance[toxin_shown] : 0
-
+        me.toxin_conc = me.toxins[toxin_shown-1]
+        
         if (!me.alive)                                                   // If there is no living cell here
         {
             let neighbours = this.getMoore8(this, i, j,'alive',1)
@@ -98,79 +152,97 @@ function cacatoo() {
             if (winner != undefined)
             {
                 me.alive = winner.alive
+                me.genotypeP = winner.genotypeP
+                me.genotypeR = winner.genotypeR
+                me.numR = winner.numR
+                me.numP = winner.numP
                 me.clone = winner.clone
                 me.deathrate = winner.deathrate
                 me.fitness = winner.fitness
                 me.resistance = [...winner.resistance]
+                let mut = false
+
+                for(let res in me.resistance) if(sim.rng.random() < gene_loss) me.resistance[res] = 0, mut = true
                 me.production = [...winner.production]
+                for(let tox in me.production) if(sim.rng.random() < gene_loss) me.production[tox] = 0, mut = true
+	              mut = doHGT(i,j)
+                if(mut) getGenotypeColour(i,j)
             }
-        }        
+        }
 
         if (this.rng.random() < this.grid[i][j].deathrate){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
             this.grid[i][j].alive = 0
             this.grid[i][j].fitness = 0
             this.grid[i][j].clone = 0
+            this.grid[i][j].genotypeP = 0
+            this.grid[i][j].genotypeR = 0
+            this.grid[i][j].numP = 0
+            this.grid[i][j].numR = 0            
         }
-        else if(this.rng.random() < uptake_rate)
-        {
-            let neighbour = this.randomMoore8(this,i,j)
-
-            if(neighbour.alive == 1)
-            {
-                if(this.rng.random() < mobility_resistance)
-                {
-                    let num = this.rng.genrand_int(0,neighbour.resistance.length-1)
-                    if(neighbour.resistance[num] == 1)
-                        me.resistance[num] = 1
-                }
-                if(this.rng.random() < mobility_toxins)
-                {
-                    let num = this.rng.genrand_int(0,neighbour.production.length-1)
-                    if(neighbour.production[num] == 1)
-                        me.production[num] = 1  
-                }
-                                  
-            } 
-        }
-        
     }
 
-      secreteToxins = function(i,j)
-      {
-      	
-        let me = sim.warfare.grid[i][j]
-        if(me.alive)
-        {
-          for(let tox in me.production)
-          {
-            if(me.production[tox] == 1)
-            {
-							for(let n=0;n<=8;n++)
-              {
-              	sim.warfare.getNeighbour(sim.warfare,i,j,n).toxins[tox] += 1.0
-              }
-            }
-
-          }
-          }
-          for(let tox in me.toxins){
-          	me.toxins[tox] *= 0.5
-            if(me.toxins[tox]<0.01) me.toxins[tox] = 0.0
-          }
+    getGenotypeColour = function (i, j){
+      me = sim.warfare.grid[i][j]
+      if(!me.alive) throw new Error("Only call this function on living points")
+      
+      me.genotypeP = 0
+      me.numP = 0
+      me.genotypeR = 0
+      me.numR = 0
+      
+      for(let t=0; t<nr_of_toxins; t++){
+        if(me.production[t] == 1)	me.genotypeP += Math.pow(2,t+2), me.numP++
+        if(me.resistance[t] == 1)	me.genotypeR += Math.pow(2,t+2), me.numR++
       }
+      
+      me.genotypeP = me.genotypeP % 200 + 1
+      me.genotypeR = me.genotypeR % 200 + 1 
+        
+        
+    }
+    
+    toxinDynamics = function(i,j)
+    {
+
+      let me = sim.warfare.grid[i][j]
+      if(me.alive)
+      {
+        for(let tox in me.production)
+        {
+          if(me.production[tox] == 1)
+          	for(let ii=-toxin_range; ii<=toxin_range; ii++)
+            for(let jj=-toxin_range; jj<=toxin_range; jj++)
+            {
+                let spot = sim.warfare.getGridpoint(i+ii,j+jj)
+                spot.toxins[tox] += 0.1/(Math.abs(ii)+Math.abs(jj)+1)
+            }                       
+        }
+      }
+
+      for(let tox in me.toxins){
+        me.toxins[tox] *= 0.9
+        if(me.toxins[tox]<0.001) me.toxins[tox] = 0.0
+      }
+    }
 
     calculateFitness = function(i,j)
     {
    		 let me = sim.warfare.grid[i][j]
        if(me.alive)
        {
-         me.fitness = 1
-         for(let res in me.resistance)
+         me.fitness = base_fitness
+         for(let g in me.resistance)
          {
-          if(me.resistance[res] !== 1)
+          if(me.resistance[g] == 1)
           {
-          	if(me.toxins[res] > 0.1)
+          	me.fitness -= gene_cost
+          } else {
+          	if(me.toxins[g] > 0.5)
             	me.deathrate += 0.05
+          }
+          if(me.production[g] == 1)
+          {
+          	me.fitness -= gene_cost
           }
 
          }
@@ -178,17 +250,47 @@ function cacatoo() {
        }
        //sim.coop.sumMoore8(sim.coop, i, j, "helping_rate")-0.1*sim.coop.grid[i][j].helping_rate
     }
+    
+    doHGT = function(i,j){
+    	me = sim.warfare.grid[i][j]
+    	if(me.alive){
+      	let hgt_happened = false
+        for(let ii=-hgt_range; ii<=hgt_range; ii++)
+        for(let jj=-hgt_range; jj<=hgt_range; jj++)
+        {
+           let donor = sim.warfare.getNeighbour(sim.warfare,i,j,sim.rng.genrand_int(1,8))
+           if(donor.alive){
+             for(let t=0; t<nr_of_toxins; t++){
+               if(donor.production[t] >0 && sim.rng.random() < hgt_rate_production) sim.warfare.grid[i][j].production[t] = 1, hgt_happened=true
+               if(donor.resistance[t] >0 && sim.rng.random() < hgt_rate_resistance) sim.warfare.grid[i][j].resistance[t] = 1, hgt_happened=true
+             }      
+           }
+        }
+        if(hgt_happened) getGenotypeColour(i,j)  	
+          
+      }
+    }
+    
+    redistributeBarcodes = function(i,j){
+    	me = sim.warfare.grid[i][j]
+    	if(me.alive){
+      	me.clone = Math.floor(sim.rng.random()*15)+1
+      }            
+    }
 
     /** 
     * Define your update-function here: stuff that is applied to the entire grid every timestep. E.g. apply the next-state, diffuse stuff, mix individuals, show graphs, etc. 
     */
     sim.warfare.update = function () {
-        this.asynchronous()                                              // Update all grid points based on the next-state function (defined above)
-        this.apply_sync(secreteToxins)
+    		if(this.time%sim.config.graph_interval==0) this.updateGraphs()      
+    		//this.apply_async(doHGT)
+     		this.apply_async(toxinDynamics)
         this.apply_sync(calculateFitness)
-        this.diffuseStateVector("toxins",0.2)
+        //this.diffuseStateVector('toxins',0.2)
+        this.asynchronous()                                              // Update all grid points based on the next-state function (defined above)
         // for(let i=0; i<movement;i++)this.MargolusDiffusion()         // Every so often mix individuals a bit
-        this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
+        
+        if(this.time%10000==0) this.apply_sync(redistributeBarcodes)
     }
 
     /**
@@ -196,35 +298,78 @@ function cacatoo() {
     */
     sim.warfare.updateGraphs = function () {        
         // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
-        this.plotPopsizes('clone',[1,2,3,4,5,6,7,8,9,10])        
-        //this.plotPoints(helping_rates,"Cooperation rates (points + average)")                
-    }
-    sim.warfare.bottleneck = function()
-    {
-        console.log(sim)        
-        for (let i = 0; i < this.nc; i++) {
-            for (let j = 0; j < this.nr; j++) {
-                if(this.rng.genrand_real1() < 0.99){
-                    this.grid[i][j].alive = 0
-                    this.grid[i][j].clone = 0
-                }
-            }
+        this.plotPopsizes('clone',[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],{})        
+        let g_profiles = {}
+        let p_profiles = {}
+        let r_profiles = {}
+        let pan_p  = []
+        let pan_r  = []
+        
+        for (let i = 0; i < this.nc; i++)                          // i are columns
+        for (let j = 0; j < this.nr; j++)                           // j are rows
+        {
+        	me = sim.warfare.grid[i][j]
+          if(me.alive){
+          	for(let g in me.production) if(me.production[g]>0) pan_p[g]=1
+            for(let g in me.resistance) if(me.resistance[g]>0) pan_r[g]=1
+          	let p = me.production.toString()
+            let r = me.resistance.toString()
+            g_profiles[p+r] = g_profiles[p+r] + 1 || 1
+          	p_profiles[p] = p_profiles[p] + 1 || 1
+            r_profiles[r] = r_profiles[r] + 1 || 1
+          }        	
+        }        
+        let num_pan_p = pan_p.reduce((sum,a) => sum+a,0)
+        let num_pan_r = pan_r.reduce((sum,a) => sum+a,0)
+        
+        let num_g_profiles = 0        
+        let filtered = Object.entries(g_profiles).filter(([k,v]) => v>10);
+				for(const [key,value] of Object.entries(g_profiles)){
+        	if (value > 10) num_g_profiles++          
         }
+        
+        let num_abu_p_profiles = 0        
+        filtered = Object.entries(p_profiles).filter(([k,v]) => v>10);
+				for(const [key,value] of Object.entries(p_profiles)){
+        	if (value > 10) num_abu_p_profiles++          
+        }
+        
+        let num_abu_r_profiles = 0
+        filtered = Object.entries(r_profiles).filter(([k,v]) => v>10);
+				for(const [key,value] of Object.entries(r_profiles)){
+        	if (value > 20) num_abu_r_profiles++
+        }
+        
+        this.plotArray(["Genotype richness", "Production profile diversity", "Resistance profile diversity "],
+        								[num_g_profiles, num_abu_p_profiles,num_abu_r_profiles],
+                        ["grey", "black", "red"], 
+                        "Genotype richness and production/resistance profiles",{}) 
+                        
+        this.plotArray([ "Production (pan)",
+        							  "Resistance (pan)"],
+                        [num_pan_p, num_pan_r], 
+                         ["black","#FF0000"], 
+                         "Number of toxin/resistance genes in pangenome",{})
+        
     }
+    
 
     /**
     * OPTIONAL: add some buttons and sliders so you can play with your model easily
     */
     sim.addButton("Play / Pause", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"     
-    sim.addButton("Well mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
-    sim.addButton("Catastrophe!", function () {sim.warfare.bottleneck() })
+    //sim.addButton("Well mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"   
     sim.addButton("Restart", function () {sim.initialise() })
     sim.addHTML("form_holder","<br>")
-    sim.addSlider("toxin_shown", 0.00, 9.00, 1.00, "Show toxin")    
+    sim.addSlider("toxin_shown", 1, nr_of_toxins, 1.00, "Show toxin")    
+    sim.addSlider("hgt_rate_resistance", 0.00, 0.2, 0.001, "HGT rate for resistance genes")    
+    sim.addSlider("hgt_rate_production", 0.00, 0.2, 0.001, "HGT rate for production genes")    
+    sim.addSlider("gene_loss", 0.00, 0.2, 0.001, "Gene loss")    
     
-
+    sim.addMovieButton(sim.warfare, "Clone types")
     sim.initialise()
     sim.start()
+    
     
     
 }

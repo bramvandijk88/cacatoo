@@ -1,9 +1,9 @@
 <!-- 
 
     EXAMPLE FILE 03: Spirals
-    On the grid, n (here 8) different colours exist. Each colour 
+    On the grid, n (here 6) different colours exist. Each colour 
     is predated by the next colour (3 eats 2, 2 eats 1, etc). Colour
-    1 eats 8, so this is a cycle. In space, this looks very pretty. 
+    1 eats 6, so this is a cycle. In space, this looks very pretty. 
     Check it out!
     
 -->
@@ -23,17 +23,26 @@
 
         let config = {
             title: "Spirals",
-            description: "8 colours with cyclical dominance (stare at your own risk)",
-            maxtime: 10000,
+            description: "6 colours with cyclical dominance (stare at your own risk)",
+            maxtime: 20000,
             fastmode: true,
             seed: 56,
             ncol: 200,
             nrow: 200,		                        // dimensions of the grid to build
             wrap: [true, true],                    // Wrap boundary [COLS, ROWS]   
-            scale: 2,				                // scale of the grid (nxn pixels per grid cell)
-            statecolours: { colour: 'default' },        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
-            num_colours: 8,
-            printcursor: false
+            scale: 1,				                // scale of the grid (nxn pixels per grid cell)
+            //statecolours: { colour: 'default' },        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
+            statecolours: { colour: // Or you define your own pride colours:
+                { 1: '#E40303',
+                  2: '#FF8C00',
+                  3: '#FFED00',
+                  4: '#008026',
+                  5: '#24408E',
+                  6: '#732982'
+                } 
+            },
+            num_colours: 6,
+            printcursor: true
         }
 
         sim = new Simulation(config)
@@ -42,7 +51,7 @@
         sim.createDisplay("spirals", "colour", "Colours represent different species")
         sim.spaceTimePlot("spirals", "Colours represent different species", "Space-time plot", 50, sim.ncol*2)                                
         
-        let n_species = 8
+        let n_species = 6
 
         // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        
         for (let x = 0; x < sim.spirals.nc; x++)                          // i are columns
@@ -68,9 +77,7 @@
             
         }
 
-        sim.addButton("start/stop record", function() {
-        sim.makeMovie(sim.spirals.canvases["Colours represent different species"])        
-    })
+        sim.addMovieButton(sim.spirals,"Colours represent different species",120) 
           
 				
         sim.addButton("pause", function () { sim.toggle_play() })

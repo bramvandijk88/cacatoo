@@ -29,17 +29,17 @@ body {
 }
 
 .example_card {
-  width: 220px;
-  height: 220px;
+  width: 170px;
+  height: 170px;
   background-color: rgb(151, 183, 204);
   box-shadow: rgba(100, 100, 111, 0.1) 20px 7px 29px 0px;
   /* font-weight: bold; */
   color: rgb(229, 239, 245);
   font-size: 12px;
   line-height: 25px;
-  margin: 25px;
-  padding: 20px;
-  padding-bottom: 40px;
+  margin: 10px;
+  padding: 10px;
+  padding-bottom: 25px;
   padding-top: 10px;
   border-radius: 0px 0px 0px 0px;
   display: inline-block;

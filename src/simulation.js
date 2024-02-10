@@ -1062,6 +1062,19 @@ class Simulation {
         }
     }
     
+
+    /**
+     * addMovieButton adds a standard button to record a video 
+     * @param {@GridModel} gridmodel The gridmodel containing the grid to be recorded. 
+     * @param {String} property The name of the display (canvas) to be recorded
+     * 
+    */
+    addMovieButton(gridmodel,canvasname,fps=60){
+        sim.addButton("Record", function() {
+            sim.makeMovie(gridmodel.canvases[canvasname],fps)        
+        })
+    }
+
     /**
      *  addPatternButton adds a pattern button to the HTML environment which allows the user
      *  to load a PNG which then sets the state of 'proparty' for the @GridModel. 
@@ -1138,7 +1151,7 @@ class Simulation {
         document.getElementById("form_holder").appendChild(checkpointLoader)
         let label = document.createElement("label")
         label.setAttribute("for", "checkpointLoader");
-        label.style = "background-color: rgb(217, 234, 245);border-radius: 10px;border: 2px solid rgb(177, 209, 231);padding:7px;font-size:11px;margin:10px;width:128px;"
+        label.style = "background-color: rgb(239, 218, 245);border-radius: 10px;border: 2px solid rgb(188, 141, 201);padding:7px;font-size:10px;margin:10px;width:128px;"
         label.innerHTML = "Reload from checkpoint"
         document.getElementById("form_holder").appendChild(label)
 
