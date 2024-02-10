@@ -71,9 +71,9 @@
         */
        
 
-        sim.growth.nextState = function (i, j) {
-            let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
-            let this_gp = this.grid[i][j]                     // This cell            
+        sim.growth.nextState = function (x, y) {
+            let randomneigh = this.randomMoore8(this, x, y)   // Random neighbour
+            let this_gp = this.grid[x][y]                     // This cell            
             if (!this_gp.species)                        // If empty spot
             {
                 if (randomneigh.species && randomneigh.internal_resources > 1) {   // Random neighbour is alive and it has enough resources                    
@@ -105,7 +105,7 @@
             this.asynchronous()         // Applied as many times as it can in 1/60th of a second
             this.diffuseStates('external_resources',0.1)
             this.plotPopsizes('species', ['low uptake', 'medium uptake','high uptake'])
-            //if(sim.time%100==0)sim.initialGrid(sim.growth,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+            if(sim.time%100==0)sim.initialGrid(sim.growth,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
         }
 
         /*

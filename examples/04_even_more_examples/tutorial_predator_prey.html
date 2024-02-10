@@ -46,22 +46,22 @@
             2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
         */
 
-        sim.model.nextState = function (i, j) {
-            let randomneigh = this.randomMoore8(this, i, j).species   // Random neighbour
+        sim.model.nextState = function (i, y) {
+            let randomneigh = this.randomMoore8(this, i, y).species   // Random neighbour
 
-            if (!this.grid[i][j].species)                        // If empty
+            if (!this.grid[i][y].species)                        // If empty
             {
                 if (randomneigh == 'prey' && this.rng.genrand_real1() < 0.5)
-                    this.grid[i][j].species = 'prey'                     // 1 (prey) reproduces
+                    this.grid[i][y].species = 'prey'                     // 1 (prey) reproduces
             }
-            else if (this.grid[i][j].species == 'prey')                   // If prey
+            else if (this.grid[i][y].species == 'prey')                   // If prey
             {
                 if (randomneigh == 'predator' && this.rng.genrand_real1() < 0.3)
-                    this.grid[i][j].species = 'predator'                     // 2 (pred) reproduces
+                    this.grid[i][y].species = 'predator'                     // 2 (pred) reproduces
             }
 
             if (this.rng.genrand_real1() < 0.05)
-                this.grid[i][j].species = undefined                         // death
+                this.grid[i][y].species = undefined                         // death
         }
 
         /*
@@ -81,9 +81,9 @@
         sim.addButton("Disable/enable mix", function () { sim.toggle_mix() })
         sim.addButton("Kill prey", function () { sim.my_custom_killprey_function() })
         sim.my_custom_killprey_function = function () {
-            for (let i = 0; i < sim.model.nc; i++) for (let j = 0; j < sim.model.nr; j++) {
-                if (sim.model.grid[i][j].species == 'prey' && this.rng.genrand_real1() < 0.9)
-                    sim.model.grid[i][j].species = undefined
+            for (let i = 0; i < sim.model.nc; i++) for (let y = 0; y < sim.model.nr; y++) {
+                if (sim.model.grid[i][y].species == 'prey' && this.rng.genrand_real1() < 0.9)
+                    sim.model.grid[i][y].species = undefined
             }
         }
         sim.start()

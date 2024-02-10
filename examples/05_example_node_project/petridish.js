@@ -32,19 +32,19 @@ sim.initialSpot(sim.cells, 'alive', 1, 2, sim.cells.nr / 2, sim.cells.nc / 2)
 sim.initialGrid(sim.cells, 'age', 0, 1.0)
             
 // Defining the local rules ('nextState')
-sim.cells.nextState = function (i, j){              
-    if (this.grid[i][j].alive == 0) {
-        let neighbour = this.randomMoore8(this, i, j)             
+sim.cells.nextState = function (j, y){              
+    if (this.grid[j][y].alive == 0) {
+        let neighbour = this.randomMoore8(this, j, y)             
         if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate) {
-            this.grid[i][j].alive = neighbour.alive
-            if (sim.rng.genrand_real1() < mutationrate) this.grid[i][j].alive = (this.grid[i][j].alive + 1) % 19
+            this.grid[j][y].alive = neighbour.alive
+            if (sim.rng.genrand_real1() < mutationrate) this.grid[j][y].alive = (this.grid[j][y].alive + 1) % 19
         }
     }
     else {
-        if (this.grid[i][j].age < 10 && this.grid[i][j].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
-            this.grid[i][j].alive = 0
+        if (this.grid[j][y].age < 10 && this.grid[j][y].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
+            this.grid[j][y].alive = 0
         else
-            this.grid[i][j].age++
+            this.grid[j][y].age++
     }
 }
 

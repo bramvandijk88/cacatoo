@@ -65,13 +65,13 @@ function cacatoo() {
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
     */
-    sim.coop.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+    sim.coop.nextState = function (x, y)                               // Define the next-state function. This example is two mutualists and a cheater
     {
         // let pA, pB, pC, psum     
-        let me = this.grid[i][j]
+        let me = this.grid[x][y]
         if (!me.alive)                                                   // If there is no living cell here
         {
-            let neighbours = this.getMoore8(this, i, j,'alive',1)
+            let neighbours = this.getMoore8(this, x, y,'alive',1)
             let winner = this.rouletteWheel(neighbours, 'fitness', 5.0)
             if (winner != undefined)
             {
@@ -90,15 +90,15 @@ function cacatoo() {
         }
 
         if (this.rng.random() < death){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
-            this.grid[i][j].alive = 0
-            this.grid[i][j].helping_rate = undefined
-            this.grid[i][j].fitness = 0
+            this.grid[x][y].alive = 0
+            this.grid[x][y].helping_rate = undefined
+            this.grid[x][y].fitness = 0
         }
     }
 
-    calculatefitness = function(i,j)
+    calculatefitness = function(x,y)
     {
-       sim.coop.grid[i][j].fitness = sim.coop.sumMoore8(sim.coop, i, j, "helping_rate")-0.1*sim.coop.grid[i][j].helping_rate
+       sim.coop.grid[x][y].fitness = sim.coop.sumMoore8(sim.coop, x, y, "helping_rate")-0.1*sim.coop.grid[x][y].helping_rate
     }
 
     /** 
@@ -118,10 +118,10 @@ function cacatoo() {
         // Let's count some stuff every update
         let helping_rates = []
         for(let n = 0; n < 20; n++){
-            let i = this.rng.genrand_int(0,this.nc-1)
-            let j = this.rng.genrand_int(0,this.nr-1)           
-            if (this.grid[i][j].alive == 1) {
-                help = this.grid[i][j].helping_rate
+            let x = this.rng.genrand_int(0,this.nc-1)
+            let y = this.rng.genrand_int(0,this.nr-1)           
+            if (this.grid[x][y].alive == 1) {
+                help = this.grid[x][y].helping_rate
                 helping_rates.push(help)
             }
             else helping_rates.push(undefined)
@@ -135,11 +135,11 @@ function cacatoo() {
     sim.coop.bottleneck = function()
     {
         console.log(sim)        
-        for (let i = 0; i < this.nc; i++) {
-            for (let j = 0; j < this.nr; j++) {
+        for (let x = 0; x < this.nc; x++) {
+            for (let y = 0; y < this.nr; y++) {
                 if(this.rng.genrand_real1() < 0.99){
-                    this.grid[i][j].alive = 0
-                    this.grid[i][j].helping_rate = 0
+                    this.grid[x][y].alive = 0
+                    this.grid[x][y].helping_rate = 0
                 }
             }
         }

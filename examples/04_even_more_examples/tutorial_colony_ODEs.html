@@ -92,20 +92,20 @@
         // Attaches an ODE to all gridpoints with initial state = [0,0].    
         sim.model.attachODE(resource_dynamics, ode_config);
 
-        sim.model.nextState = function (i, j) {
-            let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
-            let this_gp = this.grid[i][j]                     // This cell
+        sim.model.nextState = function (x, y) {
+            let randomneigh = this.randomMoore8(this, x, y)   // Random neighbour
+            let this_gp = this.grid[x][y]                     // This cell
 
             if (this_gp.species == undefined)                        // If empty
             {
                 if (randomneigh.species >= 1 && randomneigh.resources.state[1] > 0.5) {
                     this_gp.species = randomneigh.species
                     this_gp.uptake_rate = randomneigh.uptake_rate
-                    randomneigh.resources.state[1] = this.grid[i][j].resources.state[1] = randomneigh.resources.state[1] / 2
+                    randomneigh.resources.state[1] = this.grid[x][y].resources.state[1] = randomneigh.resources.state[1] / 2
                 }
             }
             else {
-                this.grid[i][j].resources.pars = [this_gp.uptake_rate, 0.5]  // Living cells take up and have upkeep
+                this.grid[x][y].resources.pars = [this_gp.uptake_rate, 0.5]  // Living cells take up and have upkeep
                 if (this.rng.genrand_real1() < 0.002) {
                     this_gp.species = 0
                     this_gp.uptake_rate=0.0
@@ -117,8 +117,8 @@
             this_gp.resources.solveTimestep(0.1)
 
             this_gp.external_resources = this_gp.resources.state[0]
-            if(this_gp.species > 0) this_gp.internal_resources = this.grid[i][j].resources.state[1]
-            else this.grid[i][j].rersources = 0.0 
+            if(this_gp.species > 0) this_gp.internal_resources = this.grid[x][y].resources.state[1]
+            else this.grid[x][y].rersources = 0.0 
         }
 
         /*

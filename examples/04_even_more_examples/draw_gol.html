@@ -48,11 +48,11 @@
         /*
             2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
         */
-        sim.gol.nextState = function (i, j) {
-            let gridpoint = this.grid[i][j]         
+        sim.gol.nextState = function (x, y) {
+            let gridpoint = this.grid[x][y]         
 
             // So, first we need to know how many cells are alive around a grid point
-            let neighbours = sim.gol.countMoore8(this, i, j,'alive',1)              // In the Moore8 neighbourhood of this GridModel (CA) count # of 1's for the 'alive' property        
+            let neighbours = sim.gol.countMoore8(this, x, y,'alive',1)              // In the Moore8 neighbourhood of this GridModel (CA) count # of 1's for the 'alive' property        
             // Then, let's see if this cell is dead or alive
             let state = gridpoint.alive
 

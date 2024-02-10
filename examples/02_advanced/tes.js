@@ -158,8 +158,8 @@ function cacatoo() {
 
     this.resetPlots()
 
-    placeCell = function(i, j, init_es, init_ne, init_nc, init_tra, init_tra_rate) {
-      gp = sim.TE_model.grid[i][j]
+    placeCell = function(x, y, init_es, init_ne, init_nc, init_tra, init_tra_rate) {
+      gp = sim.TE_model.grid[x][y]
       gp.alive = 1
       gp.genome = new Genome()
       //      console.log(gp.genome)
@@ -172,58 +172,58 @@ function cacatoo() {
       gp.target_site = gp.genome.target_site
       gp.T_in_genomes = Math.min(sim.max_t, gp.genome.nr_tra) // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
     }
-    for (let i = 0; i < sim.TE_model.nc; i++)
-      for (let j = 0; j < sim.TE_model.nr; j++) {
-        this.grid[i][j].eDNA = [] // Initialise empty eDNA pool
-        this.grid[i][j].T_in_eDNA = 0
-        if(sim.rng.random() < 0.6) placeCell(i,j, init_es, init_ne, init_nc, 0, init_tra_rate)
-        else placeCell(i,j, init_es, init_ne, init_nc, 1, init_tra_rate)
+    for (let x = 0; x < sim.TE_model.nc; x++)
+      for (let y = 0; y < sim.TE_model.nr; y++) {
+        this.grid[x][y].eDNA = [] // Initialise empty eDNA pool
+        this.grid[x][y].T_in_eDNA = 0
+        if(sim.rng.random() < 0.6) placeCell(x,y, init_es, init_ne, init_nc, 0, init_tra_rate)
+        else placeCell(x,y, init_es, init_ne, init_nc, 1, init_tra_rate)
       }
   }
 
   sim.TE_model.initialise() // Initialise for the first time (otherwise used for "RESET" button)
 
   // Define the next-state function. This example is stochastic growth in a petri dish
-  sim.TE_model.nextState = function(i, j) {
-    if (this.grid[i][j].alive == 0) {
-      let neighbours = this.getMoore8(this, i, j, 'alive', 1)
+  sim.TE_model.nextState = function(x, y) {
+    if (this.grid[x][y].alive == 0) {
+      let neighbours = this.getMoore8(this, x, y, 'alive', 1)
 
       if (neighbours.length > 0) {
         let winner = this.rouletteWheel(neighbours, 'fitness', non)
         if (winner != undefined)
-          this.reproduce(i, j, winner)
+          this.reproduce(x, y, winner)
       }
     }
-    //else if (this.rng.genrand_real1() < death_rate || this.grid[i][j].genome.fitness == 0)
-    else if (this.rng.genrand_real1() < death_rate || this.grid[i][j].genome.fitness == 0)
-      this.death_and_lysis(i, j)
+    //else if (this.rng.genrand_real1() < death_rate || this.grid[x][y].genome.fitness == 0)
+    else if (this.rng.genrand_real1() < death_rate || this.grid[x][y].genome.fitness == 0)
+      this.death_and_lysis(x, y)
     else {
-      this.TEdynamicsI(i, j)
-      this.TEdynamicsII(i, j)
-      this.grid[i][j].T_in_genomes = this.grid[i][j].genome.nr_tra
+      this.TEdynamicsI(x, y)
+      this.TEdynamicsII(x, y)
+      this.grid[x][y].T_in_genomes = this.grid[x][y].genome.nr_tra
     }
 		
     // EDNA DYNAMICS
-    if (this.grid[i][j].eDNA.length > 0) {
-      for (let k = 0; k < this.grid[i][j].eDNA.length; k++)
+    if (this.grid[x][y].eDNA.length > 0) {
+      for (let k = 0; k < this.grid[x][y].eDNA.length; k++)
         if (this.rng.genrand_real1() < degr_rate_edna) // degr
-          this.grid[i][j].eDNA.splice(k, 1)
-      this.grid[i][j].T_in_eDNA = Math.min(sim.max_t, this.grid[i][j].eDNA.length) // Track number of TEs for visualisation purposes
+          this.grid[x][y].eDNA.splice(k, 1)
+      this.grid[x][y].T_in_eDNA = Math.min(sim.max_t, this.grid[x][y].eDNA.length) // Track number of TEs for visualisation purposes
     } else
-      this.grid[i][j].T_in_eDNA = undefined
+      this.grid[x][y].T_in_eDNA = undefined
   }
 
   // This function is asynchronously applied to the entire grid every time step. It uses a single random number to determine both IF a DNA fragment will move,
   // as well as WHERE it moves. 
-  sim.TE_model.diffuse_eDNA = function(i, j) {
+  sim.TE_model.diffuse_eDNA = function(x, y) {
     moveDNA = function(k, direction) {
       let coords = sim.TE_model.moore[direction]
-      let target = sim.TE_model.getGridpoint(coords[0] + i, coords[1] + j)
-      target.eDNA.push(sim.TE_model.grid[i][j].eDNA[k])
-      sim.TE_model.grid[i][j].eDNA.splice(k, 1)
+      let target = sim.TE_model.getGridpoint(coords[0] + x, coords[1] + y)
+      target.eDNA.push(sim.TE_model.grid[x][y].eDNA[k])
+      sim.TE_model.grid[x][y].eDNA.splice(k, 1)
     }
 
-    for (let k = 0; k < sim.TE_model.grid[i][j].eDNA.length; k++) {
+    for (let k = 0; k < sim.TE_model.grid[x][y].eDNA.length; k++) {
       let randomnr = sim.TE_model.rng.genrand_real1()
       if (randomnr < diff_rate_edna / 4) moveDNA(k, 1)
       else if (randomnr < 2 * diff_rate_edna / 4) moveDNA(k, 2)
@@ -234,28 +234,28 @@ function cacatoo() {
 
 
 
-  // A custom function for copying a cell into a gp at position i,j ("reproduction")
-  sim.TE_model.reproduce = function(i, j, winner) {
-    this.grid[i][j].alive = winner.alive
-    this.grid[i][j].genome = winner.genome.copy(true)        
-    this.grid[i][j].genomesize = Math.min(sim.max_g, this.grid[i][j].genome.chromosome.length)
-    this.grid[i][j].fitness = this.grid[i][j].genome.fitness
-    this.grid[i][j].specificity = this.grid[i][j].genome.specificity
-    this.grid[i][j].target_site = this.grid[i][j].genome.target_site
-    this.grid[i][j].T_in_genomes = Math.min(sim.max_t, this.grid[i][j].genome.nr_tra) // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+  // A custom function for copying a cell into a gp at position x,y ("reproduction")
+  sim.TE_model.reproduce = function(x, y, winner) {
+    this.grid[x][y].alive = winner.alive
+    this.grid[x][y].genome = winner.genome.copy(true)        
+    this.grid[x][y].genomesize = Math.min(sim.max_g, this.grid[x][y].genome.chromosome.length)
+    this.grid[x][y].fitness = this.grid[x][y].genome.fitness
+    this.grid[x][y].specificity = this.grid[x][y].genome.specificity
+    this.grid[x][y].target_site = this.grid[x][y].genome.target_site
+    this.grid[x][y].T_in_genomes = Math.min(sim.max_t, this.grid[x][y].genome.nr_tra) // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
   }
 
-  // A custom function for killing a gp at position i,j
-  sim.TE_model.death_and_lysis = function(i, j) {
-    this.grid[i][j].alive = 0
-    this.grid[i][j].genomesize = undefined
-    this.grid[i][j].fitness = undefined
-    this.grid[i][j].specificity = undefined
-    this.grid[i][j].target_site = undefined
-    this.grid[i][j].T_in_genomes = undefined
+  // A custom function for killing a gp at position x,y
+  sim.TE_model.death_and_lysis = function(x, y) {
+    this.grid[x][y].alive = 0
+    this.grid[x][y].genomesize = undefined
+    this.grid[x][y].fitness = undefined
+    this.grid[x][y].specificity = undefined
+    this.grid[x][y].target_site = undefined
+    this.grid[x][y].T_in_genomes = undefined
 
-    for (let p = 0; p < this.grid[i][j].genome.chromosome.length; p++) {
-      if (this.grid[i][j].genome.chromosome[p].type == "T") {
+    for (let p = 0; p < this.grid[x][y].genome.chromosome.length; p++) {
+      if (this.grid[x][y].genome.chromosome[p].type == "T") {
         let randomnr = sim.TE_model.rng.genrand_real1()
         let direction = 0
         if (randomnr < 1 / 5) direction = 1
@@ -263,7 +263,7 @@ function cacatoo() {
         else if (randomnr < 3 / 5) direction = 3
         else if (randomnr < 4/5) direction = 4
 
-        this.getNeighbour(sim.TE_model, i, j, direction).eDNA.push(this.grid[i][j].genome.chromosome[p])
+        this.getNeighbour(sim.TE_model, x, y, direction).eDNA.push(this.grid[x][y].genome.chromosome[p])
       }
     }
   }
@@ -274,19 +274,19 @@ function cacatoo() {
     return (1 - d * (s / (1 - s)))
   }
   // A custom function for TE dynamics during the lifetime of a cell
-  sim.TE_model.TEdynamicsI = function(i, j) {
+  sim.TE_model.TEdynamicsI = function(x, y) {
     jumping = []
-    for (let p = 0; p < this.grid[i][j].genome.chromosome.length; p++) {
-      if (this.grid[i][j].genome.chromosome[p].type == "T") {
+    for (let p = 0; p < this.grid[x][y].genome.chromosome.length; p++) {
+      if (this.grid[x][y].genome.chromosome[p].type == "T") {
         if (this.rng.genrand_real1() < jump_attempt_rate)
-          jumping.push(this.grid[i][j].genome.chromosome[p])
+          jumping.push(this.grid[x][y].genome.chromosome[p])
       }
     }
 	  let nr_jumps = 0
     for (let p = 0; p < jumping.length; p++) {
-      let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[i][j].genome.chromosome.length)
+      let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[x][y].genome.chromosome.length)
       //1-x\cdot\frac{\left(b\right)}{\left(1-b\right)}
-      let site = this.grid[i][j].genome.chromosome[random_pos]
+      let site = this.grid[x][y].genome.chromosome[random_pos]
       let chance = get_insertion_chance(site.insertion_site, jumping[p].target_site, jumping[p].specificity)
       if (chance > 0 && this.rng.genrand_real1() < chance) {
 
@@ -296,7 +296,7 @@ function cacatoo() {
         console.log(`Specific: ${jumping[p].specificity}`) */
 
         /*console.log(`Before jumping into position ${random_pos}`)      
-        let chr = Object.values(this.grid[i][j].genome.chromosome).reduce((t, {type}) => t + type, '')
+        let chr = Object.values(this.grid[x][y].genome.chromosome).reduce((t, {type}) => t + type, '')
         let str = '' 
         for(let q=0; q<chr.length;q++) str += q==random_pos ? 'v' : ' '
         console.log(`${str}`)
@@ -307,36 +307,36 @@ function cacatoo() {
 				
         if (this.rng.genrand_real1() < probability_TE_induced_damage) {
         	let new_ins_site = -1
-        	if(this.grid[i][j].genome.chromosome[random_pos].type == "G") 
+        	if(this.grid[x][y].genome.chromosome[random_pos].type == "G") 
           	new_ins_site = coding_motifs[Math.floor(Math.random() * coding_motifs.length)]
           else new_ins_site = noncoding_motifs[Math.floor(Math.random() * noncoding_motifs.length)]
 
-					this.grid[i][j].genome.chromosome[random_pos].break(new_ins_site)
+					this.grid[x][y].genome.chromosome[random_pos].break(new_ins_site)
 
         }
-        this.grid[i][j].genome.chromosome.splice(random_pos, 0, new_TE_copy)
+        this.grid[x][y].genome.chromosome.splice(random_pos, 0, new_TE_copy)
       }
 
-      /*    chr = Object.values(this.grid[i][j].genome.chromosome).reduce((t, {type}) => t + type, '')
+      /*    chr = Object.values(this.grid[x][y].genome.chromosome).reduce((t, {type}) => t + type, '')
          console.log(`${chr}`)
           */
     }
-    if (jumping.length > 0) this.grid[i][j].genome.calculate_fitness()
+    if (jumping.length > 0) this.grid[x][y].genome.calculate_fitness()
 		successful_replications += nr_jumps
 		attempted_replications += jumping.length
   }
 
 
   // A custom function for TE dynamics from the eDNA pool
-  sim.TE_model.TEdynamicsII = function(i, j) {
+  sim.TE_model.TEdynamicsII = function(x, y) {
     let nr_jumps = 0
-    for (let p = 0; p < this.grid[i][j].eDNA.length; p++) {
+    for (let p = 0; p < this.grid[x][y].eDNA.length; p++) {
       let randomnr = this.rng.genrand_real1()
       let uptake = randomnr < uptake_from_pool
       if (uptake) {
-        let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[i][j].genome.chromosome.length)
-        let site = this.grid[i][j].genome.chromosome[random_pos]
-        let TE = this.grid[i][j].eDNA[p]
+        let random_pos = Math.floor(this.rng.genrand_real1() * this.grid[x][y].genome.chromosome.length)
+        let site = this.grid[x][y].genome.chromosome[random_pos]
+        let TE = this.grid[x][y].eDNA[p]
         let chance = get_insertion_chance(site.insertion_site, TE.target_site, TE.specificity)
        				
         attempted_replications++
@@ -347,32 +347,32 @@ function cacatoo() {
            //console.log(`{Chance: ${chance}\nFailure: ${chance_failure}`)
           	let new_TE_copy = TE.copy(true)
             if (this.rng.genrand_real1() < probability_TE_induced_damage) {
-              this.grid[i][j].genome.chromosome[random_pos].break(sim.rng.random()) 
-							//this.grid[i][j].genome.chromosome[random_pos].break(TE.target_site) 
+              this.grid[x][y].genome.chromosome[random_pos].break(sim.rng.random()) 
+							//this.grid[x][y].genome.chromosome[random_pos].break(TE.target_site) 
             }
-            this.grid[i][j].genome.chromosome.splice(random_pos, 0, new_TE_copy)
+            this.grid[x][y].genome.chromosome.splice(random_pos, 0, new_TE_copy)
             
            //}
         }
-        this.grid[i][j].eDNA.splice(p, 1)
+        this.grid[x][y].eDNA.splice(p, 1)
       }
     }
-    if (nr_jumps > 0) this.grid[i][j].genome.calculate_fitness()
+    if (nr_jumps > 0) this.grid[x][y].genome.calculate_fitness()
 		successful_replications += nr_jumps
   }
 
   // Custom function to mix only the eDNA
   sim.TE_model.mixeDNA = function() {
     let all_eDNA_gps = [];
-    for (let i = 0; i < this.nc; i++)
-      for (let j = 0; j < this.nr; j++)
-        all_eDNA_gps.push(this.grid[i][j].eDNA)
+    for (let x = 0; x < this.nc; x++)
+      for (let y = 0; y < this.nr; y++)
+        all_eDNA_gps.push(this.grid[x][y].eDNA)
 
     all_eDNA_gps = shuffle(all_eDNA_gps, this.rng)
 
-    for (let i = 0; i < this.nc; i++)
-      for (let j = 0; j < this.nr; j++)
-        this.grid[i][j].eDNA = all_eDNA_gps.pop()
+    for (let x = 0; x < this.nc; x++)
+      for (let y = 0; y < this.nr; y++)
+        this.grid[x][y].eDNA = all_eDNA_gps.pop()
     // return "Perfectly mixed the grid"
   }
 
@@ -402,17 +402,17 @@ function cacatoo() {
     let safe_insertion_sites = []
     let target_sites = []
 
-    for (let i = 0; i < sim.TE_model.nc; i++)
-      for (let j = 0; j < sim.TE_model.nr; j++) {
-        if (this.grid[i][j].alive == 1) {
+    for (let x = 0; x < sim.TE_model.nc; x++)
+      for (let y = 0; y < sim.TE_model.nr; y++) {
+        if (this.grid[x][y].alive == 1) {
 
           num_alive++
-          gsizes += this.grid[i][j].genome.chromosome.length
-          fitnesses += this.grid[i][j].genome.fitness
+          gsizes += this.grid[x][y].genome.chromosome.length
+          fitnesses += this.grid[x][y].genome.fitness
           let num_tra = 0
-          for (let p = 0; p < sim.TE_model.grid[i][j].genome.chromosome.length; p++){
-	          let site = sim.TE_model.grid[i][j].genome.chromosome[p].insertion_site;
-            switch (sim.TE_model.grid[i][j].genome.chromosome[p].type) {
+          for (let p = 0; p < sim.TE_model.grid[x][y].genome.chromosome.length; p++){
+	          let site = sim.TE_model.grid[x][y].genome.chromosome[p].insertion_site;
+            switch (sim.TE_model.grid[x][y].genome.chromosome[p].type) {
               case "G":
                 hks++;
                 if(site >= 0) coding_insertion_sites.push(site);
@@ -428,15 +428,15 @@ function cacatoo() {
               case "T":
                 tra++;
                 num_tra++
-                TE_insertion_sites.push(sim.TE_model.grid[i][j].genome.chromosome[p].insertion_site)
-                target_sites.push(sim.TE_model.grid[i][j].genome.chromosome[p].target_site)
-                specificities.push(sim.TE_model.grid[i][j].genome.chromosome[p].specificity)
-                sum_tra_rates += sim.TE_model.grid[i][j].genome.chromosome[p].transposition_rate
+                TE_insertion_sites.push(sim.TE_model.grid[x][y].genome.chromosome[p].insertion_site)
+                target_sites.push(sim.TE_model.grid[x][y].genome.chromosome[p].target_site)
+                specificities.push(sim.TE_model.grid[x][y].genome.chromosome[p].specificity)
+                sum_tra_rates += sim.TE_model.grid[x][y].genome.chromosome[p].transposition_rate
                 break;
             }
           }
-          //   if(this.grid[i][j].genome.chromosome.length != num_tra) throw new Error("he?")
-          genome_sizes.push(this.grid[i][j].genome.chromosome.length)
+          //   if(this.grid[x][y].genome.chromosome.length != num_tra) throw new Error("he?")
+          genome_sizes.push(this.grid[x][y].genome.chromosome.length)
           is_counts.push(num_tra)
         }
       }
