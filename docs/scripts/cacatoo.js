@@ -2489,7 +2489,32 @@ class Simulation {
         container.appendChild(numeric);
         document.getElementById("form_holder").appendChild(container);
     }
-    
+     /**
+     * save a PNG of an entire HTML div element
+     * @param {div} div object to store to
+     */
+     sectionToPNG(div, prefix){
+        function downloadURI(uri, filename) {
+            var link = document.createElement("a");
+            link.download = filename;
+            link.href = uri;
+            link.click();
+            
+            //after creating link you should delete dynamic link
+            //clearDynamicLink(link); 
+        }
+        
+        div = document.getElementById(div);
+        let time = sim.time+1;
+        let timestamp = time.toString();
+        timestamp = timestamp.padStart(6, "0");
+
+        html2canvas(div).then(canvas => {
+            var myImage = canvas.toDataURL();
+            downloadURI(myImage, prefix+timestamp+".png");
+        });
+    }
+
     /**
      *  recordVideo captures the canvas to an webm-video (browser only)    
      *  @param {canvas} canvas Canvas object to record
