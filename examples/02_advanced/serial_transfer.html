@@ -23,7 +23,7 @@
             maxtime: 100000,            
             ncol: 100,
             nrow: 60,		            // dimensions of the grid to build
-            skip: 5,                   // Skip 5 steps before redrawing the grid again
+            skip: 0,                   // Skip 5 steps before redrawing the grid again
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
             scale: 3,				    // scale of the grid (nxn pixels per grid cell)
             statecolours: { 'alive': { 1: 'blue' } },   // The background state '0' is never drawn
@@ -75,55 +75,55 @@
         sim.batchculture.attachODE(resource_dynamics, ode_config);
 
         // Add a single cell to the middle of the grid
-        for (let i = 0; i < sim.batchculture.nc; i++) {
-            sim.batchculture.grid[i][sim.batchculture.nr / 2]['alive'] = 1
-            sim.batchculture.grid[i][sim.batchculture.nr / 2].resources.pars = [influx, uptake, upkeep]
-            sim.batchculture.grid[i][sim.batchculture.nr / 2].resources.state = [refresh_medium_conc, sim.rng.genrand_real1() * 0.3]
+        for (let x = 0; x < sim.batchculture.nc; x++) {
+            sim.batchculture.grid[x][sim.batchculture.nr / 2]['alive'] = 1
+            sim.batchculture.grid[x][sim.batchculture.nr / 2].resources.pars = [influx, uptake, upkeep]
+            sim.batchculture.grid[x][sim.batchculture.nr / 2].resources.state = [refresh_medium_conc, sim.rng.genrand_real1() * 0.3]
         }
 
 
-        sim.batchculture.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish
+        sim.batchculture.nextState = function (x, y)       // Define the next-state function. This example is stochastic growth in a petri dish
         {
-            if (this.grid[i][j].alive == 1) {
+            if (this.grid[x][y].alive == 1) {
 
-                if (this.grid[i][j].resources.state[1] < 0.01) {
-                    this.grid[i][j].alive = 0
-                    this.grid[i][j].resources.state[0] += this.grid[i][j].resources.state[1]    // Spill internal resources in external pool
-                    this.grid[i][j].resources.state[1] = 0.00                               // Remove internal conc
-                    this.grid[i][j].resources.pars = [influx, 0.00, upkeep]                                // No more cell here, so no uptake
+                if (this.grid[x][y].resources.state[1] < 0.01) {
+                    this.grid[x][y].alive = 0
+                    this.grid[x][y].resources.state[0] += this.grid[x][y].resources.state[1]    // Spill internal resources in external pool
+                    this.grid[x][y].resources.state[1] = 0.00                               // Remove internal conc
+                    this.grid[x][y].resources.pars = [influx, 0.00, upkeep]                                // No more cell here, so no uptake
                 }
             }
             else {
-                let neighbour = this.randomMoore8(this, i, j)
+                let neighbour = this.randomMoore8(this, x, y)
                 let food_in_neigh = neighbour.resources.state[1]
                 if (neighbour.alive == 1 && food_in_neigh > 0.5) {
-                    this.grid[i][j].alive = 1;
-                    this.grid[i][j].resources.state[1] = food_in_neigh / 2
+                    this.grid[x][y].alive = 1;
+                    this.grid[x][y].resources.state[1] = food_in_neigh / 2
                     neighbour.resources.state[1] = food_in_neigh / 2
-                    this.grid[i][j].resources.pars = [influx, uptake, upkeep]    // Living cells get an influx par                
+                    this.grid[x][y].resources.pars = [influx, uptake, upkeep]    // Living cells get an influx par                
                 }
             }
-            this.grid[i][j].resources.solveTimestep(0.1)
+            this.grid[x][y].resources.solveTimestep(0.1)
 
             // Update how this GP is displayed
-            let conc_e = Math.max(0, this.grid[i][j].resources.state[0])       // Amount of prey (continuous variable)
-            let conc_i = Math.max(0, this.grid[i][j].resources.state[1])       // Amount of pred (continuous variable)
-            this.grid[i][j].external_resources = Math.min(Math.floor(conc_e * 500), 99)
-            this.grid[i][j].internal_resources = Math.min(Math.floor(conc_i * 200), 99)
+            let conc_e = Math.max(0, this.grid[x][y].resources.state[0])       // Amount of prey (continuous variable)
+            let conc_i = Math.max(0, this.grid[x][y].resources.state[1])       // Amount of pred (continuous variable)
+            this.grid[x][y].external_resources = Math.min(Math.floor(conc_e * 500), 99)
+            this.grid[x][y].internal_resources = Math.min(Math.floor(conc_i * 200), 99)
 
         }
 
         sim.batchculture.transfer = function () // custom defined function for serial passage
         {
-            for (let i = 0; i < this.nc; i++)         // i are columns
-                for (let j = 0; j < this.nr; j++)     // j are rows
+            for (let x = 0; x < this.nc; x++)         // x are columns
+                for (let y = 0; y < this.nr; y++)     // y are rows
                 {
                     if (this.time > 0 && this.time % refresh_medium_every == 0) {
-                        this.grid[i][j].resources.state[0] = refresh_medium_conc
+                        this.grid[x][y].resources.state[0] = refresh_medium_conc
                         if (sim.rng.genrand_real1() < 0.95) {
-                            this.grid[i][j].alive = 0
-                            this.grid[i][j].resources.state[1] = 0.00                                          // Remove internal conc
-                            this.grid[i][j].resources.pars = [influx, 0.00, upkeep]                                // No more cell here, so no uptake                    
+                            this.grid[x][y].alive = 0
+                            this.grid[x][y].resources.state[1] = 0.00                                          // Remove internal conc
+                            this.grid[x][y].resources.pars = [influx, 0.00, upkeep]                                // No more cell here, so no uptake                    
                         }
                     }
                 }
@@ -139,11 +139,11 @@
             let sum_ext = 0
             let sum_int = 0
 
-            for (let i = 0; i < this.nc; i++)         // i are columns
-                for (let j = 0; j < this.nr; j++)     // j are rows
+            for (let x = 0; x < this.nc; x++)         // x are columns
+                for (let y = 0; y < this.nr; y++)     // y are rows
                 {
-                    sum_ext += this.grid[i][j].resources.state[0]
-                    sum_int += this.grid[i][j].resources.state[1]
+                    sum_ext += this.grid[x][y].resources.state[0]
+                    sum_int += this.grid[x][y].resources.state[1]
                 }
             sum_ext /= this.nc * this.nr
             sum_int /= this.nc * this.nr

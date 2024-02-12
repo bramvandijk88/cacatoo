@@ -59,9 +59,9 @@ function cacatoo() {
     sim.makeGridmodel("cheater")                                                // Make a new gridmodel named cheater
     sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)          // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
 
-    for (let i = 0; i < sim.cheater.nc; i++) for (let j = 0; j < sim.cheater.nr; j++) 
+    for (let x = 0; x < sim.cheater.nc; x++) for (let y = 0; y < sim.cheater.nr; y++) 
     {
-        sim.cheater.grid[i][j].births = [0,0,0] 
+        sim.cheater.grid[x][y].births = [0,0,0] 
     }
     sim.createDisplay("cheater", "species", "Mutualists and cheater")                               // Display the 'species' property of the cheater grid
     sim.createDisplay_continuous({model:"cheater", property:"cheaterbirths", label:"Cheater birth heatmap", minval:0, maxval:100, num_colours:40, fill: 'viridis'})                               // Display the 'species' property of the cheater grid
@@ -70,15 +70,15 @@ function cacatoo() {
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
     */
-    sim.cheater.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+    sim.cheater.nextState = function (x, y)                               // Define the next-state function. This example is two mutualists and a cheater
     {
         // let pA, pB, pC, psum             
-        let state = this.grid[i][j].species;
+        let state = this.grid[x][y].species;
         if (state == 0)                                                   // If there is no species here
         {
-            sumA = this.countMoore8(this, i, j, 'species',1);               // Count the number of species 1 (mutualist A)
-            sumB = this.countMoore8(this, i, j, 'species',2);               // Count the number of species 2 (mutualist B)
-            sumC = this.countMoore8(this, i, j, 'species',3);               // Count the number of species 3 (mutualist C)
+            sumA = this.countMoore8(this, x, y, 'species',1);               // Count the number of species 1 (mutualist A)
+            sumB = this.countMoore8(this, x, y, 'species',2);               // Count the number of species 2 (mutualist B)
+            sumC = this.countMoore8(this, x, y, 'species',3);               // Count the number of species 3 (mutualist C)
 
             pA = (B2A * sumB) * sumA;                                        // Chance that A wins
             pB = (A2B * sumA) * sumB;                                        // Chance that B wins
@@ -89,27 +89,27 @@ function cacatoo() {
             
             if (ran < pA / psum)                                           // <-ran->                                     (A wins)
             {
-                this.grid[i][j].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
-                this.grid[i][j].births[0]++
+                this.grid[x][y].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                this.grid[x][y].births[0]++
             }
             else if (ran < (pA + pB) / psum)                                 //        <-ran->                              (B wins)
             {
-                this.grid[i][j].species = 2
-                this.grid[i][j].births[1]++                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                this.grid[x][y].species = 2
+                this.grid[x][y].births[1]++                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
             }
             else if (ran < (pA + pB + pC) / psum)                              //               <--ran-->                     (C wins)
             {
-                this.grid[i][j].species = 3                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
-                this.grid[i][j].births[2]++
-                this.grid[i][j].cheaterbirths = 100
+                this.grid[x][y].species = 3                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                this.grid[x][y].births[2]++
+                this.grid[x][y].cheaterbirths = 100
             }
-            this.grid[i][j].cheaterbirths--
+            this.grid[x][y].cheaterbirths--
             //                        <-----ran----->      (no winner, spot stays empty for now)
             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
         }
 
         if (this.rng.random() < death)                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
-            this.grid[i][j].species = 0
+            this.grid[x][y].species = 0
     }
 
     /**
@@ -137,12 +137,12 @@ function cacatoo() {
         let sumA = 0
         let sumB = 0
         let sumC = 0
-        for (let i = 0; i < this.nc; i++)          // i are columns
-            for (let j = 0; j < this.nr; j++)      // j are rows
+        for (let x = 0; x < this.nc; x++)          // x are columns
+            for (let y = 0; y < this.nr; y++)      // y are rows
             {
-                if (this.grid[i][j].species == 1) sumA++
-                else if (this.grid[i][j].species == 2) sumB++
-                else if (this.grid[i][j].species == 3) sumC++
+                if (this.grid[x][y].species == 1) sumA++
+                else if (this.grid[x][y].species == 2) sumB++
+                else if (this.grid[x][y].species == 3) sumC++
             }
 
         // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo

@@ -65,20 +65,20 @@
         sim.turing.attachODE(Turing, ode_config);
 
         // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
-        for (let i = 0; i < sim.turing.nc; i++)
-            for (let j = 0; j < sim.turing.nr; j++)
-                sim.turing.grid[i][j].turingeq.state = [1 + sim.rng.genrand_real1(), 1]
+        for (let x = 0; x < sim.turing.nc; x++)
+            for (let y = 0; y < sim.turing.nr; y++)
+                sim.turing.grid[x][y].turingeq.state = [1 + sim.rng.genrand_real1(), 1]
 
         // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
-        sim.turing.nextState = function (i, j)       // Define the next-state function. 
+        sim.turing.nextState = function (x, y)       // Define the next-state function. 
         {
             // 1) ODE integration
-            this.grid[i][j].turingeq.solveTimestep(1.0, opt_pos = true)
+            this.grid[x][y].turingeq.solveTimestep(1.0, opt_pos = true)
 
             // 3) Update how this GP is displayed
-            let act = Math.max(0.001, this.grid[i][j].turingeq.state[0])       // Amount of prey (continuous variable)
-            let inh = Math.max(0.001, this.grid[i][j].turingeq.state[1])       // Amount of pred (continuous variable)
-            this.grid[i][j].activator = Math.min(Math.floor(act * 80), 99)
+            let act = Math.max(0.001, this.grid[x][y].turingeq.state[0])       // Amount of prey (continuous variable)
+            let inh = Math.max(0.001, this.grid[x][y].turingeq.state[1])       // Amount of pred (continuous variable)
+            this.grid[x][y].activator = Math.min(Math.floor(act * 80), 99)
         }
 
         sim.turing.update = function () {
@@ -89,13 +89,13 @@
             let midact = 0
             let midinh = 0
 
-            for (let i = 0; i < this.nc; i++)         // i are columns
-                for (let j = 0; j < this.nr; j++)     // j are rows
+            for (let x = 0; x < this.nc; x++)         // x are columns
+                for (let y = 0; y < this.nr; y++)     // y are rows
                 {
-                    sumact += this.grid[i][j].turingeq.state[0]
-                    suminh += this.grid[i][j].turingeq.state[1]
-                    if (i == this.nc / 2 && j == this.nr / 2) midact = this.grid[i][j].turingeq.state[0]
-                    if (i == this.nc / 2 && j == this.nr / 2) midinh = this.grid[i][j].turingeq.state[1]
+                    sumact += this.grid[x][y].turingeq.state[0]
+                    suminh += this.grid[x][y].turingeq.state[1]
+                    if (x == this.nc / 2 && y == this.nr / 2) midact = this.grid[x][y].turingeq.state[0]
+                    if (x == this.nc / 2 && y == this.nr / 2) midinh = this.grid[x][y].turingeq.state[1]
                 }
 
             this.plotArray(["Act", "Inh"],

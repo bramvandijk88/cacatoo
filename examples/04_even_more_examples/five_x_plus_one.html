@@ -43,19 +43,19 @@
         /*
             2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
         */
-        sim.three.nextState = function (i, j) {
+        sim.three.nextState = function (x, y) {
             // So, first we need to know how many cells are alive around a grid point
-            let self = this.grid[i][j].num
-            let sum_neigh = this.sumNeumann5(this, i, j, 'num')
+            let self = this.grid[x][y].num
+            let sum_neigh = this.sumNeumann5(this, x, y, 'num')
             if (sum_neigh%2==0) 
             {
-                this.grid[i][j].num = self / 2
+                this.grid[x][y].num = self / 2
             }
             else 
             {
-                this.grid[i][j].num = sum_neigh + 1
+                this.grid[x][y].num = sum_neigh + 1
             }
-            this.grid[i][j].num = Math.min(10e4,this.grid[i][j].num)
+            this.grid[x][y].num = Math.min(10e4,this.grid[x][y].num)
 
         }
 
@@ -65,7 +65,7 @@
         */
         sim.three.update = function () {
             let avg_x = 0
-            for (let i = 0; i < this.nc; i++) for (let j = 0; j < this.nc; j++) avg_x += this.grid[i][j].num
+            for (let x = 0; x < this.nc; x++) for (let y = 0; y < this.nc; y++) avg_x += this.grid[x][y].num
             avg_x /= this.nc * this.nr
             this.plotArray(["Average x"], [avg_x], ["black"], "Average x")
             // this.MargolusDiffusion()

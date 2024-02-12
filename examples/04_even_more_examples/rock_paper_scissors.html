@@ -36,20 +36,20 @@
 
 
         // sim.initialGrid(sim.spirals,'colour',0,2,0.01)        
-        for (let i = 0; i < sim.spirals.nc; i++)                          // i are columns
-            for (let j = 0; j < sim.spirals.nr; j++)                      // j are rows
-                //sim.spirals.grid[i][j]['colour'] = Math.ceil(sim.rng.genrand_real1() * n_species)
-                sim.spirals.grid[i][j].colour = 1
+        for (let x = 0; x < sim.spirals.nc; x++)                          // x are columns
+            for (let y = 0; y < sim.spirals.nr; y++)                      // y are rows
+                //sim.spirals.grid[x][y]['colour'] = Math.ceil(sim.rng.genrand_real1() * n_species)
+                sim.spirals.grid[x][y].colour = 1
 
-        sim.spirals.nextState = function (i, j)           // Define the next-state function. This example is spirals
+        sim.spirals.nextState = function (x, y)           // Define the next-state function. This example is spirals
         {
-            let state = this.grid[i][j].colour               // Colour of current pixel
-            let pred = (this.grid[i][j].colour % n_species) + 1  // Colour it is predated by (% because 8 is predated by 1)
+            let state = this.grid[x][y].colour               // Colour of current pixel
+            let pred = (this.grid[x][y].colour % n_species) + 1  // Colour it is predated by (% because 8 is predated by 1)
 
-            let neighbours = sim.spirals.countMoore8(this, i, j, 'colour',pred) // Count the nr of predators
+            let neighbours = sim.spirals.countMoore8(this, x, y, 'colour',pred) // Count the nr of predators
             // Red will spread
             if (sim.rng.genrand_real1() < 0.1 * neighbours)   // Let "predator" grow over the current pixel
-                this.grid[i][j].colour = pred;
+                this.grid[x][y].colour = pred;
         }
 
         sim.spirals.update = function () {

@@ -39,8 +39,10 @@ var TreeDensity = 0.40
         sim.makeGridmodel("forest");
         sim.createDisplay("forest", "type", "Tile type")
        
-				sim.reset = function(){
-							for (let i = 0; i < sim.forest.nc; i++)                             for (let j = 0; j < sim.forest.nr; j++)  sim.forest.grid[i][j].type= sim.rng.random() < TreeDensity ? 'tree': 'ground'
+        sim.reset = function(){
+        for (let x = 0; x < sim.forest.nc; x++)                            
+            for (let y = 0; y < sim.forest.nr; y++)  
+                sim.forest.grid[x][y].type= sim.rng.random() < TreeDensity ? 'tree': 'ground'
 		
 		sim.forest.grid[sim.forest.nc/2][sim.forest.nr/2].type='burned'	
 		
@@ -51,9 +53,9 @@ var TreeDensity = 0.40
 				sim.reset()
 
 				
-        sim.forest.nextState = function (i, j)   
+        sim.forest.nextState = function (x, y)   
         {
-				if (this.grid[i][j].type == 'tree' && sim.forest.countMoore8(this, i, j, 'type','burned') > 0) this.grid[i][j].type = 'burned'         }
+				if (this.grid[x][y].type == 'tree' && sim.forest.countMoore8(this, x, y, 'type','burned') > 0) this.grid[x][y].type = 'burned'         }
 
         sim.forest.update = function () {
             this.synchronous()                              

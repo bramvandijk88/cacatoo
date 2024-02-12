@@ -71,17 +71,17 @@ function cacatoo() {
     sim.lotka.grid[sim.lotka.nc / 2][sim.lotka.nr / 2].lotka.state = [10, 10]
 
     // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
-    sim.lotka.nextState = function (i, j)       // Define the next-state function. 
+    sim.lotka.nextState = function (x, y)       // Define the next-state function. 
     {
         // 1) ODE integration
-        this.grid[i][j].lotka.solveTimestep(0.1, opt_pos = true)
+        this.grid[x][y].lotka.solveTimestep(0.1, opt_pos = true)
 
 
         // 3) Update how this GP is displayed
-        let prey = Math.max(0, this.grid[i][j].lotka.state[0])       // Amount of prey (continuous variable)
-        let pred = Math.max(0, this.grid[i][j].lotka.state[1])       // Amount of pred (continuous variable)
-        this.grid[i][j].numpred = Math.min(Math.floor(pred * 30), 200)
-        this.grid[i][j].numprey = Math.min(Math.floor(prey * 30), 200)
+        let prey = Math.max(0, this.grid[x][y].lotka.state[0])       // Amount of prey (continuous variable)
+        let pred = Math.max(0, this.grid[x][y].lotka.state[1])       // Amount of pred (continuous variable)
+        this.grid[x][y].numpred = Math.min(Math.floor(pred * 30), 200)
+        this.grid[x][y].numprey = Math.min(Math.floor(prey * 30), 200)
     }
 
     // Custom function to count the sum of predators / preys in the grid (used in update below)
@@ -89,20 +89,20 @@ function cacatoo() {
         let sumpred = 0
         let sumprey = 0
 
-        for (let i = 0; i < this.nc; i++)         // i are columns
-            for (let j = 0; j < this.nr; j++)     // j are rows
+        for (let x = 0; x < this.nc; x++)         // x are columns
+            for (let y = 0; y < this.nr; y++)     // y are rows
             {
-                sumprey += this.grid[i][j].lotka.state[0]
-                sumpred += this.grid[i][j].lotka.state[1]
+                sumprey += this.grid[x][y].lotka.state[0]
+                sumpred += this.grid[x][y].lotka.state[1]
             }
         return [sumpred, sumprey]
     }
 
     sim.lotka.update = function () { 
                 if(sim.lotka.time==60){
-                            for (let i = 0; i < this.nc; i++)      
-            for (let j = 0; j < this.nr/2; j++)
-                                    this.grid[i][j].lotka.state[0] = 0
+                            for (let x = 0; x < this.nc; x++)      
+            for (let y = 0; y < this.nr/2; y++)
+                                    this.grid[x][y].lotka.state[0] = 0
                                 }
                     
         this.asynchronous()  // For only solving the ODEs within grid points, asynchronous or synchronous is identical.

@@ -84,10 +84,10 @@ function cacatoo() {
     sim.initialise = function()
     {
     		sim.warfare.clearGrid()
-    	 for (let i = 0; i < sim.warfare.nc; i++)                          // i are columns
-       for (let j = 0; j < sim.warfare.nr; j++) 
+    	 for (let x = 0; x < sim.warfare.nc; x++)                          // x are columns
+       for (let y = 0; y < sim.warfare.nr; y++) 
        {
-       		sim.warfare.grid[i][j].toxins = Array(nr_of_toxins).fill(0)
+       		sim.warfare.grid[x][y].toxins = Array(nr_of_toxins).fill(0)
        }
        
     	 for(let c=0;c<init_nr_of_clones;c++)
@@ -112,25 +112,25 @@ function cacatoo() {
     }
     
     // Slightly modified version of "populateSpot", copied from source here: https://bramvandijk88.github.io/cacatoo/scripts/cacatoo.js
-    sim.populateSpot = function(gridmodel,individuals, freqs,size, x, y)
+    sim.populateSpot = function(gridmodel,individuals, freqs,size, putx, puty)
      {
         let sumfreqs =0;
         if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
         for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
          
         // Draw a circle
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-        for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+        for (let y = 0; y < gridmodel.nr; y++)                           // y are rows
         {
-            if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
+            if ((Math.pow((x - putx), 2) + Math.pow((y - puty), 2)) < size)
             {
                 let cumsumfreq = 0;                
                 for(let n=0; n<individuals.length; n++)
                 {
                     cumsumfreq += freqs[n];
                     if(this.rng.random() < cumsumfreq) {
-                        Object.assign(gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr],individuals[n]);
-                        getGenotypeColour(i%gridmodel.nc,j%gridmodel.nr)
+                        Object.assign(gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr],individuals[n]);
+                        getGenotypeColour(x%gridmodel.nc,y%gridmodel.nr)
                         break
                     }
                 }
@@ -139,15 +139,15 @@ function cacatoo() {
          
      }
 
-    sim.warfare.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+    sim.warfare.nextState = function (x, y)                               // Define the next-state function. This example is two mutualists and a cheater
     {
         // let pA, pB, pC, psum     
-        let me = this.grid[i][j]
+        let me = this.grid[x][y]
         me.toxin_conc = me.toxins[toxin_shown-1]
         
         if (!me.alive)                                                   // If there is no living cell here
         {
-            let neighbours = this.getMoore8(this, i, j,'alive',1)
+            let neighbours = this.getMoore8(this, x, y,'alive',1)
             let winner = this.rouletteWheel(neighbours, 'fitness', 5.0)
             if (winner != undefined)
             {
@@ -165,24 +165,24 @@ function cacatoo() {
                 for(let res in me.resistance) if(sim.rng.random() < gene_loss) me.resistance[res] = 0, mut = true
                 me.production = [...winner.production]
                 for(let tox in me.production) if(sim.rng.random() < gene_loss) me.production[tox] = 0, mut = true
-	              mut = doHGT(i,j)
-                if(mut) getGenotypeColour(i,j)
+	              mut = doHGT(x,y)
+                if(mut) getGenotypeColour(x,y)
             }
         }
 
-        if (this.rng.random() < this.grid[i][j].deathrate){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
-            this.grid[i][j].alive = 0
-            this.grid[i][j].fitness = 0
-            this.grid[i][j].clone = 0
-            this.grid[i][j].genotypeP = 0
-            this.grid[i][j].genotypeR = 0
-            this.grid[i][j].numP = 0
-            this.grid[i][j].numR = 0            
+        if (this.rng.random() < this.grid[x][y].deathrate){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
+            this.grid[x][y].alive = 0
+            this.grid[x][y].fitness = 0
+            this.grid[x][y].clone = 0
+            this.grid[x][y].genotypeP = 0
+            this.grid[x][y].genotypeR = 0
+            this.grid[x][y].numP = 0
+            this.grid[x][y].numR = 0            
         }
     }
 
-    getGenotypeColour = function (i, j){
-      me = sim.warfare.grid[i][j]
+    getGenotypeColour = function (x, y){
+      me = sim.warfare.grid[x][y]
       if(!me.alive) throw new Error("Only call this function on living points")
       
       me.genotypeP = 0
@@ -201,10 +201,10 @@ function cacatoo() {
         
     }
     
-    toxinDynamics = function(i,j)
+    toxinDynamics = function(x,y)
     {
 
-      let me = sim.warfare.grid[i][j]
+      let me = sim.warfare.grid[x][y]
       if(me.alive)
       {
         for(let tox in me.production)
@@ -213,7 +213,7 @@ function cacatoo() {
           	for(let ii=-toxin_range; ii<=toxin_range; ii++)
             for(let jj=-toxin_range; jj<=toxin_range; jj++)
             {
-                let spot = sim.warfare.getGridpoint(i+ii,j+jj)
+                let spot = sim.warfare.getGridpoint(x+ii,y+jj)
                 spot.toxins[tox] += 0.1/(Math.abs(ii)+Math.abs(jj)+1)
             }                       
         }
@@ -225,9 +225,9 @@ function cacatoo() {
       }
     }
 
-    calculateFitness = function(i,j)
+    calculateFitness = function(x,y)
     {
-   		 let me = sim.warfare.grid[i][j]
+   		 let me = sim.warfare.grid[x][y]
        if(me.alive)
        {
          me.fitness = base_fitness
@@ -248,31 +248,31 @@ function cacatoo() {
          }
          let resistance_profile = me.resistance
        }
-       //sim.coop.sumMoore8(sim.coop, i, j, "helping_rate")-0.1*sim.coop.grid[i][j].helping_rate
+       //sim.coop.sumMoore8(sim.coop, x, y, "helping_rate")-0.1*sim.coop.grid[x][y].helping_rate
     }
     
-    doHGT = function(i,j){
-    	me = sim.warfare.grid[i][j]
+    doHGT = function(x,y){
+    	me = sim.warfare.grid[x][y]
     	if(me.alive){
       	let hgt_happened = false
         for(let ii=-hgt_range; ii<=hgt_range; ii++)
         for(let jj=-hgt_range; jj<=hgt_range; jj++)
         {
-           let donor = sim.warfare.getNeighbour(sim.warfare,i,j,sim.rng.genrand_int(1,8))
+           let donor = sim.warfare.getNeighbour(sim.warfare,x,y,sim.rng.genrand_int(1,8))
            if(donor.alive){
              for(let t=0; t<nr_of_toxins; t++){
-               if(donor.production[t] >0 && sim.rng.random() < hgt_rate_production) sim.warfare.grid[i][j].production[t] = 1, hgt_happened=true
-               if(donor.resistance[t] >0 && sim.rng.random() < hgt_rate_resistance) sim.warfare.grid[i][j].resistance[t] = 1, hgt_happened=true
+               if(donor.production[t] >0 && sim.rng.random() < hgt_rate_production) sim.warfare.grid[x][y].production[t] = 1, hgt_happened=true
+               if(donor.resistance[t] >0 && sim.rng.random() < hgt_rate_resistance) sim.warfare.grid[x][y].resistance[t] = 1, hgt_happened=true
              }      
            }
         }
-        if(hgt_happened) getGenotypeColour(i,j)  	
+        if(hgt_happened) getGenotypeColour(x,y)  	
           
       }
     }
     
-    redistributeBarcodes = function(i,j){
-    	me = sim.warfare.grid[i][j]
+    redistributeBarcodes = function(x,y){
+    	me = sim.warfare.grid[x][y]
     	if(me.alive){
       	me.clone = Math.floor(sim.rng.random()*15)+1
       }            
@@ -305,10 +305,10 @@ function cacatoo() {
         let pan_p  = []
         let pan_r  = []
         
-        for (let i = 0; i < this.nc; i++)                          // i are columns
-        for (let j = 0; j < this.nr; j++)                           // j are rows
+        for (let x = 0; x < this.nc; x++)                          // x are columns
+        for (let y = 0; y < this.nr; y++)                           // y are rows
         {
-        	me = sim.warfare.grid[i][j]
+        	me = sim.warfare.grid[x][y]
           if(me.alive){
           	for(let g in me.production) if(me.production[g]>0) pan_p[g]=1
             for(let g in me.resistance) if(me.resistance[g]>0) pan_r[g]=1

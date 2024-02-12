@@ -25,7 +25,7 @@
 /*-----------------------Start user-defined code ---------------------*/
 
 let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
-
+var speed =200;
 function cacatoo(){
     let config = {
         title: "Langton's ant",                       // The name of your cacatoo-simulation
@@ -108,7 +108,7 @@ function cacatoo(){
         applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
     */
     sim.ant.update = function () {
-        for(let i=0;i<100;i++) this.moveAnt()
+        for(let i=0;i<speed;i++) this.moveAnt()
     }
 
     /*
@@ -117,6 +117,7 @@ function cacatoo(){
     sim.addButton("pause/continue", function () { sim.toggle_play() })
     sim.addButton("step", function () { sim.step(); sim.display() })  
     sim.addMovieButton(sim.ant, "Langtons ant")
+    sim.addSlider("speed",1,10000,1)
     // sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
     sim.start()
 

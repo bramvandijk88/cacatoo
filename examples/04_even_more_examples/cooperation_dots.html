@@ -79,54 +79,54 @@ var sim;                            // This 'global' variable will hold the enti
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
     */
-    sim.coop.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+    sim.coop.nextState = function (x, y)                               // Define the next-state function. This example is two mutualists and a cheater
     {
     
         
         // let pA, pB, pC, psum             
-        if (!this.grid[i][j].alive)                                                   // If there is no living cell here
+        if (!this.grid[x][y].alive)                                                   // If there is no living cell here
         {
-            let neighbours = this.getMoore8(this, i, j,'alive',1)
+            let neighbours = this.getMoore8(this, x, y,'alive',1)
             let winner = this.rouletteWheel(neighbours, 'fitness', 8.0)
             if (winner != undefined)
             {
-                this.grid[i][j].alive = winner.alive
-                this.grid[i][j].type = winner.type                
-                this.grid[i][j].helping_rate = winner.helping_rate
-                this.grid[i][j].base_fitness = winner.base_fitness
+                this.grid[x][y].alive = winner.alive
+                this.grid[x][y].type = winner.type                
+                this.grid[x][y].helping_rate = winner.helping_rate
+                this.grid[x][y].base_fitness = winner.base_fitness
             }
         }
         if (this.rng.random() < death){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
-            this.grid[i][j].alive = 0
-            this.grid[i][j].type = 0
-            this.grid[i][j].fitness = 0 
-          	this.grid[i][j].helping_rate = 0   	              
-            this.grid[i][j].base_fitness = 0
+            this.grid[x][y].alive = 0
+            this.grid[x][y].type = 0
+            this.grid[x][y].fitness = 0 
+          	this.grid[x][y].helping_rate = 0   	              
+            this.grid[x][y].base_fitness = 0
         }
 
     }
         
-    calculatefitness = function(i,j)
+    calculatefitness = function(x,y)
     {
-    		sim.coop.grid[i][j].fitness = sim.coop.grid[i][j].base_fitness + sim.coop.sumMoore8(sim.coop, i, j, "helping_rate")
+    		sim.coop.grid[x][y].fitness = sim.coop.grid[x][y].base_fitness + sim.coop.sumMoore8(sim.coop, x, y, "helping_rate")
         
-        /* if(i+j==0) console.log(sim.coop.grid[i][j].base_fitness) */
+        /* if(x+y==0) console.log(sim.coop.grid[x][y].base_fitness) */
     }
    
-   migration = function(i,j) {      
+   migration = function(x,y) {      
         
         if(sim.rng.random() < movement)
         {
-          /* let me = sim.coop.grid[i][j] */
+          /* let me = sim.coop.grid[x][y] */
           let direction = sim.rng.genrand_int(1,8)          
-          let n = sim.coop.getNeighXY((sim.ncol+i+sim.coop.moore[direction][0])%sim.ncol,(sim.nrow+j+sim.coop.moore[direction][1])%sim.nrow)
-          /* console.log((i+sim.coop.moore[direction][0])%sim.ncol,j+(sim.coop.moore[direction][1])%sim.nrow)
+          let n = sim.coop.getNeighXY((sim.ncol+x+sim.coop.moore[direction][0])%sim.ncol,(sim.nrow+y+sim.coop.moore[direction][1])%sim.nrow)
+          /* console.log((x+sim.coop.moore[direction][0])%sim.ncol,y+(sim.coop.moore[direction][1])%sim.nrow)
           console.log(n) */
           /* let neigh = sim.coop.grid[n[0]][n[1]] */
-          let newme = sim.coop.copyGridpoint(i,j)
+          let newme = sim.coop.copyGridpoint(x,y)
           let newneigh = sim.coop.copyGridpoint(n[0],n[1])
           
-          sim.coop.grid[i][j] = newneigh
+          sim.coop.grid[x][y] = newneigh
           sim.coop.grid[n[0]][n[1]] = newme
         }                                  
    }
@@ -152,15 +152,15 @@ var sim;                            // This 'global' variable will hold the enti
                 // Let's count some stuff every update
                 let sumhelping = sumalive = sumcheater = sumcoop = 0
                 
-                for (let i = 0; i < this.nc; i++)          // i are columns
-                    for (let j = 0; j < this.nr; j++)      // j are rows
+                for (let x = 0; x < this.nc; x++)          // x are columns
+                    for (let y = 0; y < this.nr; y++)      // y are rows
                     {
-                        if (this.grid[i][j].alive == 1) {
-                            sumhelping += this.grid[i][j].helping_rate                
+                        if (this.grid[x][y].alive == 1) {
+                            sumhelping += this.grid[x][y].helping_rate                
                             sumalive ++
                             
-                            if(this.grid[i][j].type == "Cooperator") sumcoop++
-                            if(this.grid[i][j].type == "Cheater") sumcheater++
+                            if(this.grid[x][y].type == "Cooperator") sumcoop++
+                            if(this.grid[x][y].type == "Cheater") sumcheater++
                         }
                     }
         
@@ -172,14 +172,14 @@ var sim;                            // This 'global' variable will hold the enti
             sim.coop.bottleneck = function()
             {
                        
-                for (let i = 0; i < this.nc; i++) {
-                    for (let j = 0; j < this.nr; j++) {
+                for (let x = 0; x < this.nc; x++) {
+                    for (let y = 0; y < this.nr; y++) {
                         if(this.rng.genrand_real1() < 0.95){
-                           this.grid[i][j].alive = 0
-                            this.grid[i][j].type = 0
-                            this.grid[i][j].fitness = 0 
-                            this.grid[i][j].helping_rate = 0   	              
-                            this.grid[i][j].base_fitness = 0
+                           this.grid[x][y].alive = 0
+                            this.grid[x][y].type = 0
+                            this.grid[x][y].fitness = 0 
+                            this.grid[x][y].helping_rate = 0   	              
+                            this.grid[x][y].base_fitness = 0
                         }
                     }
                 }
