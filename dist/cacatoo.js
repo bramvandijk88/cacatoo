@@ -2489,7 +2489,7 @@ class Simulation {
         container.appendChild(numeric);
         document.getElementById("form_holder").appendChild(container);
     }
-     /**
+/**
      * save a PNG of an entire HTML div element
      * @param {div} div object to store to
      */
@@ -2514,7 +2514,7 @@ class Simulation {
             downloadURI(myImage, prefix+timestamp+".png");
         });
     }
-
+    
     /**
      *  recordVideo captures the canvas to an webm-video (browser only)    
      *  @param {canvas} canvas Canvas object to record
@@ -2973,43 +2973,43 @@ class Simulation {
         
     }
 
-    /**
+   /**
      *  initialPattern takes a @GridModel and loads a pattern from a PNG file. Note that this
      *  will only work when Cacatoo is ran on a server due to security issues. If you want to
      *  use this feature locally, there are plugins for most browser to host a simple local
      *  webserver. 
      *  (currently only supports black and white image)
      */
-    initialPattern(grid, property, image_path, putx, puty) {
-        let sim = this;
-        if (typeof window != undefined) {
-            for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y][property] = 0;
-            let tempcanv = document.createElement("canvas");
-            let tempctx = tempcanv.getContext('2d');
-            var tempimg = new Image();
-            tempimg.onload = function () {
-                tempcanv.width = tempimg.width;
-                tempcanv.height = tempimg.height;
-                tempctx.drawImage(tempimg, 0, 0);
-                let grid_data = get2DFromCanvas(tempcanv);
-                if (x + tempimg.width >= grid.nc || y + tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")
-                for (let x = 0; x < grid_data[0].length; x++)         // x are columns
-                    for (let y = 0; y < grid_data.length; y++)     // y are rows
-                    {
-                        grid.grid[putx + i][puty + y][property] = grid_data[y][x];
-                    }
-                sim.display();
-            };
+   initialPattern(grid, property, image_path, putx, puty) {
+    let sim = this;
+    if (typeof window != undefined) {
+        for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y][property] = 0;
+        let tempcanv = document.createElement("canvas");
+        let tempctx = tempcanv.getContext('2d');
+        var tempimg = new Image();
+        tempimg.onload = function () {
+            tempcanv.width = tempimg.width;
+            tempcanv.height = tempimg.height;
+            tempctx.drawImage(tempimg, 0, 0);
+            let grid_data = get2DFromCanvas(tempcanv);
+            if (putx + tempimg.width >= grid.nc || puty + tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")
+            for (let x = 0; x < grid_data[0].length; x++)         // x are columns
+                for (let y = 0; y < grid_data.length; y++)     // y are rows
+                {
+                    grid.grid[putx + x][puty + y][property] = grid_data[y][x];
+                }
+            sim.display();
+        };
 
-            tempimg.src = image_path;
-            tempimg.crossOrigin = "anonymous";
-
-        }
-        else {
-            console.error("initialPattern currently only supported in browser-mode");
-        }
+        tempimg.src = image_path;
+        tempimg.crossOrigin = "anonymous";
 
     }
+    else {
+        console.error("initialPattern currently only supported in browser-mode");
+    }
+
+}
 
     /**
      *  Toggle the mix option
