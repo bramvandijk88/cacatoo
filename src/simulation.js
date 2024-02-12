@@ -1184,32 +1184,32 @@ class Simulation {
      *  (currently only supports black and white image)
      */
     initialPattern(grid, property, image_path, putx, puty) {
-        let sim = this
+        let sim = this;
         if (typeof window != undefined) {
-            for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y][property] = 0
-            let tempcanv = document.createElement("canvas")
-            let tempctx = tempcanv.getContext('2d')
-            var tempimg = new Image()
+            for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y][property] = 0;
+            let tempcanv = document.createElement("canvas");
+            let tempctx = tempcanv.getContext('2d');
+            var tempimg = new Image();
             tempimg.onload = function () {
-                tempcanv.width = tempimg.width
-                tempcanv.height = tempimg.height
+                tempcanv.width = tempimg.width;
+                tempcanv.height = tempimg.height;
                 tempctx.drawImage(tempimg, 0, 0);
-                let grid_data = get2DFromCanvas(tempcanv)
-                if (x + tempimg.width >= grid.nc || y + tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")
+                let grid_data = get2DFromCanvas(tempcanv);
+                if (putx + tempimg.width >= grid.nc || puty + tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")
                 for (let x = 0; x < grid_data[0].length; x++)         // x are columns
                     for (let y = 0; y < grid_data.length; y++)     // y are rows
                     {
-                        grid.grid[putx + i][puty + y][property] = grid_data[y][x]
+                        grid.grid[putx + x][puty + y][property] = grid_data[y][x];
                     }
-                sim.display()
-            }
+                sim.display();
+            };
 
-            tempimg.src = image_path
-            tempimg.crossOrigin = "anonymous"
+            tempimg.src = image_path;
+            tempimg.crossOrigin = "anonymous";
 
         }
         else {
-            console.error("initialPattern currently only supported in browser-mode")
+            console.error("initialPattern currently only supported in browser-mode");
         }
 
     }
