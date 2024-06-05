@@ -1237,7 +1237,7 @@ class Simulation {
         console.error("initialPattern currently only supported in browser-mode");
     }
 
-}
+} 
 
     /**
      *  Toggle the mix option
