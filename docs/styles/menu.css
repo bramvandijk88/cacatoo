@@ -15,7 +15,7 @@ body {
     top:0;
     left:0;
     width:100%;
-    background-color: rgb(111, 146, 170);
+    background-color: rgb(169, 111, 170);
     padding: 7px 10px;
 }
 
@@ -34,7 +34,7 @@ body {
 
 
 h1 {
-    color: rgb(58, 92, 114);
+    color: rgb(103, 58, 114);
 }
 
 .nav__links {
@@ -57,7 +57,7 @@ h1 {
 }
 /* Optional: show position indicator in red */
 ::-webkit-scrollbar-thumb {
-  background: rgb(107, 159, 194);
+  background: rgb(194, 107, 193);
 }
 
 .nav--open .nav__links {
@@ -69,7 +69,7 @@ h1 {
 .nav__head {
     display: flex;
     align-items: center;
-    color:rgb(58, 92, 200);
+    color:rgb(190, 58, 200);
     font-weight:bold;
     font-size: 15 px;
     text-decoration:none;
@@ -79,14 +79,14 @@ h1 {
 
 .nav__head > i{
     margin-right: 15px;
-    color: rgb(75, 101, 179);
+    color: rgb(179, 75, 172);
     font-size: 36px;
 }
 
 .nav__headlink {
     display: flex;
     align-items: center;
-    color: rgb(75, 101, 179);
+    color: rgb(179, 75, 167);
     font-weight:bold;
     font-size: 15 px;
     text-decoration:none;
@@ -95,7 +95,7 @@ h1 {
 
 .nav__headlink > i{
     margin-right: 15px;
-    color:rgb(58, 92, 200);
+    color:rgb(200, 58, 198);
     font-size: 36px;
 }
 
@@ -106,7 +106,7 @@ h1 {
 
 .nav__link {
     display: flex;
-    color: rgb(75, 101, 179);
+    color: rgb(179, 75, 176);
     align-items: center;
     font-weight:bold;
     font-size: 13 px;
@@ -120,7 +120,7 @@ h1 {
 
 
 .nav__link:hover{
-    background:#dadaff;
+    background:#ffdafe;
 }
 
 .nav__overlay {

@@ -65,7 +65,7 @@ body {
 }
 
 .example_card:active {
-  background-color: rgb(151, 183, 204);
+  background-color: rgb(204, 151, 198);
   font-size: 12px;
   padding-top: 11px;
   height: 199px;
