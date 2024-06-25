@@ -55,7 +55,7 @@ class Canvas {
     /**
     *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
     */
-     displaygrid() {
+     displaygrid() {        
         let ctx = this.ctx
         let scale = this.scale
         let ncol = this.width
@@ -82,14 +82,14 @@ class Canvas {
 
         let statecols = this.statecolours[prop]
         
-        for (let i = start_col; i < stop_col; i++)         // i are cols
+        for (let x = start_col; x < stop_col; x++)         // x are cols
         {
-            for (let j = start_row; j< stop_row; j++)     // j are rows
+            for (let y = start_row; y< stop_row; y++)     // y are rows
             {                     
-                if (!(prop in this.gridmodel.grid[i][j]))
+                if (!(prop in this.gridmodel.grid[x][y]))
                     continue                     
                 
-                let value = this.gridmodel.grid[i][j][prop]
+                let value = this.gridmodel.grid[x][y][prop]
                 
 
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
@@ -109,9 +109,9 @@ class Canvas {
 
                 for (let n = 0; n < scale; n++) {
                     for (let m = 0; m < scale; m++) {
-                        let x = (i-this.offset_x) * scale + n + (this.phase%ncol)*scale
-                        let y = (j-this.offset_y) * scale + m
-                        var off = (y * id.width + x) * 4;
+                        let xpos = (x-this.offset_x) * scale + n + (this.phase%ncol)*scale
+                        let ypos = (y-this.offset_y) * scale + m
+                        var off = (ypos * id.width + xpos) * 4;
                         pixels[off] = idx[0];
                         pixels[off + 1] = idx[1];
                         pixels[off + 2] = idx[2];
@@ -156,20 +156,20 @@ class Canvas {
         let statecols = this.statecolours[prop]
         
         
-        for (let i = start_col; i < stop_col; i++)         // i are cols
+        for (let x = start_col; x < stop_col; x++)         // x are cols
         {
-            for (let j = start_row; j< stop_row; j++)     // j are rows
+            for (let y = start_row; y< stop_row; y++)     // y are rows
             {                     
-                if (!(prop in this.gridmodel.grid[i][j]))
+                if (!(prop in this.gridmodel.grid[x][y]))
                     continue                     
                 
                
 
-                let value = this.gridmodel.grid[i][j][prop]
+                let value = this.gridmodel.grid[x][y][prop]
 
                 let radius = this.scale_radius*this.radius
                 
-                if(isNaN(radius)) radius = this.scale_radius*this.gridmodel.grid[i][j][this.radius]                
+                if(isNaN(radius)) radius = this.scale_radius*this.gridmodel.grid[x][y][this.radius]                
                 if(isNaN(radius)) radius = this.min_radius
                 radius = Math.max(Math.min(radius,this.max_radius),this.min_radius)
 
@@ -190,7 +190,7 @@ class Canvas {
                 else idx = statecols
 
                 ctx.beginPath()
-                ctx.arc((i-this.offset_x) * scale + 0.5*scale, (j-this.offset_y) * scale + 0.5*scale, radius, 0, 2 * Math.PI, false)
+                ctx.arc((x-this.offset_x) * scale + 0.5*scale, (y-this.offset_y) * scale + 0.5*scale, radius, 0, 2 * Math.PI, false)
                 ctx.fillStyle = 'rgb('+idx[0]+', '+idx[1]+', '+idx[2]+')';
                 // ctx.fillStyle = 'rgb(100,100,100)';
                 ctx.fill()

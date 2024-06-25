@@ -1,0 +1,143 @@
+<!-- 
+
+    EXAMPLE FILE: Langton's ant
+
+    This is an example of an individual-based approach. Here, I show 
+    how you can model Langton's ant that has a position and a direction. 
+    When the ant is at a white cell, it will turn 90° right, flip the colour
+    of the cell to black, and move forward. At a black cell, it does the reverse
+    (go left, turn the cell black, but sitll move 1 step fowards)
+
+-->
+
+<!--  --------------- HTML boiler plate ------------------  -->
+
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+var speed =200;
+function cacatoo(){
+    let config = {
+        title: "Langton's ant",                       // The name of your cacatoo-simulation
+        description: "",        // And a description if you wish
+        maxtime: 1000000,                            // How many time steps the model continues to run
+        ncol: 400,                                    // Number of columns (width of your grid)
+        nrow: 200,		                             // Number of rows (height of your grid)        
+        wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
+        scale: 2,				                     // Scale of the grid (nxn pixels per grid point)
+        bgcolour: 'white',
+        statecolours: { 'color': { 1: 'violet' } },   // Colours for each state. Background (0) defaults to black. 
+    }
+
+    sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+    
+    sim.makeGridmodel("ant")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
+    sim.initialGrid(sim.ant, 'color', 1, 0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
+    sim.createDisplay_discrete({model:"ant",property:"color",
+                label:"Langtons ant",
+                })                      // Create a display so we can see our newly made gridmodel
+    
+    let directions = {0:[0,-1],
+                      1:[1,0],
+                      2:[0,1],
+                      3:[-1,0]}
+    //let ant =[50,50,1] // the ant starts in the middle of the grid, with an upward direction
+    
+    const N = 0;
+    const E = 1;
+    const S = 2;
+    const W = 3;
+
+    class Ant {
+        constructor(x,y,dir){
+            this.x = x
+            this.y = y
+            this.dir = dir
+        }
+
+        move(width, height) {
+            if(this.dir == N)
+                this.x = ((this.x - 1) + sim.ncol) % sim.ncol;
+            else if(this.dir == E)
+                this.y = ((this.y + 1) + sim.nrow) % sim.nrow;
+            else if(this.dir == S)
+                this.x = ((this.x + 1) + sim.ncol) % sim.ncol;
+            else if(this.dir == W)
+                this.y = ((this.y - 1) + sim.nrow) % sim.nrow;
+        }
+
+        turnRight() {
+            this.dir = ((this.dir + 1) + (3 + 1)) % (3 + 1);
+        }
+
+        turnLeft() {
+            this.dir = ((this.dir - 1) + (3 + 1)) % (3 + 1);
+        }
+    }
+
+    let ant = new Ant(sim.ncol/2,sim.nrow/2,N)
+    
+    // There is no nextState. Only the ant modifies the grid now
+    sim.ant.nextState = function (x, y) {}
+
+    sim.ant.moveAnt = function(){
+        let cell = sim.ant.grid[ant.x][ant.y]
+        if (cell.color == 1) {
+            cell.color = 0;        
+            ant.turnRight();
+            ant.move(this.width, this.height);
+        }
+        else {
+            cell.color = 1;
+            ant.turnLeft();
+            ant.move(this.width, this.height);
+        }
+    }
+    /*
+        3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+        applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+    */
+    sim.ant.update = function () {
+        for(let i=0;i<speed;i++) this.moveAnt()
+    }
+
+    /*
+        OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+    */
+    sim.addButton("pause/continue", function () { sim.toggle_play() })
+    sim.addButton("step", function () { sim.step(); sim.display() })  
+    sim.addMovieButton(sim.ant, "Langtons ant")
+    sim.addSlider("speed",1,10000,1)
+    // sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
+    sim.start()
+
+}
+
+
+/*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

@@ -37,8 +37,8 @@ function cacatoo(){
         maxtime: 1000000,                            // How many time steps the model continues to run
         fastmode: true,                              // If possible, fast-mode will update the model more than once before displaying the grid
                                                      // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-        ncol: 400,                                   // Number of columns (width of your grid)                
-        nrow: 170,		                             // Number of rows (height of your grid)        
+        ncol: 300,                                   // Number of columns (width of your grid)                
+        nrow: 150,		                             // Number of rows (height of your grid)        
         wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
         scale: 2,				                     // Scale of the grid (nxn pixels per grid point)
         statecolours: { 'alive': { 1: 'white' } },   // Colours for each state. Background (0) defaults to black. 
@@ -55,7 +55,7 @@ function cacatoo(){
     /*
         2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
     */
-    sim.gol.nextState = function (i, j) {
+    sim.gol.nextState = function (x, y) {
         
         // This example uses the rules of game of life, which has the following three rules:
         // i) A living cell surrounded by two or three living cells, stays alive. 
@@ -64,10 +64,10 @@ function cacatoo(){
 
         // Variable that refers to the current gridpoint ('this' is a way to refer to the current class, which in the nextState is the current 'Gridmodel'). 
         // You don't have to do this, you can also keep referring to this.grid[i][j] every time you need the grid point, but this is more readible. :)
-        let gridpoint = this.grid[i][j]         
+        let gridpoint = this.grid[x][y]         
 
         // So, first we need to know how many cells are alive around a grid point
-        let neighbours = sim.gol.countMoore8(this, i, j,'alive',1)              // In the Moore8 neighbourhood of this GridModel (CA) count # of 1's for the 'alive' property        
+        let neighbours = sim.gol.countMoore8(this, x, y,'alive',1)              // In the Moore8 neighbourhood of this GridModel (CA) count # of 1's for the 'alive' property        
         // Then, let's see if this cell is dead or alive
         let state = gridpoint.alive
 
@@ -94,6 +94,9 @@ function cacatoo(){
     sim.addPatternButton(sim.gol, 'alive')  // Note, for security reasons, this needs a local server to be run (try VSC's 'live server' plugin!)
     sim.addButton("pause/continue", function () { sim.toggle_play() })
     sim.addButton("step", function () { sim.step(); sim.display() })
+    sim.addButton("start/stop record", function() {
+        sim.makeMovie(sim.gol.canvases["Game of life (white=alive)"])        
+    })
     sim.modifysleep = function(newvalue) { this.sleep = newvalue}
     sim.addCustomSlider("Sleeping time (ms)",function (new_value) { sim.sleep = new_value },0,1000,1,0) // addCustomSlider(function, minimal, maximal, step-size, default, label)
     sim.start()

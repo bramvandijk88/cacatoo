@@ -372,6 +372,10 @@ class Simulation {
     step() {
         for (let i = 0; i < this.gridmodels.length; i++)
             this.gridmodels[i].update()
+
+        for (let i = 0; i < this.canvases.length; i++)
+            if(this.canvases[i].recording == true)
+                this.captureFrame(this.canvases[i])
         this.time++
     }
 
@@ -383,14 +387,19 @@ class Simulation {
         for (let i = 0; i < this.gridmodels.length; i++) {
             if (this.mix) this.gridmodels[i].perfectMix()
         }
+    
     }
 
     /**
      *  Display all the canvases linked to this simulation
      */
     display() {
-        for (let i = 0; i < this.canvases.length; i++)
+        for (let i = 0; i < this.canvases.length; i++){
             this.canvases[i].displaygrid()
+            if(this.canvases[i].recording == true){
+                this.captureFrame(this.canvases[i])
+            }
+        }
     }
 
     /**
@@ -429,7 +438,7 @@ class Simulation {
                     sim.events();                            
                 }                
 
-                if(sim.time%(sim.skip+1)==0)sim.display();
+                if(sim.time%(sim.skip+1)==0) sim.display();
                 if(sim.fpsmeter) meter.tick();
 
                 let frame = requestAnimationFrame(animate);
@@ -478,15 +487,15 @@ class Simulation {
         let p = property || 'val'
         let bg = 0
 
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++)                  // j are rows
-                gridmodel.grid[i][j][p] = bg
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+            for (let y = 0; y < gridmodel.nr; y++)                  // y are rows
+                gridmodel.grid[x][y][p] = bg
 
         for (let arg = 2; arg < arguments.length; arg += 2)         // Parse remaining 2+ arguments to fill the grid           
-            for (let i = 0; i < gridmodel.nc; i++)                        // i are columns
-                for (let j = 0; j < gridmodel.nr; j++)                    // j are rows
+            for (let x = 0; x < gridmodel.nc; x++)                        // x are columns
+                for (let y = 0; y < gridmodel.nr; y++)                    // y are rows
                 {
-                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[i][j][p] = arguments[arg];                    
+                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[x][y][p] = arguments[arg];                    
                 }
     }
     
@@ -502,10 +511,10 @@ class Simulation {
           if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
           if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
 
-          for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-              for (let j = 0; j < gridmodel.nr; j++){                 // j are rows
+          for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+              for (let y = 0; y < gridmodel.nr; y++){                 // y are rows
                   for (const property in individuals[0]) {
-                      gridmodel.grid[i][j][property] = 0;    
+                      gridmodel.grid[x][y][property] = 0;    
                   }
                   let random_number = this.rng.random()
                   let sum_freqs = 0
@@ -513,7 +522,7 @@ class Simulation {
                   {
                       sum_freqs += freqs[n]
                       if(random_number < sum_freqs) {
-                          Object.assign(gridmodel.grid[i][j],individuals[n]);
+                          Object.assign(gridmodel.grid[x][y],individuals[n]);
                           break
                       }
                   }
@@ -530,9 +539,9 @@ class Simulation {
     initialSpot(gridmodel, property, value, size, x, y,background_state=false) {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let p = property || 'val'
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++) 
-                if(background_state) gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][p] = background_state
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+            for (let y = 0; y < gridmodel.nr; y++) 
+                if(background_state) gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr][p] = background_state
         this.putSpot(gridmodel,property,value,size,x,y)
     }
 
@@ -544,14 +553,14 @@ class Simulation {
     *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
     *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
     */
-   putSpot(gridmodel, property, value, size, x, y) {
+   putSpot(gridmodel, property, value, size, putx, puty) {
          if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         // Draw a circle
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-            for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+            for (let y = 0; y < gridmodel.nr; y++)                           // y are rows
             {
-                if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
-                    gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr][property] = value
+                if ((Math.pow((x - putx), 2) + Math.pow((y - puty), 2)) < size)
+                    gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr][property] = value
             }
     }
 
@@ -561,7 +570,7 @@ class Simulation {
      *  @param {Array} individuals The properties for individuals 1..n
      *  @param {Array} freqs The initial frequency of individuals 1..n
      */
-     populateSpot(gridmodel,individuals, freqs,size, x, y, background_state=false)
+     populateSpot(gridmodel,individuals, freqs,size, putx, puty, background_state=false)
      {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let sumfreqs =0
@@ -569,24 +578,24 @@ class Simulation {
         for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i]
          
         // Draw a circle
-        for (let i = 0; i < gridmodel.nc; i++)                          // i are columns
-        for (let j = 0; j < gridmodel.nr; j++)                           // j are rows
+        for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+        for (let y = 0; y < gridmodel.nr; y++)                           // y are rows
         {
             
 
-            if ((Math.pow((i - x), 2) + Math.pow((j - y), 2)) < size)
+            if ((Math.pow((x - putx), 2) + Math.pow((y - puty), 2)) < size)
             {
                 let cumsumfreq = 0                
                 for(let n=0; n<individuals.length; n++)
                 {
                     cumsumfreq += freqs[n]
                     if(this.rng.random() < cumsumfreq) {
-                        Object.assign(gridmodel.grid[i % gridmodel.nc][j % gridmodel.nr],individuals[n])
+                        Object.assign(gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr],individuals[n])
                         break
                     }
                 }
             }
-            else if(background_state) Object.assign(gridmodel.grid[i][j], background_state)
+            else if(background_state) Object.assign(gridmodel.grid[x][y], background_state)
         }
          
      }
@@ -734,53 +743,91 @@ class Simulation {
             downloadURI(myImage, prefix+timestamp+".png");
         });
     }
-
     /**
-     *  recordVideo captures the canvas to an MP4 (browser only)    
+     *  recordVideo captures the canvas to an webm-video (browser only)    
      *  @param {canvas} canvas Canvas object to record
      */
-    recordVideo(canvas){            
-
-        // Download DataURL
-        function dataURL_downloader(dataURL, name = canvas.label) {
-            const hyperlink = document.createElement("a");
-            // document.body.appendChild(hyperlink);
-            hyperlink.download = name;
-            hyperlink.target = '_blank';
-            hyperlink.href = dataURL;
-            hyperlink.click();
-            hyperlink.remove();
-        };
-        // Record a video ----------------------------------
-        // Stream
-                
-        if(!canvas.mediaRecorder){
-            canvas.videoStream = canvas.elem.captureStream();
-            canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
+    startRecording(canvas,fps){            
+        if(!canvas.recording){
+            canvas.recording = true        
             
-            canvas.ctx.globalAlpha = 0.6;            
-            canvas.chunks = [];
-            // Store chunks
-            canvas.mediaRecorder.ondataavailable = function (e) {
-                canvas.chunks.push(e.data);
-            };
-            // Download video after recording is stopped
-            canvas.mediaRecorder.onstop = function (e) {
-                const blob = new Blob(canvas.chunks, { 'type': 'video/mp4' });
-                const videoDataURL = URL.createObjectURL(blob);
-                dataURL_downloader(videoDataURL);
-                canvas.chunks = [];
-                canvas.mediaRecorder = undefined
-            };
-
-            canvas.mediaRecorder.start();
-            
+            canvas.elem.style.outline = '4px solid red';       
+            sim.capturer = new CCapture( { format: 'webm', 
+                                       quality: 100, 
+                                       name: `${canvas.label}_starttime_${sim.time}`,
+                                       framerate: fps,                                       
+                                       display: false } );
+            sim.capturer.start()            
+            console.log("Started recording video.")
+        }
+    }
+    captureFrame(canvas){
+        if(canvas.recording){            
+            sim.capturer.capture(canvas.elem)
+        }
+        
+    }
+    stopRecording(canvas){
+        if(canvas.recording){
+            canvas.recording = false            
+            canvas.elem.style.outline = '0px';       
+            sim.capturer.stop()
+            sim.capturer.save();            
+            console.log("Video saved")
+        }
+    }
+    makeMovie(canvas, fps=60){
+        if(this.sleep > 0) throw new Error("Cacatoo not combine makeMovie with sleep. Instead, set sleep to 0 and set the framerate of the movie: makeMovie(canvas, fps).")     
+        if(!sim.recording){ 
+            sim.startRecording(canvas,fps)
+            sim.recording=true
         }
         else{
-            canvas.ctx.globalAlpha = 1.0;
-            canvas.mediaRecorder.stop();
-        }        
+            sim.stopRecording(canvas)
+            sim.recording=false
+        }
     }
+        
+        // // Download DataURL
+        // function dataURL_downloader(dataURL, name = canvas.label) {
+        //     const hyperlink = document.createElement("a");
+        //     // document.body.appendChild(hyperlink);
+        //     hyperlink.download = name;
+        //     hyperlink.target = '_blank';
+        //     hyperlink.href = dataURL;
+        //     hyperlink.click();
+        //     hyperlink.remove();
+        // };
+        // // Record a video ----------------------------------
+        // // Stream
+                
+        // if(!canvas.mediaRecorder){
+        //     canvas.videoStream = canvas.elem.captureStream();
+        //     canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
+            
+        //     canvas.ctx.globalAlpha = 0.6;            
+        //     canvas.chunks = [];
+        //     // Store chunks
+        //     canvas.mediaRecorder.ondataavailable = function (e) {
+        //         canvas.chunks.push(e.data);
+        //     };
+        //     // Download video after recording is stopped
+        //     canvas.mediaRecorder.onstop = function (e) {
+        //         const blob = new Blob(canvas.chunks, { 'type': 'video/mp4' });
+        //         const videoDataURL = URL.createObjectURL(blob);
+        //         dataURL_downloader(videoDataURL);
+        //         canvas.chunks = [];
+        //         canvas.mediaRecorder = undefined
+        //     };
+
+        //     canvas.mediaRecorder.start();
+            
+        // }
+        // else{
+        //     canvas.ctx.globalAlpha = 1.0;
+        //     canvas.mediaRecorder.stop();
+        // }        
+    //}
     /**
      *  addToggle adds a HTML checkbox element to the DOM-environment which allows the user
      *  to flip boolean values
@@ -1030,16 +1077,29 @@ class Simulation {
         else{
             const fs = require('fs');
             let string = ""
-            for(let i =0; i<model.nc;i++){                
-                for(let j=0;j<model.nr;j++){
-                    let prop = model.grid[i][j][property] ? model.grid[i][j][property] : -1
-                    string += [i,j,prop].join('\t')+'\n'
+            for(let x =0; x<model.nc;x++){                
+                for(let y=0;y<model.nr;y++){
+                    let prop = model.grid[x][y][property] ? model.grid[x][y][property] : -1
+                    string += [x,y,prop].join('\t')+'\n'
                 }                                       
             }
             fs.appendFileSync(filename, string)            
         }
     }
     
+
+    /**
+     * addMovieButton adds a standard button to record a video 
+     * @param {@GridModel} gridmodel The gridmodel containing the grid to be recorded. 
+     * @param {String} property The name of the display (canvas) to be recorded
+     * 
+    */
+    addMovieButton(gridmodel,canvasname,fps=60){
+        sim.addButton("Record", function() {
+            sim.makeMovie(gridmodel.canvases[canvasname],fps)        
+        })
+    }
+
     /**
      *  addPatternButton adds a pattern button to the HTML environment which allows the user
      *  to load a PNG which then sets the state of 'proparty' for the @GridModel. 
@@ -1058,8 +1118,8 @@ class Simulation {
         document.getElementById("form_holder").appendChild(imageLoader)
         let label = document.createElement("label")
         label.setAttribute("for", "imageLoader");
-        label.style = "background-color: rgb(217, 234, 245);border-radius: 10px;border: 2px solid rgb(177, 209, 231);padding:7px;font-size:12px;margin:10px;width:128px;"
-        label.innerHTML = "<font size=2>Select your own initial state</font>"
+        label.style = "background-color: rgb(239, 218, 245);border-radius: 10px;border: 2px solid rgb(188, 141, 201);padding:7px;font-size:10px;margin:10px;width:128px;"
+        label.innerHTML = "Select your own initial state"
         document.getElementById("form_holder").appendChild(label)
         let canvas = document.createElement('canvas');
         canvas.name = "imageCanvas"
@@ -1078,11 +1138,11 @@ class Simulation {
 
                     grid_data = get2DFromCanvas(canvas)
 
-                    for (let i = 0; i < grid.nc; i++) for (let j = 0; j < grid.nr; j++) grid.grid[i][j].alive = 0
-                    for (let i = 0; i < grid_data[0].length; i++)          // i are columns
-                        for (let j = 0; j < grid_data.length; j++)             // j are rows
+                    for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y].alive = 0
+                    for (let x = 0; x < grid_data[0].length; x++)          // x are columns
+                        for (let y = 0; y < grid_data.length; y++)             // y are rows
                         {
-                            grid.grid[Math.floor(i + grid.nc / 2 - img.width / 2)][Math.floor(j + grid.nr / 2 - img.height / 2)][property] = grid_data[j][i]
+                            grid.grid[Math.floor(x + grid.nc / 2 - img.width / 2)][Math.floor(y + grid.nr / 2 - img.height / 2)][property] = grid_data[y][x]
                         }
                     sim.display()
 
@@ -1116,7 +1176,7 @@ class Simulation {
         document.getElementById("form_holder").appendChild(checkpointLoader)
         let label = document.createElement("label")
         label.setAttribute("for", "checkpointLoader");
-        label.style = "background-color: rgb(217, 234, 245);border-radius: 10px;border: 2px solid rgb(177, 209, 231);padding:7px;font-size:11px;margin:10px;width:128px;"
+        label.style = "background-color: rgb(239, 218, 245);border-radius: 10px;border: 2px solid rgb(188, 141, 201);padding:7px;font-size:10px;margin:10px;width:128px;"
         label.innerHTML = "Reload from checkpoint"
         document.getElementById("form_holder").appendChild(label)
 
@@ -1141,43 +1201,43 @@ class Simulation {
         
     }
 
-    /**
+   /**
      *  initialPattern takes a @GridModel and loads a pattern from a PNG file. Note that this
      *  will only work when Cacatoo is ran on a server due to security issues. If you want to
      *  use this feature locally, there are plugins for most browser to host a simple local
      *  webserver. 
      *  (currently only supports black and white image)
      */
-    initialPattern(grid, property, image_path, x, y) {
-        let sim = this
-        if (typeof window != undefined) {
-            for (let i = 0; i < grid.nc; i++) for (let j = 0; j < grid.nr; j++) grid.grid[i][j][property] = 0
-            let tempcanv = document.createElement("canvas")
-            let tempctx = tempcanv.getContext('2d')
-            var tempimg = new Image()
-            tempimg.onload = function () {
-                tempcanv.width = tempimg.width
-                tempcanv.height = tempimg.height
-                tempctx.drawImage(tempimg, 0, 0);
-                let grid_data = get2DFromCanvas(tempcanv)
-                if (x + tempimg.width >= grid.nc || y + tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")
-                for (let i = 0; i < grid_data[0].length; i++)         // i are columns
-                    for (let j = 0; j < grid_data.length; j++)     // j are rows
-                    {
-                        grid.grid[x + i][y + j][property] = grid_data[j][i]
-                    }
-                sim.display()
-            }
+   initialPattern(grid, property, image_path, putx, puty) {
+    let sim = this;
+    if (typeof window != undefined) {
+        for (let x = 0; x < grid.nc; x++) for (let y = 0; y < grid.nr; y++) grid.grid[x][y][property] = 0;
+        let tempcanv = document.createElement("canvas");
+        let tempctx = tempcanv.getContext('2d');
+        var tempimg = new Image();
+        tempimg.onload = function () {
+            tempcanv.width = tempimg.width;
+            tempcanv.height = tempimg.height;
+            tempctx.drawImage(tempimg, 0, 0);
+            let grid_data = get2DFromCanvas(tempcanv);
+            if (putx + tempimg.width >= grid.nc || puty + tempimg.height >= grid.nr) throw RangeError("Cannot place pattern outside of the canvas")
+            for (let x = 0; x < grid_data[0].length; x++)         // x are columns
+                for (let y = 0; y < grid_data.length; y++)     // y are rows
+                {
+                    grid.grid[putx + x][puty + y][property] = grid_data[y][x];
+                }
+            sim.display();
+        };
 
-            tempimg.src = image_path
-            tempimg.crossOrigin = "anonymous"
-
-        }
-        else {
-            console.error("initialPattern currently only supported in browser-mode")
-        }
+        tempimg.src = image_path;
+        tempimg.crossOrigin = "anonymous";
 
     }
+    else {
+        console.error("initialPattern currently only supported in browser-mode");
+    }
+
+} 
 
     /**
      *  Toggle the mix option

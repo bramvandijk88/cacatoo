@@ -31,13 +31,14 @@
             title: "Petridish with local growth",
             description: "(mutational rescue of elevated death rate)",
             maxtime: 10000000,            
-            ncol: 200,
-            nrow: 200,		            // dimensions of the grid to build
+            ncol: 300,
+            nrow: 300,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
-            scale: 2,				    // scale of the grid (nxn pixels per grid cell)
+            scale: 1,				    // scale of the grid (nxn pixels per grid cell)
             graph_interval: 10,
             graph_update: 20,
             seed: 4129,
+            bgcolour: 'white',
             statecolours: { alive: 'default' }   // The background state '0' is never drawn
         }
 
@@ -58,20 +59,20 @@
 
         let birth_rate = 0.85        
 
-        sim.cells.nextState = function (i, j)       // Define the next-state function. This example is stochastic growth in a petri dish
+        sim.cells.nextState = function (x, y)       // Define the next-state function. This example is stochastic growth in a petri dish
         {                        
-            if (this.grid[i][j].alive == undefined) {
-                let neighbour = this.randomMoore8(this, i, j)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
+            if (this.grid[x][y].alive == undefined) {
+                let neighbour = this.randomMoore8(this, x, y)              // In the Moore8 neighbourhood of this grid count # of 1's for the 'alive' property        
                 if (neighbour.alive > 0 && sim.rng.genrand_real1() < birth_rate) {
-                    this.grid[i][j].alive = neighbour.alive
-                    if (sim.rng.genrand_real1() < mutationrate) this.grid[i][j].alive = (this.grid[i][j].alive + 1) % 19
+                    this.grid[x][y].alive = neighbour.alive
+                    if (sim.rng.genrand_real1() < mutationrate) this.grid[x][y].alive = (this.grid[x][y].alive + 1) % 19
                 }
             }
             else {
-                if (this.grid[i][j].age < 10 && this.grid[i][j].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
-                    this.grid[i][j].alive = undefined
+                if (this.grid[x][y].age < 10 && this.grid[x][y].alive <= mutations_required && sim.rng.genrand_real1() < death_rate_growing)
+                    this.grid[x][y].alive = undefined
                 else
-                    this.grid[i][j].age++
+                    this.grid[x][y].age++
             }
         }
 
@@ -101,9 +102,9 @@
         sim.cells.reset()
 
         sim.cells.bottleneck = function () {
-            for (let i = 0; i < this.nc; i++)
-                for (let j = 0; j < this.nr; j++)
-                    if (this.rng.genrand_real1() < 0.999) this.grid[i][j].alive = 0
+            for (let x = 0; x < this.nc; x++)
+                for (let y = 0; y < this.nr; y++)
+                    if (this.rng.genrand_real1() < 0.999) this.grid[x][y].alive = 0
         }
 
         sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"

@@ -10,9 +10,13 @@ compile_cacatoo()
 {            
     # For this, install rollup using 'npm install rollup' in the root of cacatoo. Needed for dev only	
     ./node_modules/rollup/dist/bin/rollup src/simulation.js -o dist/cacatoo.js -f cjs --exports "default"                              # Use rollup to bundle the package as a single commonJS file
+<<<<<<< HEAD
     # On MacOS @ KRUYT:
     #pkg/rollup/bin/rollup src/simulation.js -o dist/cacatoo.js -f cjs --exports "default"                              # Use rollup to bundle the package as a single commonJS file
     sed -i '' '$ d' dist/cacatoo.js # used to be sed -i '$ d' dist/cacatoo.js but that didnt work on Mac. Not yet tested if this still works on linux
+=======
+    sed -i '$ d' dist/cacatoo.js # added '' after i for OSX
+>>>>>>> xy_branch
     echo "
     try
     {
@@ -35,8 +39,7 @@ compile_cacatoo()
     
     jsdoc dist/cacatoo.js -d docs/jsdocs -R README.md           # Automatically recompile JSdocs
     echo -e "Compiling jsDOCs\t[OK]"
-    echo -en "Modifying paths...\t"
-    cp examples/03_expert/legend.png docs/TEs_streamlining                          # Everything below = fixing documentation files
+    echo -en "Modifying paths...\t"    
     cp dist/cacatoo.js docs/scripts/cacatoo.js
     cp style/cacatoo.css docs/styles/cacatoo.css
     cp lib/all.js docs/scripts/all.js
@@ -67,9 +70,15 @@ compile_cacatoo()
 
     sed -i '' 's/images\/cacatoo_recipe.png/..\/images\/cacatoo_recipe.png/g' docs/jsdocs/index.html
 
+<<<<<<< HEAD
     sed -i '' 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
     sed -i '' 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
     echo "[OK]"  
+=======
+    sed -i 's/images\/elephant_cacatoo_small.png/cacatoo\/images\/elephant_cacatoo_small.png/g' docs/scripts/cacatoo.js
+    sed -i 's/images\/gh.png/cacatoo\/images\/gh.png/g' docs/scripts/cacatoo.js           
+    echo "[OK]"
+>>>>>>> xy_branch
     if [ "$1" != "once" ]; then
         echo -en "Awaiting changes in the code..."
     fi

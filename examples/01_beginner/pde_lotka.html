@@ -1,0 +1,144 @@
+<!-- 
+
+    EXAMPLE FILE: Basic ODEs example
+    Odex.js is a library that can numerically solve ordinary differential equations. In 
+    Cacatoo, you can add such a system to each grid point, and couple them by diffusion!
+    
+-->
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+ /*-----------------------Start user-defined code ---------------------*/
+
+ let sim;
+
+function cacatoo() {
+
+    let config = {
+        title: "Numeric PDEs (ODEs in gridpoints)",
+        description: "Diffusion-coupled predator prey system (Lotka-Volterra)<br> <font size=1> A catastrophy kills some predators at time step 50.</font>",
+        maxtime: 1000000,
+        ncol: 64,
+        nrow: 64,		            // dimensions of the grid to build
+        wrap: [true, true],         // Wrap boundary [COLS, ROWS]   
+        scale: 3,				    // scale of the grid (nxn pixels per grid cell
+    }
+
+    sim = new Simulation(config)
+
+    sim.makeGridmodel("lotka");
+
+    sim.lotka.colourGradient('numpred', 100, [0, 0, 0], [240, 200, 0])                         // Will contain the ODEs, and show the abundance of PREDATORS
+    sim.lotka.colourGradient('numprey', 100, [0, 0, 0], [148, 0, 211])                         // Will contain the ODEs, and show the abundance of PREDATORS
+
+    sim.createDisplay_continuous({model:"lotka", property:"numpred", label:"Local predator density", // Createa a display for a continuous variable (ODE state for external resources)
+                        minval:0, maxval:200})        
+    sim.createDisplay_continuous({model:"lotka", property:"numprey", label:"Local prey density", // Createa a display for a continuous variable (ODE state for external resources)
+                        minval:0, maxval:200}) 
+
+    // Define a basic Lotka Volterra ODE system
+    // dx/dt = a x - b x y
+    // dy/dt = c x y - d y
+    let LotkaVolterra = function (a, b, c, d) {
+        return function (x, y) {
+            return [
+                a * y[0] - b * y[0] * y[1],         // y[0] is the prey which replicates with rate a, and gets consumed by the predator with rate b
+                c * y[0] * y[1] - d * y[1]          // y[1] is the predator which consumes prey with rate c, dies naturally with rate d
+            ]
+        }
+    }
+
+    // Configuration object with initial states, parameters, and diffusion rates
+    let ode_config = {
+        ode_name: "lotka",
+        init_states: [0, 0],               // y[0] and y[1]
+        parameters: [3.5, 0.5, 0.5, 0.8],    // a, b, c, d
+        diffusion_rates: [0.1, 0.01]
+    }       // diffusion of y[0] and y[1]
+
+    // Attaches an ODE to all gridpoints with initial state = [0,0]. 
+    // By default, all ODEs are stored in an array in the grid point, but...
+    // If you want to access it by name, you can give a name as the final variable (here lotka)
+    sim.lotka.attachODE(LotkaVolterra, ode_config);
+
+    // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
+    sim.lotka.grid[sim.lotka.nc / 2][sim.lotka.nr / 2].lotka.state = [10, 10]
+
+    // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
+    sim.lotka.nextState = function (x, y)       // Define the next-state function. 
+    {
+        // 1) ODE integration
+        this.grid[x][y].lotka.solveTimestep(0.1, opt_pos = true)
+
+
+        // 3) Update how this GP is displayed
+        let prey = Math.max(0, this.grid[x][y].lotka.state[0])       // Amount of prey (continuous variable)
+        let pred = Math.max(0, this.grid[x][y].lotka.state[1])       // Amount of pred (continuous variable)
+        this.grid[x][y].numpred = Math.min(Math.floor(pred * 30), 200)
+        this.grid[x][y].numprey = Math.min(Math.floor(prey * 30), 200)
+    }
+
+    // Custom function to count the sum of predators / preys in the grid (used in update below)
+    sim.lotka.sumStates = function () {
+        let sumpred = 0
+        let sumprey = 0
+
+        for (let x = 0; x < this.nc; x++)         // x are columns
+            for (let y = 0; y < this.nr; y++)     // y are rows
+            {
+                sumprey += this.grid[x][y].lotka.state[0]
+                sumpred += this.grid[x][y].lotka.state[1]
+            }
+        return [sumpred, sumprey]
+    }
+
+    sim.lotka.update = function () { 
+                if(sim.lotka.time==60){
+                            for (let x = 0; x < this.nc; x++)      
+            for (let y = 0; y < this.nr/2; y++)
+                                    this.grid[x][y].lotka.state[0] = 0
+                                }
+                    
+        this.asynchronous()  // For only solving the ODEs within grid points, asynchronous or synchronous is identical.
+        this.diffuseODEstates()
+        this.plotArray(["Predators", "Preys"],
+            [sim.lotka.sumStates()[0], sim.lotka.sumStates()[1]],
+            ["gold", "#FF00AA"],
+            "Total predator/prey abundance")
+        this.plotArray(["Predators", "Preys"],
+            [this.grid[this.nc / 2][this.nr / 2].lotka.state[1],
+            this.grid[this.nc / 2][this.nr / 2].lotka.state[0],],
+            ["gold", "#FF00AA"],
+            "ODE states in central grid point")
+    }
+
+    sim.addMovieButton(sim.lotka,"Local predator density",60)
+    sim.start()
+
+
+}
+
+
+/*-------------------------End user-defined code ---------------------*/
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header"></div>
+    <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="content" id="form_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

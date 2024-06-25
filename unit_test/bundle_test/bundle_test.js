@@ -52,37 +52,37 @@ function cacatoo() {
     
 
    
-    sim.model.nextState = function (i, j)                               
+    sim.model.nextState = function (x, y)                               
     {
-        let state = this.grid[i][j].discrete_var;
-        neigh = this.randomMoore8(this, i, j);               
-        sum = this.countMoore8(this, i, j, 'discrete_var',2);         
+        let state = this.grid[x][y].discrete_var;
+        neigh = this.randomMoore8(this, x, y);               
+        sum = this.countMoore8(this, x, y, 'discrete_var',2);         
             
         if (state == 0)                                                 
         {
             
-            //conc = this.countMoore8(this, i, j, 'species',3);   
+            //conc = this.countMoore8(this, x, y, 'species',3);   
             ran = this.rng.random();                              
 
             if (this.rng.random() < birth)                        
-                this.grid[i][j].discrete_var = neigh.discrete_var 
+                this.grid[x][y].discrete_var = neigh.discrete_var 
            
         }
 
         if (state == 1) 
-            this.grid[i][j].continuous_var = 1.2
+            this.grid[x][y].continuous_var = 1.2
         else 
-            this.grid[i][j].continuous_var -= sum / 1000           
+            this.grid[x][y].continuous_var -= sum / 1000           
 
 
-        this.grid[i][j].continuous_var2 -= sum
-        if(this.grid[i][j].continuous_var2 < 0)this.grid[i][j].continuous_var2 = 0
-        if(this.grid[i][j].continuous_var < 0)this.grid[i][j].continuous_var = 0
+        this.grid[x][y].continuous_var2 -= sum
+        if(this.grid[x][y].continuous_var2 < 0)this.grid[x][y].continuous_var2 = 0
+        if(this.grid[x][y].continuous_var < 0)this.grid[x][y].continuous_var = 0
 
         if (this.rng.random() < death)
         {   
-            this.grid[i][j].continuous_var2 = 100                      
-            this.grid[i][j].discrete_var = 0
+            this.grid[x][y].continuous_var2 = 100                      
+            this.grid[x][y].discrete_var = 0
         }
     }
 
@@ -114,12 +114,12 @@ function cacatoo() {
         let sumcont2 = 0
         let cont_array = []
 
-        for (let i = 0; i < this.nc; i++)          // i are columns
-            for (let j = 0; j < this.nr; j++)      // j are rows
+        for (let x = 0; x < this.nc; x++)          // x are columns
+            for (let y = 0; y < this.nr; y++)      // y are rows
             {
-                if(this.rng.random() < 0.01) cont_array.push(this.grid[i][j].continuous_var)
-                sumcont += this.grid[i][j].continuous_var 
-                sumcont2 += this.grid[i][j].continuous_var2                
+                if(this.rng.random() < 0.01) cont_array.push(this.grid[x][y].continuous_var)
+                sumcont += this.grid[x][y].continuous_var 
+                sumcont2 += this.grid[x][y].continuous_var2                
             }
         this.plotArray(["Conc 1", "Conc 2"],
             [sumcont, sumcont2],

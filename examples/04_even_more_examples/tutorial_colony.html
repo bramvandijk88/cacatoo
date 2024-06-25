@@ -70,9 +70,9 @@
         */
        
 
-        sim.growth.nextState = function (i, j) {
-            let randomneigh = this.randomMoore8(this, i, j)   // Random neighbour
-            let this_gp = this.grid[i][j]                     // This cell            
+        sim.growth.nextState = function (x, y) {
+            let randomneigh = this.randomMoore8(this, x, y)   // Random neighbour
+            let this_gp = this.grid[x][y]                     // This cell            
             if (!this_gp.species)                        // If empty spot
             {
                 if (randomneigh.species && randomneigh.internal_resources > 50) {   // Random neighbour is alive and it has enough resources
