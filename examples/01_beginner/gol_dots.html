@@ -37,16 +37,12 @@ function cacatoo(){
     let config = {
         title: "Game of Life",                       // The name of your cacatoo-simulation
         description: "Conway's Game of Life",        // And a description if you wish
-        maxtime: 1000000,                            // How many time steps the model continues to run
+        maxtime: 1000,                            // How many time steps the model continues to run
         ncol: 100,                                    // Number of columns (width of your grid)
         nrow: 100,		                             // Number of rows (height of your grid)        
         wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
-<<<<<<< HEAD
         scale: 5,				                     // Scale of the grid (nxn pixels per grid point)
-        sleep: 100,
-=======
-        scale: 4,				                     // Scale of the grid (nxn pixels per grid point)
->>>>>>> xy_branch
+        sleep: 1,
         statecolours: { 'alive': { 1: 'violet' } },   // Colours for each state. Background (0) defaults to black. 
     }
 
@@ -94,12 +90,8 @@ function cacatoo(){
         applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
     */
     sim.gol.update = function () {
-<<<<<<< HEAD
         this.synchronous()         // Applied as many times as it can in 1/60th of a second        
-        if(this.time%100==0)sim.divToImage("canvas_holder","LotkaVolterra")
-=======
-        this.synchronous()         // Applied as many times as it can in 1/60th of a second                    
->>>>>>> xy_branch
+        if(this.time%1000==0) sim.sectionToPNG("canvas_holder","GoL_dots")
     }
 
     /*
