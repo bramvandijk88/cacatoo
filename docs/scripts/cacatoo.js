@@ -197,6 +197,7 @@ function shuffle(array, rng) {
     return array;
 }
 
+
 /** 
  *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
  *  @param {String} string string to convert to RGB
@@ -318,7 +319,7 @@ function random_colours(num_colours,rng)
 }
 
 /**
- *  Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
+ *  Gridmodel is the main type of model in Cacatoo. Most of these models
  *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
  *  them more like PDEs. 
  */
@@ -341,7 +342,7 @@ class Gridmodel {
         this.random = () => { return this.rng.random()};
         this.randomInt = (a,b) => { return this.rng.randomInt(a,b)};                
         this.statecolours = this.setupColours(config.statecolours,config.num_colours); // Makes sure the statecolours in the config dict are parsed (see below)
-        this.lims = {};
+
         this.scale = config.scale || 1;
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
@@ -1059,7 +1060,7 @@ class Gridmodel {
     }
 
     /** Assign each gridpoint a new random position on the grid. This simulated mixing,
-     *  but does not guarantee a "well-mixed" system per se (interactions are still)
+     *  but does not guarantee a "well-mixed" system per se (interactions are still local)
      *  calculated based on neighbourhoods. 
      */
     perfectMix() {
@@ -1430,22 +1431,830 @@ let CopyGridODEs = function(cols, rows, template) {
 };
 
 /**
+ *  Quadtrees is a hierarchical data structure to quickly look up boids in flocking models to speed up the simulation
+ */
+
+class QuadTree {
+    constructor(boundary, capacity) {
+        this.boundary = boundary;    // Object with x, y coordinates and a width (w) and height (h)
+        this.capacity = capacity;    // How many boids fit in this Quadrant until it divides in 4 more quadrants
+        this.points = [];            // Points contain the boids (object with x and y position)
+        this.divided = false;        // Boolean to check if this Quadrant is futher divided
+    }
+
+    // Method to subdivide the current Quadtree into four equal quadrants
+    subdivide() {
+        let {x,y,w,h} = this.boundary;
+        let nw = { x: x-w/4, y: y-h/4, w: w/2, h: h/2 };
+        let ne = { x: x+w/4, y: y-h/4, w: w/2, h: h/2 };
+        let sw = { x: x-w/4, y: y+h/4, w: w/2, h: h/2 };
+        let se = { x: x+w/4, y: y+h/4, w: w/2, h: h/2 };
+
+        this.northwest = new QuadTree(nw, this.capacity);
+        this.northeast = new QuadTree(ne, this.capacity);
+        this.southwest = new QuadTree(sw, this.capacity);
+        this.southeast = new QuadTree(se, this.capacity);
+
+        this.divided = true; // Subdivisions are not divided when spawned, but this one is.
+    }
+
+    // Insert a point into the quadtree to query it later (! recursive)
+    insert(point) {
+        // If this point doesn't belong here, return false
+        if (!this.contains(this.boundary, point.position)) {
+            return false
+        }
+
+        // If the capacity is not yet reached, add the point and return true
+        if (this.points.length < this.capacity) {
+            this.points.push(point);
+            return true;
+        }
+
+        // Capacity is reached, divide the quadrant
+        if (!this.divided) {
+            this.subdivide();
+        }
+
+        // Try and insert in one of the subquadrants, and return true if one is succesful (here is the recursion)
+        if (this.northwest.insert(point) || this.northeast.insert(point) ||
+            this.southwest.insert(point) || this.southeast.insert(point)) {
+            return true
+        }
+
+        return false
+    }
+
+    // Test if a point is within a rectangle
+    contains(rect, point) {
+        return !(point.x < rect.x - rect.w/2 || point.x > rect.x + rect.w/2 ||
+                 point.y < rect.y - rect.h/2 || point.y > rect.y + rect.h/2)
+    }
+
+    // Query, another recursive function
+    query(range, found) {
+        // If there are no points yet, make a list of points
+        if (!found) found = [];  
+
+        // If it doesn't intersect, return whatever was found so far and move on
+        if (!this.intersects(this.boundary, range)) {
+            return found
+        }
+
+        // Check for all points if it is in this quadtree (could also be in one of the children QTs!)
+        for (let p of this.points) {
+            if (this.contains(range, p.position)) {
+                found.push(p);
+            }
+        }
+
+        // Test the children QTs too (here is the recursion!)
+        if (this.divided) {
+            this.northwest.query(range, found);
+            this.northeast.query(range, found);
+            this.southwest.query(range, found);
+            this.southeast.query(range, found);
+        }
+        // Done, return everything that was found. 
+        return found;
+    }
+
+    // Check if two rectangles are intersecting (usually query rectangle vs quadtree boundary)
+    intersects(rect1, rect2) {
+        return !(rect2.x - rect2.w / 2 > rect1.x + rect1.w / 2 ||
+                 rect2.x + rect2.w / 2 < rect1.x - rect1.w / 2 ||
+                 rect2.y - rect2.h / 2 > rect1.y + rect1.h / 2 ||
+                 rect2.y + rect2.h / 2 < rect1.y - rect1.h / 2);
+    }
+
+    // Draw the qt on the provided ctx
+    draw(ctx,scale) {
+        ctx.strokeStyle = '#777777';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.boundary.x*scale - this.boundary.w*scale / 2, this.boundary.y*scale - this.boundary.h*scale / 2, this.boundary.w*scale, this.boundary.h*scale);
+
+        if (this.divided) {
+            this.northwest.draw(ctx,scale);
+            this.northeast.draw(ctx,scale);
+            this.southwest.draw(ctx,scale);
+            this.southeast.draw(ctx,scale);
+        }
+    }
+}
+
+/**
+ *  Flockmodel is the second modeltype in Cacatoo, which uses Boids that can interact with a @Gridmodel
+ */
+
+class Flockmodel {
+    /**
+    *  The constructor function for a @Flockmodl object. Takes the same config dictionary as used in @Simulation
+    *  @param {string} name The name of your model. This is how it will be listed in @Simulation 's properties
+    *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo GridModel. 
+    *  @param {MersenneTwister} rng A random number generator (MersenneTwister object)
+    */
+    constructor(name, config, rng) {
+        this.name = name;
+        this.config = config;
+        this.time = 0;
+        this.width = config.ncol || 600;
+        this.height = config.nrow || 600;
+        this.scale = config.scale || 1;
+        
+        this.rng = rng;
+        this.random = () => { return this.rng.random()};
+        this.randomInt = (a,b) => { return this.rng.randomInt(a,b)};                
+        
+        this.statecolours = this.setupColours(config.statecolours,config.num_colours); // Makes sure the statecolours in the config dict are parsed (see below)
+
+        this.graph_update = config.graph_update || 20;
+        this.graph_interval = config.graph_interval || 2;
+        this.bgcolour = config.bgcolour || undefined;
+        
+        // Functionality for the quadtree
+        
+        this.graphs = {};                // Object containing all graphs belonging to this model (HTML usage only)
+        this.canvases = {};              // Object containing all Canvases belonging to this model (HTML usage only)
+
+        let radius_alignment = this.config.alignment.radius;
+        let radius_cohesion = this.config.cohesion.radius;
+        let radius_separation = this.config.separation.radius;
+        this.neighbourhood_radius = Math.max(radius_alignment,radius_cohesion,radius_separation);
+        this.mouse_radius = this.config.mouse_radius;
+        this.mousecoords = {x:-1000,y:-1000};
+        this.boids = [];
+
+        this.populateSpot();
+        this.build_quadtree();
+
+    }
+
+    build_quadtree(){
+        let boundary = { x: this.width/2, y: this.height/2, w: this.width, h: this.height };
+        this.qt = new QuadTree(boundary, this.config.qt_capacity);
+        for (let boid of this.boids) {
+            this.qt.insert(boid);
+        }
+    }
+
+    /**
+     * Populates the space with individuals in a certain radius from the center
+     */
+    populateSpot(num,put_x,put_y,s){
+        let n = this.config.num_boids ? this.config.num_boids : 0;
+
+        let size = s || this.width/2;
+        let x = put_x || this.width/2;
+        let y = put_y || this.height/2;
+        for(let i=0; i<n;i++){
+            let angle = this.random() * 2 * Math.PI;
+            this.boids.push({
+                    position: { x: x + size - 2*this.random()*size, y: y+size-2*this.random()*size },
+                    velocity: { x: 0.1*Math.cos(angle) * this.config.max_speed, y: 0.1*Math.sin(angle) * this.config.max_speed },
+                    acceleration: { x: 0, y: 0 }
+            });
+            
+        }
+    }
+    /** TODO
+    *  Saves the current flock a JSON object 
+    *  @param {string} filename The name of of the JSON file
+    */
+    save_flock(filename) 
+    {      
+        
+    }
+
+    /**
+    *  Reads a JSON file and loads a JSON object onto this flockmodel. Reading a local JSON file will not work in browser.
+    *  Gridmodels 'addCheckpointButton' instead, which may be implemented for flocks at a later stage.
+    *  @param {string} file Path to the json file
+    */
+    load_flock(file)
+    {
+        
+    }
+
+    /** Initiate a dictionary with colour arrays [R,G,B] used by Graph and Canvas classes
+    *   @param {statecols} object - given object can be in two forms
+    *                             | either {state:colour} tuple (e.g. 'alive':'white', see gol.html) 
+    *                             | or {state:object} where objects are {val:'colour},
+    *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
+    */
+    setupColours(statecols,num_colours=18) {
+        let return_dict = {};
+        if (statecols == null)           // If the user did not define statecols (yet)
+            return return_dict["state"] = default_colours(num_colours)
+        let colours = dict_reverse(statecols) || { 'val': 1 };
+
+        for (const [statekey, statedict] of Object.entries(colours)) {
+            if (statedict == 'default') {
+                return_dict[statekey] = default_colours(num_colours+1);
+            }
+            else if (statedict == 'random') {
+                return_dict[statekey] = random_colours(num_colours+1,this.rng);
+            }
+            else if (statedict == 'viridis') {
+                 let colours = this.colourGradientArray(num_colours, 0,[68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37]); 
+                 return_dict[statekey] = colours;
+            }
+            else if (statedict == 'inferno') {
+                let colours = this.colourGradientArray(num_colours, 0,[20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]); 
+                return_dict[statekey] = colours;                
+            }
+            else if (statedict == 'inferno_rev') {
+                let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107]);
+                return_dict[statekey] = colours;                
+            }
+            else if (typeof statedict === 'string' || statedict instanceof String)       // For if 
+            {
+                return_dict[statekey] = stringToRGB(statedict);
+            }
+            else {
+                let c = {};
+                for (const [key, val] of Object.entries(statedict)) {
+                    if (Array.isArray(val)) c[key] = val;
+                    else c[key] = stringToRGB(val);
+                }
+                return_dict[statekey] = c;
+            }
+        }
+        return return_dict
+    }
+
+
+    /** Initiate a gradient of colours for a property (return array only) 
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * For example usage, see colourViridis below
+    */
+    colourGradientArray(n,total) 
+    {        
+        let color_dict = {};
+        //color_dict[0] = [0, 0, 0]
+
+        let n_arrays = arguments.length - 2;
+        if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
+        let segment_len = Math.ceil(n / (n_arrays-1));
+
+        if(n <= 10 && n_arrays > 3) console.warn("Cacatoo warning: forming a complex gradient with only few colours... hoping for the best.");
+        let total_added_colours = 0;
+
+        for (let arr = 0; arr < n_arrays - 1 ; arr++) {
+            let arr1 = arguments[2 + arr];
+            let arr2 = arguments[2 + arr + 1];
+
+            for (let i = 0; i < segment_len; i++) {
+                let r, g, b;
+                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0])*( i / (segment_len-1) ));
+                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len-1)));
+                if (arr2[1] > arr1[1]) g = Math.floor(arr1[1] + (arr2[1] - arr1[1]) * (i / (segment_len - 1)));
+                else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)));
+                if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)));
+                else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)));
+                color_dict[Math.floor(i + arr * segment_len + total)+1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
+                total_added_colours++;
+                if(total_added_colours == n) break
+            }
+        }        
+        return(color_dict)
+    }
+
+    /** Initiate a gradient of colours for a property. 
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * For example usage, see colourViridis below
+    */
+    colourGradient(property, n) {        
+        let offset = 2;        
+        let n_arrays = arguments.length - offset;
+        
+        if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
+        
+        let color_dict = {};
+        let total = 0;
+
+        if(this.statecolours !== undefined && this.statecolours[property] !== undefined){
+            color_dict = this.statecolours[property];
+            total = Object.keys(this.statecolours[property]).length;
+        } 
+        
+        let all_arrays = [];
+        for (let arr = 0; arr < n_arrays ; arr++) all_arrays.push(arguments[offset + arr]);
+
+        let new_dict = this.colourGradientArray(n,total,...all_arrays);
+
+        this.statecolours[property] = {...color_dict,...new_dict};
+    }
+
+    /** Initiate a gradient of colours for a property, using the Viridis colour scheme (purpleblue-ish to green to yellow) or Inferno (black to orange to yellow)
+    * @param {string} property The name of the property to which the colour is assigned
+    * @param {int} n How many colours the gradient consists off
+    * @param {bool} rev Reverse the viridis colour gradient
+    */
+    colourViridis(property, n, rev = false, option="viridis") {
+
+        if(option=="viridis"){
+            if (!rev) this.colourGradient(property, n, [68, 1, 84], [59, 82, 139], [33, 144, 140], [93, 201, 99], [253, 231, 37]);         // Viridis
+            else this.colourGradient(property, n, [253, 231, 37], [93, 201, 99], [33, 144, 140], [59, 82, 139], [68, 1, 84]);             // Viridis
+        }
+        else if(option=="inferno"){
+            if (!rev) this.colourGradient(property, n, [20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]);         // Inferno
+            else this.colourGradient(property, n, [246, 215, 70], [229, 92, 45], [132, 32, 107], [20, 11, 52]);              // Inferno
+        }
+    }    
+
+     /** Flocking of individuals, based on X, Y, Z (TODO)
+    * @param {Object} i The individual to be updates
+    */
+    flock(){
+        for (let i = 0; i < this.boids.length; i++) {
+            let boid = this.boids[i];
+            let neighbours = this.getIndividualsInRange(boid.position, this.neighbourhood_radius);
+            let alignment = this.calculateAlignment(boid, neighbours);
+            let separation = this.calculateSeparation(boid, neighbours);
+            let cohesion = this.calculateCohesion(boid, neighbours);
+            
+            boid.acceleration.x += alignment.x * this.config.alignment.strength + separation.x * this.config.separation.strength + cohesion.x * this.config.cohesion.strength; 
+            boid.acceleration.y += alignment.y * this.config.alignment.strength + separation.y * this.config.separation.strength + cohesion.y * this.config.cohesion.strength; 
+            
+            // Limit the force applied to the boid
+            let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
+            if (accLength > this.config.max_force) {
+                boid.acceleration.x = (boid.acceleration.x / accLength) * this.config.max_force;
+                boid.acceleration.y = (boid.acceleration.y / accLength) * this.config.max_force;
+            }
+
+            // Update velocity
+            boid.velocity.x += boid.acceleration.x;
+            boid.velocity.y += boid.acceleration.y;
+
+            // Limit speed
+            let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
+            if (speed > this.config.max_speed) {
+                boid.velocity.x = (boid.velocity.x / speed) *this.config.max_speed;
+                boid.velocity.y = (boid.velocity.y / speed) *this.config.max_speed;
+            }
+
+            // Update position
+            boid.position.x += boid.velocity.x;
+            boid.position.y += boid.velocity.y;
+            
+            // Wrap around edges
+            if (boid.position.x < 0) boid.position.x += this.width;
+            if (boid.position.x >= this.width) boid.position.x -= this.width;
+            if (boid.position.y < 0) boid.position.y += this.height;
+            if (boid.position.y >= this.height) boid.position.y -= this.height;
+
+            // Reset acceleration to 0 each cycle
+            boid.acceleration.x = 0;
+            boid.acceleration.y = 0;
+        }
+        this.build_quadtree();
+    }
+    
+    calculateAlignment(boid, neighbours) {
+        let steering = { x: 0, y: 0 };
+        if (neighbours.length > 0) {
+            for (let neighbour of neighbours) {
+                steering.x += neighbour.velocity.x;
+                steering.y += neighbour.velocity.y;
+            }
+            steering.x /= neighbours.length;
+            steering.y /= neighbours.length;
+            steering = this.normalise(steering);
+            steering.x *= this.config.max_speed;
+            steering.y *= this.config.max_speed;
+            steering.x -= boid.velocity.x;
+            steering.y -= boid.velocity.y;
+        }
+        return steering;
+    }
+
+    calculateSeparation(boid, neighbours) {
+        let steering = { x: 0, y: 0 };
+        if (neighbours.length > 0) {
+            for (let neighbour of neighbours) {
+                let dx = boid.position.x - neighbour.position.x;
+                let dy = boid.position.y - neighbour.position.y;
+
+                // Adjust for wrapping in the x direction
+                if (Math.abs(dx) > this.width / 2) {
+                    dx = dx - Math.sign(dx) * this.width;
+                }
+
+                // Adjust for wrapping in the y direction
+                if (Math.abs(dy) > this.height / 2) {
+                    dy = dy - Math.sign(dy) * this.height;
+                }
+
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < this.config.separation.radius) {
+                    let difference = { x: dx, y: dy };
+                    difference = this.normalise(difference);
+                    steering.x += difference.x ;
+                    steering.y += difference.y ;
+                }
+            }
+            if (steering.x !== 0 || steering.y !== 0) {
+                steering.x /= neighbours.length;
+                steering.y /= neighbours.length;
+                steering = this.normalise(steering);
+                steering.x *= this.config.max_speed;
+                steering.y *= this.config.max_speed;
+                steering.x -= boid.velocity.x;
+                steering.y -= boid.velocity.y;
+            }
+        }
+        return steering;
+    }
+
+    calculateCohesion(boid, neighbours) {
+        let steering = { x: 0, y: 0 };
+        if (neighbours.length > 0) {
+            let centerOfMass = { x: 0, y: 0 };
+            for (let neighbour of neighbours) {
+                let dx = neighbour.position.x - boid.position.x;
+                let dy = neighbour.position.y - boid.position.y;
+
+                // Adjust for wrapping in the x direction
+                if (Math.abs(dx) > this.width / 2) {
+                    dx = dx - Math.sign(dx) * this.width;
+                }
+
+                // Adjust for wrapping in the y direction
+                if (Math.abs(dy) > this.height / 2) {
+                    dy = dy - Math.sign(dy) * this.height;
+                }
+
+                centerOfMass.x += boid.position.x + dx;
+                centerOfMass.y += boid.position.y + dy;
+            }
+            centerOfMass.x /= neighbours.length;
+            centerOfMass.y /= neighbours.length;
+            steering.x = centerOfMass.x - boid.position.x;
+            steering.y = centerOfMass.y - boid.position.y;
+            steering = this.normalise(steering);
+            steering.x *= this.config.max_speed;
+            steering.y *= this.config.max_speed;
+            steering.x -= boid.velocity.x;
+            steering.y -= boid.velocity.y;
+        }
+        return steering;
+    }
+
+    normalise(vector) {
+        let length = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+        if (length > 0) return { x: vector.x / length, y: vector.y / length }
+        else return { x: 0, y: 0 };
+    }
+
+    applyBoidRules(i, neighbours, alignment, separation, cohesion) {
+        let alignmentFactor = alignment.strength;
+        let separationFactor = separation.strength;
+        let cohesionFactor = cohesion.strength;
+
+        let totalNeighbours = neighbours.length; // Note: self-inclusive
+        
+        if (totalNeighbours == 1) {// Only self in range, so nothing changes
+            return { vx: 0, vy: 0 }; 
+        }
+    
+        let avgVx = 0;
+        let avgVy = 0;
+        let alignNeighbours = 0;
+        
+        let separationVx = 0;
+        let separationVy = 0;
+
+        let avgNeighbourX = 0;
+        let avgNeighbourY = 0;
+        let cohesionNeighbours = 0;
+
+        for (let neighbour of neighbours) {
+            if(i==neighbour) continue
+
+            let dx = neighbour.x - i.x;
+            let dy = neighbour.y - i.y;
+
+            let distance = Math.sqrt(dx*dx, dy*dy);
+            if (distance < alignment.radius){ // Alignment
+                alignNeighbours++;
+                avgVx += neighbour.vx;
+                avgVy += neighbour.vy;
+            }
+            if (distance < separation.radius) { // Separation
+                separationVx += dx;
+                separationVy += dy;
+            }
+            if (distance < cohesion.radius) { // Cohesion 
+                cohesionNeighbours++;
+                avgNeighbourX += neighbour.x;
+                avgNeighbourY += neighbour.y;
+            }
+            
+        }
+        
+
+        if(alignNeighbours>0){
+            avgVx /= alignNeighbours;
+            avgVy /= alignNeighbours;
+        }
+        if(cohesionNeighbours>0){
+            avgNeighbourX /= cohesionNeighbours;
+            avgNeighbourY /= cohesionNeighbours;
+        }
+        
+        // Calculate resultant velocity based on the rules
+        let resultVx = alignmentFactor * avgVx + separationFactor * separationVx + cohesionFactor * (avgNeighbourX - i.x);
+        let resultVy = alignmentFactor * avgVy + separationFactor * separationVy + cohesionFactor * (avgNeighbourY - i.y);
+
+        return { vx: resultVx, vy: resultVy };
+    }
+
+    
+    /** Apart from flocking itself, any updates for the individuals are done here.
+     * By default, nextState is empty. It should be defined by the user (see examples)
+    */
+    update() {
+        
+    }
+
+    /** If called for the first time, make an update order (list of ints), otherwise just shuffle it. */
+    set_update_order() {
+        if (typeof this.upd_order === 'undefined')  // "Static" variable, only create this array once and reuse it
+        {
+            this.upd_order = [];
+            for (let n = 0; n < this.individuals.length; n++) {
+                this.upd_order.push(n);
+            }
+        }
+        shuffle(this.upd_order, this.rng);         // Shuffle the update order
+    }
+
+    // TODO UITLEG
+    getGridpoint(i,gridmodel){
+        return gridmodel.grid[Math.floor(i.x)][Math.floor(i.y)]
+    }
+
+    // TODO UITLEG
+    getNearbyGridpoints(boid,gridmodel,radius){
+        let gps = [];
+        let ix = Math.floor(boid.position.x);
+        let iy = Math.floor(boid.position.y);
+        for (let x = ix-radius; x < ix+radius; x++)                         
+        for (let y = iy-radius; y < iy+radius; y++)                         
+        {
+            if ((Math.pow((boid.position.x - x), 2) + Math.pow((boid.position.y - y), 2)) < radius*radius){
+                gps.push(gridmodel.grid[(x + gridmodel.nc) % gridmodel.nc][(y + gridmodel.nr) % gridmodel.nr]);
+            }
+        }
+        return gps
+    }
+
+    getIndividualsInRange(position,radius){
+        let qt = this.qt;
+        let width = this.width;
+        let height = this.height;
+        let neighbours = [];     // Collect all found neighbours here
+        const offsets = [       // Fetch in 9 possible ways for wrapping around the grid
+            { x: 0, y: 0 },         
+            { x: width, y: 0 },
+            { x: -width, y: 0 },
+            { x: 0, y: height },
+            { x: 0, y: -height },
+            { x: width, y: height },
+            { x: width, y: -height },
+            { x: -width, y: height },
+            { x: -width, y: -height }
+        ];				
+
+        // Fetch all neighbours for each range
+        for (const offset of offsets) {
+            let range = { x:position.x+offset.x, y:position.y+offset.y, w:radius*2, h:radius*2 };
+            neighbours.push(...qt.query(range));
+        }
+        //return(neighbours)
+        // Filter neighbours to only include those within the circular radius (a bit quicker than slicing in for loop, i noticed)
+        return neighbours.filter(neighbour => {
+            let dx = neighbour.position.x - position.x;
+            let dy = neighbour.position.y - position.y;
+            // Adjust for wrapping in the x direction
+            if (Math.abs(dx) > width/2) {
+                dx = dx - Math.sign(dx) * width;
+            }
+        
+            // Adjust for wrapping in the y direction
+            if (Math.abs(dy) > height/2) {
+                dy = dy - Math.sign(dy) * height;
+            }
+        
+            return (dx*dx + dy*dy) <= (radius*radius);
+        }); 
+    }
+
+    /** From a list of individuals, e.g. this.individuals, sample one weighted by a property. This is analogous
+     *  to spinning a "roulette wheel". Also see a hard-coded versino of this in the "cheater" example
+     *  @param {Array} individuals Array of individuals to sample from (e.g. living individuals in neighbourhood)
+     *  @param {string} property The property used to weigh gps (e.g. fitness)
+     *  @param {float} non Scales the probability of not returning any gp. 
+     */
+    rouletteWheel(individuals, property, non = 0.0) {
+        let sum_property = non;
+        for (let i = 0; i < individuals.length; i++) sum_property += individuals[i][property];       // Now we have the sum of weight + a constant (non)
+        let randomnr = this.rng.genrand_real1() * sum_property;                // Sample a randomnr between 0 and sum_property        
+        let cumsum = 0.0;                                                    // This will keep track of the cumulative sum of weights
+        for (let i = 0; i < individuals.length; i++) {
+            cumsum += individuals[i][property];
+            if (randomnr < cumsum) return individuals[i]
+        }
+        return
+    }
+    
+    /** Assign each individual a new random position in space. This simulated mixing,
+     *  but does not guarantee a "well-mixed" system per se (interactions are still local)
+     *  calculated based on neighbourhoods. 
+     */
+    perfectMix(){
+        return "Perfectly mixed the individuals"
+    }
+
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of floats to plot (here plotted over time)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
+    plotArray(graph_labels, graph_values, cols, title, opts) {
+        if (typeof window == 'undefined') return
+        if (!(title in this.graphs)) {
+            cols = parseColours(cols);
+            graph_values.unshift(this.time);
+            graph_labels.unshift("Time");
+            this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts);
+        }
+        else {
+            if (this.time % this.graph_interval == 0) {
+                graph_values.unshift(this.time);
+                graph_labels.unshift("Time");
+                this.graphs[title].push_data(graph_values);
+            }
+            if (this.time % this.graph_update == 0) {
+                this.graphs[title].update();
+            }
+        }
+    }
+
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_values Array of floats to plot (here plotted over time)
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
+     plotPoints(graph_values, title, opts) {
+        let graph_labels = Array.from({length: graph_values.length}, (v, i) => 'sample'+(i+1));
+        let cols = Array.from({length: graph_values.length}, (v, i) => 'black');
+
+        let seriesname = 'average';
+        let sum = 0;
+        let num = 0;
+        // Get average of all defined values
+        for(let n = 0; n< graph_values.length; n++){
+            if(graph_values[n] !== undefined) {
+                sum += graph_values[n];
+                num++;
+            }
+        }
+        let avg = (sum / num) || 0;
+        graph_values.unshift(avg);
+        graph_labels.unshift(seriesname);
+        cols.unshift("#666666");
+        
+        if(opts == undefined) opts = {};
+        opts.drawPoints = true;
+        opts.strokeWidth = 0;
+        opts.pointSize = 1;
+        
+        opts.series = {[seriesname]: {strokeWidth: 3.0, strokeColor:"green", drawPoints: false, pointSize: 0, highlightCircleSize: 3 }};
+        if (typeof window == 'undefined') return
+        if (!(title in this.graphs)) {
+            cols = parseColours(cols);
+            graph_values.unshift(this.time);
+            graph_labels.unshift("Time");
+            this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts);
+        }
+        else {
+            if (this.time % this.graph_interval == 0) {
+                graph_values.unshift(this.time);
+                graph_labels.unshift("Time");
+                this.graphs[title].push_data(graph_values);
+            }
+            if (this.time % this.graph_update == 0) {
+                this.graphs[title].update();
+            }
+        }
+    }
+
+
+    /** 
+     * Adds a dygraph-plot to your DOM (if the DOM is loaded)
+     *  @param {Array} graph_labels Array of strings for the graph legend
+     *  @param {Array} graph_values Array of 2 floats to plot (first value for x-axis, second value for y-axis)
+     *  @param {Array} cols Array of colours to use for plotting
+     *  @param {String} title Title of the plot
+     *  @param {Object} opts dictionary-style list of opts to pass onto dygraphs
+    */
+    plotXY(graph_labels, graph_values, cols, title, opts) {
+        if (typeof window == 'undefined') return
+        if (!(title in this.graphs)) {
+            cols = parseColours(cols);
+            this.graphs[title] = new Graph(graph_labels, graph_values, cols, title, opts);
+        }
+        else {
+            if (this.time % this.graph_interval == 0) {
+                this.graphs[title].push_data(graph_values);
+            }
+            if (this.time % this.graph_update == 0) {
+                this.graphs[title].update();
+            }
+        }
+
+    }
+
+    /** 
+     * Easy function to add a pop-sizes plot (wrapper for plotArrays)
+     *  @param {String} property What property to plot (needs to exist in your model, e.g. "species" or "alive")
+     *  @param {Array} values Which values are plotted (e.g. [1,3,4,6])     
+    */
+    plotPopsizes(property, values, opts) {
+        if (typeof window == 'undefined') return
+        if (this.time % this.graph_interval != 0 && this.graphs[`Population sizes (${this.name})`] !== undefined) return
+        // Wrapper for plotXY function, which expects labels, values, colours, and a title for the plot:
+        // Labels
+        let graph_labels = [];
+        for (let val of values) { graph_labels.push(property + '_' + val); }
+
+        // Values
+        let popsizes = this.getPopsizes(property, values);
+        let graph_values = popsizes;
+
+        // Colours
+        let colours = [];
+
+        for (let c of values) {
+            if (this.statecolours[property].constructor != Object)
+                colours.push(this.statecolours[property]);
+            else
+                colours.push(this.statecolours[property][c]);
+        }
+        // Title
+        let title = "Population sizes (" + this.name + ")";
+        if(opts && opts.title) title = opts.title;
+        
+        this.plotArray(graph_labels, graph_values, colours, title, opts);
+
+
+
+        //this.graph = new Graph(graph_labels,graph_values,colours,"Population sizes ("+this.name+")")                            
+    }
+
+    drawSlide(canvasname,prefix="grid_") {
+        let canvas = this.canvases[canvasname].elem; // Grab the canvas element
+        let timestamp = sim.time.toString();
+        timestamp = timestamp.padStart(5, "0");
+        canvas.toBlob(function(blob) 
+        {
+            saveAs(blob, prefix+timestamp+".png");
+        });
+    }
+
+    resetPlots() {
+        this.time = 0;
+        for (let g in this.graphs) {
+            this.graphs[g].reset_plot();
+        }
+    }
+}
+
+/**
  *  Canvas is a wrapper-class for a HTML-canvas element. It is linked to a @Gridmodel object, and stores what from that @Gridmodel should be displayed (width, height, property, scale, etc.)
  */
 
 class Canvas {
     /**
     *  The constructor function for a @Canvas object. 
-    *  @param {Gridmodel} gridmodel The gridmodel to which this canvas belongs
+    *  @param {model} model The model ( @Gridmodel or @Flockmodel ) to which this canvas belongs
     *  @param {string} property the property that should be shown on the canvas
     *  @param {int} height height of the canvas (in rows)
     *  @param {int} width width of the canvas (in cols)
     *  @param {scale} scale of the canvas (width/height of each gridpoint in pixels)
     */
-    constructor(gridmodel, prop, lab, height, width, scale, continuous) {
+    constructor(model, prop, lab, height, width, scale, continuous, addToCanvas) {
         this.label = lab;
-        this.gridmodel = gridmodel;
-        this.statecolours = gridmodel.statecolours;
+        this.model = model;
+        this.statecolours = model.statecolours;
         this.property = prop;
         this.height = height;
         this.width = width;
@@ -1455,7 +2264,8 @@ class Canvas {
         this.offset_x = 0;
         this.offset_y = 0;        
         this.phase = 0;
-
+        this.addToCanvas = addToCanvas;
+        
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
         {
             this.elem = document.createElement("canvas");
@@ -1465,15 +2275,16 @@ class Canvas {
             this.canvasdiv = document.createElement("div");
             this.canvasdiv.className = "grid-holder";
             
-            
             this.elem.className = "canvas-cacatoo";
             this.elem.width = this.width * this.scale;
             this.elem.height = this.height * this.scale;
-            this.canvasdiv.appendChild(this.elem);
-            this.canvasdiv.appendChild(this.titlediv);            
-            document.getElementById("canvas_holder").appendChild(this.canvasdiv);
+            if(!addToCanvas){
+                this.canvasdiv.appendChild(this.elem);
+                this.canvasdiv.appendChild(this.titlediv);            
+                document.getElementById("canvas_holder").appendChild(this.canvasdiv);
+            }
             this.ctx = this.elem.getContext("2d", { willReadFrequently: true });
-            
+            this.display = this.displaygrid;
         }
 
     }
@@ -1481,7 +2292,7 @@ class Canvas {
     
 
     /**
-    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    *  Draw the state of the model (for a specific property) onto the HTML element
     */
      displaygrid() {        
         let ctx = this.ctx;
@@ -1514,10 +2325,10 @@ class Canvas {
         {
             for (let y = start_row; y< stop_row; y++)     // y are rows
             {                     
-                if (!(prop in this.gridmodel.grid[x][y]))
+                if (!(prop in this.model.grid[x][y]))
                     continue                     
                 
-                let value = this.gridmodel.grid[x][y][prop];
+                let value = this.model.grid[x][y][prop];
                 
 
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
@@ -1557,7 +2368,7 @@ class Canvas {
     }
 
     /**
-    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    *  Draw the state of the model (for a specific property) onto the HTML element
     */
      displaygrid_dots() {
         let ctx = this.ctx;
@@ -1588,16 +2399,16 @@ class Canvas {
         {
             for (let y = start_row; y< stop_row; y++)     // y are rows
             {                     
-                if (!(prop in this.gridmodel.grid[x][y]))
+                if (!(prop in this.model.grid[x][y]))
                     continue                     
                 
                
 
-                let value = this.gridmodel.grid[x][y][prop];
+                let value = this.model.grid[x][y][prop];
 
                 let radius = this.scale_radius*this.radius;
                 
-                if(isNaN(radius)) radius = this.scale_radius*this.gridmodel.grid[x][y][this.radius];                
+                if(isNaN(radius)) radius = this.scale_radius*this.model.grid[x][y][this.radius];                
                 if(isNaN(radius)) radius = this.min_radius;
                 radius = Math.max(Math.min(radius,this.max_radius),this.min_radius);
 
@@ -1631,7 +2442,55 @@ class Canvas {
                            
             }
         }
-        // ctx.putImageData(id, 0, 0);
+    }
+
+    /**
+    *  Draw the state of the flockmodel onto the HTML element
+    */
+    displayflock() {
+        let ctx = this.ctx; 
+        
+        if(this.addToCanvas) ctx = this.addToCanvas.ctx;
+
+        let scale = this.scale;
+        let ncol = this.width;
+        let nrow = this.height;
+        this.property;
+
+        if(!this.addToCanvas) {
+            ctx.clearRect(0, 0, scale * ncol, scale * nrow);   
+            ctx.fillStyle = this.bgcolour;
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale);         
+        }
+        
+        if(this.model.config.qt_visible) this.model.qt.draw(ctx, this.scale);
+
+        
+        
+
+        for (let boid of this.model.boids)    // Plot all individuals                  
+               this.draw_boid(boid,ctx);                 
+
+    }
+
+    draw_boid(boid,ctx){
+        ctx.save();
+        ctx.translate(boid.position.x*this.scale, boid.position.y*this.scale);
+        let angle = Math.atan2(boid.velocity.y*this.scale,boid.velocity.x*this.scale);
+        ctx.rotate(angle);
+        ctx.fillStyle = boid.fill;
+        
+        ctx.beginPath();
+        ctx.moveTo(5,0);
+        ctx.lineTo(0, 10); // Left wing */
+        ctx.lineTo(0, -10);  // Right wing
+        ctx.fill();
+        if(boid.col){
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = boid.stroke;
+            ctx.stroke();
+        }
+        ctx.restore();     
     }
 
     add_legend(div,property)
@@ -1803,9 +2662,11 @@ class Simulation {
         this.graph_interval = config.graph_interval = config.graph_interval || 10;
         this.graph_update = config.graph_update= config.graph_update || 50;
         this.fps = config.fps * 1.4 || 60; // Multiplied by 1.4 to adjust for overhead
-        
+        this.mousecoords = {x:-1000, y:-1000};
+
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = [];            // All gridmodels in this simulation
+        this.flockmodels = [];            // All gridmodels in this simulation
         this.canvases = [];              // Array with refs to all canvases (from all models) from this simulation
         this.graphs = [];                // All graphs
         this.time = 0;
@@ -1827,6 +2688,18 @@ class Simulation {
         let model = new Gridmodel(name, this.config, this.rng); // ,this.config.show_gridname weggecomment
         this[name] = model;           // this = model["cheater"] = CA-obj
         this.gridmodels.push(model);
+    }
+
+    /**
+    *  Generate a new GridModel within this simulation.  
+    *  @param {string} name The name of your new model, e.g. "gol" for game of life. Cannot contain whitespaces. 
+    */
+    makeFlockmodel(name, cfg) {
+        let cfg_combined = {...this.config,...cfg};
+        if (name.indexOf(' ') >= 0) throw new Error("The name of a gridmodel cannot contain whitespaces.")
+        let model = new Flockmodel(name, cfg_combined, this.rng); // ,this.config.show_gridname weggecomment
+        this[name] = model;           // this = model["cheater"] = CA-obj
+        this.flockmodels.push(model);
     }
 
     /**
@@ -1904,7 +2777,75 @@ class Simulation {
         canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas; }, false);
         cnv.displaygrid();                
     }       
+    createGridDisplay = this.createDisplay
+
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+    createFlockDisplay(name, config) {
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:createFlockDisplay, cannot create display in command-line mode.");
+            return
+        }
+        let customlab, property, height, scale, width, addToCanvas;
+        if(config)
+        {
+            customlab = config.label; 
+            height = config.height; 
+            scale = config.scale; 
+            width = config.width; 
+            addToCanvas = config.addToCanvas;
+        }
+       
+        
+        if(name==undefined) throw new Error("Cacatoo: can't make a display with out a 'name'")        
+
+        let label = customlab; 
+        if (customlab == undefined) label = ``; // <ID>_NAME_(PROPERTY)
+        let flockmodel = this[name];        
+        if (flockmodel == undefined) throw new Error(`There is no Flockmodel with the name ${name}`)
+        if (height == undefined) height = flockmodel.height;
+        if (width == undefined) width = flockmodel.width;
+        if (scale == undefined) scale = flockmodel.scale;
+        
+
+        if(flockmodel.statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`);                        
+            flockmodel.statecolours[property] = default_colours(10);
+        } 
     
+        let cnv = new Canvas(flockmodel, property, label, height, width,scale,false,addToCanvas);
+        flockmodel.canvases[label] = cnv;  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv);  // Add a reference to the canvas to the sim
+        const canvas = addToCanvas || cnv;
+
+
+        flockmodel.mouseDown = false;
+        flockmodel.mouseClick = false;
+        canvas.elem.addEventListener('mousemove', (e) => { 
+            this.mousecoords = this.getCursorPosition(canvas,e,1); 
+            flockmodel.mousecoords = {x:this.mousecoords.x/this.scale, y:this.mousecoords.y/this.scale};
+        });    
+        canvas.elem.addEventListener('mousedown', (e) => { flockmodel.mouseDown = true; });
+        canvas.elem.addEventListener('click', (e) => { flockmodel.mouseClick = true; });
+        canvas.elem.addEventListener('mouseup', (e) => { flockmodel.mouseDown = false; });
+        canvas.elem.addEventListener('mouseout', (e) => { flockmodel.mousecoords = {x:-1000,y:-1000};});
+
+
+        cnv.add_legend(cnv.canvasdiv,property);
+        cnv.bgcolour = this.config.bgcolour || 'black';
+        //canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
+        //canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas }, false)
+        cnv.display = cnv.displayflock;                
+        cnv.display();
+    }       
+
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
@@ -1955,7 +2896,7 @@ class Simulation {
         
         let cnv = new Canvas(gridmodel, property, label, height, width, scale);
         if(config.drawdots) {
-            cnv.displaygrid = cnv.displaygrid_dots;
+            cnv.display = cnv.displaygrid_dots;
             cnv.stroke = config.stroke; 
             cnv.strokeStyle = config.strokeStyle;
             cnv.strokeWidth = config.strokeWidth;
@@ -2145,6 +3086,11 @@ class Simulation {
         for (let i = 0; i < this.gridmodels.length; i++)
             this.gridmodels[i].update();
 
+        for (let i = 0; i < this.flockmodels.length; i++){
+            this.flockmodels[i].flock();
+            this.flockmodels[i].update();
+        }
+
         for (let i = 0; i < this.canvases.length; i++)
             if(this.canvases[i].recording == true)
                 this.captureFrame(this.canvases[i]);
@@ -2167,7 +3113,7 @@ class Simulation {
      */
     display() {
         for (let i = 0; i < this.canvases.length; i++){
-            this.canvases[i].displaygrid();
+            this.canvases[i].display();
             if(this.canvases[i].recording == true){
                 this.captureFrame(this.canvases[i]);
             }

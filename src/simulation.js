@@ -1,6 +1,8 @@
 import Gridmodel from "./gridmodel"
+import Flockmodel from "./flockmodel"
+import QuadTree from './quadtree.js'
 import Canvas from "./canvas"
-import MersenneTwister from '../lib/mersenne' 
+//import MersenneTwister from '../lib/mersenne' 
 import * as utility from './utility'
 import random from '../lib/random'
 
@@ -30,9 +32,11 @@ class Simulation {
         this.graph_interval = config.graph_interval = config.graph_interval || 10
         this.graph_update = config.graph_update= config.graph_update || 50
         this.fps = config.fps * 1.4 || 60 // Multiplied by 1.4 to adjust for overhead
-        
+        this.mousecoords = {x:-1000, y:-1000}
+
         // Three arrays for all the grids ('CAs'), canvases ('displays'), and graphs 
         this.gridmodels = []            // All gridmodels in this simulation
+        this.flockmodels = []            // All gridmodels in this simulation
         this.canvases = []              // Array with refs to all canvases (from all models) from this simulation
         this.graphs = []                // All graphs
         this.time = 0
@@ -54,6 +58,18 @@ class Simulation {
         let model = new Gridmodel(name, this.config, this.rng) // ,this.config.show_gridname weggecomment
         this[name] = model           // this = model["cheater"] = CA-obj
         this.gridmodels.push(model)
+    }
+
+    /**
+    *  Generate a new GridModel within this simulation.  
+    *  @param {string} name The name of your new model, e.g. "gol" for game of life. Cannot contain whitespaces. 
+    */
+    makeFlockmodel(name, cfg) {
+        let cfg_combined = {...this.config,...cfg}
+        if (name.indexOf(' ') >= 0) throw new Error("The name of a gridmodel cannot contain whitespaces.")
+        let model = new Flockmodel(name, cfg_combined, this.rng) // ,this.config.show_gridname weggecomment
+        this[name] = model           // this = model["cheater"] = CA-obj
+        this.flockmodels.push(model)
     }
 
     /**
@@ -131,7 +147,75 @@ class Simulation {
         canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas }, false)
         cnv.displaygrid()                
     }       
+    createGridDisplay = this.createDisplay
+
+    /**
+    * Create a display for a gridmodel, showing a certain property on it. 
+    * @param {string} name The name of an existing gridmodel to display
+    * @param {string} property The name of the property to display
+    * @param {string} customlab Overwrite the display name with something more descriptive
+    * @param {integer} height Number of rows to display (default = ALL)
+    * @param {integer} width Number of cols to display (default = ALL)
+    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    */
+    createFlockDisplay(name, config) {
+        if(! this.inbrowser) {
+            console.warn("Cacatoo:createFlockDisplay, cannot create display in command-line mode.")
+            return
+        }
+        let customlab, property, height, scale, width, addToCanvas
+        if(config)
+        {
+            customlab = config.label 
+            height = config.height 
+            scale = config.scale 
+            width = config.width 
+            addToCanvas = config.addToCanvas
+        }
+       
+        
+        if(name==undefined) throw new Error("Cacatoo: can't make a display with out a 'name'")        
+
+        let label = customlab 
+        if (customlab == undefined) label = `` // <ID>_NAME_(PROPERTY)
+        let flockmodel = this[name]        
+        if (flockmodel == undefined) throw new Error(`There is no Flockmodel with the name ${name}`)
+        if (height == undefined) height = flockmodel.height
+        if (width == undefined) width = flockmodel.width
+        if (scale == undefined) scale = flockmodel.scale
+        
+
+        if(flockmodel.statecolours[property]==undefined){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)                        
+            flockmodel.statecolours[property] = utility.default_colours(10)
+        } 
     
+        let cnv = new Canvas(flockmodel, property, label, height, width,scale,false,addToCanvas);
+        flockmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
+        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
+        const canvas = addToCanvas || cnv
+
+
+        flockmodel.mouseDown = false
+        flockmodel.mouseClick = false
+        canvas.elem.addEventListener('mousemove', (e) => { 
+            this.mousecoords = this.getCursorPosition(canvas,e,1) 
+            flockmodel.mousecoords = {x:this.mousecoords.x/this.scale, y:this.mousecoords.y/this.scale}
+        })    
+        canvas.elem.addEventListener('mousedown', (e) => { flockmodel.mouseDown = true; })
+        canvas.elem.addEventListener('click', (e) => { flockmodel.mouseClick = true; })
+        canvas.elem.addEventListener('mouseup', (e) => { flockmodel.mouseDown = false })
+        canvas.elem.addEventListener('mouseout', (e) => { flockmodel.mousecoords = {x:-1000,y:-1000}})
+
+
+        cnv.add_legend(cnv.canvasdiv,property)
+        cnv.bgcolour = this.config.bgcolour || 'black'
+        //canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
+        //canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas }, false)
+        cnv.display = cnv.displayflock                
+        cnv.display()
+    }       
+
     /**
     * Create a display for a gridmodel, showing a certain property on it. 
     * @param {object} config Object with the keys name, property, label, width, height, scale, minval, maxval, nticks, decimals, num_colours, fill
@@ -182,7 +266,7 @@ class Simulation {
         
         let cnv = new Canvas(gridmodel, property, label, height, width, scale);
         if(config.drawdots) {
-            cnv.displaygrid = cnv.displaygrid_dots
+            cnv.display = cnv.displaygrid_dots
             cnv.stroke = config.stroke 
             cnv.strokeStyle = config.strokeStyle
             cnv.strokeWidth = config.strokeWidth
@@ -373,6 +457,11 @@ class Simulation {
         for (let i = 0; i < this.gridmodels.length; i++)
             this.gridmodels[i].update()
 
+        for (let i = 0; i < this.flockmodels.length; i++){
+            this.flockmodels[i].flock()
+            this.flockmodels[i].update()
+        }
+
         for (let i = 0; i < this.canvases.length; i++)
             if(this.canvases[i].recording == true)
                 this.captureFrame(this.canvases[i])
@@ -395,7 +484,7 @@ class Simulation {
      */
     display() {
         for (let i = 0; i < this.canvases.length; i++){
-            this.canvases[i].displaygrid()
+            this.canvases[i].display()
             if(this.canvases[i].recording == true){
                 this.captureFrame(this.canvases[i])
             }

@@ -1,6 +1,8 @@
 (caca)TODO
+FLOCKMODELS
 > Include FlockModels with vector-based operations
-> Change the purple stylesheet to make sliders clearer ( this one is better: background-color: rgb(212, 148, 229);)
-> Alternate between two grids instead of making copies
+> Add different shapes / image. 
+> Add splash
+
 > Implement d3.js visualization like histograms / phylogenetic trees.
 

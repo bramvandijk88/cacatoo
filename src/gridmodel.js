@@ -1,11 +1,10 @@
 import Gridpoint from "./gridpoint.js"
 import Graph from './graph.js'
 import ODE from "./ode.js"
-//import MersenneTwister from "../lib/mersenne.js"
-import * as utility from './utility'
+import * as utility from './utility.js'
 
 /**
- *  Gridmodel is the main (currently only) type of model in Cacatoo. Most of these models
+ *  Gridmodel is the main type of model in Cacatoo. Most of these models
  *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
  *  them more like PDEs. 
  */
@@ -28,7 +27,7 @@ class Gridmodel {
         this.random = () => { return this.rng.random()}
         this.randomInt = (a,b) => { return this.rng.randomInt(a,b)}                
         this.statecolours = this.setupColours(config.statecolours,config.num_colours) // Makes sure the statecolours in the config dict are parsed (see below)
-        this.lims = {}
+
         this.scale = config.scale || 1
         this.graph_update = config.graph_update || 20
         this.graph_interval = config.graph_interval || 2
@@ -746,7 +745,7 @@ class Gridmodel {
     }
 
     /** Assign each gridpoint a new random position on the grid. This simulated mixing,
-     *  but does not guarantee a "well-mixed" system per se (interactions are still)
+     *  but does not guarantee a "well-mixed" system per se (interactions are still local)
      *  calculated based on neighbourhoods. 
      */
     perfectMix() {

@@ -25,6 +25,7 @@ export function shuffle(array, rng) {
     return array;
 }
 
+
 /** 
  *  Convert colour string to RGB. Works for colour names ('red','blue' or other colours defined in cacatoo), but also for hexadecimal strings
  *  @param {String} string string to convert to RGB
@@ -144,4 +145,3 @@ export function random_colours(num_colours,rng)
     }
     return return_dict
 }
-

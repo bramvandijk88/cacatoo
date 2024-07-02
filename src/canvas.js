@@ -5,16 +5,16 @@
 class Canvas {
     /**
     *  The constructor function for a @Canvas object. 
-    *  @param {Gridmodel} gridmodel The gridmodel to which this canvas belongs
+    *  @param {model} model The model ( @Gridmodel or @Flockmodel ) to which this canvas belongs
     *  @param {string} property the property that should be shown on the canvas
     *  @param {int} height height of the canvas (in rows)
     *  @param {int} width width of the canvas (in cols)
     *  @param {scale} scale of the canvas (width/height of each gridpoint in pixels)
     */
-    constructor(gridmodel, prop, lab, height, width, scale, continuous) {
+    constructor(model, prop, lab, height, width, scale, continuous, addToCanvas) {
         this.label = lab
-        this.gridmodel = gridmodel
-        this.statecolours = gridmodel.statecolours
+        this.model = model
+        this.statecolours = model.statecolours
         this.property = prop
         this.height = height
         this.width = width
@@ -24,7 +24,8 @@ class Canvas {
         this.offset_x = 0
         this.offset_y = 0        
         this.phase = 0
-
+        this.addToCanvas = addToCanvas
+        
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
         {
             this.elem = document.createElement("canvas")
@@ -34,15 +35,16 @@ class Canvas {
             this.canvasdiv = document.createElement("div")
             this.canvasdiv.className = "grid-holder"
             
-            
             this.elem.className = "canvas-cacatoo"
             this.elem.width = this.width * this.scale
             this.elem.height = this.height * this.scale
-            this.canvasdiv.appendChild(this.elem)
-            this.canvasdiv.appendChild(this.titlediv)            
-            document.getElementById("canvas_holder").appendChild(this.canvasdiv)
+            if(!addToCanvas){
+                this.canvasdiv.appendChild(this.elem)
+                this.canvasdiv.appendChild(this.titlediv)            
+                document.getElementById("canvas_holder").appendChild(this.canvasdiv)
+            }
             this.ctx = this.elem.getContext("2d", { willReadFrequently: true })
-            
+            this.display = this.displaygrid
         }
         else {
             // In nodejs, one may use canvas package. Or write the grid to a file to be plotted with R. 
@@ -53,7 +55,7 @@ class Canvas {
     
 
     /**
-    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    *  Draw the state of the model (for a specific property) onto the HTML element
     */
      displaygrid() {        
         let ctx = this.ctx
@@ -86,10 +88,10 @@ class Canvas {
         {
             for (let y = start_row; y< stop_row; y++)     // y are rows
             {                     
-                if (!(prop in this.gridmodel.grid[x][y]))
+                if (!(prop in this.model.grid[x][y]))
                     continue                     
                 
-                let value = this.gridmodel.grid[x][y][prop]
+                let value = this.model.grid[x][y][prop]
                 
 
                 if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
@@ -129,7 +131,7 @@ class Canvas {
     }
 
     /**
-    *  Draw the state of the Gridmodel (for a specific property) onto the HTML element
+    *  Draw the state of the model (for a specific property) onto the HTML element
     */
      displaygrid_dots() {
         let ctx = this.ctx
@@ -160,16 +162,16 @@ class Canvas {
         {
             for (let y = start_row; y< stop_row; y++)     // y are rows
             {                     
-                if (!(prop in this.gridmodel.grid[x][y]))
+                if (!(prop in this.model.grid[x][y]))
                     continue                     
                 
                
 
-                let value = this.gridmodel.grid[x][y][prop]
+                let value = this.model.grid[x][y][prop]
 
                 let radius = this.scale_radius*this.radius
                 
-                if(isNaN(radius)) radius = this.scale_radius*this.gridmodel.grid[x][y][this.radius]                
+                if(isNaN(radius)) radius = this.scale_radius*this.model.grid[x][y][this.radius]                
                 if(isNaN(radius)) radius = this.min_radius
                 radius = Math.max(Math.min(radius,this.max_radius),this.min_radius)
 
@@ -203,7 +205,55 @@ class Canvas {
                            
             }
         }
-        // ctx.putImageData(id, 0, 0);
+    }
+
+    /**
+    *  Draw the state of the flockmodel onto the HTML element
+    */
+    displayflock() {
+        let ctx = this.ctx 
+        
+        if(this.addToCanvas) ctx = this.addToCanvas.ctx
+
+        let scale = this.scale
+        let ncol = this.width
+        let nrow = this.height
+        let prop = this.property
+
+        if(!this.addToCanvas) {
+            ctx.clearRect(0, 0, scale * ncol, scale * nrow)   
+            ctx.fillStyle = this.bgcolour
+            ctx.fillRect(0, 0, ncol * scale, nrow * scale)         
+        }
+        
+        if(this.model.config.qt_visible) this.model.qt.draw(ctx, this.scale)
+
+        
+        
+
+        for (let boid of this.model.boids)    // Plot all individuals                  
+               this.draw_boid(boid,ctx)                 
+
+    }
+
+    draw_boid(boid,ctx){
+        ctx.save()
+        ctx.translate(boid.position.x*this.scale, boid.position.y*this.scale);
+        let angle = Math.atan2(boid.velocity.y*this.scale,boid.velocity.x*this.scale)
+        ctx.rotate(angle);
+        ctx.fillStyle = boid.fill;
+        
+        ctx.beginPath();
+        ctx.moveTo(5,0)
+        ctx.lineTo(0, 10); // Left wing */
+        ctx.lineTo(0, -10);  // Right wing
+        ctx.fill()
+        if(boid.col){
+            ctx.strokeStyle = 'black'
+            ctx.lineWidth = boid.stroke
+            ctx.stroke()
+        }
+        ctx.restore();     
     }
 
     add_legend(div,property)
