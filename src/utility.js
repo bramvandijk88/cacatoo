@@ -40,8 +40,16 @@ export function stringToRGB(string) {
  *  @param {String} hex string to convert to RGB
 */
 export function hexToRGB(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+    var result
+    if(hex.length == 7) {
+        result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+        return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+    }
+    if(hex.length == 9) {
+        result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+        return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), parseInt(result[4], 16)]
+    }
+    
 }
 
 /** 
@@ -145,3 +153,22 @@ export function random_colours(num_colours,rng)
     }
     return return_dict
 }
+
+/**
+ *  Deep copy function.
+ *  @param {Object} aObject Object to be deep copied. This function still won't deep copy every possible object, so when enabling deep copying, make sure you put your debug-hat on!
+ */
+export function copy(aObject) {
+    if (!aObject) {
+      return aObject;
+    }
+  
+    let v;
+    let bObject = Array.isArray(aObject) ? [] : {};
+    for (const k in aObject) {
+      v = aObject[k];
+      bObject[k] = (typeof v === "object") ? copy(v) : v;
+    }
+  
+    return bObject;
+  }

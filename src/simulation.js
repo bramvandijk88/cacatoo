@@ -150,68 +150,101 @@ class Simulation {
     createGridDisplay = this.createDisplay
 
     /**
-    * Create a display for a gridmodel, showing a certain property on it. 
+    * Create a display for a flockmodel, showing the boids
     * @param {string} name The name of an existing gridmodel to display
-    * @param {string} property The name of the property to display
-    * @param {string} customlab Overwrite the display name with something more descriptive
-    * @param {integer} height Number of rows to display (default = ALL)
-    * @param {integer} width Number of cols to display (default = ALL)
-    * @param {integer} scale Scale of display (default inherited from @Simulation class)
+    * @param {Object} config All the options for the flocking behaviour etc.
     */
-    createFlockDisplay(name, config) {
+    createFlockDisplay(name, config = {}) {
         if(! this.inbrowser) {
             console.warn("Cacatoo:createFlockDisplay, cannot create display in command-line mode.")
             return
         }
-        let customlab, property, height, scale, width, addToCanvas
-        if(config)
-        {
-            customlab = config.label 
-            height = config.height 
-            scale = config.scale 
-            width = config.width 
-            addToCanvas = config.addToCanvas
-        }
-       
-        
+
         if(name==undefined) throw new Error("Cacatoo: can't make a display with out a 'name'")        
 
-        let label = customlab 
-        if (customlab == undefined) label = `` // <ID>_NAME_(PROPERTY)
         let flockmodel = this[name]        
-        if (flockmodel == undefined) throw new Error(`There is no Flockmodel with the name ${name}`)
-        if (height == undefined) height = flockmodel.height
-        if (width == undefined) width = flockmodel.width
-        if (scale == undefined) scale = flockmodel.scale
+        if (flockmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
+
+        let property = config.property 
+        let addToDisplay = config.addToDisplay
+        
+        
+        let label = config.label || ""
+        let legendlabel = config.legendlabel
+        let height = sim.height || flockmodel.height
+        let width = config.width || sim.width || flockmodel.width
+        let scale = config.scale || this[name].scale               
+        let maxval = config.maxval || this.maxval || undefined   
+        let decimals= config.decimals || 0
+        let nticks= config.nticks || 5
+        let minval = config.minval || 0
+        let num_colours = config.num_colours || 100
         
 
-        if(flockmodel.statecolours[property]==undefined){
-            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)                        
-            flockmodel.statecolours[property] = utility.default_colours(10)
-        } 
-    
-        let cnv = new Canvas(flockmodel, property, label, height, width,scale,false,addToCanvas);
-        flockmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
-        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
-        const canvas = addToCanvas || cnv
+        if(config.fill == "viridis") this[name].colourViridis(property, num_colours)    
+        else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno")    
+        else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno")    
+        else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0])
+        else if(config.fill == "green") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 255, 0])
+        else if(config.fill == "blue") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255])
+        else if(this[name].statecolours[property]==undefined && property){
+            console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)
+            this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255])
+        }
+        
+        
+        let cnv = new Canvas(flockmodel, property, label, height, width,scale,false,addToDisplay);
+        if (maxval !== undefined) cnv.maxval = maxval
+        if (minval !== undefined) cnv.minval = minval
+        if (num_colours !== undefined) cnv.num_colours = num_colours
+        if (decimals !== undefined) cnv.decimals = decimals
+        if (nticks !== undefined) cnv.nticks = nticks
 
+        cnv.strokeStyle = config.strokeStyle
+        cnv.strokeWidth = config.strokeWidth
+
+        if(config.legend){
+            if(addToDisplay) cnv.add_legend(addToDisplay.canvasdiv,property,legendlabel)
+            else cnv.add_legend(cnv.canvasdiv,property,legendlabel )
+        }
+
+        // Set the shape of the boid
+        let shape = flockmodel.config.shape || 'dot'
+        cnv.drawBoid = cnv.drawBoidArrow
+        if(shape == 'bird') cnv.drawBoid = cnv.drawBoidBird
+        else if(shape == 'arrow') cnv.drawBoid = cnv.drawBoidArrow
+        else if(shape == 'rect') cnv.drawBoid = cnv.drawBoidRect
+        else if(shape == 'dot') cnv.drawBoid = cnv.drawBoidPoint
+        else if(shape == 'ant') cnv.drawBoid = cnv.drawBoidAnt
+        else if(shape == 'line') cnv.drawBoid = cnv.drawBoidLine
+        else if(shape == 'png') cnv.drawBoid = cnv.drawBoidPng
+        
+        // Replace function that handles the left mousebutton
+        let click = flockmodel.config.click || 'none'
+        if(click == 'repel') flockmodel.handleMouseBoids = flockmodel.repelBoids
+        else if(click == 'pull') flockmodel.handleMouseBoids = flockmodel.pullBoids
+        else if(click == 'kill') flockmodel.handleMouseBoids = flockmodel.killBoids
+       
+        flockmodel.canvases[label] = cnv  // Add a reference to the canvas to the flockmodel
+        this.canvases.push(cnv)  // Add a reference to the canvas to the sim
+        const canvas = addToDisplay || cnv
 
         flockmodel.mouseDown = false
         flockmodel.mouseClick = false
         canvas.elem.addEventListener('mousemove', (e) => { 
-            this.mousecoords = this.getCursorPosition(canvas,e,1) 
-            flockmodel.mousecoords = {x:this.mousecoords.x/this.scale, y:this.mousecoords.y/this.scale}
+            let mouse = this.getCursorPosition(canvas,e,1,false) 
+            if(mouse.x == this.mousecoords.x && mouse.y == this.mousecoords.y) return this.mousecoords
+            this.mousecoords = {x:mouse.x/this.scale, y:mouse.y/this.scale}            
+            flockmodel.mousecoords = this.mousecoords
         })    
-        canvas.elem.addEventListener('mousedown', (e) => { flockmodel.mouseDown = true; })
-        canvas.elem.addEventListener('click', (e) => { flockmodel.mouseClick = true; })
+        canvas.elem.addEventListener('mousedown', (e) => {  })
+        canvas.elem.addEventListener('mousedown', (e) => { 
+            flockmodel.mouseDown = true
+         })
+        
         canvas.elem.addEventListener('mouseup', (e) => { flockmodel.mouseDown = false })
         canvas.elem.addEventListener('mouseout', (e) => { flockmodel.mousecoords = {x:-1000,y:-1000}})
-
-
-        cnv.add_legend(cnv.canvasdiv,property)
         cnv.bgcolour = this.config.bgcolour || 'black'
-        //canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
-        //canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas }, false)
         cnv.display = cnv.displayflock                
         cnv.display()
     }       
@@ -250,7 +283,9 @@ class Simulation {
         
         let height = config.height || this[name].nr        
         let width = config.width || this[name].nc
-        let scale = config.scale || this[name].scale               
+        let scale = config.scale || this[name].scale          
+        let legendlabel = config.legendlabel
+    
         
         if(name==undefined || property == undefined) throw new Error("Cacatoo: can't make a display with out a 'name' and 'property'")        
 
@@ -278,7 +313,7 @@ class Simulation {
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
-        cnv.add_legend(cnv.canvasdiv,property)
+        if(config.legend) cnv.add_legend(cnv.canvasdiv,property, legendlabel)
         cnv.bgcolour = this.config.bgcolour || 'black'
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
         canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas }, false)
@@ -312,8 +347,8 @@ class Simulation {
         
         let property = config.property 
         
-        
         let label = config.label
+        let legendlabel = config.legendlabel
         if (label == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name]
         if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
@@ -359,7 +394,7 @@ class Simulation {
         if (decimals !== undefined) cnv.decimals = decimals
         if (nticks !== undefined) cnv.nticks = nticks
         
-        cnv.add_legend(cnv.canvasdiv,property) 
+        if(config.legend) cnv.add_legend(cnv.canvasdiv,property,legendlabel)
         cnv.bgcolour = this.config.bgcolour || 'black'
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
@@ -422,10 +457,14 @@ class Simulation {
     * @param {event-handler} event Event handler (mousedown)
     * @param {scale} scale The zoom (scale) of the grid to grab the correct grid point
     */
-    getCursorPosition(canvas, event, scale) {
+    getCursorPosition(canvas, event, scale, floor=true) {
         const rect = canvas.elem.getBoundingClientRect()
-        const x = Math.floor(Math.max(0, event.clientX - rect.left) / scale) + canvas.offset_x
-        const y = Math.floor(Math.max(0, event.clientY - rect.top) / scale) + canvas.offset_y
+        let x = Math.max(0, event.clientX - rect.left) / scale + canvas.offset_x
+        let y = Math.max(0, event.clientY - rect.top) / scale + canvas.offset_y
+        if(floor){
+            x = Math.floor(x)
+            y = Math.floor(y)
+        }
         return({x:x,y:y})
     }
 
@@ -441,10 +480,12 @@ class Simulation {
         let x = coords.x
         let y = coords.y
         if( x< 0 || x >= this.ncol || y < 0 || y >= this.nrow) return
-        console.log(`You have clicked the grid at position ${x},${y}, which has grid point:`)
+        console.log(`You have clicked the grid at position ${x},${y}, which has:`)
         for (let model of this.gridmodels) {
-            console.log(model.grid[x][y])
-            console.log(`... in model ${model.name}`)
+            console.log("grid point:", model.grid[x][y])
+        }
+        for (let model of this.flockmodels) {
+            console.log("boids:", model.mouseboids)
         }
     }
 
@@ -458,8 +499,12 @@ class Simulation {
             this.gridmodels[i].update()
 
         for (let i = 0; i < this.flockmodels.length; i++){
-            this.flockmodels[i].flock()
-            this.flockmodels[i].update()
+            let model = this.flockmodels[i]
+            model.flock()
+            model.update()
+            let mouse = model.mousecoords
+            model.mouseboids = model.getIndividualsInRange(mouse,model.mouse_radius)
+            if(model.mouseDown)model.handleMouseBoids()
         }
 
         for (let i = 0; i < this.canvases.length; i++)
@@ -571,10 +616,9 @@ class Simulation {
      *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
-    initialGrid(gridmodel, property) {
+    initialGrid(gridmodel, property, bg=0) {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let p = property || 'val'
-        let bg = 0
 
         for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
             for (let y = 0; y < gridmodel.nr; y++)                  // y are rows
@@ -877,75 +921,28 @@ class Simulation {
         }
     }
         
-        // // Download DataURL
-        // function dataURL_downloader(dataURL, name = canvas.label) {
-        //     const hyperlink = document.createElement("a");
-        //     // document.body.appendChild(hyperlink);
-        //     hyperlink.download = name;
-        //     hyperlink.target = '_blank';
-        //     hyperlink.href = dataURL;
-        //     hyperlink.click();
-        //     hyperlink.remove();
-        // };
-        // // Record a video ----------------------------------
-        // // Stream
-                
-        // if(!canvas.mediaRecorder){
-        //     canvas.videoStream = canvas.elem.captureStream();
-        //     canvas.mediaRecorder = new MediaRecorder(canvas.videoStream);
-            
-        //     canvas.ctx.globalAlpha = 0.6;            
-        //     canvas.chunks = [];
-        //     // Store chunks
-        //     canvas.mediaRecorder.ondataavailable = function (e) {
-        //         canvas.chunks.push(e.data);
-        //     };
-        //     // Download video after recording is stopped
-        //     canvas.mediaRecorder.onstop = function (e) {
-        //         const blob = new Blob(canvas.chunks, { 'type': 'video/mp4' });
-        //         const videoDataURL = URL.createObjectURL(blob);
-        //         dataURL_downloader(videoDataURL);
-        //         canvas.chunks = [];
-        //         canvas.mediaRecorder = undefined
-        //     };
-
-        //     canvas.mediaRecorder.start();
-            
-        // }
-        // else{
-        //     canvas.ctx.globalAlpha = 1.0;
-        //     canvas.mediaRecorder.stop();
-        // }        
-    //}
     /**
      *  addToggle adds a HTML checkbox element to the DOM-environment which allows the user
      *  to flip boolean values
      *  @param {string} parameter The name of the (global!) boolean to link to the checkbox
      */
-     addToggle(parameter, label) {
+     addToggle(parameter, label, func) {
         let lab = label || parameter
         if (!this.inbrowser) return
         if (window[parameter] === undefined) { console.warn(`addToggle: parameter ${parameter} not found. No toggle made.`); return; }
         let container = document.createElement("div")
         container.classList.add("form-container")
-
         let checkbox = document.createElement("input")
-
-        
-
-
-
         container.innerHTML += "<div style='width:100%;height:20px;font-size:12px;'><b>" + lab + ":</b></div>"
 
         // Setting variables / handler
         checkbox.type = 'checkbox'
-
         checkbox.checked = window[parameter]
 
         checkbox.oninput = function () {
             window[parameter] = checkbox.checked
+            if(func) func()
         }
-
        
         container.appendChild(checkbox)
         document.getElementById("form_holder").appendChild(container)

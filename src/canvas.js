@@ -11,7 +11,7 @@ class Canvas {
     *  @param {int} width width of the canvas (in cols)
     *  @param {scale} scale of the canvas (width/height of each gridpoint in pixels)
     */
-    constructor(model, prop, lab, height, width, scale, continuous, addToCanvas) {
+    constructor(model, prop, lab, height, width, scale, continuous, addToDisplay) {
         this.label = lab
         this.model = model
         this.statecolours = model.statecolours
@@ -24,13 +24,13 @@ class Canvas {
         this.offset_x = 0
         this.offset_y = 0        
         this.phase = 0
-        this.addToCanvas = addToCanvas
+        this.addToDisplay = addToDisplay
         
         if (typeof document !== "undefined")                       // In browser, crease a new HTML canvas-element to draw on 
         {
             this.elem = document.createElement("canvas")
             this.titlediv = document.createElement("div")
-            this.titlediv.innerHTML = "<font size = 2>" + this.label + "</font>"
+            if(this.label) this.titlediv.innerHTML = "<p style='height:10'><font size = 3>" + this.label + "</font></p>"
 
             this.canvasdiv = document.createElement("div")
             this.canvasdiv.className = "grid-holder"
@@ -38,7 +38,7 @@ class Canvas {
             this.elem.className = "canvas-cacatoo"
             this.elem.width = this.width * this.scale
             this.elem.height = this.height * this.scale
-            if(!addToCanvas){
+            if(!addToDisplay){
                 this.canvasdiv.appendChild(this.elem)
                 this.canvasdiv.appendChild(this.titlediv)            
                 document.getElementById("canvas_holder").appendChild(this.canvasdiv)
@@ -49,6 +49,8 @@ class Canvas {
         else {
             // In nodejs, one may use canvas package. Or write the grid to a file to be plotted with R. 
         }
+
+        this.overlay = function(){}
 
     }
 
@@ -128,6 +130,7 @@ class Canvas {
             }
         }
         ctx.putImageData(id, 0, 0);
+        this.overlay()
     }
 
     /**
@@ -205,6 +208,7 @@ class Canvas {
                            
             }
         }
+        this.overlay()
     }
 
     /**
@@ -212,67 +216,224 @@ class Canvas {
     */
     displayflock() {
         let ctx = this.ctx 
+        if(this.model.draw == false) return
+        if(this.addToDisplay) this.ctx = this.addToDisplay.ctx
         
-        if(this.addToCanvas) ctx = this.addToCanvas.ctx
-
         let scale = this.scale
         let ncol = this.width
         let nrow = this.height
         let prop = this.property
 
-        if(!this.addToCanvas) {
+        if(!this.addToDisplay) {
             ctx.clearRect(0, 0, scale * ncol, scale * nrow)   
             ctx.fillStyle = this.bgcolour
             ctx.fillRect(0, 0, ncol * scale, nrow * scale)         
         }
         
-        if(this.model.config.qt_visible) this.model.qt.draw(ctx, this.scale)
+        if(this.model.config.qt_color) this.model.qt.draw(ctx, this.scale, this.model.config.qt_color)
 
+        for (let boid of this.model.boids){  // Plot all individuals
+            
+            if(boid.invisible) continue
+            boid.fill = 'black'
+            
+            if(this.model.statecolours[prop]){
+                let val = boid[prop]
+                if(this.maxval !== undefined){
+                    let cols = this.model.statecolours[prop]
+                    val = Math.max(val,this.minval) - this.minval
+                    let mult = this.num_colours/(this.maxval-this.minval)
+                    val = Math.min(this.num_colours,Math.max(Math.floor(val*mult),1))
+                    boid.fill = rgbToHex(cols[val])
+                }
+                else{
+                    boid.fill = rgbToHex(this.model.statecolours[prop][val])
+                }
+            }
+            if(boid.col == undefined) boid.col = this.strokeStyle
+            if(boid.lwd == undefined) boid.lwd = this.strokeWidth
+            this.drawBoid(boid,ctx)        
+        }
+        if(this.model.config.draw_mouse_radius){
+            ctx.beginPath()
+            ctx.strokeStyle = 'white'
+            ctx.arc(this.model.mousecoords.x*this.scale, this.model.mousecoords.y*this.scale,this.model.mouse_radius*this.scale, 0, Math.PI*2)
+            ctx.stroke()
+            ctx.closePath()
+        }
+        for(let obs of this.model.obstacles){
+            ctx.fillStyle = obs.fill || '#00000033'
+            ctx.fillRect(obs.x*this.scale, obs.y*this.scale,obs.w*this.scale,obs.h*this.scale)
+        }
         
-        
-
-        for (let boid of this.model.boids)    // Plot all individuals                  
-               this.draw_boid(boid,ctx)                 
-
+        this.overlay()
     }
 
-    draw_boid(boid,ctx){
+    /**
+    *  This function is empty by default, and is overriden based on parameters chose by the model. 
+    *  Override options are all below this option
+    */
+    drawBoid(){
+    }
+
+    // Draw a circle at the position of the boid
+    drawBoidPoint(boid,ctx){ 
+        ctx.fillStyle = boid.fill
+        ctx.beginPath()
+        ctx.arc(boid.position.x*this.scale,boid.position.y*this.scale,0.5*boid.size*this.scale,0,Math.PI*2)
+        ctx.fill()
+        if(boid.col){
+            ctx.strokeStyle = boid.col
+            ctx.lineWidth = boid.lwd
+            ctx.stroke()
+        } 
+        ctx.closePath()
+    }
+    
+    // Draw a rectangle at the position of the boid
+    drawBoidRect(boid,ctx){
+        ctx.fillStyle = boid.fill;
+        ctx.fillRect(boid.position.x*this.scale,boid.position.y*this.scale,boid.size,boid.size)
+        if(boid.col){
+            ctx.strokeStyle = boid.col
+            ctx.lineWidth = boid.stroke
+            ctx.strokeRect(boid.position.x*this.scale,boid.position.y*this.scale,boid.size,boid.size)
+        } 
+    }
+    
+    // Draw an arrow pointing in the direction of the velocity vector
+    drawBoidArrow(boid,ctx, length=1, width=0.3){
         ctx.save()
         ctx.translate(boid.position.x*this.scale, boid.position.y*this.scale);
         let angle = Math.atan2(boid.velocity.y*this.scale,boid.velocity.x*this.scale)
         ctx.rotate(angle);
         ctx.fillStyle = boid.fill;
-        
         ctx.beginPath();
-        ctx.moveTo(5,0)
-        ctx.lineTo(0, 10); // Left wing */
-        ctx.lineTo(0, -10);  // Right wing
+        ctx.moveTo(length*boid.size,0)
+        ctx.lineTo(0, width*boid.size); // Left wing */
+        ctx.lineTo(0, -width*boid.size);  // Right wing
+        ctx.lineTo(length*boid.size,0);  // Back
         ctx.fill()
         if(boid.col){
-            ctx.strokeStyle = 'black'
+            ctx.strokeStyle = boid.col
             ctx.lineWidth = boid.stroke
             ctx.stroke()
         }
         ctx.restore();     
     }
 
-    add_legend(div,property)
+    // Similar to the arrow but very wide. Looks a bit like a bird.
+    drawBoidBird(boid,ctx){
+        this.drawBoidArrow(boid,ctx,0.4,1)
+    }
+
+    // Draw a line from the boids position to the velocity vector. Indicates speed. 
+    drawBoidLine(boid,ctx){
+        ctx.beginPath()
+        ctx.strokeStyle = boid.col || boid.fill
+        ctx.lineWidth = boid.stroke
+        
+        ctx.moveTo(boid.position.x*this.scale, boid.position.y*this.scale)
+            
+        ctx.lineTo(boid.position.x*this.scale+boid.velocity.x*boid.size,
+                    boid.position.y*this.scale+boid.velocity.y*boid.size)
+        ctx.strokeStyle = boid.fill
+        ctx.lineWidt
+        ctx.stroke()
+        ctx.closePath()
+    }
+
+    // Draw three points along the velocity vector + 2 antanae. Sort of an ant thingy. 
+    drawBoidAnt(boid,ctx){
+        ctx.fillStyle = boid.fill
+        ctx.beginPath()
+        let vector = this.model.normalise({x: boid.velocity.x, y: boid.velocity.y})
+        ctx.arc(boid.position.x*this.scale,boid.position.y*this.scale,boid.size*1.1,0,Math.PI*2)
+        ctx.arc(boid.position.x*this.scale+vector.x*boid.size,
+                boid.position.y*this.scale+vector.y*boid.size,
+                boid.size/1.3,0,Math.PI*2)
+        ctx.arc(boid.position.x*this.scale+vector.x*boid.size*2,
+            boid.position.y*this.scale+vector.y*boid.size*2,
+            boid.size,0,Math.PI*2)
+        ctx.fill()
+        ctx.closePath()
+        ctx.beginPath()
+
+        let dir
+
+        // First antenna
+        dir = this.model.rotateVector(vector,20)
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
+            boid.position.y*this.scale+vector.y*boid.size*2)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*2.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*2.5)
+        ctx.strokeStyle = boid.fill
+        ctx.lineWidth = boid.size/3
+
+        // Second antenna
+        dir = this.model.rotateVector(vector,-20)
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
+            boid.position.y*this.scale+vector.y*boid.size*2)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*2.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*2.5)
+        ctx.strokeStyle = boid.fill
+        ctx.lineWidth = boid.size/3
+
+        ctx.stroke()
+
+        if(boid.col){
+            ctx.strokeStyle = boid.col
+            ctx.lineWidth = boid.stroke
+            ctx.stroke()
+        } 
+        ctx.closePath()
+    }
+
+    // Draw an image at the position of the boid. Requires boid.png to be set. Optional is boid.pngangle to
+    // let the png adjust direction according to the velocity vector
+    drawBoidPng(boid,ctx){
+        if(boid.pngangle !==undefined){
+            ctx.save()
+            ctx.translate(boid.position.x*this.scale, boid.position.y*this.scale);
+            let angle = Math.atan2(boid.velocity.y*this.scale,boid.velocity.x*this.scale+boid.pngangle)
+            ctx.rotate(angle);
+            let base_image = new Image();
+            base_image.src = boid.png
+            if(!boid.png) console.warn("Boid does not have a PNG associated with it")
+            ctx.drawImage(base_image, 0,0,boid.size*this.scale,boid.size*this.scale);
+            ctx.restore()
+        }
+        else{
+            let base_image = new Image();
+            base_image.src = boid.png
+            if(!boid.png) console.warn("Boid does not have a PNG associated with it")
+            ctx.drawImage(base_image, boid.position.x*this.scale,boid.position.y*this.scale,boid.size*this.scale,boid.size*this.scale);
+        }
+    }
+    
+    // Add legend to plot
+    add_legend(div,property,lab="")
     {
         if (typeof document == "undefined") return
         let statecols = this.statecolours[property]
         if(statecols == undefined){
             console.warn(`Cacatoo warning: no colours setup for canvas "${this.label}"`)
             return
-        } 
+        }
                     
         this.legend = document.createElement("canvas")
         this.legend.className = "legend"
-        this.legend.width = this.width*this.scale
+        this.legend.width = this.width*this.scale*0.6
         
-        this.legend.height = 40
+        this.legend.height = 50
         let ctx = this.legend.getContext("2d")
+
+        ctx.textAlign = "center";
+        ctx.font = '14px helvetica';     
+        ctx.fillText(lab, this.legend.width/2, 16);
+
         if(this.maxval!==undefined) {
-            let bar_width = this.width*this.scale*0.8
+            let bar_width = this.width*this.scale*0.48
             let offset = 0.1*this.legend.width  
             let n_ticks = this.nticks-1
             
@@ -289,7 +450,7 @@ class Canvas {
                 else {                    
                     ctx.fillStyle = rgbToHex(statecols[colval])
                 }
-                ctx.fillRect(offset+i, 10, 1, 10);                
+                ctx.fillRect(offset+i, 20, 1, 10);                
                 ctx.closePath();
                 
             }
@@ -297,8 +458,8 @@ class Canvas {
                 let tick_position = (i*step_size+offset)
                 ctx.strokeStyle = "#FFFFFF";                        
                 ctx.beginPath();
-                ctx.moveTo(tick_position, 15);
-                ctx.lineTo(tick_position, 20);
+                ctx.moveTo(tick_position, 25);
+                ctx.lineTo(tick_position, 30);
                 ctx.lineWidth=2
                 ctx.stroke();
                 ctx.closePath();
@@ -307,18 +468,20 @@ class Canvas {
                 ctx.font = '12px helvetica';     
                 let ticklab = (this.minval+i*tick_increment)
                 ticklab = ticklab.toFixed(this.decimals)         
-                ctx.fillText(ticklab, tick_position, 35);
+                ctx.fillText(ticklab, tick_position, 45);
             }
 
             ctx.beginPath();
-            ctx.rect(offset, 10, bar_width, 10);
+            ctx.rect(offset, 20, bar_width, 10);
             ctx.strokeStyle = "#000000";
             ctx.stroke();
             ctx.closePath();
             div.appendChild(this.legend)
         }
-        else{                     
+        else{                    
+             
             let keys = Object.keys(statecols)
+            
             let total_num_values = keys.length
             let spacing = 0.8
             if(total_num_values < 8) spacing = 0.7
@@ -326,7 +489,7 @@ class Canvas {
             
             let bar_width = this.width*this.scale*spacing   
             let offset = 0.5*(1-spacing)*this.legend.width
-            let step_size = Math.ceil(bar_width / (total_num_values-1))
+            let step_size = Math.ceil(bar_width / (total_num_values))
 
             if(total_num_values==1){
                 step_size=0
@@ -334,7 +497,7 @@ class Canvas {
             } 
             
             for(let i=0;i<total_num_values;i++)
-            {                                       
+            {                                    
                 let pos = offset+Math.floor(i*step_size)
                 ctx.beginPath()                
                 ctx.strokeStyle = "#000000"
@@ -368,7 +531,8 @@ function componentToHex(c) {
 }
 
 function rgbToHex(arr) {
-    return "#" + componentToHex(arr[0]) + componentToHex(arr[1]) + componentToHex(arr[2]);
+    if(arr.length==3) return "#" + componentToHex(arr[0]) + componentToHex(arr[1]) + componentToHex(arr[2])
+    if(arr.length==4) return "#" + componentToHex(arr[0]) + componentToHex(arr[1]) + componentToHex(arr[2]) + componentToHex(arr[3])
 }
 
 export default Canvas

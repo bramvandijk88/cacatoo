@@ -1,8 +1,4 @@
 (caca)TODO
 FLOCKMODELS
-> Include FlockModels with vector-based operations
-> Add different shapes / image. 
-> Add splash
-
-> Implement d3.js visualization like histograms / phylogenetic trees.
+> Add examples (ant foraging, aapjes)
 

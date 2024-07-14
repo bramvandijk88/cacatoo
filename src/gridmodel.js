@@ -16,7 +16,7 @@ class Gridmodel {
     *  @param {dictionary} config A dictionary (object) with all the necessary settings to setup a Cacatoo GridModel. 
     *  @param {MersenneTwister} rng A random number generator (MersenneTwister object)
     */
-    constructor(name, config, rng) {
+    constructor(name, config={}, rng) {
         this.name = name
         this.time = 0
         this.nc = config.ncol || 200

@@ -12,27 +12,9 @@ class Gridpoint {
   constructor(template) {
     for (var prop in template)
       this[prop] = template[prop]                  // Shallow copy. It's fast, but be careful with syncronous updating!
-    // this[prop] = copy(template[prop])         // Deep copy. Takes much more time, and you'll likely end up copying much more than necessary. Use only if you're sure you need it!
   }
 }
 
-/**
- *  Deep copy function.
- *  @param {Object} aObject Object to be deep copied. This function still won't deep copy every possible object, so when enabling deep copying, make sure you put your debug-hat on!
- */
-function copy(aObject) {
-  if (!aObject) {
-    return aObject;
-  }
 
-  let v;
-  let bObject = Array.isArray(aObject) ? [] : {};
-  for (const k in aObject) {
-    v = aObject[k];
-    bObject[k] = (typeof v === "object") ? copy(v) : v;
-  }
-
-  return bObject;
-}
 
 export default Gridpoint
