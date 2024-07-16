@@ -73,53 +73,51 @@
             }
     
             sim = new Simulation(config)
-    
-            sim.makeGridmodel("TE_model");
-    
-            sim.createDisplay_continuous({model:"TE_model", property:"genomesize", label:"Growing cells (colour=genome size)", minval:0, maxval:100, fill:"viridis"}) 
-            sim.TE_model.colourGradient("T_in_genomes", 100, [255,0,0], [255, 255, 0])
-            sim.createDisplay_continuous({model:"TE_model", property:"T_in_genomes", label:"TEs inside genomes", maxval:40}) 
-            sim.TE_model.colourGradient("T_in_eDNA", 100, [255,0,0], [255, 255, 0])
-            sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool", maxval:40})             
-    
-            sim.TE_model.initialise = function () {
-                sim.initialGrid(sim.TE_model, "alive", 0, 1.0)
-                sim.initialGrid(sim.TE_model, "genomesize", undefined, 1.0)
-                sim.initialGrid(sim.TE_model, "T_in_eDNA", undefined, 1.0)
-                sim.initialGrid(sim.TE_model, "T_in_genomes", undefined, 1.0)
-                sim.max_g = 100
-                sim.max_t = 100
-    
-                sim.TE_model.colourViridis("genomesize", sim.max_g)
-                sim.TE_model.colourViridis("T_in_genomes", sim.max_t)
-                sim.TE_model.colourViridis("T_in_eDNA", sim.max_t)
-    
-    
-                sim.mixDNApool = false
-                this.resetPlots()
-    
-                placeCell = function (gp, init_es, init_ne, init_nc, init_tra, init_tra_rate) {
-                    gp.alive = 1
-                    gp.genome = new Genome()
-                    gp.genome.initialise(init_es, init_ne, init_nc, init_tra, init_tra_rate)
-                    gp.genomesize = Math.min(sim.max_g, gp.genome.chromosome.length)            // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
-                    gp.fitness = gp.genome.fitness                                       // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
-                    gp.T_in_genomes = Math.min(sim.max_t, gp.genome.nr_tra)                                   // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
-                }
-                for (let i = 0; i < sim.TE_model.nc; i++) for (let j = 0; j < sim.TE_model.nr; j++) {
-                    this.grid[i][j].eDNA = []        // Initialise empty eDNA pool
-                    this.grid[i][j].T_in_eDNA = 0
-    
-                    let size = 5
-                    if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size)
-                        placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 10, init_tra_rate)
-                    else if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size * 50)
-                        placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 0, init_tra_rate)
-                    // else if((Math.pow((i-sim.TE_model.nc/2),2) + Math.pow((j-sim.TE_model.nr/2),2) ) < size*10 && j>sim.TE_model.nr/2)
-                    //     placeCell(sim.TE_model.grid[i][j],init_es,init_ne,0,0)  
-    
-                }
+
+        sim.makeGridmodel("TE_model");
+
+        sim.createDisplay_continuous({model:"TE_model", property:"genomesize", label:"Genome size", minval:0, maxval:100, fill:"viridis"}) 
+        sim.createDisplay_continuous({model:"TE_model", property:"T_in_genomes", label:"TEs inside genomes", minval:0, maxval:100, fill:"viridis"}) 
+        sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool", minval:0, maxval:100, fill:"viridis"}) 
+
+        sim.TE_model.initialise = function () {
+            sim.initialGrid(sim.TE_model, "alive", 0)
+            sim.initialGrid(sim.TE_model, "genomesize", 0, undefined, 1.0)
+            sim.initialGrid(sim.TE_model, "T_in_eDNA", 0, undefined, 1.0)
+            sim.initialGrid(sim.TE_model, "T_in_genomes", 0, undefined, 1.0)
+            sim.max_g = 100
+            sim.max_t = 100
+
+            sim.TE_model.colourViridis("genomesize", sim.max_g)
+            sim.TE_model.colourViridis("T_in_genomes", sim.max_t)
+            sim.TE_model.colourViridis("T_in_eDNA", sim.max_t)
+
+
+            sim.mixDNApool = false
+            this.resetPlots()
+
+            placeCell = function (gp, init_es, init_ne, init_nc, init_tra, init_tra_rate) {
+                gp.alive = 1
+                gp.genome = new Genome()
+                gp.genome.initialise(init_es, init_ne, init_nc, init_tra, init_tra_rate)
+                gp.genomesize = Math.min(sim.max_g, gp.genome.chromosome.length)            // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
+                gp.fitness = gp.genome.fitness                                       // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+                gp.T_in_genomes = Math.min(sim.max_t, gp.genome.nr_tra)                                   // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
             }
+            for (let x = 0; x < sim.TE_model.nc; x++) for (let y = 0; y < sim.TE_model.nr; y++) {
+                this.grid[x][y].eDNA = []        // Initialise empty eDNA pool
+                this.grid[x][y].T_in_eDNA = 0
+
+                let size = 5
+                if ((Math.pow((x - sim.TE_model.nc / 2), 2) + Math.pow((y - sim.TE_model.nr / 2), 2)) < size)
+                    placeCell(sim.TE_model.grid[x][y], init_es, init_ne, init_nc, 10, init_tra_rate)
+                else if ((Math.pow((x - sim.TE_model.nc / 2), 2) + Math.pow((y - sim.TE_model.nr / 2), 2)) < size * 50)
+                    placeCell(sim.TE_model.grid[x][y], init_es, init_ne, init_nc, 0, init_tra_rate)
+                // else if((Math.pow((x-sim.TE_model.nc/2),2) + Math.pow((y-sim.TE_model.nr/2),2) ) < size*10 && y>sim.TE_model.nr/2)
+                //     placeCell(sim.TE_model.grid[x][y],init_es,init_ne,0,0)  
+
+            }
+        }
     
             sim.TE_model.initialise()  // Initialise for the first time (otherwise used for "RESET" button)
     
