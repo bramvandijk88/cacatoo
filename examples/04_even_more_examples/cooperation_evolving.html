@@ -19,7 +19,7 @@
 
 var sim;                            // This 'global' variable will hold the entire simulation
 var initial_helping_rate = 0.5    // Determines how much help a 'cooperative' individual gives to its neighbours
-var death = 0.05                    // Determines how often an individual spontaneously dies, making a new spot available
+var death = 0.1                    // Determines how often an individual spontaneously dies, making a new spot available
 var movement = 1                   // Determines how much individuals 'move around'
 var mutation_rate = 0.01
 
@@ -34,11 +34,11 @@ function cacatoo() {
         title: "Cooperating with your neighbours (evolving)",
         description: "",
         maxtime: 1000000,
-        ncol: 200,
-        nrow: 200,		                                            // dimensions of the grid to build
+        ncol: 100,
+        nrow: 100,		                                            // dimensions of the grid to build
         seed: 56,        
         wrap: [false, false],                                        // Wrap boundary [COLS, ROWS]
-        scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
+        scale: 3,				                                    // scale of the grid (nxn pixels per grid point)            
         graph_interval: 10,
         show_gridname: false,       
         graph_update: 50,
@@ -59,8 +59,8 @@ function cacatoo() {
     }
 
     sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",
-                        minval: 0.0, maxval:1.0,num_colours:50, na_colour: 'black', fill:"inferno", decimals:2, nticks:5})
-    sim.spaceTimePlot("coop", "Cooperation", "ST", 100, sim.ncol*3)                        
+                        minval: 0.0, maxval:1.0,num_colours:50, na_colour: 'black', fill:"inferno", decimals:1, nticks:3})
+    sim.spaceTimePlot("coop", "Cooperation", "Space-time diagram", sim.ncol/2, sim.ncol*2)   
     
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?

@@ -60,7 +60,7 @@
 
         sim.cells.initialise = function () {
             sim.initialGrid(sim.cells, "alive", 0, 1.0)
-            sim.initialGrid(sim.cells, "genomesize", undefined, 1.0)
+            sim.initialGrid(sim.cells, "genomesize", 0, undefined, 1.0)
             for (let x = 0; x < sim.cells.nc; x++) for (let y = 0; y < sim.cells.nr; y++) {
                 // if(sim.cells.rng.genrand_real1() < 0.999)
                 if (x == sim.cells.nc / 2 && y == sim.cells.nr / 2) {

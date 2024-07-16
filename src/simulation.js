@@ -376,7 +376,7 @@ class Simulation {
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
 
         if(config.drawdots) {
-            cnv.displaygrid = cnv.displaygrid_dots
+            cnv.display = cnv.displaygrid_dots
             cnv.stroke = config.stroke 
             cnv.strokeStyle = config.strokeStyle
             cnv.strokeWidth = config.strokeWidth
@@ -618,15 +618,15 @@ class Simulation {
      *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
-    initialGrid(gridmodel, property, bg=0) {
+    initialGrid(gridmodel,property,bg=0) {
         if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
         let p = property || 'val'
-
+        
         for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
             for (let y = 0; y < gridmodel.nr; y++)                  // y are rows
                 gridmodel.grid[x][y][p] = bg
-
-        for (let arg = 2; arg < arguments.length; arg += 2)         // Parse remaining 2+ arguments to fill the grid           
+        
+        for (let arg = 3; arg < arguments.length; arg += 2)         // Parse remaining 2+ arguments to fill the grid           
             for (let x = 0; x < gridmodel.nc; x++)                        // x are columns
                 for (let y = 0; y < gridmodel.nr; y++)                    // y are rows
                 {
@@ -1178,13 +1178,13 @@ class Simulation {
 
     /**
      * addMovieButton adds a standard button to record a video 
-     * @param {@GridModel} gridmodel The gridmodel containing the grid to be recorded. 
+     * @param {@Model} model (@Gridmodel of @Flockmodel) containing the canvas to be recorded. 
      * @param {String} property The name of the display (canvas) to be recorded
      * 
     */
-    addMovieButton(gridmodel,canvasname,fps=60){
+    addMovieButton(model,canvasname,fps=60){
         sim.addButton("Record", function() {
-            sim.makeMovie(gridmodel.canvases[canvasname],fps)        
+            sim.makeMovie(model.canvases[canvasname],fps)        
         })
     }
 

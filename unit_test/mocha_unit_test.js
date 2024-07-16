@@ -60,7 +60,7 @@ describe('Cacatoo simulation unit test', function()
      let individuals = [{alive:true, species:1, name: 'A'},{alive:true, species:2, name: 'B'}]
      it('Testing initialGrid', function() 
      {                
-       sim.initialGrid(sim.populate, 'species', 1, 0.33, 2, 0.33, 3, 0.33)
+       sim.initialGrid(sim.populate, 'species', 0, 1, 0.33, 2, 0.33, 3, 0.33)
        expect(sim.populate.grid[0][0]).to.have.property('species')       
        sim.populate.clearGrid()
        expect(sim.populate.grid[0][0] === sim.populate.grid[1][1]).to.equal(false)
@@ -97,9 +97,9 @@ describe('Cacatoo simulation unit test', function()
    {
     const sim = new Simulation();       
     sim.makeGridmodel("population")       
-    sim.initialGrid(sim.population, 'species', 1, 0.33, 2, 0.33, 3, 0.34)    
+    sim.initialGrid(sim.population, 'species', 0, 1, 0.33, 2, 0.33, 3, 0.34)    
     sim.makeGridmodel("population_2")       
-    sim.initialGrid(sim.population_2, 'species_2', 1, 0.33, 2, 0.33, 3, 0.34)    
+    sim.initialGrid(sim.population_2, 'species_2', 0, 1, 0.33, 2, 0.33, 3, 0.34)    
     it('Retrieve neighbouring grid points (getNeighbour(s))', function() 
     {                
       sim.population.getNeighbour(sim.population, 0, 0, 0)

@@ -39,7 +39,7 @@
         */
         sim = new Simulation(config)                          // Initialise the Cacatoo simulation
         sim.makeGridmodel("model")                              // Build a new Gridmodel within the simulation called "model" 
-        sim.initialGrid(sim.model, 'species', 'prey', 0.2, 'predator', 0.2)                // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
+        sim.initialGrid(sim.model, 'species', 0, 'prey', 0.2, 'predator', 0.2)                // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
         sim.createDisplay("model", "species", "")                      // Create a display so we can see our newly made gridmodel
 
         /*

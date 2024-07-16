@@ -28,10 +28,10 @@
             title: "Predator prey with deterministic death",                 // The name of your cacatoo-simulation
             description: "Like the predator-prey system in the tutorial, but with deterministic death.",         // And a description if you wish
             maxtime: 1000000,                             // How many time steps the model continues to run            
-            ncol: 150,                                   // Number of columns (width of your grid)
-            nrow: 150,		                              // Number of rows (height of your grid)
+            ncol: 250,                                   // Number of columns (width of your grid)
+            nrow: 250,		                              // Number of rows (height of your grid)
             wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
-            scale: 3,				                      // Scale of the grid (nxn pixels per grid point)
+            scale: 2,				                      // Scale of the grid (nxn pixels per grid point)
             statecolours: { 'species': { 'prey': [245, 245, 50], 'predator': [255, 0, 96] } },          // Colours for each state. Background (0) defaults to black. 
         }
 
@@ -95,6 +95,7 @@
         sim.addButton("Disable/enable mix", function () { sim.toggle_mix() })
         sim.addButton("Kill prey", function () { sim.my_custom_killprey_function() })
         sim.addButton("step", function () { sim.step(); sim.display() })
+        sim.addStatebrush('model', 'species', undefined, 100);
         sim.my_custom_killprey_function = function () {
             for (let x = 0; x < sim.model.nc; x++) for (let y = 0; y < sim.model.nr; y++) {
                 if (sim.model.grid[x][y].species == 'prey' && this.rng.genrand_real1() < 0.9)

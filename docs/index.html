@@ -34,16 +34,16 @@
                 nrow : 120,		                                            // dimensions of the grid to build                
                 scale : 3,				                                    // scale of the grid (nxn pixels per grid point)     
                 fpsmeter: false,       
-                statecolours: {'species':{1:"#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
-                                      2:"red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
-                                      3:"#3030ff"}}              
+                statecolours: {'species':{"mutualist A":"#DDDDDD",                      // Sets up colours of states
+                                      "mutualist B":"red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                      "cheater":"#3030ff"}}              
         }
 
         
         sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
         
         sim.makeGridmodel("cheaters")                                        // Make a new gridmodel named cheater
-        sim.initialGrid(sim.cheaters,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+        sim.initialGrid(sim.cheaters,'species',"mutualist A",0.33,"mutualist B",0.33,"cheater",0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
         sim.createDisplay("cheaters","species","Cacatoo example")                              // Display the 'species' property of the cheater grid
 
         sim.cheaters.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
@@ -52,9 +52,9 @@
             let state = this.grid[i][j].species;
             if (state == 0)                                                   // If there is no species here
             {
-                sumA = this.countMoore8(this, i, j, 'species',1);               // Count the number of species 1 (mutualist A)
-                sumB = this.countMoore8(this, i, j, 'species',2);               // Count the number of species 2 (mutualist B)
-                sumC = this.countMoore8(this, i, j, 'species',3);               // Count the number of species 3 (mutualist C)
+                sumA = this.countMoore8(this, i, j, 'species',"mutualist A");               // Count the number of species "mutualist A" (mutualist A)
+                sumB = this.countMoore8(this, i, j, 'species',"mutualist B");               // Count the number of species "mutualist B" (mutualist B)
+                sumC = this.countMoore8(this, i, j, 'species',"cheater");               // Count the number of species "cheater" (mutualist C)
 
                 pA = (B2A * sumB) * sumA;                                        // Chance that A wins
                 pB = (A2B * sumA) * sumB;                                        // Chance that B wins
@@ -64,11 +64,11 @@
                 ran = this.rng.random();                                     // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
 
                 if (ran < pA / psum)                                           // <-ran->                                     (A wins)
-                    this.grid[i][j].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                    this.grid[i][j].species = "mutualist A"                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
                 else if (ran < (pA + pB) / psum)                                 //        <-ran->                              (B wins)
-                    this.grid[i][j].species = 2                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                    this.grid[i][j].species = "mutualist B"                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
                 else if (ran < (pA + pB + pC) / psum)                              //               <--ran-->                     (C wins)
-                    this.grid[i][j].species = 3                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                    this.grid[i][j].species = "cheater"                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
                 //                        <-----ran----->      (no winner, spot stays empty for now)
                 // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
             }
@@ -94,13 +94,13 @@
             for(let i=0;i<this.nc;i++)          // i are columns
                 for(let j=0;j<this.nr;j++)      // j are rows
                 {     
-                    if(this.grid[i][j].species==1)  sumA++
-                    else if(this.grid[i][j].species==2)  sumB++
-                    else if(this.grid[i][j].species==3)  sumC++
+                    if(this.grid[i][j].species=="mutualist A")  sumA++
+                    else if(this.grid[i][j].species=="mutualist B")  sumB++
+                    else if(this.grid[i][j].species=="cheater")  sumC++
                 }
                 
             // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
-            this.plotPopsizes('species',[1,2,3]) 
+            this.plotPopsizes('species',["mutualist A","mutualist B","cheater"]) 
            
         }
             
@@ -109,7 +109,6 @@
         */
         sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
         sim.addButton("mix once",function() { sim.cheaters.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
-
         sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
 
         sim.addSlider("A2B")
@@ -180,14 +179,42 @@
 
 
 <div id="main">
-   
-<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Home</b> </img></h1>
+
     
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Home</b> </img></h1>
+<center>
+<video playsinline autoplay muted loop width="250" style="border: 3px solid black">
+    <source src="images/petri.webm" type="video/webm" />
+</video>
+<video playsinline autoplay muted loop width="250" style="border: 3px solid black">
+    <source src="images/physics.webm" type="video/webm" />
+</video>
+<video playsinline autoplay muted loop width="250" style="border: 3px solid black">
+    <source src="images/growth.webm" type="video/webm" />
+</video>
+<video playsinline autoplay muted loop width="250" style="border: 3px solid black">
+    <source src="images/heart.webm" type="video/webm" />
+</video>
+<video playsinline autoplay muted loop width="243" style="border: 3px solid black">
+    <source src="images/birds.webm" type="video/webm" />
+</video>
+</center>
+<br>
     This page contains tutorials and the documentation for <a href="https://github.com/bramvandijk88/cacatoo">Cacatoo</a>, a javascript library that makes building spatially structured models of biology easy! The simulation you see below
     is fully interactive, making it much easier to explore and try different parameters. If you've worked with similar models, you'll have no trouble getting started right away. If not, this manual will explain everything you need to know.
      After you've read through this manual, you'll have no issue starting to build simple models yourself. 
-    To get started, use the menu to see more examples and step-by-step tutorials!<br><br> 
+    To get started, use the menu to see more examples and step-by-step tutorials! <br><br> 
     
+    <h2 class="page-title"> <b> What's possible with Cacatoo: </b></h2>   
+
+    <ul>
+        <li> Explore simple grid-based simulations with minimal effort. 
+             Adding UI elements and graphs is easy! (see interactive example below)</li>
+        <li> Build classical cellular automata like Conway's Game of Life</li>
+        <li> Explore flocking behaviour in continuous space (and let these flocks interact with a grid!) </li>
+        <li> Build other types of (simple) physics simulations </li>
+    </ul>
+    <h2 class="page-title"> <b> Interactive example: </b></h2>   
 <center>
     <table>
         <tr>

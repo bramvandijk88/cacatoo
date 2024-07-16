@@ -39,9 +39,9 @@
         sim = new Simulation(config)                              // Initialise the Cacatoo simulation
         sim.makeGridmodel("growth")                               // Build a new Gridmodel within the simulation called "growth" 
         sim.makeGridmodel("particles")                            // Build a new Gridmodel within the simulation called "particles"
-        sim.initialGrid(sim.growth,'state','dead',1.0)            // Set all Grid points in 'growth' to 'dead' ...
+        sim.initialGrid(sim.growth,'state',0,'dead',1.0)            // Set all Grid points in 'growth' to 'dead' ...
         sim.growth.grid[config.ncol/2][config.nrow/2].state = 'alive'   // ... except for 1 grid point in the middle which is 'alive'
-        sim.initialGrid(sim.particles,'food','food',0.25)         // Set 25% of the Gridmodel 'particle' to 'food'
+        sim.initialGrid(sim.particles,'food',0.0,'food',0.25)         // Set 25% of the Gridmodel 'particle' to 'food'
                 
         sim.createDisplay("growth","colour","Growing aggregate")
         sim.createDisplay("particles","food","Available food particles")                                // Create a display so we can see our newly made gridmodel
@@ -69,7 +69,7 @@
         {                                
             this.MargolusDiffusion()
         }
-    
+        sim.addMovieButton(sim.growth, "Growing aggregate",60)
         sim.start()
     
     }

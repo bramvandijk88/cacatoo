@@ -18,10 +18,10 @@
             description: "Rock beats scissors, scissors beats paper, and paper beats... rock. Apparently.<br>This example illustrates how you can add mouse events and key press events. <br>Use your mouse to draw, and chance colours with the '1', '2,' and '3' keys.<br> The '[' and ']' keys can modify the brush size.",
             maxtime: 10000,
             seed:1,
-            ncol: 200,
-            nrow: 200,		                        // dimensions of the grid to build
+            ncol: 300,
+            nrow: 300,		                        // dimensions of the grid to build
             wrap: [false, false],                    // Wrap boundary [COLS, ROWS]   
-            scale: 2,				                // scale of the grid (nxn pixels per grid cell)
+            scale: 1,				                // scale of the grid (nxn pixels per grid cell)
             statecolours: { colour: {1:'white',2:'red',3:'blue'} },        // if set to 'default', createDisplay (below) inherits the default colours of cacatoo
             num_colours: 3,
             printcursor: false
@@ -48,7 +48,7 @@
 
             let neighbours = sim.spirals.countMoore8(this, x, y, 'colour',pred) // Count the nr of predators
             // Red will spread
-            if (sim.rng.genrand_real1() < 0.1 * neighbours)   // Let "predator" grow over the current pixel
+            if (sim.rng.genrand_real1() < 0.05 * neighbours)   // Let "predator" grow over the current pixel
                 this.grid[x][y].colour = pred;
         }
 

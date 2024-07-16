@@ -78,10 +78,10 @@
         sim.createDisplay_continuous({model:"TE_model", property:"T_in_eDNA", label:"TEs in eDNA pool", minval:0, maxval:100, fill:"viridis"}) 
 
         sim.TE_model.initialise = function () {
-            sim.initialGrid(sim.TE_model, "alive", 0, 1.0)
-            sim.initialGrid(sim.TE_model, "genomesize", undefined, 1.0)
-            sim.initialGrid(sim.TE_model, "T_in_eDNA", undefined, 1.0)
-            sim.initialGrid(sim.TE_model, "T_in_genomes", undefined, 1.0)
+            sim.initialGrid(sim.TE_model, "alive", 0)
+            sim.initialGrid(sim.TE_model, "genomesize", 0, undefined, 1.0)
+            sim.initialGrid(sim.TE_model, "T_in_eDNA", 0, undefined, 1.0)
+            sim.initialGrid(sim.TE_model, "T_in_genomes", 0, undefined, 1.0)
             sim.max_g = 100
             sim.max_t = 100
 

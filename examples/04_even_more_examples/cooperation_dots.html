@@ -35,12 +35,12 @@ var sim;                            // This 'global' variable will hold the enti
                 title: "Simulating evolution ",
                 description: "",
                 maxtime: 1000000,
-                ncol: 100,
-                nrow: 50,		                                            // dimensions of the grid to build
+                ncol: 200,
+                nrow: 100,		                                            // dimensions of the grid to build
                 seed: 61,
                 fpsmeter: true,                   
                 wrap: [false, false],                                        // Wrap boundary [COLS, ROWS]
-                scale: 10,				                                    // scale of the grid (nxn pixels per grid point)            
+                scale: 5,				                                    // scale of the grid (nxn pixels per grid point)            
                 graph_interval: 5,
                 graph_update: 20,
                 statecolours: {'type':{'Cooperator':'gold','Cheater':'violet'}, 'alive': { 1: 'white' }}
@@ -71,7 +71,7 @@ var sim;                            // This 'global' variable will hold the enti
     */ 
       
       sim.createDisplay_discrete({model:"coop", property:"type", 
-      drawdots:true, max_radius: 5.0, min_radius: 2, radius:"fitness", stroke: false, strokeWidth: 1, strokeStyle: "black",
+      drawdots:true, max_radius: 2.5, min_radius: 1, radius:"fitness", stroke: false, strokeWidth: 1, strokeStyle: "black",
       label:"Working together (colour = cooperation, size = growth rate)", minval:0, maxval:1, decimals:1, num_colours: 100}) 
       
     

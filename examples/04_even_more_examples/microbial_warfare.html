@@ -64,21 +64,21 @@ function cacatoo() {
     sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
 
     sim.makeGridmodel("warfare")                                        // Make a new gridmodel named cheater
-    sim.createDisplay_discrete({drawdots:false,radius:2,model:"warfare", property:"clone", label:"Clone types"})
+    //sim.createDisplay_discrete({drawdots:false,radius:2,model:"warfare", property:"clone", label:"Clone types"})
 
-    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"numP", label:"Num producing", minval:0, maxval:nr_of_toxins, num_colours:40})
-    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"numR", label:"Num resistant", minval:0, maxval:nr_of_toxins, num_colours:40})
-    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"toxin_conc", label:"Concentration toxins", minval:0, maxval:10, num_colours:40})    
+    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"numP", legend: true, label:"Num producing", minval:0, maxval:nr_of_toxins, num_colours:40})
+    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"numR", legend: true, label:"Num resistant", minval:0, maxval:nr_of_toxins, num_colours:40})
+    sim.createDisplay_continuous({model:"warfare", fill: "viridis", property:"toxin_conc", legend: true, label:"Concentration toxins", minval:0, maxval:10, num_colours:40})    
     // Create a display for the toxin production genotype    
     sim.warfare.colourGradient("genotypeP", 200, [156, 79, 150], [255, 99, 85],                                // pangenome colours setup
                               [251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242], 
                               [50,100,255])
-		sim.createDisplay_continuous({model:"warfare", property:"genotypeP", label:"Production profile", decimals: 0, nticks:5, maxval:200})
+		sim.createDisplay_continuous({model:"warfare", property:"genotypeP", legend: true, label:"Production profile", decimals: 0, nticks:5, maxval:200})
     // Create a display for the toxin resistance genotype
     sim.warfare.colourGradient("genotypeR", 200, [156, 79, 150], [255, 99, 85],                                // pangenome colours setup
                               [251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242], 
                               [50,100,255])
-		sim.createDisplay_continuous({model:"warfare", property:"genotypeR", label:"Resistance profile", decimals: 0, nticks:5, maxval:200})
+		sim.createDisplay_continuous({model:"warfare", property:"genotypeR", legend: true, label:"Resistance profile", decimals: 0, nticks:5, maxval:200})
     
 		
     sim.initialise = function()

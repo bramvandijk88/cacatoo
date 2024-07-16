@@ -29,7 +29,7 @@ let config = {
 let sim = new Simulation(config)
 sim.makeGridmodel("cells");
 sim.initialSpot(sim.cells, 'alive', 1, 2, sim.cells.nr / 2, sim.cells.nc / 2)            
-sim.initialGrid(sim.cells, 'age', 0, 1.0)
+sim.initialGrid(sim.cells, 'age', 0)
             
 // Defining the local rules ('nextState')
 sim.cells.nextState = function (j, y){              

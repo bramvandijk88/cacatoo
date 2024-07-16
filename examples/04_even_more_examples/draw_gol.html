@@ -41,7 +41,7 @@
         */
         sim = new Simulation(config)                          // Initialise the Cacatoo simulation
         sim.makeGridmodel("gol")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
-        sim.initialGrid(sim.gol, 'alive', 1, 0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
+        sim.initialGrid(sim.gol, 'alive', 0,1, 0.0)                // Set half (50%) of the Gridmodel's grid points to 1 (alive)
         sim.createDisplay("gol", "alive", "Game of life (white=alive)")                      // Create a display so we can see our newly made gridmodel
         sim.createDisplay("gol", "alive", "Pattern", 20, 20, 20)                      // Create a display so we can see our newly made gridmodel
 

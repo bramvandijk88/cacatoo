@@ -25,10 +25,10 @@
             title: "Interacting grids",
             description: "An example of how you can make grids interact. GoL (left-hand side, purple) influences vote (right-hand side) to vote blue.",
             maxtime: 10000,
-            ncol: 100,
-            nrow: 50,		            // dimensions of the grid to build
+            ncol: 200,
+            nrow: 100,		            // dimensions of the grid to build
             wrap: [true, true],        // Wrap boundary [COLS, ROWS]
-            scale: 5,				    // scale of the grid (nxn pixels per grid cell)
+            scale: 3,				    // scale of the grid (nxn pixels per grid cell)
             statecolours: {
                 'alive': { 0: 'black', 1: '#FF00AA' },
                 'overlay': { 0: 'black', 1: '#5555FF', 2: 'red' }
@@ -38,12 +38,12 @@
         sim = new Simulation(config)
 
         sim.makeGridmodel("gol");
-        sim.initialGrid("gol", 'alive', 1, 0.1)
+        sim.initialGrid("gol", 'alive', 0, 1, 0.1)
         sim.createDisplay("gol", "alive", "Game of life (solo)")
 
         sim.makeGridmodel("vote");
-        sim.initialGrid("vote", 'left', 1, 0.5)           // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
-        sim.initialGrid("vote", 'overlay', 0, 1.0)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+        sim.initialGrid("vote", 'left', 0, 1, 0.5)           // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
+        sim.initialGrid("vote", 'overlay', 0)        // Give each grid-point object a new property names 'val', with 50% 1, otherwise 0
         sim.createDisplay("vote", "overlay", "Vote / Game of life interact")
 
         sim.gol.nextState = function (x,y)                 // Define the next-state function. This example is game of life + vote

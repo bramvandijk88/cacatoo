@@ -57,7 +57,7 @@ function cacatoo() {
     sim = new Simulation(config)                                                // Initialise a new Simulation instance with configuration given above 
             
     sim.makeGridmodel("cheater")                                                // Make a new gridmodel named cheater
-    sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)          // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+    sim.initialGrid(sim.cheater, 'species', 0, 1, 0.33, 2, 0.33, 3, 0.33)          // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
 
     for (let x = 0; x < sim.cheater.nc; x++) for (let y = 0; y < sim.cheater.nr; y++) 
     {
