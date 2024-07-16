@@ -2828,20 +2828,23 @@ class Canvas {
     drawBoidPng(boid,ctx){
         if(boid.pngangle !==undefined){
             ctx.save();
-            ctx.translate(boid.position.x*this.scale, boid.position.y*this.scale);
+            ctx.translate(boid.position.x*this.scale-boid.size*this.scale*0.5, 
+                         boid.position.y*this.scale-boid.size*this.scale*0.5);
             let angle = Math.atan2(boid.velocity.y*this.scale,boid.velocity.x*this.scale+boid.pngangle);
             ctx.rotate(angle);
             let base_image = new Image();
             base_image.src = boid.png;
             if(!boid.png) console.warn("Boid does not have a PNG associated with it");
-            ctx.drawImage(base_image, 0,0,boid.size*this.scale,boid.size*this.scale);
+            ctx.drawImage(base_image,0,0,boid.size*this.scale,boid.size*this.scale);
             ctx.restore();
         }
         else {
             let base_image = new Image();
             base_image.src = boid.png;
             if(!boid.png) console.warn("Boid does not have a PNG associated with it");
-            ctx.drawImage(base_image, boid.position.x*this.scale,boid.position.y*this.scale,boid.size*this.scale,boid.size*this.scale);
+            ctx.drawImage(base_image, (boid.position.x-0.5*boid.size)*this.scale,
+                                       (boid.position.y-0.5*boid.size)*this.scale,
+                                      boid.size*this.scale,boid.size*this.scale);
         }
     }
     draw_qt(){

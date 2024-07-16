@@ -76,6 +76,7 @@ function cacatoo() {
   
   for(let boid of sim.flock.boids) {
     boid.png = "../../images/cockatiel_free.png"
+    //boid.pngangle=0
   }
   sim.flock.update = function(){
     for(let boid of this.boids) {

@@ -45,7 +45,7 @@ function cacatoo() {
   let flockconfig = {
     // Flock parameters
     num_boids: 0,        // Starting number of boids (flocking individuals)
-    shape: 'png',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    shape: 'png',        // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
     max_speed: 1,          // Maximum velocity of boids
     max_force: 0.1,       // Maximum steering force applied to boids (separation/cohesion/alignment rules)
     friction: 0.0,        // Frictionless monkeys, ofc
@@ -114,7 +114,7 @@ function cacatoo() {
         }
         else continue // Eating monkeys are not scared
       }
-      for(let i of sim.flock.getNearbyGridpoints(boid,sim.biome,5)){
+      for(let i of sim.flock.getNearbyGridpoints(boid,sim.biome,boid.size)){
         if(i.type == 'fruit') {
           boid.food++
           food_gathered++
