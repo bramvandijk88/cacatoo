@@ -34,18 +34,19 @@
         <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
         <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
         <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
-        <a href="example_pheromones.html"  id="nav__link" class="nav__link"> Ant pheromones</a>        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+        <a href="example_pheromones.html"  id="nav__link" class="nav__link"> Ant pheromones</a>
+        <a href="example_aapjes.html"  id="nav__link" class="nav__link"> Aapjes (monkeys)</a>
+                  <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
         <a href="example_starlings.html"  id="nav__link" class="nav__link"> Starlings</a>        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
         <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
         <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
        <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
         <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
         <a href="list_of_options.html" class="nav__link"> All configuration options</a>
-        <a href="populating_the_simulation.html" class="nav__link"> Populating a simulation</a>        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+        <a href="populating_the_simulation.html" class="nav__link"> Populating a simulation</a>        <a href="display_and_colours.html" class="nav__link"> Display, colours, and UI</a>
         <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
         <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
         <a href="grid_events.html" class="nav__link"> Grid events</a>
-        <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
         <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
         <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
     </div><div class="nav__overlay"></div></nav>
@@ -74,7 +75,7 @@
     <!-- --------------------- END MENU --------------------- -->
     <div id="main">
         
-        <h1 class="page-title">Display and colours</h1>
+        <h1 class="page-title">Display, colours, and UI</h1>
 
         <section>
             <h2> Setting up colours maps:</h2>
@@ -193,7 +194,67 @@
             </article>
         </section>
 
-        
+        <h1 class="page-title">Adding UI elements</h1>
+        <section>
+            <header>
+            </header>
+            <article>
+                <div class="container-overview">
+                    <h2> Interactive graphs </h2>
+                    Cacatoo uses the dygraphs library to plot interactive graphs. Because these graphs are updated every time step, they need to be placed in the update loop (see for example the cheater.js example), where
+                    we use:<br>
+
+                    <h5 style="margin-left:40px;" class="name">plotPopsizes<span class="signature">(property_to_count, values_to_count)</span></h5>
+                    <h5 style="margin-left:40px;" class="name">plotArray<span class="signature">([group_labels], [group_values], [group_colours], plot_title, {dygraph_options})</span></h5>
+                    <h5 style="margin-left:40px;" class="name">plotXY<span class="signature">([group_labels], [group_values], [group_colours], plot_title, {dygraph_options})</span></h5>
+                    <h5 style="margin-left:40px;" class="name">plotPoints<span class="signature">(array_with_values, title, {dygraph_options})</span></h5>
+                    
+                    <br>To manipulate what the graph looks like, you pass an object with dygraphs options: <br>
+                    
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>
+                        let graph_opts = { width: 1000, heigh:300, strokeWidth: 2, drawPoints: true, strokePattern: [1,2]}
+                        <br><br>
+                   <hr>
+                   <br>
+
+                    
+                   <h2> Buttons and sliders: </h2>
+                   <h5 style="margin-left:40px;" class="name">addSlider<span class="signature">(name_of_var)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name">addButton<span class="signature">("button_text", function)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name">addCustomSlider<span class="signature">(label,function, min = 0.0, max = 2.0, step = 0.01, default_value=0)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name">addPatternButton<span class="signature">(model, property_to_set) // Note: needs a live server to be run for browser security reasons</span><span class="type-signature"></span></h5>
+                   <br><br>
+                   <hr>
+                   <br>
+
+                   <h2> Painting on the grid: </h2>
+                   To add the ability to paint on the grid (which can be surprisingly useful for debugging), use the following functions:
+                   <h5 style="margin-left:40px;" class="name">addStatebrush<span class="signature">(gridmodel, property_to_change, value_to_put, brushsize, [brushflow, canvas])</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name">addObjectbrush<span class="signature">(gridmodel, object_to_draw, brushsize, [brushflow, canvas])</span><span class="type-signature"></span></h5>
+                   <br> The 'brushflow' and 'canvas' arguments are optional. Brushflow allows you to draw smoother lines when the framerate is limiting, with high numbers meaning more smooth drawing (at the cost of performance). By default, the first canvas of the gridmodel will be
+                   used to draw on, but you can also pass the name of another canvas. <br>
+                   <br> Use cases: for example in <i>01_beginner/spiral.html, 02_advanced/petridish_dot.html, and 04_even_more_examples/consumer_resource.html</i>
+                   <br><br>
+                   <hr>
+                   <br>
+
+                    <h2>Parse variable from URL</h2>
+
+                    You can also use javascript to read variables from the address bar. This can be userful if you want to share your model with specific parameters. 
+                    <h5 style="margin-left:40px;" class="name">var mixed = false<br>
+                    var url_query = {}<br>                    
+                    location.search.substr(1).split("&").forEach(function (item) { url_query[item.split("=")[0]] = item.split("=")[1] })<br>
+                    if (url_query.mixed) mixed=true<br>
+                    </h5>
+                    <br><br>
+                   <hr>
+                   <br>
+                    <h2>CustomHTML</h2>
+                    
+                    Finally, you can add some custom HTML stuff to one of the Cacatoo divs ('form_holder', 'graph_holder', 'canvas_holder'):
+                    <h5 style="margin-left:40px;" class="name">addHTML<span class="signature">("div_name", "html")</span><span class="type-signature"></span></h5>
+            </article>
+        </section>
         
     </div>
     <div id="Navigator"></div>
