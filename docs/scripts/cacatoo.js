@@ -1591,7 +1591,7 @@ class Flockmodel {
         this.width =  config.width || config.ncol ||600;
         this.height =  config.height ||config.nrow || 600;
         this.scale = config.scale || 1;
-        this.shape = config.shape || 'bird';
+        this.shape = config.shape || 'dot';
         this.click = config.click || 'none';
         this.follow_mouse = config.follow_mouse;
         this.init_velocity = config.init_velocity || 0.1;
@@ -1620,7 +1620,7 @@ class Flockmodel {
        
         this.neighbourhood_radius = Math.max(radius_alignment,radius_cohesion,radius_separation);
         this.friction = this.config.friction;
-        this.mouse_radius = this.config.mouse_radius;
+        this.mouse_radius = this.config.mouse_radius || 100;
         this.mousecoords = {x:-1000,y:-1000};
         this.boids = [];
         this.mouseboids = [];
