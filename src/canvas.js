@@ -50,6 +50,7 @@ class Canvas {
             // In nodejs, one may use canvas package. Or write the grid to a file to be plotted with R. 
         }
 
+        this.underlay = function(){}
         this.overlay = function(){}
 
     }
@@ -75,6 +76,7 @@ class Canvas {
             ctx.fillStyle = this.bgcolour
             ctx.fillRect(0, 0, ncol * scale, nrow * scale)
         }
+        this.underlay()
 
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
@@ -152,6 +154,7 @@ class Canvas {
             ctx.fillStyle = this.bgcolour
             ctx.fillRect(0, 0, ncol * scale, nrow * scale)         
         }        
+        this.underlay()
 
         let start_col = this.offset_x
         let stop_col = start_col + ncol
@@ -229,13 +232,14 @@ class Canvas {
             ctx.fillStyle = this.bgcolour
             ctx.fillRect(0, 0, ncol * scale, nrow * scale)         
         }
+        this.underlay()
         
-        if(this.model.config.qt_color) this.model.qt.draw(ctx, this.scale, this.model.config.qt_color)
+        if(this.model.config.qt_colour) this.model.qt.draw(ctx, this.scale, this.model.config.qt_colour)
 
         for (let boid of this.model.boids){  // Plot all individuals
             
             if(boid.invisible) continue
-            boid.fill = 'black'
+            if(!boid.fill) boid.fill = 'black'
             
             if(this.model.statecolours[prop]){
                 let val = boid[prop]
@@ -266,12 +270,22 @@ class Canvas {
             ctx.fillRect(obs.x*this.scale, obs.y*this.scale,obs.w*this.scale,obs.h*this.scale)
         }
         
+        this.draw_qt()
+
         this.overlay()
+
     }
 
     /**
     *  This function is empty by default, and is overriden based on parameters chose by the model. 
-    *  Override options are all below this option
+    *  Override options are all below this option. Options are: 
+    *  Point: a circle
+    *  Rect: a square
+    *  Arrow: an arrow that rotates in the direction the boid is moving
+    *  Bird: an arrow, but very wide so it looks like a bird
+    *  Line: a line that has the direction AND length of the velocity vector
+    *  Ant: three dots form an ant body with two lines forming antanae
+    *  Png: an image. PNG is sourced from boid.png 
     */
     drawBoid(){
     }
@@ -347,14 +361,15 @@ class Canvas {
     drawBoidAnt(boid,ctx){
         ctx.fillStyle = boid.fill
         ctx.beginPath()
-        let vector = this.model.normalise({x: boid.velocity.x, y: boid.velocity.y})
-        ctx.arc(boid.position.x*this.scale,boid.position.y*this.scale,boid.size*1.1,0,Math.PI*2)
-        ctx.arc(boid.position.x*this.scale+vector.x*boid.size,
-                boid.position.y*this.scale+vector.y*boid.size,
-                boid.size/1.3,0,Math.PI*2)
-        ctx.arc(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2,
-            boid.size,0,Math.PI*2)
+        let vector = this.model.normaliseVector({x: boid.velocity.x, y: boid.velocity.y})
+         ctx.arc(boid.position.x*this.scale-vector.x*boid.size*1.5,
+                 boid.position.y*this.scale-vector.y*boid.size*1.5,boid.size*1.0,0,Math.PI*2)
+        ctx.arc(boid.position.x*this.scale,
+                boid.position.y*this.scale,
+                boid.size/1.5,0,Math.PI*2)
+         ctx.arc(boid.position.x*this.scale+vector.x*boid.size*1.5,
+             boid.position.y*this.scale+vector.y*boid.size*1.5,
+             boid.size/1.2,0,Math.PI*2)
         ctx.fill()
         ctx.closePath()
         ctx.beginPath()
@@ -365,8 +380,8 @@ class Canvas {
         dir = this.model.rotateVector(vector,20)
         ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
             boid.position.y*this.scale+vector.y*boid.size*2)
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*2.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*2.5)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
         ctx.strokeStyle = boid.fill
         ctx.lineWidth = boid.size/3
 
@@ -374,8 +389,8 @@ class Canvas {
         dir = this.model.rotateVector(vector,-20)
         ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
             boid.position.y*this.scale+vector.y*boid.size*2)
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*2.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*2.5)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
         ctx.strokeStyle = boid.fill
         ctx.lineWidth = boid.size/3
 
@@ -410,7 +425,10 @@ class Canvas {
             ctx.drawImage(base_image, boid.position.x*this.scale,boid.position.y*this.scale,boid.size*this.scale,boid.size*this.scale);
         }
     }
-    
+    draw_qt(){
+
+
+    }
     // Add legend to plot
     add_legend(div,property,lab="")
     {

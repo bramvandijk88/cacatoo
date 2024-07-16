@@ -210,10 +210,11 @@ class Gridmodel {
                 else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)))
                 if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)))
                 else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)))
-                color_dict[Math.floor(i + arr * segment_len + total)+1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)]
+                color_dict[Math.floor(i + arr * segment_len + total)] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)]
                 total_added_colours++
                 if(total_added_colours == n) break
             }
+            color_dict[n] = arguments[arguments.length-1]
         }        
         return(color_dict)
     }
@@ -290,7 +291,6 @@ class Gridmodel {
             }
         }
         this.grid = newstate;
-        this.time++
     }
 
     /** Like the synchronous function above, but can not take a custom user-defined function rather
@@ -670,15 +670,16 @@ class Gridmodel {
         }
         let newstate = MakeGrid(this.nc, this.nr) 
 
+        // console.log(this.grid[0][0][statevector])
         for (let x = 0; x < this.nc; x += 1) // every column
             for (let y = 0; y < this.nr; y += 1) // every row
             {
-                newstate[x][y].toxins = Array(statevector.length).fill(0)
+                newstate[x][y][statevector] = Array(this.grid[x][y][statevector].length).fill(0)
                 for (let n = 1; n <= 4; n++)
-                    for(let state=0; state < this.grid[x][y][statevector].length; state++)
+                    for(let state of Object.keys(this.grid[x][y][statevector]))
                         newstate[x][y][statevector][state] = this.grid[x][y][statevector][state]
             }
-
+        
         for (let x = 0; x < this.nc; x += 1) // every column
         {           
             for (let y = 0; y < this.nr; y += 1) // every row
@@ -689,7 +690,7 @@ class Gridmodel {
                     let xy = this.getNeighXY(x + moore[0], y + moore[1])
                     if (typeof xy == "undefined") continue
                     let neigh = this.grid[xy[0]][xy[1]]
-                    for(let state=0; state < newstate[x][y][statevector].length; state++)
+                    for(let state of Object.keys(this.grid[x][y][statevector]))
                     {
                         newstate[x][y][statevector][state] += neigh[statevector][state] * rate
                         newstate[xy[0]][xy[1]][statevector][state] -= neigh[statevector][state] * rate
@@ -697,11 +698,14 @@ class Gridmodel {
                 }
             }
         }
+        
         for (let x = 0; x < this.nc; x += 1) // every column
             for (let y = 0; y < this.nr; y += 1) // every row
                 for (let n = 1; n <= 4; n++)
-                    for(let state=0; state < newstate[x][y][statevector].length; state++)
+                    for(let state of Object.keys(this.grid[x][y][statevector]))
                         this.grid[x][y][statevector][state] = newstate[x][y][statevector][state]
+        // console.log(this.grid)
+
     }
 
     /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 

@@ -551,10 +551,11 @@ class Gridmodel {
                 else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)));
                 if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)));
                 else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)));
-                color_dict[Math.floor(i + arr * segment_len + total)+1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
+                color_dict[Math.floor(i + arr * segment_len + total)] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
                 total_added_colours++;
                 if(total_added_colours == n) break
             }
+            color_dict[n] = arguments[arguments.length-1];
         }        
         return(color_dict)
     }
@@ -631,7 +632,6 @@ class Gridmodel {
             }
         }
         this.grid = newstate;
-        this.time++;
     }
 
     /** Like the synchronous function above, but can not take a custom user-defined function rather
@@ -1011,15 +1011,16 @@ class Gridmodel {
         }
         let newstate = MakeGrid(this.nc, this.nr); 
 
+        // console.log(this.grid[0][0][statevector])
         for (let x = 0; x < this.nc; x += 1) // every column
             for (let y = 0; y < this.nr; y += 1) // every row
             {
-                newstate[x][y].toxins = Array(statevector.length).fill(0);
+                newstate[x][y][statevector] = Array(this.grid[x][y][statevector].length).fill(0);
                 for (let n = 1; n <= 4; n++)
-                    for(let state=0; state < this.grid[x][y][statevector].length; state++)
+                    for(let state of Object.keys(this.grid[x][y][statevector]))
                         newstate[x][y][statevector][state] = this.grid[x][y][statevector][state];
             }
-
+        
         for (let x = 0; x < this.nc; x += 1) // every column
         {           
             for (let y = 0; y < this.nr; y += 1) // every row
@@ -1030,7 +1031,7 @@ class Gridmodel {
                     let xy = this.getNeighXY(x + moore[0], y + moore[1]);
                     if (typeof xy == "undefined") continue
                     let neigh = this.grid[xy[0]][xy[1]];
-                    for(let state=0; state < newstate[x][y][statevector].length; state++)
+                    for(let state of Object.keys(this.grid[x][y][statevector]))
                     {
                         newstate[x][y][statevector][state] += neigh[statevector][state] * rate;
                         newstate[xy[0]][xy[1]][statevector][state] -= neigh[statevector][state] * rate;
@@ -1038,11 +1039,14 @@ class Gridmodel {
                 }
             }
         }
+        
         for (let x = 0; x < this.nc; x += 1) // every column
             for (let y = 0; y < this.nr; y += 1) // every row
                 for (let n = 1; n <= 4; n++)
-                    for(let state=0; state < newstate[x][y][statevector].length; state++)
+                    for(let state of Object.keys(this.grid[x][y][statevector]))
                         this.grid[x][y][statevector][state] = newstate[x][y][statevector][state];
+        // console.log(this.grid)
+
     }
 
     /** Diffuse ODE states on the grid. Because ODEs are stored by reference inside gridpoint, the 
@@ -1595,15 +1599,17 @@ class Flockmodel {
         this.random = () => { return this.rng.random()};
         this.randomInt = (a,b) => { return this.rng.randomInt(a,b)};                
         this.wrap = config.wrap || [true, true];
-
-
+        
+        this.wrapreflect = 1;
+        if(config.wrapreflect) this.wrapreflect = config.wrapreflect;
+        console.log(this.wrapreflect);
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
         this.bgcolour = config.bgcolour || undefined;
         
         this.statecolours = {};
         if(config.statecolours) this.statecolours = this.setupColours(config.statecolours,config.num_colours||100); // Makes sure the statecolours in the config dict are parsed (see below)
-        
+        if(!config.qt_capacity) config.qt_capacity = 3;
         this.graphs = {};                // Object containing all graphs belonging to this model (HTML usage only)
         this.canvases = {};              // Object containing all Canvases belonging to this model (HTML usage only)
 
@@ -1826,7 +1832,7 @@ class Flockmodel {
             }
             steering.x /= neighbours.length;
             steering.y /= neighbours.length;
-            steering = this.normalise(steering);
+            steering = this.normaliseVector(steering);
             steering.x *= this.config.max_speed;
             steering.y *= this.config.max_speed;
             steering.x -= boid.velocity.x;
@@ -1855,7 +1861,7 @@ class Flockmodel {
                 let distance = Math.sqrt(dx * dx + dy * dy);
                 if (distance < this.config.separation.radius) {
                     let difference = { x: dx, y: dy };
-                    difference = this.normalise(difference);
+                    difference = this.normaliseVector(difference);
                     steering.x += difference.x ;
                     steering.y += difference.y ;
                 }
@@ -1863,7 +1869,7 @@ class Flockmodel {
             if (steering.x !== 0 || steering.y !== 0) {
                 steering.x /= neighbours.length;
                 steering.y /= neighbours.length;
-                steering = this.normalise(steering);
+                steering = this.normaliseVector(steering);
                 steering.x *= this.config.max_speed;
                 steering.y *= this.config.max_speed;
                 steering.x -= boid.velocity.x;
@@ -1898,7 +1904,7 @@ class Flockmodel {
             centerOfMass.y /= neighbours.length;
             steering.x = centerOfMass.x - boid.position.x;
             steering.y = centerOfMass.y - boid.position.y;
-            steering = this.normalise(steering);
+            steering = this.normaliseVector(steering);
             steering.x *= this.config.max_speed;
             steering.y *= this.config.max_speed;
             steering.x -= boid.velocity.x;
@@ -1928,7 +1934,7 @@ class Flockmodel {
                 }
 
                 let difference = { x: dx, y: dy };
-                difference = this.normalise(difference);
+                difference = this.normaliseVector(difference);
                 steering.x += difference.x ;
                 steering.y += difference.y ;
                 
@@ -1936,7 +1942,7 @@ class Flockmodel {
             if (steering.x !== 0 || steering.y !== 0) {
                 steering.x /= neighbours.length;
                 steering.y /= neighbours.length;
-                steering = this.normalise(steering);
+                steering = this.normaliseVector(steering);
                 steering.x *= this.config.max_speed;
                 steering.y *= this.config.max_speed;
                 steering.x -= boid.velocity.x;
@@ -1962,7 +1968,8 @@ class Flockmodel {
     applyPhysics() { 
         for (let i = 0; i < this.boids.length; i++) {
             let boid = this.boids[i];
-
+            if(boid.locked) continue
+            
             let neighbours = this.getIndividualsInRange(boid.position, this.neighbourhood_radius);
             let alignment = this.config.alignment ? this.calculateAlignment(boid, neighbours) : {x:0,y:0};
             let alignmentstrength = this.config.alignment ? this.config.alignment.strength : 0;
@@ -1971,6 +1978,10 @@ class Flockmodel {
             let cohesion = this.config.cohesion ? this.calculateCohesion(boid, neighbours) : {x:0,y:0};
             let cohesionstrength = this.config.cohesion ? this.config.cohesion.strength : 0;
 
+            if(boid.alignmentstrength !== undefined) alignmentstrength = boid.alignmentstrength;
+            if(boid.cohesionstrength !== undefined) cohesionstrength = boid.cohesionstrength;
+            if(boid.separationstrength !== undefined) separationstrength = boid.separationstrength;
+            
             let collision_force = this.config.collision_force || 0;
             let collision = {x:0,y:0};
             if(collision_force > 0){
@@ -2033,16 +2044,16 @@ class Flockmodel {
                 if (boid.position.x >= this.width) boid.position.x -= this.width;
             }
             else {
-                if (boid.position.x < boid.size/2) boid.position.x = boid.size/2, boid.velocity.x *= -1;
-                if (boid.position.x >= this.width - boid.size/2) boid.position.x = this.width - boid.size/2, boid.velocity.x *= -1;
+                if (boid.position.x < boid.size/2) boid.position.x = boid.size/2, boid.velocity.x *= -this.wrapreflect;
+                if (boid.position.x >= this.width - boid.size/2) boid.position.x = this.width - boid.size/2, boid.velocity.x *= -this.wrapreflect;
             }
             if(this.wrap[1]){
                 if (boid.position.y < 0) boid.position.y += this.height;
                 if (boid.position.y >= this.height) boid.position.y -= this.height;
             }
             else {
-                if (boid.position.y < boid.size/2) boid.position.y = boid.size/2, boid.velocity.y *= -1;
-                if (boid.position.y >= this.height - boid.size/2) boid.position.y = this.height - boid.size/2, boid.velocity.y *= -1;
+                if (boid.position.y < boid.size/2) boid.position.y = boid.size/2, boid.velocity.y *= -this.wrapreflect;
+                if (boid.position.y >= this.height - boid.size/2) boid.position.y = this.height - boid.size/2, boid.velocity.y *= -this.wrapreflect;
             }
             // Reset acceleration to 0 each cycle
             boid.acceleration.x = 0;
@@ -2086,12 +2097,20 @@ class Flockmodel {
         }
     }
 
-    normalise(vector) {
-        let length = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+
+    lengthVector(vector) {
+        return(Math.sqrt(vector.x * vector.x + vector.y * vector.y))
+    }
+    scaleVector(vector,scale){
+        return {x:vector.x*scale,y:vector.y*scale}
+    }
+    normaliseVector(vector) {
+        let length = this.lengthVector(vector);
         if (length > 0) return { x: vector.x / length, y: vector.y / length }
         else return { x: 0, y: 0 };
     }
 
+    // Angle in degrees
     rotateVector(vec, ang)
     {
         ang = -ang * (Math.PI/180);
@@ -2194,7 +2213,7 @@ class Flockmodel {
             let range = { x:position.x+offset.x, y:position.y+offset.y, w:radius*2, h:radius*2 };
             neighbours.push(...qt.query(range));
         }
-        //return(neighbours)
+        
         // Filter neighbours to only include those within the circular radius (a bit quicker than slicing in for loop, i noticed)
         return neighbours.filter(neighbour => {
             let dx = neighbour.position.x - position.x;
@@ -2450,6 +2469,7 @@ class Canvas {
             this.display = this.displaygrid;
         }
 
+        this.underlay = function(){};
         this.overlay = function(){};
 
     }
@@ -2475,6 +2495,7 @@ class Canvas {
             ctx.fillStyle = this.bgcolour;
             ctx.fillRect(0, 0, ncol * scale, nrow * scale);
         }
+        this.underlay();
 
         var id = ctx.getImageData(0, 0, scale * ncol, scale * nrow);
         var pixels = id.data;
@@ -2552,6 +2573,7 @@ class Canvas {
             ctx.fillStyle = this.bgcolour;
             ctx.fillRect(0, 0, ncol * scale, nrow * scale);         
         }        
+        this.underlay();
 
         let start_col = this.offset_x;
         let stop_col = start_col + ncol;
@@ -2629,13 +2651,14 @@ class Canvas {
             ctx.fillStyle = this.bgcolour;
             ctx.fillRect(0, 0, ncol * scale, nrow * scale);         
         }
+        this.underlay();
         
-        if(this.model.config.qt_color) this.model.qt.draw(ctx, this.scale, this.model.config.qt_color);
+        if(this.model.config.qt_colour) this.model.qt.draw(ctx, this.scale, this.model.config.qt_colour);
 
         for (let boid of this.model.boids){  // Plot all individuals
             
             if(boid.invisible) continue
-            boid.fill = 'black';
+            if(!boid.fill) boid.fill = 'black';
             
             if(this.model.statecolours[prop]){
                 let val = boid[prop];
@@ -2666,12 +2689,22 @@ class Canvas {
             ctx.fillRect(obs.x*this.scale, obs.y*this.scale,obs.w*this.scale,obs.h*this.scale);
         }
         
+        this.draw_qt();
+
         this.overlay();
+
     }
 
     /**
     *  This function is empty by default, and is overriden based on parameters chose by the model. 
-    *  Override options are all below this option
+    *  Override options are all below this option. Options are: 
+    *  Point: a circle
+    *  Rect: a square
+    *  Arrow: an arrow that rotates in the direction the boid is moving
+    *  Bird: an arrow, but very wide so it looks like a bird
+    *  Line: a line that has the direction AND length of the velocity vector
+    *  Ant: three dots form an ant body with two lines forming antanae
+    *  Png: an image. PNG is sourced from boid.png 
     */
     drawBoid(){
     }
@@ -2747,14 +2780,15 @@ class Canvas {
     drawBoidAnt(boid,ctx){
         ctx.fillStyle = boid.fill;
         ctx.beginPath();
-        let vector = this.model.normalise({x: boid.velocity.x, y: boid.velocity.y});
-        ctx.arc(boid.position.x*this.scale,boid.position.y*this.scale,boid.size*1.1,0,Math.PI*2);
-        ctx.arc(boid.position.x*this.scale+vector.x*boid.size,
-                boid.position.y*this.scale+vector.y*boid.size,
-                boid.size/1.3,0,Math.PI*2);
-        ctx.arc(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2,
-            boid.size,0,Math.PI*2);
+        let vector = this.model.normaliseVector({x: boid.velocity.x, y: boid.velocity.y});
+         ctx.arc(boid.position.x*this.scale-vector.x*boid.size*1.5,
+                 boid.position.y*this.scale-vector.y*boid.size*1.5,boid.size*1.0,0,Math.PI*2);
+        ctx.arc(boid.position.x*this.scale,
+                boid.position.y*this.scale,
+                boid.size/1.5,0,Math.PI*2);
+         ctx.arc(boid.position.x*this.scale+vector.x*boid.size*1.5,
+             boid.position.y*this.scale+vector.y*boid.size*1.5,
+             boid.size/1.2,0,Math.PI*2);
         ctx.fill();
         ctx.closePath();
         ctx.beginPath();
@@ -2765,8 +2799,8 @@ class Canvas {
         dir = this.model.rotateVector(vector,20);
         ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
             boid.position.y*this.scale+vector.y*boid.size*2);
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*2.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*2.5);
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5);
         ctx.strokeStyle = boid.fill;
         ctx.lineWidth = boid.size/3;
 
@@ -2774,8 +2808,8 @@ class Canvas {
         dir = this.model.rotateVector(vector,-20);
         ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
             boid.position.y*this.scale+vector.y*boid.size*2);
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*2.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*2.5);
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5);
         ctx.strokeStyle = boid.fill;
         ctx.lineWidth = boid.size/3;
 
@@ -2810,7 +2844,10 @@ class Canvas {
             ctx.drawImage(base_image, boid.position.x*this.scale,boid.position.y*this.scale,boid.size*this.scale,boid.size*this.scale);
         }
     }
-    
+    draw_qt(){
+
+
+    }
     // Add legend to plot
     add_legend(div,property,lab="")
     {
@@ -3159,8 +3196,8 @@ class Simulation {
 
         cnv.strokeStyle = config.strokeStyle;
         cnv.strokeWidth = config.strokeWidth;
-
-        if(config.legend){
+        
+        if(config.legend!==false){
             if(addToDisplay) cnv.add_legend(addToDisplay.canvasdiv,property,legendlabel);
             else cnv.add_legend(cnv.canvasdiv,property,legendlabel );
         }
@@ -3351,7 +3388,7 @@ class Simulation {
         if (decimals !== undefined) cnv.decimals = decimals;
         if (nticks !== undefined) cnv.nticks = nticks;
         
-        if(config.legend) cnv.add_legend(cnv.canvasdiv,property,legendlabel);
+        if(config.legend!==false) cnv.add_legend(cnv.canvasdiv,property,legendlabel);
         cnv.bgcolour = this.config.bgcolour || 'black';
         this.canvases.push(cnv);  // Add a reference to the canvas to the sim
         const canvas = cnv;        
@@ -3451,13 +3488,16 @@ class Simulation {
     * Update all the grid models one step. Apply optional mixing
     */
     step() {
-        for (let i = 0; i < this.gridmodels.length; i++)
+        for (let i = 0; i < this.gridmodels.length; i++){
             this.gridmodels[i].update();
+            this.gridmodels[i].time++;
+        }
 
         for (let i = 0; i < this.flockmodels.length; i++){
             let model = this.flockmodels[i];
             model.flock();
             model.update();
+            model.time++;
             let mouse = model.mousecoords;
             model.mouseboids = model.getIndividualsInRange(mouse,model.mouse_radius);
             if(model.mouseDown)model.handleMouseBoids();

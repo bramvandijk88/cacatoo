@@ -1,6 +1,5 @@
 import Gridmodel from "./gridmodel"
 import Flockmodel from "./flockmodel"
-import QuadTree from './quadtree.js'
 import Canvas from "./canvas"
 //import MersenneTwister from '../lib/mersenne' 
 import * as utility from './utility'
@@ -202,8 +201,8 @@ class Simulation {
 
         cnv.strokeStyle = config.strokeStyle
         cnv.strokeWidth = config.strokeWidth
-
-        if(config.legend){
+        
+        if(config.legend!==false){
             if(addToDisplay) cnv.add_legend(addToDisplay.canvasdiv,property,legendlabel)
             else cnv.add_legend(cnv.canvasdiv,property,legendlabel )
         }
@@ -394,7 +393,7 @@ class Simulation {
         if (decimals !== undefined) cnv.decimals = decimals
         if (nticks !== undefined) cnv.nticks = nticks
         
-        if(config.legend) cnv.add_legend(cnv.canvasdiv,property,legendlabel)
+        if(config.legend!==false) cnv.add_legend(cnv.canvasdiv,property,legendlabel)
         cnv.bgcolour = this.config.bgcolour || 'black'
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
@@ -495,13 +494,16 @@ class Simulation {
     * Update all the grid models one step. Apply optional mixing
     */
     step() {
-        for (let i = 0; i < this.gridmodels.length; i++)
+        for (let i = 0; i < this.gridmodels.length; i++){
             this.gridmodels[i].update()
+            this.gridmodels[i].time++
+        }
 
         for (let i = 0; i < this.flockmodels.length; i++){
             let model = this.flockmodels[i]
             model.flock()
             model.update()
+            model.time++
             let mouse = model.mousecoords
             model.mouseboids = model.getIndividualsInRange(mouse,model.mouse_radius)
             if(model.mouseDown)model.handleMouseBoids()
