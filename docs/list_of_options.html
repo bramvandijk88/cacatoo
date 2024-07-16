@@ -25,16 +25,14 @@
         <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
         <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
         <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
-        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
-        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+        <a href="example_pheromones.html"  id="nav__link" class="nav__link"> Ant pheromones</a>        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+        <a href="example_starlings.html"  id="nav__link" class="nav__link"> Starlings</a>        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
         <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
         <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
        <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
         <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
-        <a href="videos.html" class="nav__link"> Tutorials (Youtube)</a>                              
         <a href="list_of_options.html" class="nav__link"> All configuration options</a>
-        <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
-        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+        <a href="populating_the_simulation.html" class="nav__link"> Populating a simulation</a>        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
         <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
         <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
         <a href="grid_events.html" class="nav__link"> Grid events</a>
@@ -72,13 +70,13 @@
             </header>
             <article>
                 <div class="container-overview">
-                    <h5>Config {} - object that is passed to construct the initial simulation:</h5>
+                    <h2>Config {} - object that is passed to construct the initial simulation:</h2>
                     <table class="params">
                         <thead>
                             <tr>
                                 <th style="width:15%">Name</th>
                                 <th style="width:15%">Type</th>
-                                <th style="width:55%">Description</th>
+                                <th style="width:45%">Description</th>
                                 <th class="last">Default value</th>
                             </tr>
                         </thead>
@@ -114,6 +112,18 @@
                                 <td class="type"><span class="param-type">  integer                                   </span></td>
                                 <td class="name">               Number of rows (heighth) of grid                 </td>
                                 <td class="name">               100                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  width                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                   </span></td>
+                                <td class="name">               Width of the model (for flockmodels)                 </td>
+                                <td class="name">               600                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  height                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                   </span></td>
+                                <td class="name">               Height of the model (for flockmodels)                 </td>
+                                <td class="name">               600                                     </td>
                             </tr>
                             <tr>
                                 <td class="name">                   <code>  wrap                                   </code></td>
@@ -198,6 +208,130 @@
 
                             
                             
+                        </tbody>
+                    </table>
+
+
+<br>
+                    <h2>Flockconfig {} - object that is passed to a new flockmodel:</h2>
+                    <table class="params">
+                        <thead>
+                            <tr>
+                                <th style="width:15%">Name</th>
+                                <th style="width:15%">Type</th>
+                                <th style="width:45%">Description</th>
+                                <th class="last">Default value</th>
+                            </tr>
+                        </thead>
+                         
+       
+                        <tbody>
+                            <tr>
+                                <td class="name">                   <code>  num_boids                                   </code></td>
+                                <td class="name"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Number of boids to (auto)initialise                 </td>
+                                <td class="name">               0                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  shape                                   </code></td>
+                                <td class="type"><span class="param-type">  string                                   </span></td>
+                                <td class="name">               What type of shape the boid takes. Options are dot, square, arrow, bird, line, ant, png (png requires boid.png to contain a path to the png file)                 </td>
+                                <td class="name">               "dot"                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  size                                   </code></td>
+                                <td class="type"><span class="param-type">  integer                                   </span></td>
+                                <td class="name">               Size of the boid                 </td>
+                                <td class="name">               10                                    </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  init_velocity                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                </span></td>
+                                <td class="name">               Initial speed of the boid                 </td>
+                                <td class="name">               0                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  max_speed                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                </span></td>
+                                <td class="name">               Maximum speed of the boid                 </td>
+                                <td class="name">               10                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  max_force                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                   </span></td>
+                                <td class="name">               Maximum force (acceleration) added to a boid in a single timestep                </td>
+                                <td class="name">               1.5                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code> friction                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                   </span></td>
+                                <td class="name">               Velocity is multiplied by 1 minus this number each timestep. Simulates drag-less friction.                 </td>
+                                <td class="name">               0.0                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  click                                   </code></td>
+                                <td class="type"><span class="param-type">  string                                   </span></td>
+                                <td class="name">               What clicking the mouse does (repel, pull, kill,none)                 </td>
+                                <td class="name">               'none'                                     </td>
+                            </tr>
+
+                            <tr>
+                                <td class="name">                   <code>  mouseattraction                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                   </span></td>
+                                <td class="name">               Force applied to steer towards the mouse                </td>
+                                <td class="name">               0.0                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  mouse_radius                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                   </span></td>
+                                <td class="name">               Size of mouse radius for hovering over boids                </td>
+                                <td class="name">               100                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  draw_mouse_radius                                   </code></td>
+                                <td class="type"><span class="param-type">  boolean                                   </span></td>
+                                <td class="name">               Show the mouse radius when hovering                </td>
+                                <td class="name">               true                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  alignment                                   </code></td>
+                                <td class="type"><span class="param-type">  {object}                                   </span></td>
+                                <td class="name">               Alignment rules of boids  </td>
+                                <td class="name">               undefined (no alignment)                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  cohesion                                   </code></td>
+                                <td class="type"><span class="param-type">  {object}                                   </span></td>
+                                <td class="name">               Cohesion rules of boids  </td>
+                                <td class="name">               undefined (no cohesion)                                     </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  seperation                                   </code></td>
+                                <td class="type"><span class="param-type">  {object}                                   </span></td>
+                                <td class="name">               Seperation rules of boids  </td>
+                                <td class="name">               undefined (no separation)                                     </td>
+                            </tr>
+
+                            <tr>
+                                <td class="name">                   <code>  collision_force                                   </code></td>
+                                <td class="type"><span class="param-type">  number                                   </span></td>
+                                <td class="name">               Collision force of boids  </td>
+                                <td class="name">               0                                     </td>
+                            </tr>
+                            
+
+                            <tr>
+                                <td class="name">                   <code>  qt_colour                                   </code></td>
+                                <td class="type"><span class="param-type">  string                                   </span></td>
+                                <td class="name">               Colour to draw the quadtree (optimalisation algorithm) </td>
+                                <td class="name">               undefined (not drawn)                                  </td>
+                            </tr>
+                            <tr>
+                                <td class="name">                   <code>  qt_capacity                                   </code></td>
+                                <td class="type"><span class="param-type">  interger                                   </span></td>
+                                <td class="name">               Bin size for quadtree algorithm </td>
+                                <td class="name">               5                              </td>
+                            </tr>
                         </tbody>
                     </table>
                     

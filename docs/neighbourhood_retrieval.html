@@ -48,16 +48,14 @@
         <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
         <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
         <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
-        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
-        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+        <a href="example_pheromones.html"  id="nav__link" class="nav__link"> Ant pheromones</a>        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+        <a href="example_starlings.html"  id="nav__link" class="nav__link"> Starlings</a>        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
         <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
         <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
        <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
         <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
-        <a href="videos.html" class="nav__link"> Tutorials (Youtube)</a>                              
         <a href="list_of_options.html" class="nav__link"> All configuration options</a>
-        <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
-        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+        <a href="populating_the_simulation.html" class="nav__link"> Populating a simulation</a>        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
         <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
         <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
         <a href="grid_events.html" class="nav__link"> Grid events</a>
@@ -90,7 +88,7 @@
     <!-- --------------------- END MENU --------------------- -->
     <div id="main">
         
-                    <h1 class="page-title">Neighboorhood retrieval</h1>
+                    <h1 class="page-title">Neighboorhood retrieval (gridmodels)</h1>
         <section>
             <header>
             </header>
@@ -234,6 +232,24 @@
                     <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let y_set = sim.rng.genrand_int(0,sim.nrow)</span><span class="type-signature"></span></h5>    
                     <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.setGridpoint<span class="signature">(x_set, y_set, template)</span><span class="type-signature"></span></h5>
                     
+            </article>
+        </section>
+
+
+        <h1 class="page-title">Neighboorhood retrieval (flockmodel/boids)</h1>
+        <section>
+            <header>
+                For flockmodels, there are two important functions for neighbourhood retreival. Firstly, this function gets the boids
+                in range (where range is 20)
+
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let neighbours = this.getIndividualsInRange(boid.position, 20)</span><span class="type-signature"></span></h5>    
+
+                But you may also want to select the gridpoints of a model that corresond to this boids position. This happens via this function, here with range 5:
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> let gps_in_range = this.getNearbyGridpoints(boid,sim.gridmodel,5)</span><span class="type-signature"></span></h5>    
+
+            
+            </header>
+            <article>
             </article>
         </section>
              
