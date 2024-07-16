@@ -1,4 +1,5 @@
 (caca)TODO
 FLOCKMODELS
-> Add examples (ant foraging, aapjes)
+> Write documentation 
+> Push an official new version
 
