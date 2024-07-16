@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title><link rel="icon" type="image/png" href="images/favicon.png" />
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+    
+    
+    
+        
+</head>
+
+<script>
+
+  /*-----------------------Start user-defined code ---------------------*/
+  // Aapjes is a simulations where "aapjes" (Dutch for monkeys) are roaming 
+  // around for food. When a monkey is too far from the group, it will get 
+  // scared and run back to the group. Otherwise, it can run into a random
+  // direction looking for fruit. When it has found a certain number of fruit
+  // items, the monkey will stand still and eat the fruit. Only after the 
+  // monkey is done eating will it run back to the group. Interestingly, 
+  // the parameter "time spent eating" helps the group find more food!
+  
+  let sim;
+  var time_spent_eating = 0
+  
+  function cacatoo() {
+    
+    let simconfig = {
+      title: "Aapjes", // The name of your cacatoo-simulation
+      description: "Foraging in groups", // And a description if you wish
+      maxtime: 10000, // How many time steps the model continues to run
+      // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+      ncol: 300, // Number of columns (width of your grid)
+      nrow: 300, // Number of rows (height of your grid)
+      scale: 2, // Scale of the grid (nxn pixels per grid point)
+      sleep: 0,
+      seed: 2,
+      wrap: [true,true],
+      fpsmeter: true,
+      statecolours: {
+        'type': {
+          'grass': '#14782f',
+          'fruit': '#DDDD00'
+        }
+      }, 
+    }
+  
+    let flockconfig = {
+      // Flock parameters
+      num_boids: 0,        // Starting number of boids (flocking individuals)
+      shape: 'png',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+      click: 'none',
+      max_speed: 1,          // Maximum velocity of boids
+      max_force: 0.1,       // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+      friction: 0.0,        // Frictionless monkeys, ofc
+      // Mouse parameters
+      mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
+      draw_mouse_radius: true,            // Show a circle where the mouse is
+      // Steering behaviour
+      alignment: {strength:0, radius:30}, // Alignment parameters (uses default neighbour radius of 30)
+      cohesion:  {strength:0, radius:50},  // Cohesion parameters (uses default neighbour radius of 30)
+      separation:{strength:0, radius:4},  // Separation radius is smaller 
+      size: 20,                // Size of the boids (scales drawing and colision detection)
+  
+      // Optimalisation (speed) parameters
+      //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
+      qt_capacity: 5,        // How many boids can be in one subspace of the quadtree before it is divided further
+    }
+    
+    sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+    sim.makeGridmodel("biome")        // Initialise a gridmodel where the fruit will be
+    sim.initialGrid(sim.biome, 'type', 'grass', 'fruit', 0.15) 
+  
+    sim.addPatches = function(){
+      for(let i=0; i<10;i++){
+        sim.initialSpot(sim.biome, 'type', 'fruit', 100, Math.floor(sim.rng.random()*sim.ncol), Math.floor(sim.rng.random()*sim.nrow),background_state=false)
+      }
+    }
+    
+    sim.createGridDisplay("biome", "type", "")
+  
+  
+    sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+    sim.createFlockDisplay("flock",{addToDisplay:sim.canvases[0]}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
+    
+    sim.flock.populateSpot(50,sim.nrow/2,sim.ncol/2,1)
+    for(boid of sim.flock.boids) {
+      boid.png = "images/aapje_normal.png"
+      boid.velocity.x = sim.rng.random()*2-1
+      boid.velocity.y = sim.rng.random()*2-1
+      boid.food = 0
+    }
+    
+    /*
+        2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+    */
+    sim.biome.nextState = function(x, y) {
+      
+    }
+  
+    sim.biome.update = function() {
+      this.synchronous() // Applied as many times as it can in 1/60th of a second    
+    }
+    let food_gathered = 0
+    sim.flock.update = function(){
+      let i = 0
+      
+      for(let boid of this.boids) {
+        if(boid.food>=10){ // If the monkey has food, lock it in space and set a different icon
+          boid.locked = true
+          boid.png = "images/aapje_eating.png"
+        }
+        if(boid.locked){
+          boid.food -= (1/time_spent_eating)
+          if(boid.food <= 0) {
+            boid.locked=false
+            boid.png = "images/aapje_normal.png"
+          }
+          else continue // Eating monkeys are not scared
+        }
+        for(let i of sim.flock.getNearbyGridpoints(boid,sim.biome,5)){
+          if(i.type == 'fruit') {
+            boid.food++
+            food_gathered++
+            i.type = 'grass'
+          }
+        }
+  
+        //boid.velocity = this.rotateVector(boid.velocity,*sim.rng.random()-7.5)
+        let numneighs = this.getIndividualsInRange(boid.position, 20).length -1
+        if(numneighs < 10) {
+          boid.cohesionstrength = 1.0
+          boid.png = "images/aapje_scared.png"
+        }
+        else {
+          boid.cohesionstrength = 0.0
+          boid.png = "images/aapje_normal.png"
+        }
+      }
+      this.plotArray(["Total fruit gathered"], [food_gathered],
+                  ["gold"], "Total fruit gathered")
+    }
+  
+  
+    sim.start()
+    sim.addSlider("time_spent_eating",0,100,1,"Time spent eating")
+    sim.addButton("pause/continue", function () { sim.toggle_play() })
+    sim.addButton("step", function () { sim.step(); sim.display() })    
+    sim.addButton("add patches", sim.addPatches)
+    sim.addHTML("form_holder","<br>")
+    
+    
+  }
+  
+  </script>
+<body onload="cacatoo()">        
+   <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+   <header class="header" id="btnNav"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+   <nav class="nav"><div class="nav__links">            
+    <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> Cacatoo </a>
+    <a href="index.html"  id="nav__link" class="nav__link">Home</a>
+    <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code (Github)</a>
+    <!-- <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a> -->
+    <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
+    <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
+    <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
+    <a href="example_pheromones.html"  id="nav__link" class="nav__link"> Ant pheromones</a>
+    <a href="example_aapjes.html"  id="nav__link" class="nav__link"> Aapjes (monkeys)</a>
+    <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+    <a href="example_starlings.html"  id="nav__link" class="nav__link"> Starlings</a>    <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+    <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
+    <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
+   <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
+    <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
+    <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+    <a href="populating_the_simulation.html" class="nav__link"> Populating a simulation</a>    <a href="display_and_colours.html" class="nav__link"> Display, colours, and UI</a>
+    <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+    <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
+    <a href="grid_events.html" class="nav__link"> Grid events</a>
+    <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+    <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+</div><div class="nav__overlay"></div></nav>
+   
+   <script>         
+       document.addEventListener("DOMContentLoaded", () => {
+           const nav = document.querySelector(".nav");
+           document.querySelector("#btnNav").addEventListener("click", () => {
+               nav.classList.add("nav--open");
+           });
+           document.querySelector(".nav__overlay").addEventListener("click", () => {
+               nav.classList.remove("nav--open");
+           });
+           document.querySelector("#btnNavclose").addEventListener("click", () => {
+               nav.classList.remove("nav--open");
+           });    
+           var all_links = document.getElementsByClassName("nav__link");            
+           var hide_menu = function() {
+                nav.classList.remove("nav--open");
+           };    
+           for (var i = 0; i < all_links.length; i++) {
+               all_links[i].addEventListener('click', hide_menu, false);
+           }
+       });
+   </script>
+   <!-- --------------------- END MENU --------------------- -->
+
+<div id="main">
+
+    
+
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Aapjes (monkeys)</b> </img></h1>
+    <center>
+    <table>
+        <tr>
+            <td style="padding:20px">    <div id="canvas_holder"></div>
+            </td>
+            <td>   <br><br><br> <div id="form_holder"></div><div id="graph_holder"></div>
+            </td>
+            <td> <br><br><br><br> </div>
+            </div>
+            </td>
+        </tr>
+    </table>
+    
+</center>
+    <br><br>
+   
+</div>
+<div id="Navigator"></div>
+
+
+<br class="clear">
+
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
