@@ -159,7 +159,7 @@ h1 {
         top:0;
         left:0;
         width:100%;
-        background-color: rgb(111, 146, 170);
+        background-color: rgb(163, 111, 170);
         padding: 7px 10px;
     }
     
@@ -321,7 +321,7 @@ button {
     box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
   }
    .example_card:active{        
-    background-color: rgb(151, 183, 204);
+    background-color: rgb(204, 151, 193);
     font-size:12px;
     padding-top: 11px;
     height: 199px;    
