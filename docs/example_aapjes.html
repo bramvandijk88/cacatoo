@@ -127,7 +127,7 @@
           }
           else continue // Eating monkeys are not scared
         }
-        for(let i of sim.flock.getNearbyGridpoints(boid,sim.biome,5)){
+        for(let i of sim.flock.getNearbyGridpoints(boid,sim.biome,8)){
           if(i.type == 'fruit') {
             boid.food++
             food_gathered++
