@@ -1,5 +1,2 @@
 (caca)TODO
 FLOCKMODELS
-> Write documentation 
-> Push an official new version
-
