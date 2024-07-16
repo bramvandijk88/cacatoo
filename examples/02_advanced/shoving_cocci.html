@@ -1,0 +1,136 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+var draw_cells = 1
+
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Shoving cells on a petridish", // The name of your cacatoo-simulation
+    description: "Cocci shaped cells (simplest physics)", // And a description if you wish
+    maxtime: 10000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 300, // Number of columns (width of your grid)
+    nrow: 300, // Number of rows (height of your grid)
+    scale: 2, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    wrap: [false,false],
+    fpsmeter: true
+  }
+
+  // FLOCKCONFIG EXAMPLE
+  // This example sets up a boid simulation with specific values for the currently implemented parameters
+  // Note however, all these parameters have defaults, so not all need to be set by the user. 
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 0,          // Starting number of boids (flocking individuals)
+    shape: 'dot',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    click: 'kill',         // Clicking the boids pushes them away from the mouse
+    max_speed: 2,          // Maximum velocity of boids
+    max_force: 0.2,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity:0,
+    friction: 0.5,        // Them ants are darn slippery :)
+    // Mouse parameters
+    mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: true,            // Show a circle where the mouse is
+    // Collision behaviour
+    collision_force: 0.5,
+    size: 5,                // Size of the boids (scales drawing and colision detection)
+
+    // Optimalisation (speed) parameters
+    qt_visible: false,       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 3,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+
+  sim.makeGridmodel("env")                              // Build a new Gridmodel within the simulation called "model"
+  sim.initialGrid(sim.env,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+  sim.createDisplay_continuous({model:"env", property:"external_resources", label:"Cells on a dish", // Createa a display for a continuous variable (ODE state for external resources)
+                      minval:0, maxval:1, num_colours: 100, decimals: 2, 
+                      fill:"viridis", legend:true, legendlabel: "external resources"}) 
+
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  
+  sim.flock.populateSpot(1,sim.nr/2,sim.nc/2,1)
+ 
+  for(let boid of sim.flock.boids) boid.internal_resources=0.0
+  
+  sim.createFlockDisplay("flock", {addToDisplay:sim.canvases[0], 
+                                   legend: true,
+                                   legendlabel: "internal resources",
+                                   fill:"inferno",                  // Colour scheme to use
+                                   strokeStyle: "white",
+                                   strokeWidth: 1,
+                                   property: 'internal_resources',      // Which property to colour
+                                   minval:0, maxval:100, num_colours: 200, nticks:3, decimals:0})
+
+  
+  
+  // the nextstate for the environment grid (emtpy in this example)
+  sim.env.nextState = function(x, y) {
+    
+  }
+
+  sim.env.update = function() {
+    this.diffuseStates('external_resources',0.2)
+    this.synchronous() // Applied as many times as it can in 1/60th of a second    
+  }
+
+  sim.flock.update = function(){
+    for(let boid of this.boids) {
+      for(let i of sim.flock.getNearbyGridpoints(boid,sim.env,boid.size+1)){
+        let uptake = i.external_resources*0.1
+        i.external_resources -= uptake
+        boid.internal_resources += uptake
+      }
+
+      boid.internal_resources *= 0.99
+      
+      if(!boid.overlapping && boid.internal_resources >= 15 && sim.rng.random() < 0.05){
+        let newboid = this.copyBoid(boid)
+        let angle = sim.rng.random()*Math.PI*2
+        newboid.position.x+= 0.5*boid.size*Math.cos(angle)
+        newboid.position.y+= 0.5*boid.size*Math.sin(angle)
+        if(this.inBounds(newboid))
+          this.boids.push(newboid)
+      }
+    }
+    
+    if(sim.time %50 == 0) console.log(`Simulation step ${sim.time} has ${sim.flock.boids.length} cells`)
+
+    
+  }
+
+
+  sim.start()
+  sim.addButton("pause/continue", function () { sim.toggle_play() })
+
+  sim.addButton("step", function () { sim.step(); sim.display() })    
+  sim.addToggle("draw_cells", "Show cells", function(){ sim.flock.draw = !sim.flock.draw})
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

@@ -1,0 +1,100 @@
+<!-- 
+
+    EXAMPLE FILE: Voting rule
+    This file shows the most easy use-case for the Cacatoo library, and 
+    illustrates it's core functionality with Conways Game of Life. 
+
+    It simply load the library and other dependencies using <script>
+    tags, load some CSS-stylesheets for the GUI, and than starts 
+    with defining the model. 
+    
+-->
+
+<!--  ---------------Do not change the part below ------------------  -->
+
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+// First, we declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+let sim;
+
+/**
+ * function cacatoo() contains all the user-defined parts of a cacatoo-model. 
+ 	 Configuration, update rules, what is displayed or plotted, etc. It's all here.
+ */
+function cacatoo() {
+  /*
+      1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+  */
+  let config = {
+    title: "Voting rule", // The name of your cacatoo-simulation
+    description: "State (0 or 1) is determined by the majority in the local neighbourhood.", // And a description if you wish
+    maxtime: 1000000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 500, // Number of columns (width of your grid)
+    nrow: 500, // Number of rows (height of your grid)
+    wrap: [true, true], // Wrapped boundary conditions? [COLS, ROWS]   
+    scale: 1, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    statecolours: {
+      'vote': {
+				0: '#333333',
+        1: '#CCCCFF'
+      }
+    }, // Colours for each state. Background (0) defaults to black. 
+  }
+
+  /*
+      1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+  */
+  sim = new Simulation(config) // Initialise the Cacatoo simulation
+  sim.makeGridmodel("model") // Build a new Gridmodel within the simulation called "model"
+  sim.initialGrid(sim.model, 'vote', 0,1, 0.50) // Set half (50%) of the Gridmodel's grid points to 1 (white)
+  sim.createDisplay("model", "vote", "") // Create a display so we can see our newly made gridmodel
+
+  /*
+      2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+  */
+  sim.model.nextState = function(x, y) {
+    let neighbours = this.countMoore9(this, x, y, 'vote', 1)
+    if (neighbours > 5 || neighbours == 4)
+      this.grid[x][y].vote = 1 // If majority votes "in favour" (has 1), this position also becomes 1
+    else
+      this.grid[x][y].vote = 0 // If majority votes "against" (has 0), this position also becomes 0
+
+  }
+
+  /*
+      3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+      applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+  */
+  sim.model.update = function() {
+    this.synchronous() // Applied as many times as it can in 1/60th of a second    
+  }
+
+  sim.start()
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

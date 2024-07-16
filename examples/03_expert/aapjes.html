@@ -1,0 +1,161 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+// Aapjes is a simulations where "aapjes" (Dutch for monkeys) are roaming 
+// around for food. When a monkey is too far from the group, it will get 
+// scared and run back to the group. Otherwise, it can run into a random
+// direction looking for fruit. When it has found a certain number of fruit
+// items, the monkey will stand still and eat the fruit. Only after the 
+// monkey is done eating will it run back to the group. Interestingly, 
+// the parameter "time spent eating" helps the group find more food!
+
+let sim;
+var time_spent_eating = 0
+
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Aapjes", // The name of your cacatoo-simulation
+    description: "Foraging in groups", // And a description if you wish
+    maxtime: 10000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 300, // Number of columns (width of your grid)
+    nrow: 300, // Number of rows (height of your grid)
+    scale: 2, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    seed: 2,
+    wrap: [true,true],
+    fpsmeter: true,
+    statecolours: {
+      'type': {
+				'grass': '#14782f',
+        'fruit': '#DDDD00'
+      }
+    }, 
+  }
+
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 0,        // Starting number of boids (flocking individuals)
+    shape: 'png',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    max_speed: 1,          // Maximum velocity of boids
+    max_force: 0.1,       // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    friction: 0.0,        // Frictionless monkeys, ofc
+    // Mouse parameters
+    mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: true,            // Show a circle where the mouse is
+    // Steering behaviour
+    alignment: {strength:0, radius:30}, // Alignment parameters (uses default neighbour radius of 30)
+    cohesion:  {strength:0, radius:50},  // Cohesion parameters (uses default neighbour radius of 30)
+    separation:{strength:0, radius:4},  // Separation radius is smaller 
+    size: 15,                // Size of the boids (scales drawing and colision detection)
+
+    // Optimalisation (speed) parameters
+    //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 5,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+  sim.makeGridmodel("biome")        // Initialise a gridmodel where the fruit will be
+  sim.initialGrid(sim.biome, 'type', 'grass', 'fruit', 0.15) 
+
+  sim.addPatches = function(){
+    for(let i=0; i<10;i++){
+      sim.initialSpot(sim.biome, 'type', 'fruit', 100, Math.floor(sim.rng.random()*sim.ncol), Math.floor(sim.rng.random()*sim.nrow),background_state=false)
+    }
+  }
+  
+  sim.createGridDisplay("biome", "type", "")
+
+
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  sim.createFlockDisplay("flock",{addToDisplay:sim.canvases[0]}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
+  
+  sim.flock.populateSpot(50,sim.nrow/2,sim.ncol/2,1)
+  for(boid of sim.flock.boids) {
+    boid.png = "../../images/aapje_normal.png"
+    boid.velocity.x = sim.rng.random()*2-1
+    boid.velocity.y = sim.rng.random()*2-1
+    boid.food = 0
+  }
+  
+  /*
+      2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+  */
+  sim.biome.nextState = function(x, y) {
+    
+  }
+
+  sim.biome.update = function() {
+    this.synchronous() // Applied as many times as it can in 1/60th of a second    
+  }
+  let food_gathered = 0
+  sim.flock.update = function(){
+    let i = 0
+    
+    for(let boid of this.boids) {
+      if(boid.food>=5){ // If the monkey has food, lock it in space and set a different icon
+        boid.locked = true
+        boid.png = "../../images/aapje_eating.png"
+      }
+      if(boid.locked){
+        boid.food -= (1/time_spent_eating)
+        if(boid.food <= 0) {
+          boid.locked=false
+          boid.png = "../../images/aapje_normal.png"
+        }
+        else continue // Eating monkeys are not scared
+      }
+      for(let i of sim.flock.getNearbyGridpoints(boid,sim.biome,5)){
+        if(i.type == 'fruit') {
+          boid.food++
+          food_gathered++
+          i.type = 'grass'
+        }
+      }
+
+      //boid.velocity = this.rotateVector(boid.velocity,3*sim.rng.random()-1.5)
+      let numneighs = this.getIndividualsInRange(boid.position, 20).length -1
+      if(numneighs < 10) {
+        boid.cohesionstrength = 1.0
+        boid.png = "../../images/aapje_scared.png"
+      }
+      else {
+        boid.cohesionstrength = 0.0
+        boid.png = "../../images/aapje_normal.png"
+      }
+    }
+    this.plotArray(["Total fruit gathered"], [food_gathered],
+                ["gold"], "Total fruit gathered")
+  }
+
+
+  sim.start()
+  sim.addButton("pause/continue", function () { sim.toggle_play() })
+  sim.addButton("step", function () { sim.step(); sim.display() })    
+  sim.addSlider("time_spent_eating",0,100,1,"Time spent eating")
+  sim.addButton("add patches", sim.addPatches)
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

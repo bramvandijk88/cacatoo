@@ -1,0 +1,94 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<style>
+  body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-image: linear-gradient(#89cdef, #d2f0ff);
+}
+
+</style>
+
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+let winwidth = window.innerWidth;
+let winheight = window.innerHeight;
+
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Starlings", // The name of your cacatoo-simulation
+    maxtime: 1000000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    width: winwidth, // Number of columns (width of your grid)
+    height: winheight, // Number of rows (height of your grid)
+    scale: 1, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    fpsmeter: true,
+    bgcolour: '#cceeff00'
+  }
+
+  // FLOCKCONFIG EXAMPLE
+  // This example sets up a boid simulation with specific values for the currently implemented parameters
+  // Note however, all these parameters have defaults, so not all need to be set by the user. 
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 1000,        // Starting number of boids (flocking individuals)
+    shape: 'bird',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    size: 8,                // Size of the boids (scales drawing and colision detection)
+    max_speed: 6,          // Maximum velocity of boids
+    max_force: 0.25,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    friction: 0.01,        // Them ants are darn slippery :)
+    // Mouse parameters
+    click: 'repel',          // Clicking the boids pushes them away from the mouse
+    mouse_radius: 250,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: false,            // Show a circle where the mouse is
+    // Steering behaviour
+    alignment: {strength:2, radius:50}, // Alignment parameters (uses default neighbour radius of 30)
+    cohesion:  {strength:1, radius:50},  // Cohesion parameters (uses default neighbour radius of 30)
+    separation:{strength:4, radius:15},  // Separation radius is smaller 
+    mouseattraction: 0.3,       // Steering towards the mouse
+
+    // Optimalisation (speed) parameters
+    //qt_colour: "white",       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 3,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+  
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  sim.createFlockDisplay("flock")
+  
+  sim.flock.update = function(){
+    for(let boid of this.boids) {
+      let mouseidx = this.mouseboids.indexOf(boid);
+      //boid.size= mouseidx >=0?10:6
+      boid.col=undefined
+      boid.lineWidth=0
+    }
+    
+  }
+
+  sim.start()
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+</body>
+
+</html>

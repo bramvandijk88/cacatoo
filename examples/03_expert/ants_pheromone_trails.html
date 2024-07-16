@@ -1,0 +1,149 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+
+/**
+ * function cacatoo() contains all the user-defined parts of a cacatoo-model. 
+ 	 Configuration, update rules, what is displayed or plotted, etc. It's all here.
+ */
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Pheromone trails", // The name of your cacatoo-simulation
+    description: "A center for ants?!", // And a description if you wish
+    maxtime: 100000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 120, // Number of columns (width of your grid)
+    nrow: 120, // Number of rows (height of your grid)
+    scale: 4, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    wrap: [false,false],
+    wrapreflect: 0.6,
+    bgcolour:'lightgrey'
+  }
+
+  // FLOCKCONFIG EXAMPLE
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 100,        // Starting number of boids (flocking individuals)
+    shape: 'ant',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    max_speed: 1,          // Maximum velocity of boids
+    max_force: 0.5,       // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    friction: 0.0, 
+    // Mouse parameters
+    mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: true,            // Show a circle where the mouse is
+    // Steering behaviour
+    alignment: {strength:0, radius:10}, // Alignment parameters (uses default neighbour radius of 30)
+    cohesion:  {strength:0, radius:10},// Cohesion parameters (uses default neighbour radius of 30)
+    separation:{strength:0.5, radius:3},  // Separation radius is smaller 
+    size: 3                            // Size of the boids (scales drawing and colision detection)
+  }
+  
+  sim = new Simulation(simconfig)         // Initialise the Cacatoo simulation
+  sim.makeGridmodel("pheromones")         // Make a grid for the pheromones
+  
+  for(let x=0;x<sim.ncol;x++) for(let y=0;y<sim.nrow;y++){
+    sim.pheromones.grid[x][y].homing_velocity = {x:0.0,y:0.0}
+  }
+  sim.createDisplay_continuous({model:"pheromones", property:"homing_pheromone", label:"Pheromone concentration", 
+  minval:0, maxval:30, num_colours:200, decimals: 2, fill:"red",legend:false}) 
+  sim.canvases[0].bgcolour = "black"
+
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  sim.createFlockDisplay("flock",{label:"Ants"}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
+  
+  
+  /*
+      2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+  */
+  sim.pheromones.nextState = function(x, y) {
+    this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.99)
+    this.grid[x][y].homing_pheromone = sim.flock.lengthVector(this.grid[x][y].homing_velocity)
+  }
+
+  sim.pheromones.update = function() {
+    this.diffuseStateVector("homing_velocity",0.02)
+    this.synchronous() 
+    
+  }
+
+  sim.flock.update = function(){
+    
+    for(let boid of this.boids) {
+      let x = Math.floor(boid.position.x)
+      let y = Math.floor(boid.position.y)
+      let pherx = sim.pheromones.grid[x][y].homing_velocity.x
+      let phery = sim.pheromones.grid[x][y].homing_velocity.y
+      let pheromone_angle = Math.atan2(phery,pherx)
+      let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].homing_velocity)
+      boid.velocity = this.rotateVector(boid.velocity,40*sim.rng.random()-20)
+      
+      boid.acceleration.x =  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount 
+      boid.acceleration.y =  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount 
+      let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
+      if (accLength > this.config.max_force) {
+          boid.acceleration.x = (boid.acceleration.x / accLength) * this.config.max_force
+          boid.acceleration.y = (boid.acceleration.y / accLength) * this.config.max_force 
+      }
+      sim.pheromones.grid[x][y].homing_velocity.x += boid.velocity.x*10
+      sim.pheromones.grid[x][y].homing_velocity.y += boid.velocity.y*10
+      
+      for(let i of sim.flock.getNearbyGridpoints(boid,sim.pheromones,5)){
+        i.type = 'ground'
+      }
+    }
+
+    sim.canvases[1].underlay = function(){
+      this.ctx.strokeStyle = "red"
+      this.ctx.lineWidth = 1
+      this.ctx.moveTo(0,0)
+      this.ctx.lineTo(1,1)
+      this.ctx.stroke()
+      let scale_vector = 0.4
+      for(let x=0;x<sim.ncol;x++){
+        for(let y=0;y<sim.nrow;y++){
+        let velox = sim.pheromones.grid[x][y].homing_velocity.x
+        let veloy = sim.pheromones.grid[x][y].homing_velocity.y
+        this.ctx.beginPath()
+        this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
+        this.ctx.lineTo(this.scale*0.5+x*this.scale+velox*scale_vector,this.scale*0.5+y*this.scale+veloy*scale_vector)
+        this.ctx.stroke()
+        this.ctx.closePath()
+        }
+      }
+    }
+
+    
+  }
+
+
+  sim.start()
+  sim.addButton("pause/continue", function () { sim.toggle_play() })
+  sim.addButton("step", function () { sim.step(); sim.display() })    
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

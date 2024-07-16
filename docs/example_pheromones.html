@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title><link rel="icon" type="image/png" href="images/favicon.png" />
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+    <script>
+
+        /*-----------------------Start user-defined code ---------------------*/
+        
+        let sim;
+        
+        /**
+         * function cacatoo() contains all the user-defined parts of a cacatoo-model. 
+              Configuration, update rules, what is displayed or plotted, etc. It's all here.
+         */
+        function cacatoo() {
+          
+          let simconfig = {
+            title: "Pheromone trails", // The name of your cacatoo-simulation
+            description: "A center for ants?!", // And a description if you wish
+            maxtime: 100000, // How many time steps the model continues to run
+            // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+            ncol: 120, // Number of columns (width of your grid)
+            nrow: 120, // Number of rows (height of your grid)
+            scale: 4, // Scale of the grid (nxn pixels per grid point)
+            sleep: 0,
+            wrap: [false,false],
+            wrapreflect: 0.6,
+            bgcolour:'lightgrey'
+          }
+        
+          // FLOCKCONFIG EXAMPLE
+          let flockconfig = {
+            // Flock parameters
+            num_boids: 100,        // Starting number of boids (flocking individuals)
+            shape: 'ant',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+            max_speed: 1,          // Maximum velocity of boids
+            click: 'pull',
+            max_force: 0.5,       // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+            friction: 0.0, 
+            // Mouse parameters
+            mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
+            draw_mouse_radius: true,            // Show a circle where the mouse is
+            // Steering behaviour
+            alignment: {strength:0, radius:10}, // Alignment parameters (uses default neighbour radius of 30)
+            cohesion:  {strength:0, radius:10},// Cohesion parameters (uses default neighbour radius of 30)
+            separation:{strength:0.5, radius:3},  // Separation radius is smaller 
+            size: 3                            // Size of the boids (scales drawing and colision detection)
+          }
+          
+          sim = new Simulation(simconfig)         // Initialise the Cacatoo simulation
+          sim.makeGridmodel("pheromones")         // Make a grid for the pheromones
+          
+          for(let x=0;x<sim.ncol;x++) for(let y=0;y<sim.nrow;y++){
+            sim.pheromones.grid[x][y].homing_velocity = {x:0.0,y:0.0}
+          }
+          sim.createDisplay_continuous({model:"pheromones", property:"homing_pheromone", label:"", 
+          minval:0, maxval:30, num_colours:200, decimals: 2, fill:"red",legend:false}) 
+          sim.canvases[0].bgcolour = "black"
+        
+          sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+          sim.createFlockDisplay("flock",{label:""}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
+          
+          
+          /*
+              2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+          */
+          sim.pheromones.nextState = function(x, y) {
+            this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.99)
+            this.grid[x][y].homing_pheromone = sim.flock.lengthVector(this.grid[x][y].homing_velocity)
+          }
+        
+          sim.pheromones.update = function() {
+            this.diffuseStateVector("homing_velocity",0.02)
+            this.synchronous() 
+            
+          }
+        
+          sim.flock.update = function(){
+            
+            for(let boid of this.boids) {
+              let x = Math.floor(boid.position.x)
+              let y = Math.floor(boid.position.y)
+              let pherx = sim.pheromones.grid[x][y].homing_velocity.x
+              let phery = sim.pheromones.grid[x][y].homing_velocity.y
+              let pheromone_angle = Math.atan2(phery,pherx)
+              let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].homing_velocity)
+              boid.velocity = this.rotateVector(boid.velocity,40*sim.rng.random()-20)
+              
+              boid.acceleration.x =  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount 
+              boid.acceleration.y =  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount 
+              let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
+              if (accLength > this.config.max_force) {
+                  boid.acceleration.x = (boid.acceleration.x / accLength) * this.config.max_force
+                  boid.acceleration.y = (boid.acceleration.y / accLength) * this.config.max_force 
+              }
+              sim.pheromones.grid[x][y].homing_velocity.x += boid.velocity.x*10
+              sim.pheromones.grid[x][y].homing_velocity.y += boid.velocity.y*10
+              
+              for(let i of sim.flock.getNearbyGridpoints(boid,sim.pheromones,5)){
+                i.type = 'ground'
+              }
+            }
+        
+            
+            
+          }
+        
+        
+          sim.start()
+          }
+        
+        </script>
+        
+</head>
+
+<body onload="cacatoo()">        
+   <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+   <header class="header" id="btnNav"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+   <nav class="nav"><div class="nav__links">            
+    <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> Cacatoo </a>
+    <a href="index.html"  id="nav__link" class="nav__link">Home</a>
+    <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code (Github)</a>
+    <!-- <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a> -->
+    <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
+    <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
+    <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
+    <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+    <a href="example_starlings.html"  id="nav__link" class="nav__link"> Starlings</a>    <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+    <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
+    <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
+   <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
+    <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
+    <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+    <a href="populating_the_simulation.html" class="nav__link"> Populating a simulation</a>    <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+    <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+    <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
+    <a href="grid_events.html" class="nav__link"> Grid events</a>
+    <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
+    <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+    <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+</div><div class="nav__overlay"></div></nav>
+   
+   <script>         
+       document.addEventListener("DOMContentLoaded", () => {
+           const nav = document.querySelector(".nav");
+           document.querySelector("#btnNav").addEventListener("click", () => {
+               nav.classList.add("nav--open");
+           });
+           document.querySelector(".nav__overlay").addEventListener("click", () => {
+               nav.classList.remove("nav--open");
+           });
+           document.querySelector("#btnNavclose").addEventListener("click", () => {
+               nav.classList.remove("nav--open");
+           });    
+           var all_links = document.getElementsByClassName("nav__link");            
+           var hide_menu = function() {
+                nav.classList.remove("nav--open");
+           };    
+           for (var i = 0; i < all_links.length; i++) {
+               all_links[i].addEventListener('click', hide_menu, false);
+           }
+       });
+   </script>
+   <!-- --------------------- END MENU --------------------- -->
+
+<div id="main">
+
+    
+
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Ants with pheromone trails</b> </img></h1>
+    A center for ants?!
+    <center>
+    <table>
+        <tr>
+            <td style="padding:20px">    <div id="canvas_holder"></div>
+            </td>
+            <td>    <div id="form_holder"></div>
+            </td>
+            <td> <br><br><br><br> </div>
+            </div>
+            </td>
+        </tr>
+    </table>
+    <div id="graph_holder">
+</center>
+    <br><br>
+   
+</div>
+<div id="Navigator"></div>
+
+
+<br class="clear">
+
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
