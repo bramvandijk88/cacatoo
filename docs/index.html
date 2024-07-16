@@ -43,7 +43,7 @@
         sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
         
         sim.makeGridmodel("cheaters")                                        // Make a new gridmodel named cheater
-        sim.initialGrid(sim.cheaters,'species',"mutualist A",0.33,"mutualist B",0.33,"cheater",0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+        sim.initialGrid(sim.cheaters,'species',0,"mutualist A",0.33,"mutualist B",0.33,"cheater",0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
         sim.createDisplay("cheaters","species","Cacatoo example")                              // Display the 'species' property of the cheater grid
 
         sim.cheaters.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
