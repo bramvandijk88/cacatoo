@@ -397,8 +397,14 @@ class Flockmodel {
 
     // Rules like boids, collisions, and gravity are done here
     applyPhysics() { 
+        
         for (let i = 0; i < this.boids.length; i++) {
             let boid = this.boids[i];
+            let friction = this.friction
+            let gravity = this.config.gravity || 0
+            let collision_force = this.config.collision_force || 0
+            let max_force = this.config.max_force || 0.1
+            let max_speed = this.config.max_speed || 1
             if(boid.locked) continue
             
             let neighbours = this.getIndividualsInRange(boid.position, this.neighbourhood_radius)
@@ -412,16 +418,19 @@ class Flockmodel {
             if(boid.alignmentstrength !== undefined) alignmentstrength = boid.alignmentstrength
             if(boid.cohesionstrength !== undefined) cohesionstrength = boid.cohesionstrength
             if(boid.separationstrength !== undefined) separationstrength = boid.separationstrength
+            if(boid.friction !== undefined) friction = boid.friction
+            if(boid.max_force !== undefined) max_force = boid.max_force
+            if(boid.gravity !== undefined) max_force = boid.gravity
+            if(boid.collision_force !== undefined) max_force = boid.collision_force
+            if(boid.max_speed !== undefined) max_force = boid.max_speed
             
-            let collision_force = this.config.collision_force || 0
             let collision = {x:0,y:0}
             if(collision_force > 0){
                 let overlapping = this.getIndividualsInRange(boid.position, boid.size)
                 collision = this.calculateCollision(boid, overlapping)
             } 
 
-            let gravity = 0
-            if(this.config.gravity) gravity = this.config.gravity
+            
             // Add acceleration to the boid
             boid.acceleration.x += alignment.x * alignmentstrength + 
                                 separation.x * separationstrength + 
@@ -438,9 +447,9 @@ class Flockmodel {
             }
             // Limit the force applied to the boid
             let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
-            if (accLength > this.config.max_force) {
-                boid.acceleration.x = (boid.acceleration.x / accLength) * this.config.max_force
-                boid.acceleration.y = (boid.acceleration.y / accLength) * this.config.max_force 
+            if (accLength > max_force) {
+                boid.acceleration.x = (boid.acceleration.x / accLength) * max_force
+                boid.acceleration.y = (boid.acceleration.y / accLength) * max_force
             }
 
             //if(boid.position.y < this.height-100) boid.acceleration.y += this.config.gravity
@@ -449,14 +458,14 @@ class Flockmodel {
             boid.velocity.y += boid.acceleration.y 
 
             // Apply friction (linear)
-            boid.velocity.x *= (1-this.friction)
-            boid.velocity.y *= (1-this.friction)
+            boid.velocity.x *= (1-friction)
+            boid.velocity.y *= (1-friction)
 
             // Limit speed
             let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y)
-            if (speed > this.config.max_speed) {
-                boid.velocity.x = (boid.velocity.x / speed) *this.config.max_speed
-                boid.velocity.y = (boid.velocity.y / speed) *this.config.max_speed
+            if (speed > max_speed) {
+                boid.velocity.x = (boid.velocity.x / speed) * max_speed
+                boid.velocity.y = (boid.velocity.y / speed) * max_speed
             }
 
             // Update position
