@@ -266,8 +266,17 @@ class Canvas {
             ctx.closePath()
         }
         for(let obs of this.model.obstacles){
-            ctx.fillStyle = obs.fill || '#00000033'
-            ctx.fillRect(obs.x*this.scale, obs.y*this.scale,obs.w*this.scale,obs.h*this.scale)
+            if(obs.type=='rectangle'){
+                ctx.fillStyle = obs.fill || '#00000033'
+                ctx.fillRect(obs.x*this.scale, obs.y*this.scale,obs.w*this.scale,obs.h*this.scale)
+            }
+            else if(obs.type=='circle'){
+                ctx.beginPath()
+                ctx.fillStyle = obs.fill || '#00000033'
+                ctx.arc(obs.x*this.scale,obs.y*this.scale,obs.r*this.scale,0,Math.PI*2)
+                ctx.fill()
+                ctx.closePath()
+            }
         }
         
         this.draw_qt()

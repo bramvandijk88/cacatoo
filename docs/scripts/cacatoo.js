@@ -1823,7 +1823,7 @@ class Flockmodel {
         this.build_quadtree();
     }
     
-    calculateAlignment(boid, neighbours) {
+    calculateAlignment(boid, neighbours, maxspeed) {
         let steering = { x: 0, y: 0 };
         if (neighbours.length > 0) {
             for (let neighbour of neighbours) {
@@ -1833,15 +1833,15 @@ class Flockmodel {
             steering.x /= neighbours.length;
             steering.y /= neighbours.length;
             steering = this.normaliseVector(steering);
-            steering.x *= this.config.max_speed;
-            steering.y *= this.config.max_speed;
+            steering.x *= max_speed;
+            steering.y *= max_speed;
             steering.x -= boid.velocity.x;
             steering.y -= boid.velocity.y;
         }
         return steering;
     }
 
-    calculateSeparation(boid, neighbours) {
+    calculateSeparation(boid, neighbours, maxspeed) {
         let steering = { x: 0, y: 0 };
         if (neighbours.length > 0) {
             for (let neighbour of neighbours) {
@@ -1870,8 +1870,8 @@ class Flockmodel {
                 steering.x /= neighbours.length;
                 steering.y /= neighbours.length;
                 steering = this.normaliseVector(steering);
-                steering.x *= this.config.max_speed;
-                steering.y *= this.config.max_speed;
+                steering.x *= max_speed;
+                steering.y *= max_speed;
                 steering.x -= boid.velocity.x;
                 steering.y -= boid.velocity.y;
             }
@@ -1879,7 +1879,7 @@ class Flockmodel {
         return steering;
     }
 
-    calculateCohesion(boid, neighbours) {
+    calculateCohesion(boid, neighbours, maxspeed) {
         let steering = { x: 0, y: 0 };
         if (neighbours.length > 0) {
             let centerOfMass = { x: 0, y: 0 };
@@ -1905,15 +1905,15 @@ class Flockmodel {
             steering.x = centerOfMass.x - boid.position.x;
             steering.y = centerOfMass.y - boid.position.y;
             steering = this.normaliseVector(steering);
-            steering.x *= this.config.max_speed;
-            steering.y *= this.config.max_speed;
+            steering.x *= max_speed;
+            steering.y *= max_speed;
             steering.x -= boid.velocity.x;
             steering.y -= boid.velocity.y;
         }
         return steering;
     }
 
-    calculateCollision(boid, neighbours) {
+    calculateCollision(boid, neighbours,max_speed) {
         let steering = { x: 0, y: 0 };
         
         if (neighbours.length > 0) {
@@ -1935,16 +1935,16 @@ class Flockmodel {
 
                 let difference = { x: dx, y: dy };
                 difference = this.normaliseVector(difference);
-                steering.x += difference.x ;
-                steering.y += difference.y ;
+                steering.x += difference.x;
+                steering.y += difference.y;
                 
             }
             if (steering.x !== 0 || steering.y !== 0) {
                 steering.x /= neighbours.length;
                 steering.y /= neighbours.length;
                 steering = this.normaliseVector(steering);
-                steering.x *= this.config.max_speed;
-                steering.y *= this.config.max_speed;
+                steering.x *= max_speed;
+                steering.y *= max_speed;
                 steering.x -= boid.velocity.x;
                 steering.y -= boid.velocity.y;
             }
@@ -1973,8 +1973,15 @@ class Flockmodel {
             let gravity = this.config.gravity || 0;
             let collision_force = this.config.collision_force || 0;
             let max_force = this.config.max_force || 0.1;
+            let brownian = this.config.brownian || 0.0;
             let max_speed = this.config.max_speed || 1;
             if(boid.locked) continue
+            
+            if(boid.max_speed !== undefined) max_speed = boid.max_speed;
+            if(boid.friction !== undefined) friction = boid.friction;
+            if(boid.max_force !== undefined) max_force = boid.max_force;
+            if(boid.gravity !== undefined) gravity = boid.gravity;
+            if(boid.collision_force !== undefined) max_force = boid.collision_force;
             
             let neighbours = this.getIndividualsInRange(boid.position, this.neighbourhood_radius);
             let alignment = this.config.alignment ? this.calculateAlignment(boid, neighbours) : {x:0,y:0};
@@ -1987,16 +1994,12 @@ class Flockmodel {
             if(boid.alignmentstrength !== undefined) alignmentstrength = boid.alignmentstrength;
             if(boid.cohesionstrength !== undefined) cohesionstrength = boid.cohesionstrength;
             if(boid.separationstrength !== undefined) separationstrength = boid.separationstrength;
-            if(boid.friction !== undefined) friction = boid.friction;
-            if(boid.max_force !== undefined) max_force = boid.max_force;
-            if(boid.gravity !== undefined) gravity = boid.gravity;
-            if(boid.collision_force !== undefined) max_force = boid.collision_force;
-            if(boid.max_speed !== undefined) max_speed = boid.max_speed;
-            
+            if(boid.brownian !== undefined) brownian = boid.brownian;
+
             let collision = {x:0,y:0};
             if(collision_force > 0){
                 let overlapping = this.getIndividualsInRange(boid.position, boid.size);
-                collision = this.calculateCollision(boid, overlapping);
+                collision = this.calculateCollision(boid, overlapping, max_speed);
             } 
 
             
@@ -2020,22 +2023,29 @@ class Flockmodel {
                 boid.acceleration.x = (boid.acceleration.x / accLength) * max_force;
                 boid.acceleration.y = (boid.acceleration.y / accLength) * max_force;
             }
-
-            //if(boid.position.y < this.height-100) boid.acceleration.y += this.config.gravity
-            // Update velocity
-            boid.velocity.x += boid.acceleration.x;
-            boid.velocity.y += boid.acceleration.y; 
-
-            // Apply friction (linear)
+            
+            // Apply friction (linear, so no drag)
             boid.velocity.x *= (1-friction);
             boid.velocity.y *= (1-friction);
-
+            
+            boid.velocity.x+=brownian*(2*sim.rng.random()-1);
+            boid.velocity.y+=brownian*(2*sim.rng.random()-1);
+            
             // Limit speed
             let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
             if (speed > max_speed) {
                 boid.velocity.x = (boid.velocity.x / speed) * max_speed;
                 boid.velocity.y = (boid.velocity.y / speed) * max_speed;
             }
+
+            // Update velocity
+            boid.velocity.x += boid.acceleration.x;
+            boid.velocity.y += boid.acceleration.y; 
+            
+
+            
+
+            
 
             // Update position
             boid.position.x += boid.velocity.x;
@@ -2078,31 +2088,46 @@ class Flockmodel {
    }
 
    checkCollisionWithObstacle(boid, obs) {
-        // Calculate edges of the ball
-        const r = boid.size/2;
-        const left = boid.position.x - r;
-        const right = boid.position.x + r;
-        const top = boid.position.y - r;
-        const bottom = boid.position.y + r;
+        if(obs.type=="rectangle"){
+            // Calculate edges of the ball
+            const r = boid.size/2;
+            const left = boid.position.x - r;
+            const right = boid.position.x + r;
+            const top = boid.position.y - r;
+            const bottom = boid.position.y + r;
 
-        // Check for collision with rectangle
-        if (right > obs.x && left < obs.x + obs.w && bottom > obs.y && top < obs.y + obs.h) {
-            const prevX = boid.position.x - boid.velocity.x;
-            const prevY = boid.position.y - boid.velocity.y;
+            // Check for collision with rectangle
+            if (right > obs.x && left < obs.x + obs.w && bottom > obs.y && top < obs.y + obs.h) {
+                const prevX = boid.position.x - boid.velocity.x;
+                const prevY = boid.position.y - boid.velocity.y;
 
-            const prevLeft = prevX - r;
-            const prevRight = prevX + r;
-            const prevTop = prevY - r;
-            const prevBottom = prevY + r;
-            // Determine where the collision occurred
-            if (prevRight <= obs.x || prevLeft >= obs.x + obs.w) {
-                boid.velocity.x = -boid.velocity.x;   // Horizontal collision
-                boid.position.x += boid.velocity.x; // Adjust position to prevent sticking
+                const prevLeft = prevX - r;
+                const prevRight = prevX + r;
+                const prevTop = prevY - r;
+                const prevBottom = prevY + r;
+                // Determine where the collision occurred
+                if (prevRight <= obs.x || prevLeft >= obs.x + obs.w) {
+                    boid.velocity.x = -boid.velocity.x;   // Horizontal collision
+                    boid.position.x += boid.velocity.x; // Adjust position to prevent sticking
+                }
+                if (prevBottom <= obs.y || prevTop >= obs.y + obs.h) {
+                    boid.velocity.y = -boid.velocity.y; // Vertical collision
+                    boid.position.y += boid.velocity.y; // Adjust position to prevent sticking
+                }
             }
-            if (prevBottom <= obs.y || prevTop >= obs.y + obs.h) {
-                boid.velocity.y = -boid.velocity.y; // Vertical collision
-                boid.position.y += boid.velocity.y; // Adjust position to prevent sticking
+        }
+        else if(obs.type=="circle"){
+            let bigr = Math.max(boid.size, obs.r);
+            let dx = obs.x - boid.position.x;
+            let dy = obs.y - boid.position.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist < bigr){
+                let difference = { x: dx, y: dy };
+                difference = this.normaliseVector(difference);
+                boid.velocity.x -= difference.x;
+                boid.velocity.y -= difference.y;
             }
+
         }
     }
 
@@ -2259,8 +2284,9 @@ class Flockmodel {
         return
     }
     
-    placeObstacle(x,y,w,h,fill){
-        this.obstacles.push({x:x,y:y,w:w,h:h,fill:fill});
+    placeObstacle(config){
+        if(config.w) this.obstacles.push({type:'rectangle',x:config.x,y:config.y,w:config.w,h:config.h,fill:config.fill});
+        if(config.r) this.obstacles.push({type:'circle',x:config.x,y:config.y,r:config.r,fill:config.fill});
     }
     /** Assign each individual a new random position in space. This simulated mixing,
      *  but does not guarantee a "well-mixed" system per se (interactions are still local)
@@ -2694,8 +2720,17 @@ class Canvas {
             ctx.closePath();
         }
         for(let obs of this.model.obstacles){
-            ctx.fillStyle = obs.fill || '#00000033';
-            ctx.fillRect(obs.x*this.scale, obs.y*this.scale,obs.w*this.scale,obs.h*this.scale);
+            if(obs.type=='rectangle'){
+                ctx.fillStyle = obs.fill || '#00000033';
+                ctx.fillRect(obs.x*this.scale, obs.y*this.scale,obs.w*this.scale,obs.h*this.scale);
+            }
+            else if(obs.type=='circle'){
+                ctx.beginPath();
+                ctx.fillStyle = obs.fill || '#00000033';
+                ctx.arc(obs.x*this.scale,obs.y*this.scale,obs.r*this.scale,0,Math.PI*2);
+                ctx.fill();
+                ctx.closePath();
+            }
         }
         
         this.draw_qt();

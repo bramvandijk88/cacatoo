@@ -37,16 +37,16 @@ function cacatoo() {
   let flockconfig = {
     shape: 'dot',          // Shape of the boids drawn 
     click: 'repel',          // Clicking the boids pushes them away from the mouse
-    max_speed: 15,          // Maximum velocity of boids
+    max_speed: 30,          // Maximum velocity of boids
     max_force: 0.1,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
     init_velocity:0.0,
     friction: 0.1,        
-    gravity: 0.3,
+    gravity: 0.1,
     // Mouse parameters
     mouse_radius: 20,                   // Radius of boids captured by the mouse overlay
     draw_mouse_radius: true,            // Show a circle where the mouse is
     // Collision behaviour
-    collision_force: 0.05,
+    collision_force: 0.01,
     size: 2.5,                // Size of the boids (scales drawing and colision detection)
     
     // Optimalisation (speed) parameters
@@ -59,11 +59,13 @@ function cacatoo() {
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   
   // Define some obstables for collision detection
-  sim.flock.placeObstacle(200,200,30,30, '#ffffff33')
-  sim.flock.placeObstacle(115,15,15,285, '#ffffff33')
-  sim.flock.placeObstacle(300,15,15,285, '#ffffff33')
-  sim.flock.placeObstacle(115,300,97,15, '#ffffff33')
-  sim.flock.placeObstacle(218,300,97,15, '#ffffff33')
+  sim.flock.placeObstacle({x:200,y:200,r:30,fill:'#ffffff33'})
+  sim.flock.placeObstacle({x:85,y:15,w:15,h:285,fill:'#ffffff33'})
+  sim.flock.placeObstacle({x:300,y:15,w:15,h:285,fill:'#ffffff33'})
+  sim.flock.placeObstacle({x:85,y:300,w:110,h:15,fill:'#ffffff33'})
+  sim.flock.placeObstacle({x:205,y:300,w:110,h:15,fill:'#ffffff33'})
+  
+  
   
   // Add 3000 particles in the top
   sim.flock.populateSpot(3000,215,90,70)
