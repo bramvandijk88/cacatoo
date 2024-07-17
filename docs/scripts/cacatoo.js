@@ -1823,7 +1823,7 @@ class Flockmodel {
         this.build_quadtree();
     }
     
-    calculateAlignment(boid, neighbours, maxspeed) {
+    calculateAlignment(boid, neighbours, max_speed) {
         let steering = { x: 0, y: 0 };
         if (neighbours.length > 0) {
             for (let neighbour of neighbours) {
@@ -1841,7 +1841,7 @@ class Flockmodel {
         return steering;
     }
 
-    calculateSeparation(boid, neighbours, maxspeed) {
+    calculateSeparation(boid, neighbours, max_speed) {
         let steering = { x: 0, y: 0 };
         if (neighbours.length > 0) {
             for (let neighbour of neighbours) {
@@ -1879,7 +1879,7 @@ class Flockmodel {
         return steering;
     }
 
-    calculateCohesion(boid, neighbours, maxspeed) {
+    calculateCohesion(boid, neighbours, max_speed) {
         let steering = { x: 0, y: 0 };
         if (neighbours.length > 0) {
             let centerOfMass = { x: 0, y: 0 };
@@ -1984,11 +1984,11 @@ class Flockmodel {
             if(boid.collision_force !== undefined) max_force = boid.collision_force;
             
             let neighbours = this.getIndividualsInRange(boid.position, this.neighbourhood_radius);
-            let alignment = this.config.alignment ? this.calculateAlignment(boid, neighbours) : {x:0,y:0};
+            let alignment = this.config.alignment ? this.calculateAlignment(boid, neighbours,max_speed) : {x:0,y:0};
             let alignmentstrength = this.config.alignment ? this.config.alignment.strength : 0;
-            let separation = this.config.separation ? this.calculateSeparation(boid, neighbours) : {x:0,y:0};
+            let separation = this.config.separation ? this.calculateSeparation(boid, neighbours,max_speed) : {x:0,y:0};
             let separationstrength = this.config.separation ? this.config.separation.strength : 0;
-            let cohesion = this.config.cohesion ? this.calculateCohesion(boid, neighbours) : {x:0,y:0};
+            let cohesion = this.config.cohesion ? this.calculateCohesion(boid, neighbours,max_speed) : {x:0,y:0};
             let cohesionstrength = this.config.cohesion ? this.config.cohesion.strength : 0;
 
             if(boid.alignmentstrength !== undefined) alignmentstrength = boid.alignmentstrength;
