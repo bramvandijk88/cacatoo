@@ -71,6 +71,8 @@ function cacatoo() {
   for(let boid of sim.flock.boids) {
     boid.type=Math.round(sim.rng.random()*2)+1
   }
+  // Uncomment this line for a magic ball
+  //sim.flock.boids[0].gravity = -1 
   
   sim.createFlockDisplay("flock", {legend: false, property:"type",label:"physics"})
   // sim.addMovieButton(sim.flock, "physics",60)

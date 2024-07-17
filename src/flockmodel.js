@@ -420,9 +420,9 @@ class Flockmodel {
             if(boid.separationstrength !== undefined) separationstrength = boid.separationstrength
             if(boid.friction !== undefined) friction = boid.friction
             if(boid.max_force !== undefined) max_force = boid.max_force
-            if(boid.gravity !== undefined) max_force = boid.gravity
+            if(boid.gravity !== undefined) gravity = boid.gravity
             if(boid.collision_force !== undefined) max_force = boid.collision_force
-            if(boid.max_speed !== undefined) max_force = boid.max_speed
+            if(boid.max_speed !== undefined) max_speed = boid.max_speed
             
             let collision = {x:0,y:0}
             if(collision_force > 0){

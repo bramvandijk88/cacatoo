@@ -61,7 +61,7 @@ function cacatoo() {
 
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   sim.createFlockDisplay("flock",{label:"Ants"}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
-  
+  sim.flock.boids[0].fill = "blue"
   
   /*
       2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
