@@ -1981,7 +1981,7 @@ class Flockmodel {
             if(boid.friction !== undefined) friction = boid.friction;
             if(boid.max_force !== undefined) max_force = boid.max_force;
             if(boid.gravity !== undefined) gravity = boid.gravity;
-            if(boid.collision_force !== undefined) max_force = boid.collision_force;
+            if(boid.collision_force !== undefined) collision_force = boid.collision_force;
             
             let neighbours = this.getIndividualsInRange(boid.position, this.neighbourhood_radius);
             let alignment = this.config.alignment ? this.calculateAlignment(boid, neighbours,max_speed) : {x:0,y:0};
@@ -2107,11 +2107,11 @@ class Flockmodel {
                 const prevBottom = prevY + r;
                 // Determine where the collision occurred
                 if (prevRight <= obs.x || prevLeft >= obs.x + obs.w) {
-                    boid.velocity.x = -boid.velocity.x;   // Horizontal collision
+                    boid.velocity.x = -boid.velocity.x*obs.force;   // Horizontal collision
                     boid.position.x += boid.velocity.x; // Adjust position to prevent sticking
                 }
                 if (prevBottom <= obs.y || prevTop >= obs.y + obs.h) {
-                    boid.velocity.y = -boid.velocity.y; // Vertical collision
+                    boid.velocity.y = -boid.velocity.y*obs.force; // Vertical collision
                     boid.position.y += boid.velocity.y; // Adjust position to prevent sticking
                 }
             }
@@ -2124,11 +2124,12 @@ class Flockmodel {
             if(dist < bigr){
                 let difference = { x: dx, y: dy };
                 difference = this.normaliseVector(difference);
-                boid.velocity.x -= difference.x;
-                boid.velocity.y -= difference.y;
+                boid.velocity.x -= difference.x*obs.force;
+                boid.velocity.y -= difference.y*obs.force;
             }
 
         }
+        
     }
 
 
@@ -2285,8 +2286,9 @@ class Flockmodel {
     }
     
     placeObstacle(config){
-        if(config.w) this.obstacles.push({type:'rectangle',x:config.x,y:config.y,w:config.w,h:config.h,fill:config.fill});
-        if(config.r) this.obstacles.push({type:'circle',x:config.x,y:config.y,r:config.r,fill:config.fill});
+        let force = config.force == undefined ? 1 : config.force;
+        if(config.w) this.obstacles.push({type:'rectangle',x:config.x,y:config.y,w:config.w,h:config.h,fill:config.fill,force:force});
+        if(config.r) this.obstacles.push({type:'circle',x:config.x,y:config.y,r:config.r,fill:config.fill,force:force});
     }
     /** Assign each individual a new random position in space. This simulated mixing,
      *  but does not guarantee a "well-mixed" system per se (interactions are still local)
