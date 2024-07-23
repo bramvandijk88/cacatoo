@@ -413,6 +413,7 @@ class Canvas {
         ctx.closePath()
     }
 
+
     // Draw an image at the position of the boid. Requires boid.png to be set. Optional is boid.pngangle to
     // let the png adjust direction according to the velocity vector
     drawBoidPng(boid,ctx){
@@ -422,17 +423,17 @@ class Canvas {
                          boid.position.y*this.scale-boid.size*this.scale*0.5);
             let angle = Math.atan2(boid.velocity.y*this.scale,boid.velocity.x*this.scale+boid.pngangle)
             ctx.rotate(angle);
-            let base_image = new Image();
-            base_image.src = boid.png
+            if(boid.img == undefined) boid.img = new Image();
+            boid.img.src = boid.png
             if(!boid.png) console.warn("Boid does not have a PNG associated with it")
             ctx.drawImage(base_image,0,0,boid.size*this.scale,boid.size*this.scale);
             ctx.restore()
         }
         else{
-            let base_image = new Image();
-            base_image.src = boid.png
+            if(boid.img == undefined) boid.img = new Image();
+            boid.img.src = boid.png
             if(!boid.png) console.warn("Boid does not have a PNG associated with it")
-            ctx.drawImage(base_image, (boid.position.x-0.5*boid.size)*this.scale,
+            ctx.drawImage(boid.img, (boid.position.x-0.5*boid.size)*this.scale,
                                        (boid.position.y-0.5*boid.size)*this.scale,
                                       boid.size*this.scale,boid.size*this.scale);
         }
