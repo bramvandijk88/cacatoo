@@ -1,10 +1,12 @@
+// Example usage a project that can run in both browser and NODE. 
+// It also uses a dummy-class for if you want an OOP-project 
+
 
 if (typeof window == "undefined") 
 {  
     Simulation = require('../../dist/cacatoo.js') // Loads the Simulation class for nodejs-mode    
+    Dummy = require('./cheater_classes.js').Dummy
 }
-//if (typeof window == "undefined") Simulation = require('cacatoo') // ... if you have cacatoo installed via npm install cacatoo
-
 
 let sim;
 // Using var instead of let, so I can access it with sliders
@@ -15,13 +17,10 @@ var stay_empty = 1.0               // Constant which scales the probability that
 var death = 0.2                  // Death rate of individuals
 let mdif_interval = 0
 
-/**
-* function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
-*/
+
 function cacatoo() {
-    /*
-        1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
-    */
+    
+
     let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
         title: "Mutualists and cheaters",
         description: "",
@@ -43,9 +42,9 @@ function cacatoo() {
         }
     }
 
-    /*
-        1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
-    */
+    let mydummyclass = new Dummy()
+    mydummyclass.greet()
+
     sim = new Simulation(config)                                                // Initialise a new Simulation instance with configuration given above 
             
     sim.makeGridmodel("cheater")                                                // Make a new gridmodel named cheater

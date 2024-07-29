@@ -1183,8 +1183,8 @@ class Simulation {
      * 
     */
     addMovieButton(model,canvasname,fps=60){
-        sim.addButton("Record", function() {
-            sim.makeMovie(model.canvases[canvasname],fps)        
+        this.addButton("Record", function() {
+            this.makeMovie(model.canvases[canvasname],fps)        
         })
     }
 

@@ -2825,17 +2825,29 @@ class Canvas {
     // Draw three points along the velocity vector + 2 antanae. Sort of an ant thingy. 
     drawBoidAnt(boid,ctx){
         ctx.fillStyle = boid.fill;
-        ctx.beginPath();
+        
         let vector = this.model.normaliseVector({x: boid.velocity.x, y: boid.velocity.y});
-         ctx.arc(boid.position.x*this.scale-vector.x*boid.size*1.5,
+
+        ctx.beginPath();
+        ctx.arc(boid.position.x*this.scale-vector.x*boid.size*1.5,
                  boid.position.y*this.scale-vector.y*boid.size*1.5,boid.size*1.0,0,Math.PI*2);
+        ctx.fill();
+        ctx.closePath();
+        
+        ctx.beginPath();
         ctx.arc(boid.position.x*this.scale,
                 boid.position.y*this.scale,
-                boid.size/1.5,0,Math.PI*2);
-         ctx.arc(boid.position.x*this.scale+vector.x*boid.size*1.5,
-             boid.position.y*this.scale+vector.y*boid.size*1.5,
-             boid.size/1.2,0,Math.PI*2);
+                boid.size/1.6,0,Math.PI*2);
         ctx.fill();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.arc(boid.position.x*this.scale+vector.x*boid.size*1.3,
+             boid.position.y*this.scale+vector.y*boid.size*1.3,
+              boid.size/1.2,0,Math.PI*2);
+        ctx.fill();
+        ctx.closePath();
+        
         ctx.closePath();
         ctx.beginPath();
 
@@ -4227,8 +4239,8 @@ class Simulation {
      * 
     */
     addMovieButton(model,canvasname,fps=60){
-        sim.addButton("Record", function() {
-            sim.makeMovie(model.canvases[canvasname],fps);        
+        this.addButton("Record", function() {
+            this.makeMovie(model.canvases[canvasname],fps);        
         });
     }
 

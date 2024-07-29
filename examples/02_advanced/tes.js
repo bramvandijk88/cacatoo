@@ -5,14 +5,12 @@
 let sim;
 
 // PARAMETERS FOR FITNESS DEFINITION
-var init_es = 16 // ES = essential     --- if even a single one is missing = 0.0 fitness
-var init_nc = 16
+var init_es = 16  // ES = essential     --- if even a single one is missing = 0.0 fitness
+var init_nc = 16  
 var motifs_in_es = 3
 var motifs_in_nc = 3
-var init_ne = 0
-var non_essential_gene_boon = 0.1 // Amount of fitness microbes gain from non-essential genes
-var transposon_fitness_cost = 0.02
-var transposon_benefit_one_copy = 0.52 // TEs carry a beneficial gene, meaning that being infected will give you a small advantage, as long as the TEs are not out of control!
+var transposon_fitness_cost = 0.005
+var transposon_benefit_one_copy = 0.00 // TEs carry a beneficial gene, meaning that being infected will give you a small advantage, as long as the TEs are not out of control!
 
 // PARAMETERS FOR ECOLOGY (death rate and non-reproduction constant)
 var death_rate = 0.01
@@ -23,10 +21,10 @@ var non = 50
 
 // Bacterial genome evolution
 var gene_inactivation_rate = 0.0
-var gene_deletion_rate = 0.005
+var gene_deletion_rate = 0.00
 var is_deletion_rate = 0.000
-var gene_duplication_rate = 0.001
-var influx_motifs = 0.001
+var gene_duplication_rate = 0.00
+var influx_motifs = 0.00
 
 let coding_motifs =  []
 let noncoding_motifs = []
@@ -38,17 +36,17 @@ var specificity_mutation_rate = 0.001
 var mut_step_size = 0.2
 
 // PARAMETERS FOR EDNA POOL
-var degr_rate_edna = 0.02 //0.02
-var diff_rate_edna = 0.02 // 0.01
+var degr_rate_edna = 0.03 //0.02
+var diff_rate_edna = 0.03 // 0.01
 
 // PARAMETERS FOR TRANSPOSON DYNAMICS
-var uptake_from_pool = 0.00 //0.01
-var jump_attempt_rate = 0.05 // 0.02
+var uptake_from_pool = 0.02 //0.01
+var jump_attempt_rate = 0.02 // 0.02
 var probability_TE_induced_damage = 1.0
 
 	// Displaying stuff
-var size = 50
-var scale = 3
+var size = 100
+var scale = 2
 var mix = false
 
 // PARAMETERS CURRENTLY NOT IN USE
@@ -63,7 +61,7 @@ function cacatoo() {
   let config = {
     title: "IS-elements and their host",
     description: "",
-    maxtime: 50000,
+    maxtime: 150000,
 
     fpsmeter: false,
     ncol: size,
@@ -71,7 +69,8 @@ function cacatoo() {
     nrow: size, // dimensions of the grid to build
     wrap: [true, true], // Wrap boundary [COLS, ROWS]   
     scale: scale, // scale of the grid (nxn pixels per grid cell)
-    graph_interval: 1,
+    graph_interval: 10,
+    graph_update: 50,
     statecolours: {
       alive: {
         1: 'blue'
@@ -85,7 +84,7 @@ function cacatoo() {
   
   sim.makeGridmodel("TE_model");
   sim.init_insertion_sites = []
-  for (let i = 0; i < init_es + init_nc + init_ne; i++)
+  for (let i = 0; i < init_es + init_nc; i++)
     sim.init_insertion_sites.push(sim.rng.random())
 
 
@@ -102,11 +101,14 @@ function cacatoo() {
   })
   sim.createDisplay_continuous({
     model: "TE_model",        
-    property: "genomesize",
-    label: "Genome size",
-    minval: 0,
-    maxval: 30,
-    fill: "viridis"
+    property: "T_in_genomes",
+    label: "TE cpn",
+    minval: 0.0,
+    maxval: 1.5,
+    
+    nticks: 3,
+    decimals: 1,
+    fill: "inferno"
   })
 	
 	
@@ -119,9 +121,9 @@ function cacatoo() {
     num_colours: 50,
     nticks: 7,
     decimals: 1,
-    maxval: 1 + init_ne * non_essential_gene_boon
+    maxval: 1
   })
-  
+  sim.TE_model.statecolours.specificity[0] = 'black'
   sim.TE_model.colourGradient("target_site", 50, [255, 0, 0], [255, 255, 0], [0,255,0], [0,255,255], [0,0,255])
   sim.createDisplay_continuous({
     model: "TE_model",
@@ -130,8 +132,9 @@ function cacatoo() {
     num_colours: 50,
     nticks: 7,
     decimals: 1,
-    maxval: 1 + init_ne * non_essential_gene_boon
+    maxval: 1
   })
+  sim.TE_model.statecolours.target_site[0] = 'black'
   sim.createDisplay_continuous({
     model: "TE_model",
     property: "T_in_eDNA",
@@ -158,12 +161,12 @@ function cacatoo() {
 
     this.resetPlots()
 
-    placeCell = function(x, y, init_es, init_ne, init_nc, init_tra, init_tra_rate) {
+    placeCell = function(x, y, init_es, init_nc, init_tra, init_tra_rate) {
       gp = sim.TE_model.grid[x][y]
       gp.alive = 1
       gp.genome = new Genome()
       //      console.log(gp.genome)
-      gp.genome.initialise(init_es, init_ne, init_nc, init_tra, init_tra_rate)
+      gp.genome.initialise(init_es, init_nc, init_tra, init_tra_rate)
 
       gp.genomesize = Math.min(sim.max_g, gp.genome.chromosome.length) // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
       gp.fitness = gp.genome.fitness // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
@@ -176,8 +179,13 @@ function cacatoo() {
       for (let y = 0; y < sim.TE_model.nr; y++) {
         this.grid[x][y].eDNA = [] // Initialise empty eDNA pool
         this.grid[x][y].T_in_eDNA = 0
-        if(sim.rng.random() < 0.6) placeCell(x,y, init_es, init_ne, init_nc, 0, init_tra_rate)
-        else placeCell(x,y, init_es, init_ne, init_nc, 1, init_tra_rate)
+        let midx = sim.ncol/2
+        let midy = sim.nrow/2
+        let dx = x - midx
+        let dy = y - midy
+        let dist = Math.sqrt(dx*dx + dy*dy)
+        if(dist>10) placeCell(x,y, init_es, init_nc, 0, init_tra_rate)
+        else placeCell(x,y, init_es, init_nc, 1, init_tra_rate)
       }
   }
 
@@ -290,18 +298,7 @@ function cacatoo() {
       let chance = get_insertion_chance(site.insertion_site, jumping[p].target_site, jumping[p].specificity)
       if (chance > 0 && this.rng.genrand_real1() < chance) {
 
-        /* console.log(`Chance:   ${chance}`)
-        console.log(`Ins_site: ${site.insertion_site}`)
-        console.log(`Tar_site: ${jumping[p].target_site}`)
-        console.log(`Specific: ${jumping[p].specificity}`) */
-
-        /*console.log(`Before jumping into position ${random_pos}`)      
-        let chr = Object.values(this.grid[x][y].genome.chromosome).reduce((t, {type}) => t + type, '')
-        let str = '' 
-        for(let q=0; q<chr.length;q++) str += q==random_pos ? 'v' : ' '
-        console.log(`${str}`)
-        console.log(`${chr}`)
-         */
+        
 				nr_jumps ++
         let new_TE_copy = jumping[p].copy(true)
 				
@@ -455,7 +452,7 @@ function cacatoo() {
 			this.plotArray(["Attempted replications", "Succesful replications"],
       [successful_replications/attempted_replications],
       ["#00AA00"],
-      "TE jumping success rate", {
+      "Effective TE jumping success rate", {
         width: 600
       })
 			
@@ -632,33 +629,7 @@ function cacatoo() {
   sim.addButton("Reset", function() {
     location.reload();
   })
-  /* sim.addHTML("form_holder", "<br>Ecological options:")
-  sim.addSlider("death_rate", 0.0, 1.0, 0.001, "Stochastic death rate (d)")
-  sim.addSlider("non", 0.0, 200.0, 1.00, "No-reproduction constant (eps)")
-  sim.addSlider("diff_rate_edna", 0.0, 0.25, 0.001, "eDNA diffusion rate (D)")
-  sim.addSlider("degr_rate_edna", 0.0, 1.0, 0.001, "eDNA degradation rate (q)")
-  
-  
-  sim.addHTML("form_holder", "<br>TE options:")
-  sim.addSlider("uptake_from_pool", 0.0, 1.0, 0.001, "Uptake rate from eDNA pool (u)")
-  sim.addSlider("jump_attempt_rate", 0.0, 1.0, 0.001, "TE jump attempt rate (j)")
-  sim.addSlider("transposon_fitness_cost", 0.0, 1.0, 0.001, "TE fitness cost (c)")
-  sim.addSlider("probability_TE_induced_damage", 0.0, 1.0, 0.01, "TE-damage propensity (b)")
-  
-  sim.addHTML("form_holder", "<br>Mutations:")
-  sim.addSlider("phi_mutation_rate", 0.0, 1.0, 0.001, "TE (phi) mutation rate")
-  sim.addSlider("gene_deletion_rate", 0.0, 0.1, 0.0001, "Gene deletion rate")
-  sim.addSlider("gene_duplication_rate", 0.0, 0.1, 0.0001, "Gene duplication rate")
-  sim.addSlider("gene_inactivation_rate", 0.0, 0.1, 0.0001, "Gene inactivation rate")
-  
-  
-  sim.addHTML("form_holder", "<br>Initial conditions (restart required!):")
-  sim.addSlider("init_es", 0.0, 100.0, 1, "Nr. essential genes")
-  sim.addSlider("init_nc", 0.0, 300.0, 1, "Nr. non-coding elements")
-  sim.addSlider("init_ne", 0.0, 100.0, 1, "Nr. non-essential functions")
-  sim.addSlider("non_essential_gene_boon", 0.0, 1.0, 0.001, "Fitness added per non-essential function")
-  sim.addSlider("init_tra_rate", 0.0, 1.0, 0.001, "Initial TE jump rate") */
-
+ 
   sim.start()
   if (mix) sim.toggle_mix()
 }
@@ -673,10 +644,9 @@ class Genome {
   constructor() {
     this.uid = genomeIds.next()
     this.total_num_hk = init_es
-    this.total_num_ne = init_ne
   }
 
-  initialise(init_hk, init_ne, init_nc, init_tr, init_transposition_rate) {
+  initialise(init_hk, init_nc, init_tr, init_transposition_rate) {
     this.generation = 1
     this.chromosome = []
 
@@ -686,12 +656,7 @@ class Genome {
       insertion_site: coding_motifs[Math.floor(Math.random() * coding_motifs.length)]
       //insertion_site: coding_sites[i%coding_sites.length]
     }))
-    for (let i = 0; i < init_ne; i++) this.chromosome.push(new Gene({
-      type: "g",
-      func: i,
-      insertion_site: coding_motifs[Math.floor(Math.random() * coding_motifs.length)]
-      //insertion_site: coding_sites[i%coding_sites.length]
-    }))
+    
     for (let i = 0; i < init_nc; i++) this.chromosome.push(new Gene({
       type: ".",
       func: 0,
@@ -733,19 +698,14 @@ class Genome {
     this.fitness = 1.0
 		this.specificity = 0.0
     this.target_site = 0.0
-    let hks = [],
-      nes = []
+    let hks = []
     this.nr_tra = 1e-20
     hks.length = this.total_num_hk
-    nes.length = this.total_num_ne
     for (let i = 0; i < this.chromosome.length; i++) {
       let gene = this.chromosome[i]
       switch (gene.type) {
         case "G":
           hks[gene.func] = 1
-          break
-        case "g":
-          nes[gene.func] = 1
           break
         case "T":
           this.nr_tra++
@@ -760,8 +720,6 @@ class Genome {
     let hks_present = 0
     for (let i = 0; i < hks.length; i++)
       if (hks[i] == 1) hks_present++
-    for (let i = 0; i < nes.length; i++)
-      if (nes[i] == 1) this.fitness += non_essential_gene_boon
     this.fitness -= this.nr_tra * transposon_fitness_cost
 		if(this.nr_tra>=1) this.fitness += transposon_benefit_one_copy
     if (hks_present < this.total_num_hk) this.fitness = 0.0
