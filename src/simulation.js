@@ -584,7 +584,7 @@ class Simulation {
                     cancelAnimationFrame(frame);
                 }
 
-                if (sim.pause == true) { cancelAnimationFrame(frame); }
+                //if (sim.pause == true) { cancelAnimationFrame(frame); }
             }
 
             requestAnimationFrame(animate);
@@ -1341,7 +1341,6 @@ class Simulation {
     toggle_play() {
         if (this.pause) this.pause = false;
         else this.pause = true;
-        if (!this.pause) this.start()
     }
         
     /**
