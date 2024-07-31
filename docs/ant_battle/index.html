@@ -350,7 +350,8 @@ function cacatoo() {
   }
 
   sim.flock.update = function(){
-    this.plotArray(["HOoi","He"],[food_purple,food_gold],["#800080","gold"],"Food collected")
+    
+    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Food collected")
     for(let boid of this.boids) {
       if(boid.foraging_time>max_foraging_time){
         if(boid.type=="purple") {
@@ -598,9 +599,12 @@ function cacatoo() {
   document.getElementById('Reset').style = ''
   sim.addButton("Respec gold", function () { gb6.reset(); gb1.reset();gb2.reset();gb3.reset();gb4.reset();gb5.reset(); })    
   document.getElementById('Respec gold').style = 'width:200; margin-right:7.5em; background:#e0a709AA;float: right; width:200px'
-  sim.addHTML("form_holder","<br><br>")
+  sim.addHTML("form_holder","<br>")
+  sim.addButton("Pause",function () { sim.toggle_play() })
+  sim.addHTML("form_holder","<br>")
   sim.addToggle("boundary", "Boundary")  
   sim.addToggle("ff", "Fast forward")   
+  
  
   
 
