@@ -40,9 +40,17 @@ button {
      border: '1px solid red';    
      display: inline-block;
   }
-  
+  input[type='checkbox'] {
+    
+    width:30px;
+    height:30px;
+    
+  }
+  input[type='checkbox']:checked {
+    
+  }
   .skilltree1{
-    height: 75%;
+    height: 660;
     padding: 20px;
     margin-left:70px;
     width:16%;
@@ -53,8 +61,23 @@ button {
     border-radius: 15px;
     background-color: #800080AA;
   }
+  @media (max-width: 1000px) {
+    .skilltree1 {
+      height: 660;
+      padding: 20px;
+      margin-left:70px;
+      margin-top:70px;
+      width:30%;
+      color: white;
+      font-size:16px;
+      float: left;
+      
+      border-radius: 15px;
+      background-color: #800080AA;
+    }
+  }
   .skilltree2{
-    height: 75%;
+    height: 660;
     padding: 20px;
     margin-right:70px;
     width:16%;
@@ -64,6 +87,21 @@ button {
     
     border-radius: 15px;
     background-color: #e0a709AA;
+  }
+  @media (max-width: 1000px) {
+    .skilltree2 {
+      height: 660 ;
+      padding: 20px;
+      margin-right:70px;
+      margin-top:70px;
+      width:30%;
+      color: white;
+      font-size:16px;
+      float: right;
+      
+      border-radius: 15px;
+      background-color: #e0a709AA;
+    }
   }
   .grid-holder {
     margin: 0px;
@@ -155,7 +193,10 @@ function cacatoo() {
     seed: new Date().getTime(),
     wrap: [false,false],
     wrapreflect: 0.6,
-    bgcolour:'#00000011'
+    bgcolour:'#00000011',
+    graph_update: 25,
+    graph_interval: 5
+    
   }
 
   // FLOCKCONFIG EXAMPLE
@@ -174,12 +215,9 @@ function cacatoo() {
   
   sim = new Simulation(simconfig)         // Initialise the Cacatoo simulation
   sim.makeGridmodel("pheromones")         // Make a grid for the pheromones
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   
-  
-  // sim.createDisplay_continuous({model:"pheromones", property:"homing_pheromone", label:"Pheromone concentration", 
-  // minval:0, maxval:30, num_colours:200, decimals: 2, fill:"red",legend:false}) 
-  //sim.canvases[0].bgcolour = "black"
-  
+  sim.createFlockDisplay("flock",{label:""}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
   let ant_1_div = document.createElement("div")
   ant_1_div.className = "skilltree1"
   ant_1_div.id = "skilltree1"
@@ -202,9 +240,9 @@ function cacatoo() {
   let pb5 = new AntButton({name:"Strength", var: "ant_1_strength", min: 1, max: 3, increment:0.25, 
                 container:ant_1_div, points: 2,color: '#e0a709',digits:3,antpoints: 'ant_1_points', antpointsdiv: 'ant_1_points_remaining'})
 
-  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
-  sim.createFlockDisplay("flock",{label:""}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
+
   
+
   let ant_2_div = document.createElement("div")
   ant_2_div.className = "skilltree2"
   ant_2_div.id = "skilltree2"
@@ -225,6 +263,10 @@ function cacatoo() {
                 container:ant_2_div, points: 10,digits:3,antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
   let gb5 = new AntButton({name:"Strength", var: "ant_2_strength", min: 1, max: 3, increment:0.25, 
                 container:ant_2_div, points: 0,digits:3,antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
+
+  
+  
+  
   
   sim.reset = function(){
     sim.flock.resetPlots()
@@ -539,7 +581,7 @@ function cacatoo() {
 
   sim.addButton("Respec purple", function () { pb6.reset(); pb1.reset();pb2.reset();pb3.reset();pb4.reset();pb5.reset(); })    
   document.getElementById('Respec purple').style = 'width: 200; margin-left: 7.5em; background:#800080AA; float: left;'
-  sim.addButton("Start!", function () { 
+  sim.addButton("Reset", function () { 
     if(sim.pause) {
       sim.pause = false;
       sim.reset(); 
@@ -551,10 +593,10 @@ function cacatoo() {
       sim.pause = true; 
       this.innerHTML = "Start!"
     }})
-  document.getElementById('Start!').style = ''
+  document.getElementById('Reset').style = ''
   sim.addButton("Respec gold", function () { gb6.reset(); gb1.reset();gb2.reset();gb3.reset();gb4.reset();gb5.reset(); })    
   document.getElementById('Respec gold').style = 'width:200; margin-right:7.5em; background:#e0a709AA;float: right; width:200px'
-  sim.addHTML("form_holder","<br>")
+  sim.addHTML("form_holder","<br><br>")
   sim.addToggle("boundary", "Boundary")  
   sim.addToggle("ff", "Fast forward")   
  
@@ -563,7 +605,7 @@ function cacatoo() {
   
 
   sim.step()
-  sim.pause = true
+  sim.pause = false
   
 }
 
@@ -609,7 +651,7 @@ class AntButton {
 
       this.varvaluediv = document.createElement("div")
       
-      this.varvaluediv.style = "display:inline-block; position:relative; top:12px; height:50px; font-size:14px; width:100;"
+      this.varvaluediv.style = "display:inline-block; position:relative; top:12px; height:50px; font-size:14px; width:90;"
       window[this.var] = this.min + this.points*this.increment
       this.varvaluediv.innerHTML += this.points + '<br>' + this.name + '<br>(' + window[this.var].toFixed(this.cfg.digits-1) + ')'
 
