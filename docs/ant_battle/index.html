@@ -638,7 +638,7 @@ class AntButton {
         if(event.shiftKey) for(let i=0;i<5;i++) this.decreaseValue(event) 
         else this.decreaseValue(event)
       });
-      this.downbutton.style = "width:50;" + 'background-color:' + this.color + ";"
+      this.downbutton.style = "width:50;height:50;margin-bottom:25;" + 'background-color:' + this.color + ";"
       this.downbutton.innerText = "-" 
 
       this.upbutton = document.createElement("button")
@@ -646,7 +646,7 @@ class AntButton {
         if(event.shiftKey) for(let i=0;i<5;i++) this.increaseValue(event) 
         else this.increaseValue(event)
       });
-      this.upbutton.style = "width:50;" + 'background-color:' + this.color + ";"
+      this.upbutton.style = "width:50;height:50;margin-bottom:25;" + 'background-color:' + this.color + ";"
       this.upbutton.innerText = "+"
 
       this.varvaluediv = document.createElement("div")
