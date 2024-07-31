@@ -744,6 +744,7 @@ class Simulation {
         if (!this.inbrowser) return
         let button = document.createElement("button")
         button.innerHTML = text;
+        button.id = text
         button.addEventListener("click", func, true);
         document.getElementById("form_holder").appendChild(button)
     }

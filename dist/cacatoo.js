@@ -2715,10 +2715,9 @@ class Canvas {
             this.drawBoid(boid,ctx);        
         }
         if(this.model.config.draw_mouse_radius){
+            ctx.lineStyle = '#FFFFFF';
             ctx.beginPath();
-            ctx.strokeStyle = 'white';
             ctx.arc(this.model.mousecoords.x*this.scale, this.model.mousecoords.y*this.scale,this.model.mouse_radius*this.scale, 0, Math.PI*2);
-            ctx.stroke();
             ctx.closePath();
         }
         for(let obs of this.model.obstacles){
@@ -2817,7 +2816,6 @@ class Canvas {
         ctx.lineTo(boid.position.x*this.scale+boid.velocity.x*boid.size,
                     boid.position.y*this.scale+boid.velocity.y*boid.size);
         ctx.strokeStyle = boid.fill;
-        ctx.lineWidt;
         ctx.stroke();
         ctx.closePath();
     }
@@ -2848,37 +2846,35 @@ class Canvas {
         ctx.fill();
         ctx.closePath();
         
+        // // First antenna
+        // dir = this.model.rotateVector(vector,20)
+        // ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
+        //     boid.position.y*this.scale+vector.y*boid.size*2)
+        // ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+        //             boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
+        // ctx.strokeStyle = boid.fill
+        // ctx.lineWidth = boid.size/3
+        
+
+        // // // Second antenna
+        
+        // dir = this.model.rotateVector(vector,-20)
+        // ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
+        //     boid.position.y*this.scale+vector.y*boid.size*2)
+        // ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+        //             boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
+        // ctx.strokeStyle = boid.fill
+        // ctx.lineWidth = boid.size/3
+        // // ctx.stroke()
+        
+        // if(boid.col){
+        //     ctx.strokeStyle = boid.col
+        //     ctx.lineWidth = boid.stroke
+        //     ctx.stroke()
+        // } 
         ctx.closePath();
-        ctx.beginPath();
-
-        let dir;
-
-        // First antenna
-        dir = this.model.rotateVector(vector,20);
-        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2);
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5);
-        ctx.strokeStyle = boid.fill;
-        ctx.lineWidth = boid.size/3;
-
-        // Second antenna
-        dir = this.model.rotateVector(vector,-20);
-        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2);
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5);
-        ctx.strokeStyle = boid.fill;
-        ctx.lineWidth = boid.size/3;
-
-        ctx.stroke();
-
-        if(boid.col){
-            ctx.strokeStyle = boid.col;
-            ctx.lineWidth = boid.stroke;
-            ctx.stroke();
-        } 
-        ctx.closePath();
+        
+        
     }
 
 
@@ -3800,6 +3796,7 @@ class Simulation {
         if (!this.inbrowser) return
         let button = document.createElement("button");
         button.innerHTML = text;
+        button.id = text;
         button.addEventListener("click", func, true);
         document.getElementById("form_holder").appendChild(button);
     }
