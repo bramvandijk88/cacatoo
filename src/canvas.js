@@ -392,32 +392,32 @@ class Canvas {
         
         let dir
         
-        // // First antenna
-        // dir = this.model.rotateVector(vector,20)
-        // ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-        //     boid.position.y*this.scale+vector.y*boid.size*2)
-        // ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-        //             boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
-        // ctx.strokeStyle = boid.fill
-        // ctx.lineWidth = boid.size/3
+        // First antenna
+        dir = this.model.rotateVector(vector,20)
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
+            boid.position.y*this.scale+vector.y*boid.size*2)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
+        ctx.strokeStyle = boid.fill
+        ctx.lineWidth = boid.size/3
         
 
-        // // // Second antenna
+        // // Second antenna
         
-        // dir = this.model.rotateVector(vector,-20)
-        // ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-        //     boid.position.y*this.scale+vector.y*boid.size*2)
-        // ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-        //             boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
-        // ctx.strokeStyle = boid.fill
-        // ctx.lineWidth = boid.size/3
-        // // ctx.stroke()
+        dir = this.model.rotateVector(vector,-20)
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
+            boid.position.y*this.scale+vector.y*boid.size*2)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
+        ctx.strokeStyle = boid.fill
+        ctx.lineWidth = boid.size/3
+        // ctx.stroke()
         
-        // if(boid.col){
-        //     ctx.strokeStyle = boid.col
-        //     ctx.lineWidth = boid.stroke
-        //     ctx.stroke()
-        // } 
+        if(boid.col){
+            ctx.strokeStyle = boid.col
+            ctx.lineWidth = boid.stroke
+            ctx.stroke()
+        } 
         ctx.closePath()
         
         
