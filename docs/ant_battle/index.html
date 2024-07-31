@@ -133,7 +133,7 @@ var ant_2_strength = 1
 var ant_1_sense = 1
 var ant_2_sense = 1
 
-var max_foraging_time = 400
+var max_foraging_time = 500
 var boundary = true
 var ff = false
 
@@ -311,11 +311,11 @@ function cacatoo() {
       if(boid.foraging_time>max_foraging_time){
         if(boid.type=="purple") {
           boid.position = {x:3+10*sim.rng.random(),y:3+10*sim.rng.random()}
-          boid.velocity = {x:1,y:1}
+          boid.velocity = {x:sim.rng.random(),y:sim.rng.random()}
         }
         else {
           boid.position = {x:sim.ncol-3-10*sim.rng.random(),y:sim.nrow-3-10*sim.rng.random()}
-          boid.velocity = {x:-1,y:-1}
+          boid.velocity = {x:-sim.rng.random(),y:-sim.rng.random()}
         }
         
         boid.acceleration = {x:0,y:0}
