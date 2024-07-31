@@ -1,0 +1,131 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Galton board", // The name of your cacatoo-simulation
+    description: "", // And a description if you wish
+    maxtime: 10000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    width: 500, // Number of columns (width of your grid)
+    height: 600, // Number of rows (height of your grid)
+    scale: 0.8, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    wrap: [false,false],
+    fpsmeter: true,
+    
+    statecolours: {
+      'type': 'viridis'
+    },
+    num_colours:20
+  }
+
+  let flockconfig = {
+    shape: 'dot',          // Shape of the boids drawn 
+    click: 'repel',          // Clicking the boids pushes them away from the mouse
+    max_speed: 0.05,          // Maximum velocity of boids
+    max_force: 0.02,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity:0.0,
+    friction: 0.0003,
+    gravity: 0.0001,
+    // Mouse parameters
+    mouse_radius: 20,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: true,            // Show a circle where the mouse is
+    // Collision behaviour
+    collision_force: 0.03,
+    brownian: 0.0,
+    size: 8,                // Size of the boids (scales drawing and colision detection)
+    
+    // Optimalisation (speed) parameters
+    //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 5,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  
+  // Define some obstables for collision detection
+  
+  
+  for(let i=0; i<15; i++){
+    for(let j=0; j<i; j++){
+      let xpos = 10-i*20+j*40
+      sim.flock.placeObstacle({x:250+xpos,y:100+i*14,r:3,fill:'#ffffff33',force:0.001})
+    }
+  }
+
+  for(let i=0; i<40; i++){
+    sim.flock.placeObstacle({x:12+i*20,y:399,r:2,fill:'#ffffff00',force:0.0001})
+    sim.flock.placeObstacle({x:10+i*20,y:400,w:4,h:200,fill:'#ffffff33',force:1})
+  }
+  
+  // Add 3000 particles in the top
+  sim.colnum = 10
+  sim.flock.add = function(){
+    
+    let n = sim.flock.boids.length
+    sim.flock.populateSpot(20,250,3,20)
+    for(let i=n; n<sim.flock.boids.length;n++) {
+      sim.flock.boids[n].type=sim.colnum
+    }
+    sim.colnum++
+    if(sim.colnum>20) sim.colnum =10 
+  }
+  sim.flock.add()
+  
+  
+  sim.flock.update = function(){
+  		for(let i=0;i<40;i++) this.applyPhysics()
+  	} 
+  
+
+  
+  sim.createFlockDisplay("flock", {legend: false, property:"type",label:"Galton board"})
+  sim.addButton("Add", function () { sim.flock.add() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+  sim.start()
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>
