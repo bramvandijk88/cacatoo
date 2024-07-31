@@ -227,6 +227,7 @@ function cacatoo() {
                 container:ant_2_div, points: 0,digits:3,antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
   
   sim.reset = function(){
+    sim.flock.resetPlots()
     totalfood = start_totalfood
     food_gold = 0
     food_purple = 0
@@ -660,8 +661,8 @@ class AntButton {
     </div>
     <div class="gamecanvas" id="canvas_holder"></div>
     
-    <center><div class="" id="form_holder" style="clear: both; width:100%">   </div></center>
-    <div class="" id="graph_holder" style="width:100%; text-align:center"> </div>
+    <center><div class="" id="form_holder" style="clear: both; width:100%">   </div>
+    <div class="" id="graph_holder" style="width:100%; text-align:center"> </div></center>
     
 </body>
 
