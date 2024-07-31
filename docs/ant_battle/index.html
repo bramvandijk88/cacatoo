@@ -509,7 +509,7 @@ function cacatoo() {
           veloy = sim.pheromones.grid[x][y].food_velocity.y
           length = Math.sqrt(velox*velox + veloy*veloy)
           scaled = sim.normaliseVector(velox,veloy,10)
-          this.ctx.beginPath()
+          this.ctx.beginPath() 
           this.ctx.strokeStyle="#FFFFFF77"
           this.ctx.lineWidth = length/30
           this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
