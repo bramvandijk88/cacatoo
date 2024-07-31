@@ -372,14 +372,14 @@ class Canvas {
 
         ctx.beginPath()
         ctx.arc(boid.position.x*this.scale-vector.x*boid.size*1.5,
-                 boid.position.y*this.scale-vector.y*boid.size*1.5,boid.size*1.0,0,Math.PI*2)
+                 boid.position.y*this.scale-vector.y*boid.size*1.5,boid.size*1.2,0,Math.PI*2)
         ctx.fill()
         ctx.closePath()
         
         ctx.beginPath()
         ctx.arc(boid.position.x*this.scale,
                 boid.position.y*this.scale,
-                boid.size/1.6,0,Math.PI*2)
+                boid.size/1.3,0,Math.PI*2)
         ctx.fill()
         ctx.closePath()
 
@@ -399,7 +399,7 @@ class Canvas {
         ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
                     boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
         ctx.strokeStyle = boid.fill
-        ctx.lineWidth = boid.size/3
+        ctx.lineWidth = boid.size/2
         
 
         // // Second antenna
@@ -410,8 +410,8 @@ class Canvas {
         ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
                     boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
         ctx.strokeStyle = boid.fill
-        ctx.lineWidth = boid.size/3
-        // ctx.stroke()
+        ctx.lineWidth = boid.size/2
+        ctx.stroke()
         
         if(boid.col){
             ctx.strokeStyle = boid.col

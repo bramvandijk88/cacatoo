@@ -516,9 +516,9 @@ function cacatoo() {
     
   }
 
-
+  
   sim.start()
-  //sim.addButton("pause/continue", function () { sim.toggle_play() })
+  
   // sim.addButton("step", function () { sim.step(); sim.display() })    
   
 
@@ -539,7 +539,7 @@ function cacatoo() {
   document.getElementById('Start!').style = ''
   sim.addButton("Respec gold", function () { gb6.reset(); gb1.reset();gb2.reset();gb3.reset();gb4.reset();gb5.reset(); })    
   document.getElementById('Respec gold').style = 'width:200; margin-right:3.5em; background:#e0a709AA;float: right; width:200px'
- 
+  sim.addButton("pause/continue", function () { sim.toggle_play() })
  
   
 
