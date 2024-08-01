@@ -177,6 +177,8 @@ var max_foraging_time = 500
 var boundary = true
 var ff = false
 
+var wiggle = 20
+
 /**
  * function cacatoo() contains all the user-defined parts of a cacatoo-model. 
  	 Configuration, update rules, what is displayed or plotted, etc. It's all here.
@@ -219,6 +221,9 @@ function cacatoo() {
   sim.makeGridmodel("pheromones")         // Make a grid for the pheromones
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   
+  // sim.flock.placeObstacle({x:sim.ncol/3,y:sim.nrow/3,r:12,fill:'#222222',force:1})
+  // sim.flock.placeObstacle({x:sim.ncol-sim.ncol/3,y:sim.nrow-sim.nrow/3,r:8,fill:'#222222',force:1})
+
   sim.createFlockDisplay("flock",{label:""}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
   let ant_1_div = document.createElement("div")
   ant_1_div.className = "skilltree1"
@@ -283,7 +288,7 @@ function cacatoo() {
     sim.flock.boids = []
     for(let i=0;i<ant_1_number;i++){
       sim.flock.boids.push(boid = {position: {x:3+10*sim.rng.random(),y:3+10*sim.rng.random()},
-                            velocity: {x:1,y:1},
+                            velocity: {x:sim.rng.random(),y:sim.rng.random()},
                             acceleration: {x:0,y:0},
                             max_speed:ant_1_speed,
                             type: "purple",
@@ -293,12 +298,12 @@ function cacatoo() {
                             pherprod_food: ant_1_pherprod_food,
                             fill: "purple",
                             foraging: true,
-                            foraging_time: sim.rng.genrand_int(0,100),
+                            foraging_time: sim.rng.genrand_int(0,max_foraging_time),
                             size: 3 })
     }
     for(let i=0;i<ant_2_number;i++){                        
       sim.flock.boids.push({position: {x:sim.ncol-3-10*sim.rng.random(),y:sim.nrow-3-10*sim.rng.random()},
-                            velocity: {x:-1,y:-1},
+                            velocity: {x:-sim.rng.random(),y:-sim.rng.random()},
                             acceleration: {x:0,y:0},
                             type: "gold",
                             fill: "#e0a709",
@@ -306,7 +311,7 @@ function cacatoo() {
                             strength: ant_2_strength,
                             sense: ant_2_sense,
                             foraging: true,
-                            foraging_time: sim.rng.genrand_int(0,100),
+                            foraging_time: sim.rng.genrand_int(0,max_foraging_time),
                             pherprod: ant_2_pherprod,
                             pherprod_food: ant_2_pherprod_food,
                             size: 3 })
@@ -320,13 +325,13 @@ function cacatoo() {
       2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
   */
   sim.pheromones.nextState = function(x, y) {
-    this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.98) // decay
-    this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.98) // decay
+    this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.99) // decay
+    this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.99) // decay
 
     for(let i=1; i<=4; i++) { // diffusion
       let neigh = this.getNeighbour(this,x,y,i)
       if(neigh==undefined) continue
-      let diffusion_const = 0.01
+      let diffusion_const = 0.001
       neigh.homing_velocity.x += diffusion_const*this.grid[x][y].homing_velocity.x
       this.grid[x][y].homing_velocity.x -= diffusion_const*this.grid[x][y].homing_velocity.x
       neigh.homing_velocity.y += diffusion_const*this.grid[x][y].homing_velocity.y
@@ -420,7 +425,8 @@ function cacatoo() {
       let pherx = sim.pheromones.grid[x][y].homing_velocity.x
       let phery = sim.pheromones.grid[x][y].homing_velocity.y
       let pheromone_angle = Math.atan2(phery,pherx)
-      boid.velocity = this.rotateVector(boid.velocity,20*sim.rng.random()-10)
+
+      
       if(boundary){
         if(boid.type=="purple" && boid.position.y > -3-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
           boid.velocity.x += -sim.rng.random()*boid.max_speed // walk back
@@ -435,17 +441,17 @@ function cacatoo() {
       }
       boid.acceleration.x = boid.velocity.x
       boid.acceleration.y = boid.velocity.y
-     
+      boid.acceleration = this.rotateVector(boid.acceleration,wiggle*sim.rng.random()-wiggle/2)
       // Follow pheromones 
       if(!boid.foraging){
         let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].homing_velocity)
-        boid.acceleration.x =  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/20 * -1
-        boid.acceleration.y =  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/20 * -1
+        boid.acceleration.x +=  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/30 * -1
+        boid.acceleration.y +=  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/30 * -1
       }
       else {
         let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].food_velocity)
-        boid.acceleration.x =  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/20 
-        boid.acceleration.y =  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/20 
+        boid.acceleration.x +=  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/30 
+        boid.acceleration.y +=  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/30 
       }
 
 
