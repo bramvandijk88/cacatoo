@@ -401,11 +401,11 @@ class Flockmodel {
         for (let i = 0; i < this.boids.length; i++) {
             let boid = this.boids[i];
             let friction = this.friction
-            let gravity = this.config.gravity || 0
-            let collision_force = this.config.collision_force || 0
-            let max_force = this.config.max_force || 0.1
-            let brownian = this.config.brownian || 0.0
-            let max_speed = this.config.max_speed || 1
+            let gravity = this.config.gravity ?? 0
+            let collision_force = this.config.collision_force ?? 0
+            let max_force = this.config.max_force ?? 0.1
+            let brownian = this.config.brownian ?? 0.0
+            let max_speed = this.config.max_speed ?? 1
             if(boid.locked) continue
             
             if(boid.max_speed !== undefined) max_speed = boid.max_speed
@@ -462,19 +462,17 @@ class Flockmodel {
             boid.velocity.x+=brownian*(2*sim.rng.random()-1)
             boid.velocity.y+=brownian*(2*sim.rng.random()-1)
             
+            // Update velocity
+            boid.velocity.x += boid.acceleration.x
+            boid.velocity.y += boid.acceleration.y 
+            
             // Limit speed
             let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y)
             if (speed > max_speed) {
                 boid.velocity.x = (boid.velocity.x / speed) * max_speed
                 boid.velocity.y = (boid.velocity.y / speed) * max_speed
             }
-
-            // Update velocity
-            boid.velocity.x += boid.acceleration.x
-            boid.velocity.y += boid.acceleration.y 
-            
-
-            
+            speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y)
 
             
 
@@ -575,6 +573,24 @@ class Flockmodel {
         if (length > 0) return { x: vector.x / length, y: vector.y / length }
         else return { x: 0, y: 0 };
     }
+    limitVector = function (vector,length){  
+        let x = vector.x
+        let y = vector.y
+        let magnitude = Math.sqrt(x*x + y*y);
+  
+        if (magnitude > length) {
+            // Calculate the scaling factor
+              const scalingFactor = length / magnitude;
+  
+               // Scale the vector components
+              const scaledX = x * scalingFactor;
+              const scaledY = y * scalingFactor;
+  
+              // Return the scaled vector as an object
+              return { x: scaledX, y: scaledY };
+        }
+        return { x:x, y:y }
+      }
 
     // Angle in degrees
     rotateVector(vec, ang)

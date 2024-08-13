@@ -10,7 +10,11 @@
 /*-----------------------Start user-defined code ---------------------*/
 
 let sim;
-
+let num_ants = 100
+var showvector = true
+var max_foraging_time = 800
+var depletable = true
+var food_depletion_rate = 2
 /**
  * function cacatoo() contains all the user-defined parts of a cacatoo-model. 
  	 Configuration, update rules, what is displayed or plotted, etc. It's all here.
@@ -18,108 +22,236 @@ let sim;
 function cacatoo() {
   
   let simconfig = {
-    title: "Pheromone trails", // The name of your cacatoo-simulation
-    description: "A center for ants?!", // And a description if you wish
-    maxtime: 100000, // How many time steps the model continues to run
+    title: "Foraging ants", // The name of your cacatoo-simulation
+    description: "Including mosh pits", // And a description if you wish
+    maxtime: 1000000, // How many time steps the model continues to run
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-    ncol: 120, // Number of columns (width of your grid)
-    nrow: 120, // Number of rows (height of your grid)
-    scale: 4, // Scale of the grid (nxn pixels per grid point)
+    ncol: 200, // Number of columns (width of your grid)
+    nrow: 100, // Number of rows (height of your grid)
+    scale: 5, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
-    wrap: [false,false],
-    wrapreflect: 0.6,
-    bgcolour:'lightgrey'
+    seed: 3,
+    wrap: [false  ,false],
+    wrapreflect: 1.0,
+    bgcolour:'#AAAAAA'
   }
 
   // FLOCKCONFIG EXAMPLE
   let flockconfig = {
     // Flock parameters
-    num_boids: 100,        // Starting number of boids (flocking individuals)
+    num_boids: 0,        // Starting number of boids (flocking individuals)
     shape: 'ant',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    click: 'pull',
     max_speed: 1,          // Maximum velocity of boids
-    max_force: 0.5,       // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    max_force: 1,       // Maximum steering force applied to boids (separation/cohesion/alignment rules)
     friction: 0.0, 
     // Mouse parameters
     mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
     draw_mouse_radius: true,            // Show a circle where the mouse is
-    // Steering behaviour
-    alignment: {strength:0, radius:10}, // Alignment parameters (uses default neighbour radius of 30)
-    cohesion:  {strength:0, radius:10},// Cohesion parameters (uses default neighbour radius of 30)
-    separation:{strength:0.5, radius:3},  // Separation radius is smaller 
-    size: 3                            // Size of the boids (scales drawing and colision detection)
+    size: 3,                            // Size of the boids (scales drawing and colision detection)
+    //qt_capacity: 5,        // How many boids can be in one subspace of the quadtree before it is divided further
+    //qt_colour: 'black',
   }
   
   sim = new Simulation(simconfig)         // Initialise the Cacatoo simulation
-  sim.makeGridmodel("pheromones")         // Make a grid for the pheromones
+  sim.makeGridmodel("grid")         // Make a grid for the pheromones
+  sim.grid.colourGradient('food', 5, [170, 170, 170], [255, 255, 255])
+  sim.createDisplay_continuous({model:"grid", property:"food", label:"", 
+   legend:false,maxval:5,num_colours:5}) 
   
-  for(let x=0;x<sim.ncol;x++) for(let y=0;y<sim.nrow;y++){
-    sim.pheromones.grid[x][y].homing_velocity = {x:0.0,y:0.0}
+  sim.addFood = function(){
+    let x = sim.rng.genrand_int(25,sim.ncol-12)
+    let y = sim.rng.genrand_int(12,sim.nrow-12)
+    sim.initialSpot(sim.grid,"food",5,sim.rng.genrand_int(5,32),x,y)
   }
-  sim.createDisplay_continuous({model:"pheromones", property:"homing_pheromone", label:"Pheromone concentration", 
-  minval:0, maxval:30, num_colours:200, decimals: 2, fill:"red",legend:false}) 
-  sim.canvases[0].bgcolour = "black"
+  sim.initialSpot(sim.grid,"food",5,30,sim.ncol-sim.ncol/4,sim.nrow/2)
+  
 
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
-  sim.createFlockDisplay("flock",{label:"Ants"}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
-  sim.flock.boids[0].fill = "blue"
-  
+  sim.createFlockDisplay("flock",{label:"Ants",addToDisplay:sim.canvases[0]}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer  
+  // sim.flock.placeObstacle({x:99,y:0,w:2,h:25,fill:'#ffffff33',force:1})
+  //  sim.flock.placeObstacle({x:99,y:30,w:2,h:200,fill:'#ffffff33',force:1})
+
+  sim.nest = {x:20,y:50,food:0}
+  sim.spawnAnt = function(){
+    let xpos = Math.max(3+sim.nest.x+sim.rng.randomGaus(0,3),0)
+    let ypos = Math.max(3+sim.nest.y+sim.rng.randomGaus(0,3),0)
+    let dir = sim.rng.random()*Math.PI
+    
+    
+    sim.flock.boids.push(boid = {position: {x:xpos,y:ypos},
+                            velocity: {x:Math.sin(dir),y:Math.cos(dir)},
+                            acceleration: {x:0,y:0},
+                            fill: "black",
+                            food: false,
+                            foraging_time:sim.rng.genrand_int(1,50),
+                            size:2.5 })
+  }
+  sim.setup = function(){
+    for(let x=0;x<sim.ncol;x++) for(let y=0;y<sim.nrow;y++){
+      sim.grid.grid[x][y].homing_velocity = {x:0.0,y:0.0}
+      sim.grid.grid[x][y].food_velocity = {x:0.0,y:0.0}
+    }
+
+    sim.flock.boids = []
+    sim.spawnAnt()
+    
+    // sim.flock.boids[0].food ="green"
+  }
+  sim.setup()
   /*
       2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
   */
-  sim.pheromones.nextState = function(x, y) {
+  sim.grid.nextState = function(x, y) {
+    let amount_homing = sim.flock.lengthVector(this.grid[x][y].homing_velocity)
+    let amount_food = sim.flock.lengthVector(this.grid[x][y].food_velocity)
     this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.99)
-    this.grid[x][y].homing_pheromone = sim.flock.lengthVector(this.grid[x][y].homing_velocity)
+    this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.99)
+    if(amount_homing>amount_food) this.grid[x][y].homing_pheromone = amount_homing*2
+    else if(amount_food > amount_homing) this.grid[x][y].homing_pheromone = -amount_food*2
+    else this.grid[x][y].homing_pheromone = -1
+    
+  
+    for(let i=1; i<=4; i++) { // diffusion
+      let neigh = this.getNeighbour(this,x,y,i)
+      if(neigh==undefined) continue
+      let diffusion_const = 0.005
+      neigh.homing_velocity.x += diffusion_const*this.grid[x][y].homing_velocity.x
+      this.grid[x][y].homing_velocity.x -= diffusion_const*this.grid[x][y].homing_velocity.x
+      neigh.homing_velocity.y += diffusion_const*this.grid[x][y].homing_velocity.y
+      this.grid[x][y].homing_velocity.y -= diffusion_const*this.grid[x][y].homing_velocity.y
+      
+      neigh.food_velocity.x += diffusion_const*this.grid[x][y].food_velocity.x
+      this.grid[x][y].food_velocity.x -= diffusion_const*this.grid[x][y].food_velocity.x
+      neigh.food_velocity.y += diffusion_const*this.grid[x][y].food_velocity.y
+      this.grid[x][y].food_velocity.y -= diffusion_const*this.grid[x][y].food_velocity.y
+    }
   }
 
-  sim.pheromones.update = function() {
-    this.diffuseStateVector("homing_velocity",0.02)
-    this.synchronous() 
+
+
+  sim.grid.update = function() {
+    this.asynchronous() 
     
   }
 
+  sim.inbounds = function(x,y){
+    return (x > 3 && y> 1 && x < sim.ncol-3 && y < sim.nrow-1)
+  }
+  
   sim.flock.update = function(){
-    
+    if(sim.time%5  == 0 && sim.flock.boids.length < num_ants) sim.spawnAnt()
     for(let boid of this.boids) {
+      
       let x = Math.floor(boid.position.x)
       let y = Math.floor(boid.position.y)
-      let pherx = sim.pheromones.grid[x][y].homing_velocity.x
-      let phery = sim.pheromones.grid[x][y].homing_velocity.y
-      let pheromone_angle = Math.atan2(phery,pherx)
-      let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].homing_velocity)
-      boid.velocity = this.rotateVector(boid.velocity,40*sim.rng.random()-20)
-      
-      boid.acceleration.x =  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount 
-      boid.acceleration.y =  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount 
-      let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
-      if (accLength > this.config.max_force) {
-          boid.acceleration.x = (boid.acceleration.x / accLength) * this.config.max_force
-          boid.acceleration.y = (boid.acceleration.y / accLength) * this.config.max_force 
+      if(!boid.food && sim.grid.grid[x][y].food > 0){
+        if(depletable)sim.grid.grid[x][y].food -= food_depletion_rate
+        if(sim.grid.grid[x][y].food <= 0) sim.grid.grid[x][y].food = undefined
+        boid.food = "white"
+        boid.velocity.x *= -1
+        boid.velocity.y *= -1
       }
-      sim.pheromones.grid[x][y].homing_velocity.x += boid.velocity.x*10
-      sim.pheromones.grid[x][y].homing_velocity.y += boid.velocity.y*10
+      else if(boid.food =="white"){
+        let dx = boid.position.x - sim.nest.x
+        let dy = boid.position.y - sim.nest.y
+        let dist = Math.sqrt(dx*dx+dy*dy)
+        if(dist<5) {
+          boid.food = undefined
+          sim.nest.food++
+          boid.foraging_time=0
+          boid.velocity.x *=-1
+          boid.velocity.y *=-1
+        }
+      }
       
-      for(let i of sim.flock.getNearbyGridpoints(boid,sim.pheromones,5)){
-        i.type = 'ground'
+      
+      
+      // Pheromone tracking
+      let nest_pherx = sim.grid.grid[x][y].homing_velocity.x
+      let nest_phery = sim.grid.grid[x][y].homing_velocity.y
+      let nest_pheromone_amount = this.lengthVector(sim.grid.grid[x][y].homing_velocity)
+      let food_pherx = sim.grid.grid[x][y].food_velocity.x
+      let food_phery = sim.grid.grid[x][y].food_velocity.y
+      let food_pheromone_amount = this.lengthVector(sim.grid.grid[x][y].food_velocity)
+
+      // Randomly rotate a bit
+      
+      let angle = sim.rng.randomGaus(0,10)
+      boid.velocity = this.rotateVector(boid.velocity,angle)
+
+      // Follow home
+      if(boid.food =="white"){
+        let pheromone_angle = Math.atan2(nest_phery,nest_pherx)
+        boid.acceleration.x +=  Math.cos(pheromone_angle) * nest_pheromone_amount * -1
+        boid.acceleration.y +=  Math.sin(pheromone_angle) * nest_pheromone_amount * -1
+      }
+      else{ // Follow food
+        let pheromone_angle = Math.atan2(food_phery,food_pherx)
+        boid.acceleration.x +=  Math.cos(pheromone_angle) * food_pheromone_amount * -1
+        boid.acceleration.y +=  Math.sin(pheromone_angle) * food_pheromone_amount * -1
+      }
+      if(sim.inbounds(x,y)){
+        if(!boid.food){
+          sim.grid.grid[x][y].homing_velocity.x += boid.velocity.x*10
+          sim.grid.grid[x][y].homing_velocity.y += boid.velocity.y*10
+        }
+        else{
+          sim.grid.grid[x][y].food_velocity.x += boid.velocity.x*10
+          sim.grid.grid[x][y].food_velocity.y += boid.velocity.y*10
+        }
+      }
+      boid.foraging_time++
+      if(boid.foraging_time>max_foraging_time){
+        let xpos = Math.max(3+sim.nest.x+sim.rng.randomGaus(0,3),0)
+        let ypos = Math.max(3+sim.nest.y+sim.rng.randomGaus(0,3),0)
+        let dir = sim.rng.random()*Math.PI*0.5
+          boid.position = {x:xpos,y:ypos}
+          boid.velocity = {x:Math.sin(dir),y:Math.cos(dir)}
+          boid.acceleration = {x:0,y:0}
+          boid.food = false
+          boid.foraging_time = 0
       }
     }
 
-    sim.canvases[1].underlay = function(){
-      this.ctx.strokeStyle = "red"
-      this.ctx.lineWidth = 1
-      this.ctx.moveTo(0,0)
-      this.ctx.lineTo(1,1)
-      this.ctx.stroke()
-      let scale_vector = 0.4
-      for(let x=0;x<sim.ncol;x++){
-        for(let y=0;y<sim.nrow;y++){
-        let velox = sim.pheromones.grid[x][y].homing_velocity.x
-        let veloy = sim.pheromones.grid[x][y].homing_velocity.y
-        this.ctx.beginPath()
-        this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
-        this.ctx.lineTo(this.scale*0.5+x*this.scale+velox*scale_vector,this.scale*0.5+y*this.scale+veloy*scale_vector)
-        this.ctx.stroke()
-        this.ctx.closePath()
+    sim.canvases[0].overlay = function(){
+      this.ctx.fillStyle ="#555555"
+      this.ctx.beginPath()
+      this.ctx.arc(sim.nest.x*sim.scale,sim.nest.y*sim.scale,20,0,Math.PI*2)
+      this.ctx.fill()
+      this.ctx.fillStyle="white"
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = 'middle';
+      this.ctx.font = "16px sans";
+      this.ctx.fillText(sim.nest.food,sim.nest.x*sim.scale,sim.nest.y*sim.scale)
+      this.ctx.closePath()
+    }
+
+    sim.canvases[0].underlay = function(){
+      if(showvector){
+        this.ctx.lineWidth = 1
+        let scale_vector = 1
+        for(let x=0;x<sim.ncol;x++){
+          for(let y=0;y<sim.nrow;y++){
+          this.ctx.strokeStyle = "red"
+          let scaled = sim.flock.limitVector(sim.grid.grid[x][y].homing_velocity,10)
+          
+          this.ctx.beginPath()
+          this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
+          this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
+          this.ctx.stroke()
+          this.ctx.closePath()
+
+          scaled = sim.flock.limitVector(sim.grid.grid[x][y].food_velocity,10)
+          this.ctx.strokeStyle = "blue"
+          this.ctx.beginPath()
+          this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
+          this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
+          this.ctx.stroke()
+          this.ctx.closePath()
+          }
         }
+        
       }
     }
 
@@ -128,8 +260,12 @@ function cacatoo() {
 
 
   sim.start()
-  sim.addButton("pause/continue", function () { sim.toggle_play() })
-  sim.addButton("step", function () { sim.step(); sim.display() })    
+  sim.addButton("Play/pause", function () { sim.toggle_play() })
+  
+  sim.addButton("Add food", function () { sim.addFood() })  
+  sim.addToggle("showvector","Show pheromone field")  
+  sim.addToggle("depletable","Food is depletable")  
+  
 }
 
 </script>

@@ -272,6 +272,7 @@ class Canvas {
             else if(obs.type=='circle'){
                 ctx.beginPath()
                 ctx.fillStyle = obs.fill || '#00000033'
+                ctx.lineStyle = '#FFFFFF'
                 ctx.arc(obs.x*this.scale,obs.y*this.scale,obs.r*this.scale,0,Math.PI*2)
                 ctx.fill()
                 ctx.closePath()
@@ -370,12 +371,14 @@ class Canvas {
         
         let vector = this.model.normaliseVector({x: boid.velocity.x, y: boid.velocity.y})
 
+        // First body part
         ctx.beginPath()
         ctx.arc(boid.position.x*this.scale-vector.x*boid.size*1.5,
                  boid.position.y*this.scale-vector.y*boid.size*1.5,boid.size*1.2,0,Math.PI*2)
         ctx.fill()
         ctx.closePath()
         
+        // Second body part
         ctx.beginPath()
         ctx.arc(boid.position.x*this.scale,
                 boid.position.y*this.scale,
@@ -383,32 +386,46 @@ class Canvas {
         ctx.fill()
         ctx.closePath()
 
+        // Third body part
         ctx.beginPath()
         ctx.arc(boid.position.x*this.scale+vector.x*boid.size*1.3,
              boid.position.y*this.scale+vector.y*boid.size*1.3,
-              boid.size/1.2,0,Math.PI*2)
+              boid.size/1.1,0,Math.PI*2)
         ctx.fill()
         ctx.closePath()
+
+        // Food
+        if(boid.food){
+            ctx.beginPath()
+            ctx.fillStyle = boid.food
+            
+            ctx.arc(boid.position.x*this.scale+vector.x*boid.size*3.5,
+                boid.position.y*this.scale+vector.y*boid.size*3.5,
+                boid.size*1.2,0,Math.PI*2)
+            ctx.fill()
+            ctx.closePath()
+        }
         
         let dir
         
+        ctx.beginPath()
         // First antenna
-        dir = this.model.rotateVector(vector,20)
-        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2)
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
+        dir = this.model.rotateVector(vector,30)
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*1,
+            boid.position.y*this.scale+vector.y*boid.size*1)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.3,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.3)
         ctx.strokeStyle = boid.fill
         ctx.lineWidth = boid.size/2
         
 
         // // Second antenna
         
-        dir = this.model.rotateVector(vector,-20)
-        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2)
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5)
+        dir = this.model.rotateVector(vector,-30)
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*1,
+            boid.position.y*this.scale+vector.y*boid.size*1)
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.3,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.3)
         ctx.strokeStyle = boid.fill
         ctx.lineWidth = boid.size/2
         ctx.stroke()

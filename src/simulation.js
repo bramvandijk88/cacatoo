@@ -92,7 +92,14 @@ class Simulation {
                 
         for(let i = 0; i < 1000; i++) rng.genrand_real2()        
         rng.random = () => { return rng.genrand_real2() }        
-        rng.randomInt = () => { return rng.genrand_int() }                
+        rng.randomInt = () => { return rng.genrand_int() }     
+        
+        rng.randomGaus = (mean=0, stdev=1) => { // Standard gaussian sample
+            const u = 1 - sim.rng.random(); 
+            const v = sim.rng.random();
+            const z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+            return z * stdev + mean;
+        }           
         return rng
     }
 

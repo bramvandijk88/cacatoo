@@ -1970,11 +1970,11 @@ class Flockmodel {
         for (let i = 0; i < this.boids.length; i++) {
             let boid = this.boids[i];
             let friction = this.friction;
-            let gravity = this.config.gravity || 0;
-            let collision_force = this.config.collision_force || 0;
-            let max_force = this.config.max_force || 0.1;
-            let brownian = this.config.brownian || 0.0;
-            let max_speed = this.config.max_speed || 1;
+            let gravity = this.config.gravity ?? 0;
+            let collision_force = this.config.collision_force ?? 0;
+            let max_force = this.config.max_force ?? 0.1;
+            let brownian = this.config.brownian ?? 0.0;
+            let max_speed = this.config.max_speed ?? 1;
             if(boid.locked) continue
             
             if(boid.max_speed !== undefined) max_speed = boid.max_speed;
@@ -2031,19 +2031,17 @@ class Flockmodel {
             boid.velocity.x+=brownian*(2*sim.rng.random()-1);
             boid.velocity.y+=brownian*(2*sim.rng.random()-1);
             
+            // Update velocity
+            boid.velocity.x += boid.acceleration.x;
+            boid.velocity.y += boid.acceleration.y; 
+            
             // Limit speed
             let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
             if (speed > max_speed) {
                 boid.velocity.x = (boid.velocity.x / speed) * max_speed;
                 boid.velocity.y = (boid.velocity.y / speed) * max_speed;
             }
-
-            // Update velocity
-            boid.velocity.x += boid.acceleration.x;
-            boid.velocity.y += boid.acceleration.y; 
-            
-
-            
+            speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
 
             
 
@@ -2144,6 +2142,24 @@ class Flockmodel {
         if (length > 0) return { x: vector.x / length, y: vector.y / length }
         else return { x: 0, y: 0 };
     }
+    limitVector = function (vector,length){  
+        let x = vector.x;
+        let y = vector.y;
+        let magnitude = Math.sqrt(x*x + y*y);
+  
+        if (magnitude > length) {
+            // Calculate the scaling factor
+              const scalingFactor = length / magnitude;
+  
+               // Scale the vector components
+              const scaledX = x * scalingFactor;
+              const scaledY = y * scalingFactor;
+  
+              // Return the scaled vector as an object
+              return { x: scaledX, y: scaledY };
+        }
+        return { x:x, y:y }
+      }
 
     // Angle in degrees
     rotateVector(vec, ang)
@@ -2728,6 +2744,7 @@ class Canvas {
             else if(obs.type=='circle'){
                 ctx.beginPath();
                 ctx.fillStyle = obs.fill || '#00000033';
+                ctx.lineStyle = '#FFFFFF';
                 ctx.arc(obs.x*this.scale,obs.y*this.scale,obs.r*this.scale,0,Math.PI*2);
                 ctx.fill();
                 ctx.closePath();
@@ -2826,12 +2843,14 @@ class Canvas {
         
         let vector = this.model.normaliseVector({x: boid.velocity.x, y: boid.velocity.y});
 
+        // First body part
         ctx.beginPath();
         ctx.arc(boid.position.x*this.scale-vector.x*boid.size*1.5,
                  boid.position.y*this.scale-vector.y*boid.size*1.5,boid.size*1.2,0,Math.PI*2);
         ctx.fill();
         ctx.closePath();
         
+        // Second body part
         ctx.beginPath();
         ctx.arc(boid.position.x*this.scale,
                 boid.position.y*this.scale,
@@ -2839,32 +2858,46 @@ class Canvas {
         ctx.fill();
         ctx.closePath();
 
+        // Third body part
         ctx.beginPath();
         ctx.arc(boid.position.x*this.scale+vector.x*boid.size*1.3,
              boid.position.y*this.scale+vector.y*boid.size*1.3,
-              boid.size/1.2,0,Math.PI*2);
+              boid.size/1.1,0,Math.PI*2);
         ctx.fill();
         ctx.closePath();
+
+        // Food
+        if(boid.food){
+            ctx.beginPath();
+            ctx.fillStyle = boid.food;
+            
+            ctx.arc(boid.position.x*this.scale+vector.x*boid.size*3.5,
+                boid.position.y*this.scale+vector.y*boid.size*3.5,
+                boid.size*1.2,0,Math.PI*2);
+            ctx.fill();
+            ctx.closePath();
+        }
         
         let dir;
         
+        ctx.beginPath();
         // First antenna
-        dir = this.model.rotateVector(vector,20);
-        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2);
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5);
+        dir = this.model.rotateVector(vector,30);
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*1,
+            boid.position.y*this.scale+vector.y*boid.size*1);
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.3,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.3);
         ctx.strokeStyle = boid.fill;
         ctx.lineWidth = boid.size/2;
         
 
         // // Second antenna
         
-        dir = this.model.rotateVector(vector,-20);
-        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*2,
-            boid.position.y*this.scale+vector.y*boid.size*2);
-        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.5,
-                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.5);
+        dir = this.model.rotateVector(vector,-30);
+        ctx.moveTo(boid.position.x*this.scale+vector.x*boid.size*1,
+            boid.position.y*this.scale+vector.y*boid.size*1);
+        ctx.lineTo(boid.position.x*this.scale+vector.x*boid.size*1.8+dir.x*boid.size*1.3,
+                    boid.position.y*this.scale+vector.y*boid.size*1.8+dir.y*boid.size*1.3);
         ctx.strokeStyle = boid.fill;
         ctx.lineWidth = boid.size/2;
         ctx.stroke();
@@ -3147,7 +3180,14 @@ class Simulation {
                 
         for(let i = 0; i < 1000; i++) rng.genrand_real2();        
         rng.random = () => { return rng.genrand_real2() };        
-        rng.randomInt = () => { return rng.genrand_int() };                
+        rng.randomInt = () => { return rng.genrand_int() };     
+        
+        rng.randomGaus = (mean=0, stdev=1) => { // Standard gaussian sample
+            const u = 1 - sim.rng.random(); 
+            const v = sim.rng.random();
+            const z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+            return z * stdev + mean;
+        };           
         return rng
     }
 
