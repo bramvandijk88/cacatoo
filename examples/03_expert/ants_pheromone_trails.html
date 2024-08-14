@@ -11,7 +11,8 @@
 
 let sim;
 let num_ants = 100
-var showvector = true
+var showvector = false
+var showpher = true
 var max_foraging_time = 800
 var depletable = true
 var food_depletion_rate = 2
@@ -228,6 +229,20 @@ function cacatoo() {
     }
 
     sim.canvases[0].underlay = function(){
+      if(showpher){
+        this.ctx.lineWidth = 1
+        let scale_vector = 1
+        for(let x=0;x<sim.ncol;x++){
+          for(let y=0;y<sim.nrow;y++){
+            red = Math.min(sim.flock.lengthVector(sim.grid.grid[x][y].homing_velocity)/30,0.5)
+            this.ctx.fillStyle = `rgba(255,0,0,${red})`;
+            this.ctx.fillRect(x*sim.scale,y*sim.scale,sim.scale,sim.scale)
+            blue = Math.min(sim.flock.lengthVector(sim.grid.grid[x][y].food_velocity)/30,0.5)
+            this.ctx.fillStyle = `rgba(0,0,255,${blue})`;
+            this.ctx.fillRect(x*sim.scale,y*sim.scale,sim.scale,sim.scale)
+          }
+        }
+      }
       if(showvector){
         this.ctx.lineWidth = 1
         let scale_vector = 1
@@ -251,8 +266,8 @@ function cacatoo() {
           this.ctx.closePath()
           }
         }
-        
       }
+      
     }
 
     
@@ -264,6 +279,7 @@ function cacatoo() {
   
   sim.addButton("Add food", function () { sim.addFood() })  
   sim.addToggle("showvector","Show pheromone field")  
+  sim.addToggle("showpher","Show pheromone concentration")  
   sim.addToggle("depletable","Food is depletable")  
   
 }
