@@ -333,7 +333,7 @@ function cacatoo() {
     for(let i=1; i<=4; i++) { // diffusion
       let neigh = this.getNeighbour(this,x,y,i)
       if(neigh==undefined) continue
-      let diffusion_const = 0.001
+      let diffusion_const = 0.002
       neigh.homing_velocity.x += diffusion_const*this.grid[x][y].homing_velocity.x
       this.grid[x][y].homing_velocity.x -= diffusion_const*this.grid[x][y].homing_velocity.x
       neigh.homing_velocity.y += diffusion_const*this.grid[x][y].homing_velocity.y
@@ -501,7 +501,18 @@ function cacatoo() {
       this.ctx.strokeStyle = "black"
       this.ctx.lineWidth = 1
       let scale_vector = 1
-      
+      this.ctx.lineWidth = 1
+        
+        // for(let x=0;x<sim.ncol;x++){
+        //   for(let y=0;y<sim.nrow;y++){
+        //     red = Math.min(sim.flock.lengthVector(sim.pheromones.grid[x][y].homing_velocity)/30,0.5)
+        //     this.ctx.fillStyle = `rgba(0,255,255,${red})`;
+        //     this.ctx.fillRect(x*sim.scale,y*sim.scale,sim.scale,sim.scale)
+        //     blue = Math.min(sim.flock.lengthVector(sim.pheromones.grid[x][y].food_velocity)/30,0.5)
+        //     this.ctx.fillStyle = `rgba(255,0,0,${blue})`;
+        //     this.ctx.fillRect(x*sim.scale,y*sim.scale,sim.scale,sim.scale)
+        //   }
+        // }
       for(let x=0;x<sim.ncol;x++){
         for(let y=0;y<sim.nrow;y++){
           let velox = sim.pheromones.grid[x][y].homing_velocity.x
@@ -509,8 +520,8 @@ function cacatoo() {
           let length = Math.sqrt(velox*velox + veloy*veloy)
           let scaled = sim.normaliseVector(velox,veloy,10)
           this.ctx.beginPath()
-          this.ctx.strokeStyle="#00000055"
-          this.ctx.lineWidth = length/30
+          this.ctx.strokeStyle= `rgba(150,0,0,${length/300})`;
+          this.ctx.lineWidth = 2
           this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
           this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
           this.ctx.stroke()
@@ -521,8 +532,8 @@ function cacatoo() {
           length = Math.sqrt(velox*velox + veloy*veloy)
           scaled = sim.normaliseVector(velox,veloy,10)
           this.ctx.beginPath() 
-          this.ctx.strokeStyle="#FFFFFF77"
-          this.ctx.lineWidth = length/30
+          this.ctx.strokeStyle= `rgba(0,0,150,${length/300})`;
+          this.ctx.lineWidth = 2
           this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
           this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
           this.ctx.stroke()
@@ -612,12 +623,11 @@ function cacatoo() {
   document.getElementById('Reset').style = ''
   sim.addButton("Respec gold", function () { gb6.reset(); gb1.reset();gb2.reset();gb3.reset();gb4.reset();gb5.reset(); })    
   document.getElementById('Respec gold').style = 'width:200; margin-right:7.5em; background:#e0a709AA;float: right; width:200px'
-  sim.addHTML("form_holder","<br>")
+  
   sim.addButton("Pause",function () { sim.toggle_play() })
-  sim.addHTML("form_holder","<br>")
+  
   sim.addToggle("boundary", "Boundary")  
   sim.addToggle("ff", "Fast forward")   
-  
  
   
 
