@@ -242,13 +242,13 @@ class Simulation {
             if(mouse.x == this.mousecoords.x && mouse.y == this.mousecoords.y) return this.mousecoords
             this.mousecoords = {x:mouse.x/this.scale, y:mouse.y/this.scale}            
             flockmodel.mousecoords = this.mousecoords
-        })    
-        canvas.elem.addEventListener('mousedown', (e) => {  })
-        canvas.elem.addEventListener('mousedown', (e) => { 
-            flockmodel.mouseDown = true
-         })
+        }) 
         
+        canvas.elem.addEventListener('mousedown', (e) => { flockmodel.mouseDown = true})
+        canvas.elem.addEventListener('touchstart', (e) => { flockmodel.mouseDown = true})
+
         canvas.elem.addEventListener('mouseup', (e) => { flockmodel.mouseDown = false })
+        canvas.elem.addEventListener('touchend', (e) => { flockmodel.mouseDown = true})
         canvas.elem.addEventListener('mouseout', (e) => { flockmodel.mousecoords = {x:-1000,y:-1000}})
         cnv.bgcolour = this.config.bgcolour || 'black'
         cnv.display = cnv.displayflock                
