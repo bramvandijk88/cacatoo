@@ -248,7 +248,7 @@ class Simulation {
         canvas.elem.addEventListener('touchstart', (e) => { flockmodel.mouseDown = true})
 
         canvas.elem.addEventListener('mouseup', (e) => { flockmodel.mouseDown = false })
-        canvas.elem.addEventListener('touchend', (e) => { flockmodel.mouseDown = true})
+        canvas.elem.addEventListener('touchend', (e) => { flockmodel.mouseDown = false})
         canvas.elem.addEventListener('mouseout', (e) => { flockmodel.mousecoords = {x:-1000,y:-1000}})
         cnv.bgcolour = this.config.bgcolour || 'black'
         cnv.display = cnv.displayflock                
