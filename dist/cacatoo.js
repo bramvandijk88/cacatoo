@@ -2734,7 +2734,7 @@ class Canvas {
         if(this.model.config.draw_mouse_radius){
             ctx.beginPath();
             ctx.strokeStyle = this.model.config.draw_mouse_colour || '#FFFFFF';
-            ctx.arc(this.model.mousecoords.x*this.scale, this.model.mousecoords.y*this.scale,this.model.mouse_radius*this.scale, 0, Math.PI*2);
+            ctx.arc(this.model.mousecoords.x*this.scale, this.model.mousecoords.y*this.scale,this.model.config.mouse_radius*this.scale, 0, Math.PI*2);
             ctx.stroke();
             ctx.closePath();
         }
@@ -3332,13 +3332,13 @@ class Simulation {
             if(mouse.x == this.mousecoords.x && mouse.y == this.mousecoords.y) return this.mousecoords
             this.mousecoords = {x:mouse.x/this.scale, y:mouse.y/this.scale};            
             flockmodel.mousecoords = this.mousecoords;
-        });    
-        canvas.elem.addEventListener('mousedown', (e) => {  });
-        canvas.elem.addEventListener('mousedown', (e) => { 
-            flockmodel.mouseDown = true;
-         });
+        }); 
         
+        canvas.elem.addEventListener('mousedown', (e) => { flockmodel.mouseDown = true;});
+        canvas.elem.addEventListener('touchstart', (e) => { flockmodel.mouseDown = true;});
+
         canvas.elem.addEventListener('mouseup', (e) => { flockmodel.mouseDown = false; });
+        canvas.elem.addEventListener('touchend', (e) => { flockmodel.mouseDown = true;});
         canvas.elem.addEventListener('mouseout', (e) => { flockmodel.mousecoords = {x:-1000,y:-1000};});
         cnv.bgcolour = this.config.bgcolour || 'black';
         cnv.display = cnv.displayflock;                

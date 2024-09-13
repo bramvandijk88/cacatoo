@@ -262,7 +262,7 @@ class Canvas {
         if(this.model.config.draw_mouse_radius){
             ctx.beginPath()
             ctx.strokeStyle = this.model.config.draw_mouse_colour || '#FFFFFF'
-            ctx.arc(this.model.mousecoords.x*this.scale, this.model.mousecoords.y*this.scale,this.model.mouse_radius*this.scale, 0, Math.PI*2)
+            ctx.arc(this.model.mousecoords.x*this.scale, this.model.mousecoords.y*this.scale,this.model.config.mouse_radius*this.scale, 0, Math.PI*2)
             ctx.stroke()
             ctx.closePath()
         }
