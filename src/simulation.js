@@ -244,10 +244,11 @@ class Simulation {
             flockmodel.mousecoords = this.mousecoords
         }) 
         canvas.elem.addEventListener('touchmove', (e) => { 
-            let mouse = this.getCursorPosition(canvas,e,1,false) 
+            let mouse = this.getCursorPosition(canvas,e.touches[0],1,false) 
             if(mouse.x == this.mousecoords.x && mouse.y == this.mousecoords.y) return this.mousecoords
             this.mousecoords = {x:mouse.x/this.scale, y:mouse.y/this.scale}            
             flockmodel.mousecoords = this.mousecoords
+            e.preventDefault();
         }) 
         
         canvas.elem.addEventListener('mousedown', (e) => { flockmodel.mouseDown = true})
