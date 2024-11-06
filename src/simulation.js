@@ -243,6 +243,12 @@ class Simulation {
             this.mousecoords = {x:mouse.x/this.scale, y:mouse.y/this.scale}            
             flockmodel.mousecoords = this.mousecoords
         }) 
+        canvas.elem.addEventListener('touchmove', (e) => { 
+            let mouse = this.getCursorPosition(canvas,e,1,false) 
+            if(mouse.x == this.mousecoords.x && mouse.y == this.mousecoords.y) return this.mousecoords
+            this.mousecoords = {x:mouse.x/this.scale, y:mouse.y/this.scale}            
+            flockmodel.mousecoords = this.mousecoords
+        }) 
         
         canvas.elem.addEventListener('mousedown', (e) => { flockmodel.mouseDown = true})
         canvas.elem.addEventListener('touchstart', (e) => { flockmodel.mouseDown = true})
@@ -999,7 +1005,8 @@ class Simulation {
         else{
             canvas = gridmodel.canvases[canvas]
         }
-        
+
+        // For mouse:
         canvas.elem.addEventListener('mousemove', (e) => { 
             thissim.coords_previous = thissim.coords
             thissim.coords = sim.getCursorPosition(canvas,e,sim.config.scale) 
@@ -1031,6 +1038,41 @@ class Simulation {
         })
         canvas.elem.addEventListener('mousedown', (e) => { thissim.mouseDown = true })
         canvas.elem.addEventListener('mouseup', (e) => { thissim.mouseDown = false })
+
+
+        // For touch screens
+        canvas.elem.addEventListener('touchmove', (e) => { 
+            thissim.coords_previous = thissim.coords
+            thissim.coords = sim.getCursorPosition(canvas,e.touches[0],sim.config.scale) 
+            e.preventDefault();
+        })
+        
+        canvas.elem.addEventListener('touchstart', (e) => {    
+            thissim.intervalfunc = setInterval(function() {
+                
+            if(thissim.mouseDown){
+                
+                let steps = thissim.brushflow     
+
+                if(steps > 1){                    
+                    let difx = thissim.coords.x - thissim.coords_previous.x
+                    let seqx = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.x + (i * difx/(steps-1))))
+                    let dify = thissim.coords.y - thissim.coords_previous.y
+                    let seqy = Array.from({ length: steps}, (_, i) => Math.round(thissim.coords_previous.y + (i * dify/(steps-1))))
+                    for(let q=0; q<steps; q++)
+                    {
+                        thissim.putSpot(gridmodel, thissim.property_to_change, thissim.place_value, thissim.place_size, seqx[q], seqy[q])                    
+                    }
+                }
+                else{
+                    thissim.putSpot(gridmodel, thissim.property_to_change, thissim.place_value, thissim.place_size, thissim.coords.x, thissim.coords.y)                    
+                }                
+                canvas.displaygrid()
+            }
+            }, 10)
+        })
+        canvas.elem.addEventListener('touchstart', (e) => { thissim.mouseDown = true })
+        canvas.elem.addEventListener('touchend', (e) => { thissim.mouseDown = false })
     }
 
     /**

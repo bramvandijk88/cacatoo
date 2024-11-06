@@ -84,30 +84,8 @@ function cacatoo() {
   sim.place_value = 0
   sim.place_size = 250 
   
-  sim.canvases[0].elem.addEventListener('mousemove', (e) => { 
-            coords_previous = coords
-            coords = sim.getCursorPosition(sim.canvases[0],e,config.scale) 
-  })
-
-  sim.canvases[0].elem.addEventListener('mousedown', (e) => {    
-    interval = setInterval(function() {
-      if(mouseDown){
-				let steps = 10
-        let diff = Math.max(coords.x, coords_previous.x) - Math.min(coords.x, coords_previous.x)
-        let seqx = Array(steps).fill().map((e, i) => Math.round((i+0)*(diff/(steps-1)) + Math.min(coords.x, coords_previous.x)))
-        let diffy = Math.max(coords.y, coords_previous.y) - Math.min(coords.y, coords_previous.y)
-        let seqy = Array(steps).fill().map((e, i) => Math.round((i+0)*(diffy/(steps-1)) + Math.min(coords.y, coords_previous.y)))       
-
-        for(let q=0; q<steps; q++)
-        {
-        	sim.putSpot(sim.turing, 'activator', sim.place_value, sim.place_size, seqx[q], seqy[q])            
-        	sim.display()
-        }
-      }
-    }, 30)
-  })
-  sim.canvases[0].elem.addEventListener('mousedown', (e) => { mouseDown = true })
-  sim.canvases[0].elem.addEventListener('mouseup', (e) => { mouseDown = false })
+  
+  
   
 	//// BELOW IS A MODIFIED VERSION OF THE 'diffuseStates' FUNCTION, which avoids exchange with left
   sim.turing.diffuseStates = function(state,rate) 
@@ -139,6 +117,8 @@ function cacatoo() {
                 for (let n = 1; n <= 4; n++) this.grid[i][j][state] = newstate[i][j][state];
 
 	}
+
+  sim.addStatebrush(sim.turing, "activator",0.000,200)
   
 }
 

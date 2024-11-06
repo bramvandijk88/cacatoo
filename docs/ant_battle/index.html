@@ -358,7 +358,7 @@ function cacatoo() {
 
   sim.flock.update = function(){
     if(sim.time%5==0)sim.spawnAnts()
-    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Food collected")
+    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Food collected",{width:900})
     for(let boid of this.boids) {
       if(boid.foraging_time>max_foraging_time){
         if(boid.type=="purple") {

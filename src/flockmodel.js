@@ -395,6 +395,22 @@ class Flockmodel {
         }
     }
 
+    steerTowards(boid,x,y,strength){
+        let dx = boid.position.x - x;
+        let dy = boid.position.y - y;
+        let distance = Math.sqrt(dx*dx + dy*dy);
+        if (distance > 0) { // Ensure we don't divide by zero
+            boid.velocity.x += (dx / distance) * strength * this.config.max_force * -1;
+            boid.velocity.y += (dy / distance) * strength * this.config.max_force * -1;
+        }
+    }
+
+    dist(obj1,obj2){
+        let dx = obj1.x - obj2.x
+        let dy = obj1.y - obj2.y
+        return(Math.sqrt(dx*dx + dy*dy))
+    }
+
     // Rules like boids, collisions, and gravity are done here
     applyPhysics() { 
         
