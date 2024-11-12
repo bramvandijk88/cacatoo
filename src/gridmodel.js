@@ -324,7 +324,6 @@ class Gridmodel {
             let y = Math.floor(m / this.nc)
             this.nextState(x, y)
         }
-        this.time++
         // Don't have to copy the grid here. Just cycle through x,y in random order and apply nextState :)
     }
 
