@@ -665,7 +665,6 @@ class Gridmodel {
             let y = Math.floor(m / this.nc);
             this.nextState(x, y);
         }
-        this.time++;
         // Don't have to copy the grid here. Just cycle through x,y in random order and apply nextState :)
     }
 
@@ -2586,7 +2585,7 @@ class Canvas {
                 let value = this.model.grid[x][y][prop];
                 
 
-                if(this.continuous && value !== 0 && this.maxval !== undefined && this.minval !== undefined)
+                if(this.continuous && this.maxval !== undefined && this.minval !== undefined)
                 {                  
                     value = Math.max(this.minval,Math.min(this.maxval,value));
                     value = Math.ceil((value - this.minval)/(this.maxval-this.minval)*this.num_colours);                    
