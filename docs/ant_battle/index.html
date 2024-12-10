@@ -190,9 +190,9 @@ function cacatoo() {
     description: "A center for ants?!", // And a description if you wish
     maxtime: 1000000, // How many time steps the model continues to run
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-    ncol: 120, // Number of columns (width of your grid)
-    nrow: 120, // Number of rows (height of your grid)
-    scale: 6, // Scale of the grid (nxn pixels per grid point)
+    ncol: 100, // Number of columns (width of your grid)
+    nrow: 80, // Number of rows (height of your grid)
+    scale: 9, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
     seed: new Date().getTime(),
     wrap: [false,false],
@@ -274,7 +274,8 @@ function cacatoo() {
   
   
   sim.spawnAnts = function(){
-    if(sim.flock.boids.length < ant_1_number+ant_2_number){
+    if(sim.flock.purple_ants < ant_1_number){
+      sim.flock.purple_ants++
       let dir = sim.rng.random()*Math.PI
       sim.flock.boids.push(boid = {position: {x:3+10*sim.rng.random(),y:3+10*sim.rng.random()},
                             velocity: {x:Math.sin(dir),y:Math.cos(dir)},
@@ -289,7 +290,10 @@ function cacatoo() {
                             foraging: true,
                             foraging_time: 0,
                             size: 3 })
-    
+     }
+     if(sim.flock.golden_ants < ant_2_number){
+      sim.flock.golden_ants++
+      let dir = sim.rng.random()*Math.PI
       sim.flock.boids.push({position: {x:sim.ncol-3-10*sim.rng.random(),y:sim.nrow-3-10*sim.rng.random()},
                             velocity: {x:-sim.rng.random(),y:-sim.rng.random()},
                             acceleration: {x:0,y:0},
@@ -308,6 +312,8 @@ function cacatoo() {
   
   sim.reset = function(){
     sim.flock.resetPlots()
+    sim.flock.purple_ants = 0
+    sim.flock.golden_ants = 0
     totalfood = start_totalfood
     food_gold = 0
     food_purple = 0
@@ -382,7 +388,7 @@ function cacatoo() {
         let dist = Math.sqrt(dx*dx+dy*dy)
         let size_food = Math.max(Math.sqrt(totalfood/Math.PI)*0.9,5)
         //size_food = 10
-        size_food = 40/this.scale
+        size_food = 30/this.scale
         if(dist <  size_food && totalfood > 0){
           totalfood-= boid.strength
           boid.foraging = false
@@ -403,7 +409,7 @@ function cacatoo() {
         let dx = boid.position.x 
         let dy = boid.position.y 
         let dist = Math.sqrt(dx*dx+dy*dy)
-        if(dist < 10){
+        if(dist < 6){
           boid.foraging=true
           boid.foraging_time = 0
           food_purple += boid.strength
@@ -416,7 +422,7 @@ function cacatoo() {
         let dx = boid.position.x - sim.ncol
         let dy = boid.position.y - sim.nrow
         let dist = Math.sqrt(dx*dx+dy*dy)
-        if(dist<10){
+        if(dist<6){
           boid.foraging=true
           food_gold += boid.strength
           boid.food = undefined 
@@ -520,8 +526,8 @@ function cacatoo() {
           let length = Math.sqrt(velox*velox + veloy*veloy)
           let scaled = sim.normaliseVector(velox,veloy,10)
           this.ctx.beginPath()
-          this.ctx.strokeStyle= `rgba(150,0,0,${length/300})`;
-          this.ctx.lineWidth = 2
+          this.ctx.strokeStyle= `rgba(150,0,0,${length/100})`;
+          this.ctx.lineWidth = 1
           this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
           this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
           this.ctx.stroke()
@@ -532,8 +538,8 @@ function cacatoo() {
           length = Math.sqrt(velox*velox + veloy*veloy)
           scaled = sim.normaliseVector(velox,veloy,10)
           this.ctx.beginPath() 
-          this.ctx.strokeStyle= `rgba(0,0,150,${length/300})`;
-          this.ctx.lineWidth = 2
+          this.ctx.strokeStyle= `rgba(0,0,150,${length/100})`;
+          this.ctx.lineWidth = 1
           this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
           this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
           this.ctx.stroke()
