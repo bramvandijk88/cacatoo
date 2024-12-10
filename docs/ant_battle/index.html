@@ -332,11 +332,11 @@ function cacatoo() {
   sim.pheromones.nextState = function(x, y) {
     this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.985) // decay
     this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.985) // decay
-
+    
     for(let i=1; i<=4; i++) { // diffusion
       let neigh = this.getNeighbour(this,x,y,i)
       if(neigh==undefined) continue
-      let diffusion_const = 0.002
+      let diffusion_const = 0.0001
       neigh.homing_velocity.x += diffusion_const*this.grid[x][y].homing_velocity.x
       this.grid[x][y].homing_velocity.x -= diffusion_const*this.grid[x][y].homing_velocity.x
       neigh.homing_velocity.y += diffusion_const*this.grid[x][y].homing_velocity.y
@@ -430,24 +430,25 @@ function cacatoo() {
       
       let x = Math.floor(boid.position.x)
       let y = Math.floor(boid.position.y)
+
       let pherx = sim.pheromones.grid[x][y].homing_velocity.x
       let phery = sim.pheromones.grid[x][y].homing_velocity.y
       let pheromone_angle = Math.atan2(phery,pherx)
 
       // Randomly rotate a bit
       
-      let anglerot = sim.rng.randomGaus(0,2)
-      boid.velocity = this.rotateVector(boid.velocity,anglerot)
+      // let anglerot = sim.rng.randomGaus(0,2)
+      // boid.velocity = this.rotateVector(boid.velocity,anglerot)
       
       if(boundary){
         if(boid.type=="purple" && boid.position.y > -1-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
-          boid.velocity.x += -0.5*sim.rng.random()*boid.max_speed // walk back
-          boid.velocity.y += -0.5*sim.rng.random()*boid.max_speed
+          boid.acceleration.x += -0.5*sim.rng.random()*boid.max_speed // walk back
+          boid.acceleration.y += -0.5*sim.rng.random()*boid.max_speed
           continue
         }
         else if(boid.type=="gold" && boid.position.y < 1-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
-          boid.velocity.x += 0.5*sim.rng.random()*boid.max_speed
-          boid.velocity.y += 0.5*sim.rng.random()*boid.max_speed   
+          boid.acceleration.x += 0.5*sim.rng.random()*boid.max_speed
+          boid.acceleration.y += 0.5*sim.rng.random()*boid.max_speed   
           continue
         }
       }
@@ -457,21 +458,14 @@ function cacatoo() {
       
       if(!boid.foraging){
         let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].homing_velocity)
-        boid.velocity.x +=  boid.velocity.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
-        boid.velocity.y +=  boid.velocity.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
+        boid.acceleration.x +=  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
+        boid.acceleration.y +=  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
       }
       else {
         let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].food_velocity)
-        boid.velocity.x +=  boid.velocity.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 
-        boid.velocity.y +=  boid.velocity.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 
+        boid.acceleration.x +=  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 
+        boid.acceleration.y +=  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 
       }
-
-
-      // let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
-      // if (accLength > this.config.max_force) {
-      //     boid.acceleration.x = (boid.acceleration.x / accLength) * this.config.max_force
-      //     boid.acceleration.y = (boid.acceleration.y / accLength) * this.config.max_force 
-      // }
       
       if(boid.foraging){
         sim.pheromones.grid[x][y].homing_velocity.x += boid.velocity.x*100*boid.pherprod
