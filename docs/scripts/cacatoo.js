@@ -1605,7 +1605,9 @@ class Flockmodel {
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
         this.bgcolour = config.bgcolour || undefined;
-        
+        this.physics = true;
+        if(config.physics && config.physics != true) this.physics = false;
+        console.log(config);
         this.statecolours = {};
         if(config.statecolours) this.statecolours = this.setupColours(config.statecolours,config.num_colours||100); // Makes sure the statecolours in the config dict are parsed (see below)
         if(!config.qt_capacity) config.qt_capacity = 3;
@@ -1818,7 +1820,7 @@ class Flockmodel {
     * @param {Object} i The individual to be updates
     */
     flock(){
-        this.applyPhysics();
+        if(this.physics) this.applyPhysics();
         this.build_quadtree();
     }
     
@@ -2258,6 +2260,7 @@ class Flockmodel {
     }
 
     getIndividualsInRange(position,radius){
+        
         let qt = this.qt;
         let width = this.width;
         let height = this.height;
@@ -3623,7 +3626,7 @@ class Simulation {
             model.update();
             model.time++;
             let mouse = model.mousecoords;
-            model.mouseboids = model.getIndividualsInRange(mouse,model.mouse_radius);
+            if(model.mouse_radius) model.mouseboids = model.getIndividualsInRange(mouse,model.mouse_radius);
             if(model.mouseDown)model.handleMouseBoids();
         }
 

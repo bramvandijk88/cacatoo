@@ -190,9 +190,9 @@ function cacatoo() {
     description: "A center for ants?!", // And a description if you wish
     maxtime: 1000000, // How many time steps the model continues to run
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-    ncol: 160, // Number of columns (width of your grid)
-    nrow: 140, // Number of rows (height of your grid)
-    scale: 5, // Scale of the grid (nxn pixels per grid point)
+    ncol: 150, // Number of columns (width of your grid)
+    nrow: 120, // Number of rows (height of your grid)
+    scale: 6, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
     seed: new Date().getTime(),
     wrap: [false,false],
@@ -358,7 +358,7 @@ function cacatoo() {
 
   sim.flock.update = function(){
     if(sim.time%5==0)sim.spawnAnts()
-    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Food collected",{width:900})
+    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Food collected",{width:800})
     for(let boid of this.boids) {
       if(boid.foraging_time>max_foraging_time){
         if(boid.type=="purple") {

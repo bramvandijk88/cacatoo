@@ -519,7 +519,7 @@ class Simulation {
             model.update()
             model.time++
             let mouse = model.mousecoords
-            model.mouseboids = model.getIndividualsInRange(mouse,model.mouse_radius)
+            if(model.mouse_radius) model.mouseboids = model.getIndividualsInRange(mouse,model.mouse_radius)
             if(model.mouseDown)model.handleMouseBoids()
         }
 
