@@ -177,7 +177,6 @@ var max_foraging_time = 600
 var boundary = true
 var ff = false
 
-var wiggle = 20
 
 /**
  * function cacatoo() contains all the user-defined parts of a cacatoo-model. 
@@ -246,8 +245,6 @@ function cacatoo() {
                 container:ant_1_div, points:2, color: '#e0a709',digits:3,antpoints: 'ant_1_points', antpointsdiv: 'ant_1_points_remaining'})
   let pb5 = new AntButton({name:"Strength", var: "ant_1_strength", min: 1, max: 3, increment:0.25, 
                 container:ant_1_div, points: 2,color: '#e0a709',digits:3,antpoints: 'ant_1_points', antpointsdiv: 'ant_1_points_remaining'})
-
-
   
 
   let ant_2_div = document.createElement("div")
@@ -258,7 +255,7 @@ function cacatoo() {
   document.getElementById("canvas_holder").appendChild(ant_2_div)
   
   let gb2 = new AntButton({name:"Num ants", var: "ant_2_number", min: 10, max: 200, increment:10, 
-                  container:ant_2_div, points: 4, digits:1, antpoints: 'ant_2_points',  antpointsdiv: 'ant_2_points_remaining'})
+                  container:ant_2_div, points: 6, digits:1, antpoints: 'ant_2_points',  antpointsdiv: 'ant_2_points_remaining'})
   
   let gb1 = new AntButton({name:"Speed", var: "ant_2_speed", min: 0.1, max: 2, increment:0.1, 
                   container:ant_2_div, points: 2, digits:2, antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
@@ -267,7 +264,7 @@ function cacatoo() {
   let gb4 = new AntButton({name:"Signal food", var: "ant_2_pherprod_food", min: 0, max: 2, increment:0.1, 
                 container:ant_2_div, points: 8,digits:2,antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
   let gb6 = new AntButton({name:"Sensitivity", var: "ant_2_sense", min: 0, max: 1.0, increment:0.05, 
-                container:ant_2_div, points: 10,digits:3,antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
+                container:ant_2_div, points: 8,digits:3,antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
   let gb5 = new AntButton({name:"Strength", var: "ant_2_strength", min: 1, max: 3, increment:0.25, 
                 container:ant_2_div, points: 0,digits:3,antpoints: 'ant_2_points', antpointsdiv: 'ant_2_points_remaining'})
 
@@ -277,7 +274,7 @@ function cacatoo() {
     if(sim.flock.purple_ants < ant_1_number){
       sim.flock.purple_ants++
       let dir = sim.rng.random()*Math.PI
-      sim.flock.boids.push(boid = {position: {x:3+10*sim.rng.random(),y:3+10*sim.rng.random()},
+      sim.flock.boids.push(boid = {position: {x:3+1*sim.rng.random(),y:3+1*sim.rng.random()},
                             velocity: {x:Math.sin(dir),y:Math.cos(dir)},
                             acceleration: {x:0,y:0},
                             max_speed:ant_1_speed,
@@ -294,7 +291,7 @@ function cacatoo() {
      if(sim.flock.golden_ants < ant_2_number){
       sim.flock.golden_ants++
       let dir = sim.rng.random()*Math.PI
-      sim.flock.boids.push({position: {x:sim.ncol-3-10*sim.rng.random(),y:sim.nrow-3-10*sim.rng.random()},
+      sim.flock.boids.push({position: {x:sim.ncol-3-1*sim.rng.random(),y:sim.nrow-3-1*sim.rng.random()},
                             velocity: {x:-sim.rng.random(),y:-sim.rng.random()},
                             acceleration: {x:0,y:0},
                             type: "gold",
@@ -333,8 +330,8 @@ function cacatoo() {
       2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
   */
   sim.pheromones.nextState = function(x, y) {
-    this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.99) // decay
-    this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.99) // decay
+    this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.985) // decay
+    this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.985) // decay
 
     for(let i=1; i<=4; i++) { // diffusion
       let neigh = this.getNeighbour(this,x,y,i)
@@ -437,14 +434,18 @@ function cacatoo() {
       let phery = sim.pheromones.grid[x][y].homing_velocity.y
       let pheromone_angle = Math.atan2(phery,pherx)
 
+      // Randomly rotate a bit
+      
+      let anglerot = sim.rng.randomGaus(0,2)
+      boid.velocity = this.rotateVector(boid.velocity,anglerot)
       
       if(boundary){
-        if(boid.type=="purple" && boid.position.y > -3-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
+        if(boid.type=="purple" && boid.position.y > -1-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
           boid.velocity.x += -sim.rng.random()*boid.max_speed // walk back
           boid.velocity.y += -sim.rng.random()*boid.max_speed
           continue
         }
-        else if(boid.type=="gold" && boid.position.y < 3-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
+        else if(boid.type=="gold" && boid.position.y < 1-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
           boid.velocity.x += sim.rng.random()*boid.max_speed
           boid.velocity.y += sim.rng.random()*boid.max_speed   
           continue
