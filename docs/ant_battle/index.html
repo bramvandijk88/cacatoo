@@ -190,8 +190,8 @@ function cacatoo() {
     maxtime: 1000000, // How many time steps the model continues to run
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
     ncol: 100, // Number of columns (width of your grid)
-    nrow: 80, // Number of rows (height of your grid)
-    scale: 9, // Scale of the grid (nxn pixels per grid point)
+    nrow: 100, // Number of rows (height of your grid)
+    scale: 7, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
     seed: new Date().getTime(),
     wrap: [false,false],
@@ -232,7 +232,7 @@ function cacatoo() {
     +ant_1_points+`/`+maxpoints+
     `</p> attribute points remaining</b></font><br><br>`
   document.getElementById("canvas_holder").appendChild(ant_1_div)
-
+  
   let pb2 = new AntButton({name:"Num ants", var: "ant_1_number", min: 10, max: 200, increment:10, 
                 container:ant_1_div, points: 9,color: '#e0a709',digits:1,antpoints: 'ant_1_points', antpointsdiv: 'ant_1_points_remaining'})
   let pb1 = new AntButton({name:"Speed", var: "ant_1_speed", min: 0.3, max: 2, increment:0.1, 
@@ -441,13 +441,13 @@ function cacatoo() {
       
       if(boundary){
         if(boid.type=="purple" && boid.position.y > -1-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
-          boid.velocity.x += -sim.rng.random()*boid.max_speed // walk back
-          boid.velocity.y += -sim.rng.random()*boid.max_speed
+          boid.velocity.x += -0.5*sim.rng.random()*boid.max_speed // walk back
+          boid.velocity.y += -0.5*sim.rng.random()*boid.max_speed
           continue
         }
         else if(boid.type=="gold" && boid.position.y < 1-(sim.nrow/sim.ncol)*boid.position.x + sim.nrow) {
-          boid.velocity.x += sim.rng.random()*boid.max_speed
-          boid.velocity.y += sim.rng.random()*boid.max_speed   
+          boid.velocity.x += 0.5*sim.rng.random()*boid.max_speed
+          boid.velocity.y += 0.5*sim.rng.random()*boid.max_speed   
           continue
         }
       }

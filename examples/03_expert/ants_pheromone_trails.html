@@ -179,7 +179,7 @@ function cacatoo() {
       // Randomly rotate a bit
       
       let angle = sim.rng.randomGaus(0,10)
-      boid.acceleration = this.rotateVector(boid.acceleration,angle)
+      boid.velocity = this.rotateVector(boid.velocity,angle)
 
       // Follow home
       if(boid.food =="white"){
