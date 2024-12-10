@@ -457,13 +457,13 @@ function cacatoo() {
       
       if(!boid.foraging){
         let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].homing_velocity)
-        boid.acceleration.x +=  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
-        boid.acceleration.y +=  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
+        boid.velocity.x +=  boid.velocity.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
+        boid.velocity.y +=  boid.velocity.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 * -1
       }
       else {
         let pheromone_amount = this.lengthVector(sim.pheromones.grid[x][y].food_velocity)
-        boid.acceleration.x +=  boid.acceleration.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 
-        boid.acceleration.y +=  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 
+        boid.velocity.x +=  boid.velocity.x + Math.cos(pheromone_angle) * pheromone_amount * boid.sense/100 
+        boid.velocity.y +=  boid.velocity.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 
       }
 
 
