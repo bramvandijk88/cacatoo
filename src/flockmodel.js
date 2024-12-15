@@ -19,6 +19,8 @@ class Flockmodel {
         this.config = config
         this.time = 0
         this.draw = true
+        this.max_force = config.max_force || 1
+        this.max_speed = config.max_speed || 1
         this.width =  config.width || config.ncol ||600
         this.height =  config.height ||config.nrow || 600
         this.scale = config.scale || 1
@@ -85,7 +87,7 @@ class Flockmodel {
             let angle = this.random() * 2 * Math.PI;
             this.boids.push({
                     position: { x: x + size - 2*this.random()*size, y: y+size-2*this.random()*size },
-                    velocity: { x: this.init_velocity*Math.cos(angle) * this.config.max_speed, y: this.init_velocity*Math.sin(angle) * this.config.max_speed },
+                    velocity: { x: this.init_velocity*Math.cos(angle) * this.max_speed, y: this.init_velocity*Math.sin(angle) * this.max_speed },
                     acceleration: { x: 0, y: 0 },
                     size: this.config.size
             });
@@ -392,8 +394,8 @@ class Flockmodel {
         let dy = boid.position.y - this.mousecoords.y;
         let distance = Math.sqrt(dx*dx + dy*dy);
         if (distance > 0) { // Ensure we don't divide by zero
-            boid.velocity.x += (dx / distance) * this.config.mouseattraction * this.config.max_force * -1;
-            boid.velocity.y += (dy / distance) * this.config.mouseattraction * this.config.max_force * -1;
+            boid.velocity.x += (dx / distance) * this.config.mouseattraction * this.max_force * -1;
+            boid.velocity.y += (dy / distance) * this.config.mouseattraction * this.max_force * -1;
         }
     }
 
@@ -402,8 +404,8 @@ class Flockmodel {
         let dy = boid.position.y - y;
         let distance = Math.sqrt(dx*dx + dy*dy);
         if (distance > 0) { // Ensure we don't divide by zero
-            boid.velocity.x += (dx / distance) * strength * this.config.max_force * -1;
-            boid.velocity.y += (dy / distance) * strength * this.config.max_force * -1;
+            boid.velocity.x += (dx / distance) * strength * this.max_force * -1;
+            boid.velocity.y += (dy / distance) * strength * this.max_force * -1;
         }
     }
 
@@ -421,9 +423,9 @@ class Flockmodel {
             let friction = this.friction
             let gravity = this.config.gravity ?? 0
             let collision_force = this.config.collision_force ?? 0
-            let max_force = this.config.max_force ?? 0.1
+            let max_force = this.max_force
             let brownian = this.config.brownian ?? 0.0
-            let max_speed = this.config.max_speed ?? 1
+            let max_speed = this.max_speed 
             if(boid.locked) continue
             
             if(boid.max_speed !== undefined) max_speed = boid.max_speed
@@ -433,11 +435,11 @@ class Flockmodel {
             if(boid.collision_force !== undefined) collision_force = boid.collision_force
             
             let neighbours = this.getIndividualsInRange(boid.position, this.neighbourhood_radius)
-            let alignment = this.config.alignment ? this.calculateAlignment(boid, neighbours,max_force) : {x:0,y:0}
+            let alignment = this.config.alignment ? this.calculateAlignment(boid, neighbours,max_speed) : {x:0,y:0}
             let alignmentstrength = this.config.alignment ? this.config.alignment.strength : 0
-            let separation = this.config.separation ? this.calculateSeparation(boid, neighbours,max_force) : {x:0,y:0}
+            let separation = this.config.separation ? this.calculateSeparation(boid, neighbours,max_speed) : {x:0,y:0}
             let separationstrength = this.config.separation ? this.config.separation.strength : 0
-            let cohesion = this.config.cohesion ? this.calculateCohesion(boid, neighbours,max_force) : {x:0,y:0}
+            let cohesion = this.config.cohesion ? this.calculateCohesion(boid, neighbours,max_speed) : {x:0,y:0}
             let cohesionstrength = this.config.cohesion ? this.config.cohesion.strength : 0
 
             if(boid.alignmentstrength !== undefined) alignmentstrength = boid.alignmentstrength
@@ -628,8 +630,8 @@ class Flockmodel {
             let distance = Math.sqrt(dx*dx + dy*dy);
             if (distance > 0) { // Ensure we don't divide by zero
                     let strength = (this.mouse_radius - distance) / this.mouse_radius;
-                    boid.velocity.x += (dx / distance) * strength * this.config.max_force * force;
-                    boid.velocity.y += (dy / distance) * strength * this.config.max_force * force;
+                    boid.velocity.x += (dx / distance) * strength * this.max_force * force;
+                    boid.velocity.y += (dy / distance) * strength * this.max_force * force;
             }
         }
         this.mouseboids = []
