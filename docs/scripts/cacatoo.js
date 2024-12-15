@@ -2015,7 +2015,8 @@ class Flockmodel {
 
             let collision = {x:0,y:0};
             if(collision_force > 0){
-                let overlapping = this.getIndividualsInRange(boid.position, boid.size);
+                let size = this.collision_size ? this.collision_size : boid.size;
+                let overlapping = this.getIndividualsInRange(boid.position, size);
                 collision = this.calculateCollision(boid, overlapping, max_speed);
             } 
 
