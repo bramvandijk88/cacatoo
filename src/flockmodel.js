@@ -346,7 +346,7 @@ class Flockmodel {
         return steering;
     }
 
-    calculateCollision(boid, neighbours,max_speed) {
+    calculateCollision(boid, neighbours,max_force) {
         let steering = { x: 0, y: 0 };
         
         if (neighbours.length > 0) {
@@ -376,8 +376,8 @@ class Flockmodel {
                 steering.x /= neighbours.length;
                 steering.y /= neighbours.length;
                 steering = this.normaliseVector(steering);
-                steering.x *= max_speed;
-                steering.y *= max_speed;
+                steering.x *= max_force;
+                steering.y *= max_force;
                 steering.x -= boid.velocity.x;
                 steering.y -= boid.velocity.y;
             }
@@ -447,9 +447,8 @@ class Flockmodel {
 
             let collision = {x:0,y:0}
             if(collision_force > 0){
-                let size = this.collision_size ? this.collision_size : boid.size
-                let overlapping = this.getIndividualsInRange(boid.position, size)
-                collision = this.calculateCollision(boid, overlapping, max_speed)
+                let overlapping = this.getIndividualsInRange(boid.position, boid.size)
+                collision = this.calculateCollision(boid, overlapping, max_force)
             } 
 
             
