@@ -288,7 +288,8 @@ class Simulation {
         let name = config.model
         
         let property = config.property                 
-        let legend = config.legend || false
+        let legend = true
+        if(config.legend == false) legend = false
 
         let label = config.label
         if (label == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
@@ -363,7 +364,8 @@ class Simulation {
         
         let label = config.label
         let legendlabel = config.legendlabel
-        let legend = config.legend || false
+        let legend = true
+        if(config.legend == false) legend = false
 
         if (label == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name]
