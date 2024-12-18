@@ -500,17 +500,16 @@ class Canvas {
             let tick_increment = (this.maxval-this.minval) / n_ticks
             let step_size =  (this.legend.width / n_ticks)*0.8
             
-            
             for(let i=0;i<bar_width;i++)
             {
                 let colval = Math.ceil(this.num_colours*i/bar_width)
                 if(statecols[colval] == undefined) {                    
                     ctx.fillStyle = this.bgcolor
                 }
-                else {                    
+                else {
                     ctx.fillStyle = rgbToHex(statecols[colval])
                 }
-                ctx.fillRect(offset+i, 20, 1, 10);                
+                ctx.fillRect(offset+i, 20, 1, 10);
                 ctx.closePath();
                 
             }
@@ -548,14 +547,11 @@ class Canvas {
             if(total_num_values < 4) spacing = 0.6
             
             let bar_width = this.width*this.scale*spacing   
-            let offset = 0.5*(1-spacing)*this.legend.width
-            let step_size = Math.ceil(bar_width / (total_num_values))
-
-            if(total_num_values==1){
-                step_size=0
-                offset = 0.5*this.legend.width
-            } 
             
+            let step_size = Math.round(bar_width / (total_num_values+1))
+            let offset = this.legend.width*0.5 - step_size*(total_num_values-1)/2
+           
+
             for(let i=0;i<total_num_values;i++)
             {                                    
                 let pos = offset+Math.floor(i*step_size)
@@ -563,7 +559,15 @@ class Canvas {
                 ctx.strokeStyle = "#000000"
                 if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor                
                 else ctx.fillStyle = rgbToHex(statecols[keys[i]])
-                ctx.fillRect(pos-4, 10, 10, 10)
+                if(this.radius){
+                    ctx.beginPath()
+                    ctx.arc(pos,10,5,0,Math.PI*2)
+                    ctx.fill()
+                    ctx.closePath()
+                }
+                else{
+                    ctx.fillRect(pos-4, 10, 10, 10)
+                }
                 ctx.closePath()
                 ctx.font = '12px helvetica';
                 ctx.fillStyle = "#000000"

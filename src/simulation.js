@@ -288,6 +288,7 @@ class Simulation {
         let name = config.model
         
         let property = config.property                 
+        let legend = config.legend || false
 
         let label = config.label
         if (label == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
@@ -326,7 +327,7 @@ class Simulation {
         gridmodel.canvases[label] = cnv  // Add a reference to the canvas to the gridmodel
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        
-        if(config.legend) cnv.add_legend(cnv.canvasdiv,property, legendlabel)
+        if(legend) cnv.add_legend(cnv.canvasdiv,property, legendlabel)
         cnv.bgcolour = this.config.bgcolour || 'black'
         canvas.elem.addEventListener('mousedown', (e) => { this.printCursorPosition(canvas, e, scale) }, false)
         canvas.elem.addEventListener('mousedown', (e) => { this.active_canvas = canvas }, false)
@@ -362,6 +363,8 @@ class Simulation {
         
         let label = config.label
         let legendlabel = config.legendlabel
+        let legend = config.legend || false
+
         if (label == undefined) label = `${name} (${property})` // <ID>_NAME_(PROPERTY)
         let gridmodel = this[name]
         if (gridmodel == undefined) throw new Error(`There is no GridModel with the name ${name}`)
@@ -407,7 +410,7 @@ class Simulation {
         if (decimals !== undefined) cnv.decimals = decimals
         if (nticks !== undefined) cnv.nticks = nticks
         
-        if(config.legend!==false) cnv.add_legend(cnv.canvasdiv,property,legendlabel)
+        if(legend!==false) cnv.add_legend(cnv.canvasdiv,property,legendlabel)
         cnv.bgcolour = this.config.bgcolour || 'black'
         this.canvases.push(cnv)  // Add a reference to the canvas to the sim
         const canvas = cnv        

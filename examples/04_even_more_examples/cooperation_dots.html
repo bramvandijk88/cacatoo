@@ -70,7 +70,7 @@ var sim;                            // This 'global' variable will hold the enti
           label:"Fitness", minval:0, maxval:base_fitness_1+helper_rate_type_1*8, decimals:1, num_colours: 100})
     */ 
       
-      sim.createDisplay_discrete({model:"coop", property:"type", 
+      sim.createDisplay_discrete({model:"coop", property:"type", legend:true,
       drawdots:true, max_radius: 2.5, min_radius: 1, radius:"fitness", stroke: false, strokeWidth: 1, strokeStyle: "black",
       label:"Working together (colour = cooperation, size = growth rate)", minval:0, maxval:1, decimals:1, num_colours: 100}) 
       
