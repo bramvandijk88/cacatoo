@@ -655,7 +655,7 @@ class Gridmodel {
         }
         for (let x = 0; x < this.nc; x += 1) // every column
             for (let y = 0; y < this.nr; y += 1) // every row
-                for (let n = 1; n <= 4; n++) this.grid[x][y][state] = newstate[x][y][state]
+                this.grid[x][y][state] = newstate[x][y][state]
     }
 
     /** Diffuse continuous states on the grid. 
