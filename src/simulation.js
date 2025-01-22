@@ -661,7 +661,6 @@ class Simulation {
      */
       populateGrid(gridmodel,individuals,freqs)
       {
-          if (!this.inbrowser) global.structuredClone = (val) => JSON.parse(JSON.stringify(val))
           if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
           if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
           if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
@@ -677,7 +676,7 @@ class Simulation {
                   {
                       sum_freqs += freqs[n]
                       if(random_number < sum_freqs) {
-                          gridmodel.grid[x][y] = structuredClone(individuals[n]);
+                          Object.assign(gridmodel.grid[x][y],individuals[n]);
                           break
                       }
                   }
