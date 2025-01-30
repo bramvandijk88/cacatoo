@@ -3788,7 +3788,7 @@ class Simulation {
                   {
                       sum_freqs += freqs[n];
                       if(random_number < sum_freqs) {
-                          gridmodel.grid[x][y] = JSON.parse(JSON.stringify(individuals[n]));
+                          gridmodel.grid[x][y] = {...gridmodel.grid[x][y],...JSON.parse(JSON.stringify(individuals[n]))};
                           break
                       }
                   }
