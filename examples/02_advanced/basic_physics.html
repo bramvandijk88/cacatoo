@@ -20,7 +20,7 @@ function cacatoo() {
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
     width: 400, // Number of columns (width of your grid)
     height: 400, // Number of rows (height of your grid)
-    scale: 1.4, // Scale of the grid (nxn pixels per grid point)
+    scale: 1.8, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
     wrap: [false,false],
     fpsmeter: true,
@@ -37,8 +37,8 @@ function cacatoo() {
   let flockconfig = {
     shape: 'dot',          // Shape of the boids drawn 
     click: 'repel',          // Clicking the boids pushes them away from the mouse
-    max_speed: 30,          // Maximum velocity of boids
-    max_force: 0.1,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    max_speed: 50,          // Maximum velocity of boids
+    max_force: 0.5,          // Maximum steering force applied to boids (separation/cohesion/alignment rules)
     init_velocity:0.0,
     friction: 0.1,        
     gravity: 0.1,
@@ -46,7 +46,7 @@ function cacatoo() {
     mouse_radius: 20,                   // Radius of boids captured by the mouse overlay
     draw_mouse_radius: true,            // Show a circle where the mouse is
     // Collision behaviour
-    collision_force: 0.01,
+    collision_force: 0.5,
     size: 2.5,                // Size of the boids (scales drawing and colision detection)
     
     // Optimalisation (speed) parameters

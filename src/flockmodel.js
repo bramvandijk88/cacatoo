@@ -452,7 +452,6 @@ class Flockmodel {
                 let overlapping = this.getIndividualsInRange(boid.position, boid.size)
                 collision = this.calculateCollision(boid, overlapping, max_force)
             } 
-
             
             // Add acceleration to the boid
             boid.acceleration.x += alignment.x * alignmentstrength + 

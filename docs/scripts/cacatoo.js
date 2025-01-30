@@ -2020,7 +2020,6 @@ class Flockmodel {
                 let overlapping = this.getIndividualsInRange(boid.position, boid.size);
                 collision = this.calculateCollision(boid, overlapping, max_force);
             } 
-
             
             // Add acceleration to the boid
             boid.acceleration.x += alignment.x * alignmentstrength + 
@@ -3034,9 +3033,9 @@ class Canvas {
             let keys = Object.keys(statecols);
             
             let total_num_values = keys.length;
-            let spacing = 0.8;
-            if(total_num_values < 8) spacing = 0.7;
-            if(total_num_values < 4) spacing = 0.6;
+            let spacing = 0.9;
+            // if(total_num_values < 8) spacing = 0.7
+            // if(total_num_values < 4) spacing = 0.8
             
             let bar_width = this.width*this.scale*spacing;   
             
@@ -3842,7 +3841,7 @@ class Simulation {
         let sumfreqs =0;
         if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
         for(let i=0; i<freqs.length; i++) sumfreqs += freqs[i];
-         
+        
         // Draw a circle
         for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
         for (let y = 0; y < gridmodel.nr; y++)                           // y are rows
@@ -3851,11 +3850,12 @@ class Simulation {
 
             if ((Math.pow((x - putx), 2) + Math.pow((y - puty), 2)) < size)
             {
-                let cumsumfreq = 0;                
+                let cumsumfreq = 0;
+                let rand = this.rng.random();                
                 for(let n=0; n<individuals.length; n++)
                 {
                     cumsumfreq += freqs[n];
-                    if(this.rng.random() < cumsumfreq) {
+                    if(rand < cumsumfreq) {
                         Object.assign(gridmodel.grid[x % gridmodel.nc][y % gridmodel.nr],individuals[n]);
                         break
                     }

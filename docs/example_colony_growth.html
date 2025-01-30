@@ -54,9 +54,9 @@
             sim.initialGrid(sim.growth,'external_resources',1000.0,1.0) // Give 100% of grid points external resources (set to 1)
             let species = [{species:'low uptake',uptake_rate:5.0,internal_resources:1},
                                     {species:'medium uptake',uptake_rate:10.0,internal_resources:1},
-                                    {species:'high uptake',uptake_rate:50.0,internal_resources:1}]
+                                    {species:'high uptake',uptake_rate:15.0,internal_resources:1}]
             
-            sim.populateSpot(sim.growth, species, [0.34,0.33,0.33], 15, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
+            sim.populateSpot(sim.growth, species, [0.34,0.33,0.33], 100, config.ncol/2, config.nrow/2)         // Place the three 'species' in a small spot in the middle of the grid
             //sim.populateGrid(sim.growth, species, [0.001,0.001,0.001])         // Alternatively, innoculate the entire grid with species
     
             sim.createDisplay("growth", "species", "Species")     // Create a display in the same way we did in Tutorial 1 (display a discrete variable)
@@ -118,13 +118,13 @@
                                 
                 this.plotArray(["External resources"], [sum_resources/(this.nr*this.nc)], ["green"], "Resources")
 
-                if(this.time%240==0) {
+                if(this.time%240==0 && this.time > 0) {
                     sim.initialGrid(sim.growth,'external_resources',1000.0,1.0)
                     sim.growth.perfectMix()
                     for (let i = 0; i < this.nc; i++)          // i are columns
                         for (let j = 0; j < this.nr; j++) 
                             if(this.rng.genrand_real1() < 0.995){
-                                sim.growth.grid[i][j].species = 0
+                                sim.growth.grid[i][j].species = undefined
                                 sim.growth.grid[i][j].uptake_rate=0.0
                                 sim.growth.grid[i][j].internal_resources = 0
                             }
@@ -137,8 +137,10 @@
     
             sim.addButton("Play/pause sim", function () { sim.toggle_play() })
     
-            
+            sim.addButton("Step", function () { sim.step(); sim.display() })    
             sim.start()
+            
+
     
         }
     
