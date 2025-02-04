@@ -3958,7 +3958,7 @@ class Simulation {
         slider.max = max;
         slider.step = step;
         slider.value = default_value;
-        sim;
+        //let parent = sim
         slider.oninput = function () {
             let value = parseFloat(slider.value);
             func(value);
