@@ -2252,7 +2252,7 @@ class Flockmodel {
             if(!this.wrap[0])
                 if(x < 0 || x > this.width-1) continue
             if(!this.wrap[1])
-                if(y < 0 || y > this.width-1) continue
+                if(y < 0 || y > this.height-1) continue
             if ((Math.pow((boid.position.x - x), 2) + Math.pow((boid.position.y - y), 2)) < radius*radius){
                 gps.push(gridmodel.grid[(x + gridmodel.nc) % gridmodel.nc][(y + gridmodel.nr) % gridmodel.nr]);
             }
