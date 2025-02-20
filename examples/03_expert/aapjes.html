@@ -18,7 +18,7 @@
 // the parameter "time spent eating" helps the group find more food!
 
 let sim;
-var time_spent_eating = 0
+var time_spent_eating = 20
 
 function cacatoo() {
   
@@ -27,7 +27,7 @@ function cacatoo() {
     description: "Foraging in groups<br><u>NOTE: REQUIRES LIVE SERVER</u>", // And a description if you wish
     maxtime: 10000, // How many time steps the model continues to run
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-    ncol: 300, // Number of columns (width of your grid)
+    ncol: 400, // Number of columns (width of your grid)
     nrow: 300, // Number of rows (height of your grid)
     scale: 2, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
@@ -56,7 +56,7 @@ function cacatoo() {
     alignment: {strength:0, radius:30}, // Alignment parameters (uses default neighbour radius of 30)
     cohesion:  {strength:0, radius:50},  // Cohesion parameters (uses default neighbour radius of 30)
     separation:{strength:0, radius:4},  // Separation radius is smaller 
-    size: 15,                // Size of the boids (scales drawing and colision detection)
+    size: 10,                // Size of the boids (scales drawing and colision detection)
 
     // Optimalisation (speed) parameters
     //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
@@ -79,7 +79,7 @@ function cacatoo() {
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   sim.createFlockDisplay("flock",{addToDisplay:sim.canvases[0]}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
   
-  sim.flock.populateSpot(50,sim.nrow/2,sim.ncol/2,1)
+  sim.flock.populateSpot(500,sim.nrow/2,sim.ncol/2,1)
   for(boid of sim.flock.boids) {
     boid.png = "../../images/aapje_normal.png"
     boid.velocity.x = sim.rng.random()*2-1

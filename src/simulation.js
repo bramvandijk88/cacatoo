@@ -597,7 +597,7 @@ class Simulation {
                 if(sim.fpsmeter) meter.tick();
 
                 let frame = requestAnimationFrame(animate);
-                if (sim.time >= sim.config.maxtime || sim.exit) {
+                if (sim.time > sim.config.maxtime || sim.exit) {
                     let simStopTime = performance.now();
                     console.log("Cacatoo completed after", Math.round(simStopTime - simStartTime) / 1000, "seconds");
                     cancelAnimationFrame(frame);

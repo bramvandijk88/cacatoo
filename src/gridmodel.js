@@ -22,6 +22,7 @@ class Gridmodel {
         this.nc = config.ncol || 200
         this.nr = config.nrow || 200
         this.grid = MakeGrid(this.nc, this.nr)       // Initialises an (empty) grid
+        this.grid_buffer = MakeGrid(this.nc, this.nr)       // Initialises an (empty) grid
         this.wrap = config.wrap || [true, true]
         this.rng = rng
         this.random = () => { return this.rng.random()}
@@ -278,20 +279,26 @@ class Gridmodel {
      *  time step. First all grid points are updated based on the back-up. Only then will the 
      *  actual grid be changed. 
     */
-    synchronous()                                               // Do one step (synchronous) of this grid
-    {
-        let oldstate = MakeGrid(this.nc, this.nr, this.grid);     // Old state based on current grid
-        let newstate = MakeGrid(this.nc, this.nr);               // New state == empty grid
-
+    synchronous() {
+        let oldstate = MakeGrid(this.nc, this.nr, this.grid);  // Create a copy of the current grid
+        let newstate = MakeGrid(this.nc, this.nr);            // Create an empty grid for the next state
+    
         for (let x = 0; x < this.nc; x++) {
             for (let y = 0; y < this.nr; y++) {
-                this.nextState(x, y)                             // Update this.grid
-                newstate[x][y] = this.grid[x][y]                // Set this.grid to newstate
-                this.grid[x][y] = oldstate[x][y]                // Reset this.grid to old state
+                this.nextState(x, y);                  // Update this.grid[x][y]
+                newstate[x][y] = this.grid[x][y];      // Store new state in newstate
+                this.grid[x][y] = oldstate[x][y];      // Restore original state
             }
         }
-        this.grid = newstate;
+        
+        this.grid = newstate;  // Replace the current grid with the newly computed one
     }
+    
+   
+    
+    
+    
+    
 
     /** Like the synchronous function above, but can not take a custom user-defined function rather
      *  than the default next-state function. Technically one should be able to refarctor this by making

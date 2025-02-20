@@ -35,10 +35,9 @@ function cacatoo(){
         title: "Game of Life",                       // The name of your cacatoo-simulation
         description: "Conway's Game of Life",        // And a description if you wish
         maxtime: 1000000,                            // How many time steps the model continues to run
-        fastmode: true,                              // If possible, fast-mode will update the model more than once before displaying the grid
-                                                     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-        ncol: 300,                                   // Number of columns (width of your grid)                
-        nrow: 150,		                             // Number of rows (height of your grid)        
+        ncol: 350,                                   // Number of columns (width of your grid)                
+        nrow: 350,		                             // Number of rows (height of your grid)        
+        fpsmeter: true,
         wrap: [true, true],                          // Wrapped boundary conditions? [COLS, ROWS]   
         scale: 2,				                     // Scale of the grid (nxn pixels per grid point)
         statecolours: { 'alive': { 1: 'white' } },   // Colours for each state. Background (0) defaults to black. 
