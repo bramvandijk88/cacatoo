@@ -85,18 +85,18 @@
                 If your model is simple, you can simply represent different "species" or "individuals" as integer numbers (1,2,3,...,n). Similarly, you may want to
                 represent resource concentrations with simple floating point numbers (0.02,1.29,482.1). To do so (after you have made your GridModel), use either:<br>                
                 <ul>
-                    <h5 class="name"><span class="type-signature"></span>initialiseGrid<span class="signature">(<a href="Gridmodel.html">@Gridmodel</a>, statename, 1st_number, 1st_fraction, 2nd_number, 2nd_fraction, ...)</span><span class="type-signature"></span></h5>
+                    <h5 class="name"><span class="type-signature"></span>initialGrid<span class="signature">(<a href="Gridmodel.html">@Gridmodel</a>, statename, default_value, 1st_value, 1st_fraction, 2nd_value, 2nd_fraction, ...)</span><span class="type-signature"></span></h5>
                     OR
                     <h5 class="name"><span class="type-signature"></span>initialSpot<span class="signature">(<a href="Gridmodel.html">@Gridmodel</a>, statename, number, spotsize, x, y)</span><span class="type-signature"></span></h5>
                 </ul>
                    <h4> Use cases:</h4>
                     <ul>
                         <li><b>In cheater.html: set species '1', '2', and '3', to 33% occupancy each</b><br>
-                        <span class="signature">sim.initialGrid(sim.cheater, 'species', 1, 0.33, 2, 0.33, 3, 0.33)</span></li>
+                        <span class="signature">sim.initialGrid(sim.cheater, 'species', 0, 1, 0.33, 2, 0.33, 3, 0.33)</span></li>
                         <li><b>In petridish.html: inoculate the middle of the grid with 'alive' cells</b><br>
                         <span class="signature">sim.initialSpot(sim.cells, 'alive', 1, 2, sim.cells.nr / 2, sim.cells.nc / 2)</span></li>
-                        <li><b>In tutorial_colony.html: give 100% of grid points external resources (set to 1)</b><br>
-                            <span class="signature">sim.initialGrid(sim.growth,'external_resources',1000.0,1.0) </span></li>                        
+                        <li><b>In tutorial_colony.html: give all grid points the same value (using the default value)</b><br>
+                            <span class="signature">sim.initialGrid(sim.growth,'external_resources',1000.0) </span></li>                        
                     </ul> 
             </article>
         </section>

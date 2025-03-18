@@ -3764,12 +3764,25 @@ class Simulation {
             for (let y = 0; y < gridmodel.nr; y++)                  // y are rows
                 gridmodel.grid[x][y][p] = bg;
         
-        for (let arg = 3; arg < arguments.length; arg += 2)         // Parse remaining 2+ arguments to fill the grid           
-            for (let x = 0; x < gridmodel.nc; x++)                        // x are columns
-                for (let y = 0; y < gridmodel.nr; y++)                    // y are rows
-                {
-                    if (this.rng.random() < arguments[arg + 1]) gridmodel.grid[x][y][p] = arguments[arg];                    
+        let valueFractPairs = [];
+        for (let arg = 3; arg < arguments.length; arg += 2) {
+            let value = arguments[arg];
+            let fract = arguments[arg + 1];
+            valueFractPairs.push({ value: value, fract: fract });
+        }
+        
+        for (let x = 0; x < gridmodel.nc; x++)                        // x are columns
+            for (let y = 0; y < gridmodel.nr; y++){                    // y are rows
+                let rand = this.rng.random();
+                let fract = 0;
+                for(let k of valueFractPairs){
+                    fract += k.fract;
+                    if(rand < fract){
+                        gridmodel.grid[x][y][p] = k.value;
+                        break;
+                    }
                 }
+            }
     }
     
      /**

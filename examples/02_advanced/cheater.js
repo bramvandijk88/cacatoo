@@ -25,8 +25,8 @@ function cacatoo() {
         title: "Mutualists and cheaters",
         description: "",
         maxtime: 50000,
-        ncol: 200,
-        nrow: 200,		                                            // dimensions of the grid to build
+        ncol: 100,
+        nrow: 100,		                                            // dimensions of the grid to build
         wrap: [true, true],                                        // Wrap boundary [COLS, ROWS]
         seed: 56,
         scale: 2,				                                    // scale of the grid (nxn pixels per grid point)            
@@ -48,7 +48,7 @@ function cacatoo() {
     sim = new Simulation(config)                                                // Initialise a new Simulation instance with configuration given above 
             
     sim.makeGridmodel("cheater")                                                // Make a new gridmodel named cheater
-    sim.initialGrid(sim.cheater, 'species', 0, 1, 0.33, 2, 0.33, 3, 0.33)          // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+    sim.initialGrid(sim.cheater, 'species', 1, 2, 0.33, 3, 0.33)          // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
     sim.createDisplay("cheater", "species", "Mutualists and cheater")                               // Display the 'species' property of the cheater grid
     sim.createDisplay("cheater", "species", "(zoom in on top-left)", 20, 20, 20)                    // Display the 'species' property of a small bit of the grid (i.e. zoom in)
     sim.spaceTimePlot("cheater", "Mutualists and cheater", "Space-time plot", 5, 300)              // Make a space-time plot based on the canvas "mutualists and cheater" called "Space-time plot". Draw row 10. Width 400. 

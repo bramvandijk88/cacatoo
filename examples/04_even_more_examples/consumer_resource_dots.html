@@ -48,7 +48,7 @@
         sim = new Simulation(config)                            // Initialise the Cacatoo simulation
         sim.makeGridmodel("growth")                              // Build a new Gridmodel within the simulation called "model"
 
-        sim.initialGrid(sim.growth,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+        sim.initialGrid(sim.growth,'external_resources',1.0) // Give 100% of grid points external resources (set to 1)
         let species = [{species:'low uptake',uptake_rate:0.05,internal_resources:1},
                                 {species:'medium uptake',uptake_rate:0.5,internal_resources:1},
                                 {species:'high uptake',uptake_rate:5.0,internal_resources:1}]
