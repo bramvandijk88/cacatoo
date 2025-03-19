@@ -637,8 +637,17 @@ class Simulation {
      *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
-    initialGrid(gridmodel,property,bg=0) {
-        if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel]
+    initialGrid(obj,property,bg=0) {
+        gridmodel = undefined
+        if (obj instanceof Gridmodel) {
+            gridmodel = obj
+        }
+        else if(typeof obj === 'string' || obj instanceof String){
+            gridmodel = this[gridmodel]
+        }
+        else{
+            gridmodel = obj.model
+        }
         let p = property || 'val'
         
         for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
