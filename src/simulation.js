@@ -637,38 +637,38 @@ class Simulation {
      *  @param {integer} value The value of the state to be set (optional argument with position 2, 4, 6, ..., n)
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
-    initialGrid(obj,property,bg=0) {
-        gridmodel = undefined
-        if (obj instanceof Gridmodel) {
-            gridmodel = obj
-        }
-        else if(typeof obj === 'string' || obj instanceof String){
-            gridmodel = this[gridmodel]
-        }
-        else{
-            gridmodel = obj.model
-        }
-        let p = property || 'val'
+    initialGrid(obj,property,defaultvalue=0) {
+        let gridmodel = undefined
+        if (obj instanceof Gridmodel) // user passed a gridmodel object
+            gridmodel = obj 
+        else
+            gridmodel = obj.gridmodel
         
+        if(typeof gridmodel === 'string' || gridmodel instanceof String) // user passed a string
+            gridmodel = this[gridmodel]
+
+        let p = property || obj.property || 'val'
+        let defaultval = defaultvalue || obj.default
         for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
             for (let y = 0; y < gridmodel.nr; y++)                  // y are rows
-                gridmodel.grid[x][y][p] = bg
+                gridmodel.grid[x][y][p] = defaultval
         
-        let valueFractPairs = [];
+        let frequencies = obj.frequencies || []
+        console.log(frequencies)
         for (let arg = 3; arg < arguments.length; arg += 2) {
             let value = arguments[arg];
             let fract = arguments[arg + 1];
-            valueFractPairs.push({ value: value, fract: fract });
+            frequencies.push([value,fract]);
         }
         
         for (let x = 0; x < gridmodel.nc; x++)                        // x are columns
             for (let y = 0; y < gridmodel.nr; y++){                    // y are rows
                 let rand = this.rng.random();
                 let fract = 0
-                for(let k of valueFractPairs){
-                    fract += k.fract;
+                for(let k of frequencies){
+                    fract += k[1];
                     if(rand < fract){
-                        gridmodel.grid[x][y][p] = k.value;
+                        gridmodel.grid[x][y][p] = k[0];
                         break;
                     }
                 }
