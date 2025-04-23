@@ -1125,18 +1125,18 @@ class Gridmodel {
         //   rotate cw or ccw randomly
         let even = this.margolus_phase % 2 == 0;
         if ((this.nc % 2 + this.nr % 2) > 0) throw "Do not use margolusDiffusion with an uneven number of cols / rows!"
-
+        let x_off = this.wrap[0] ? 1 : 2;
+        let y_off = this.wrap[1] ? 1 : 2;
         for (let x = 0 + even; x < this.nc; x += 2) {
-            if(x> this.nc-2) continue
+            if(x> this.nc-x_off) continue
             for (let y = 0 + even; y < this.nr; y += 2) {
-                if(y> this.nr-2) continue
-                // console.log(x,y)
+                if(y> this.nr-y_off) continue
                 let old_A = new Gridpoint(this.grid[x][y]);
                 let A = this.getGridpoint(x, y);
                 let B = this.getGridpoint(x + 1, y);
                 let C = this.getGridpoint(x + 1, y + 1);
                 let D = this.getGridpoint(x, y + 1);
-
+                
                 if (this.rng.random() < 0.5)             // CW = clockwise rotation
                 {
                     A = D;
