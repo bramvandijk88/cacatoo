@@ -638,23 +638,24 @@ class Simulation {
      *  @param {float} fraction The chance the grid point is set to this state (optional argument with position 3, 5, 7, ..., n)
      */
     initialGrid(obj,property,defaultvalue=0) {
+        // First, make sure you have access to the appropriate gridmodel
         let gridmodel = undefined
         if (obj instanceof Gridmodel) // user passed a gridmodel object
             gridmodel = obj 
         else
             gridmodel = obj.gridmodel
-        
         if(typeof gridmodel === 'string' || gridmodel instanceof String) // user passed a string
             gridmodel = this[gridmodel]
 
+        // Next, put the default values in the grid
         let p = property || obj.property || 'val'
-        let defaultval = defaultvalue || obj.default
+        if(obj.default != undefined) defaultvalue = obj.default
         for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
             for (let y = 0; y < gridmodel.nr; y++)                  // y are rows
-                gridmodel.grid[x][y][p] = defaultval
-        
+                gridmodel.grid[x][y][p] = defaultvalue
+
         let frequencies = obj.frequencies || []
-        console.log(frequencies)
+
         for (let arg = 3; arg < arguments.length; arg += 2) {
             let value = arguments[arg];
             let fract = arguments[arg + 1];
