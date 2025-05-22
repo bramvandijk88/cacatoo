@@ -639,7 +639,7 @@ class Simulation {
      */
     initialGrid(obj,property,defaultvalue=0) {
         // First, make sure you have access to the appropriate gridmodel
-        let gridmodel = undefined
+        let gridmodel = undefined 
         if (obj instanceof Gridmodel) // user passed a gridmodel object
             gridmodel = obj 
         else
