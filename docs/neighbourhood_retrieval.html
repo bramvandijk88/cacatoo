@@ -120,23 +120,27 @@
                    <h2> Directly retreiving neighbours </h2>
                    To get a single neighbour from one of these neighbourhood, you can use the following function:
 
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbour<span class="signature">(model, col, row, direction)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbour<span class="signature">(model, col, row, direction)</span><span class="type-signature"></span></h5>
                    
                    <br>For example, to get the 'North-West' neighbour (5) directly within the nextState function, you can use:
 
                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbour<span class="signature">(this, i, j, 5)</span><span class="type-signature"></span></h5>
                         <br>
+                        To get all neighbours from the Moore [1,8] or Neumann [1,4] range (irregardless of their properties), use:
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getAllNeighbours<span class="signature">(model, col, row, range)</span><span class="type-signature"></span></h5>     
+                   
+
                         To get multiple neighbours corresponding to a certain "type", store them in an array, you can use getNeighbours (plural!):
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours<span class="signature">(model, col, row, property, value, neighbour_array)</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours<span class="signature">(model, col, row, property, value, neighbour_array)</span><span class="type-signature"></span></h5>     
                    
                         <br>For example, to get the 'North' and 'South' neighbour (1 and 4), you can use:
                         <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours<span class="signature">(this, i, j, [1,4])</span><span class="type-signature"></span></h5>     
                         
                         <br>If you want to use one of the default neighbourhoods, you can use one fo the following shortcuts: <br><br>
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours8<span class="signature">(model, col, row, property, value, neighbour_array) // Moore, self exclusive</span><span class="type-signature"></span></h5>     
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours9<span class="signature">(model, col, row, property, value, neighbour_array)  // Moore, self inclusive</span><span class="type-signature"></span></h5>         
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours4<span class="signature">(model, col, row, property, value, neighbour_array)  // Neumann, self exclusive</span><span class="type-signature"></span></h5>     
-                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getNeighbours5<span class="signature">(model, col, row, property, value, neighbour_array)  // Neumann, self inclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours8<span class="signature">(model, col, row, property, value, neighbour_array) // Moore, self exclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours9<span class="signature">(model, col, row, property, value, neighbour_array)  // Moore, self inclusive</span><span class="type-signature"></span></h5>         
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours4<span class="signature">(model, col, row, property, value, neighbour_array)  // Neumann, self exclusive</span><span class="type-signature"></span></h5>     
+                        <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours5<span class="signature">(model, col, row, property, value, neighbour_array)  // Neumann, self inclusive</span><span class="type-signature"></span></h5>     
 
                         
 
@@ -149,31 +153,31 @@
                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours<span class="signature">(model, col, row, property, neighbour_array)</span><span class="type-signature"></span></h5>
 
                    <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumMoore8<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours8<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumMoore9<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours9<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeumann4<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours4<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeumann5<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sumNeighbours5<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumMoore8<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumNeighbours8<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumMoore9<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumNeighbours9<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumNeumann4<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumNeighbours4<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumNeumann5<span class="signature">(model, col, row, property, value)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.sumNeighbours5<span class="signature">(model, col, row, property, value) // same as above, different name</span><span class="type-signature"></span></h5>
                    <br>
                    <hr>
                    <br>
 
                     <h2> Counting all neighbours with 'property' set to 'value' </h2>
-                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours<span class="signature">(model, col, row, property, value, neighbour_array)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countNeighbours<span class="signature">(model, col, row, property, value, neighbour_array)</span><span class="type-signature"></span></h5>
 
 
                    <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countMoore8<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours8<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countMoore9<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours9<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeumann4<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours4<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeumann5<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
-                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>countNeighbours5<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countMoore8<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countNeighbours8<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countMoore9<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countNeighbours9<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countNeumann4<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countNeighbours4<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countNeumann5<span class="signature">(model, col, row, property)</span><span class="type-signature"></span></h5>
+                   <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.countNeighbours5<span class="signature">(model, col, row, property) // same as above, different name</span><span class="type-signature"></span></h5>
                    <br>
                    <hr>
                    <br>
@@ -183,14 +187,14 @@
 
 
                   <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore8<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours8<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore9<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours9<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann4<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours4<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann5<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours5<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomMoore8<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours8<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomMoore9<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours9<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeumann4<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours4<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeumann5<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                  <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours5<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
                   <br>
                   <hr>
                   <br>
@@ -202,17 +206,17 @@
 
                     For example, to sample an individual with 'fitness' as weight, you can do:
                     <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getNeighbours<span class="signature">(gridpoints, property)</span><span class="type-signature"></span></h5>
-                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>rouletteWheel<span class="signature">(gridpoints, property)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.rouletteWheel<span class="signature">(gridpoints, property)</span><span class="type-signature"></span></h5>
 
                  <br>The neighbour array can be any array which includes all neighbours ([0,1,2,3,4,5,6,7,8]) or only a few ([0,4,6]). A few frequently used neighbourhoods can be called like this:<br><br>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore8<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours8<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomMoore9<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours9<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann4<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours4<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeumann5<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
-                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>randomNeighbours5<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomMoore8<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours8<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomMoore9<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours9<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeumann4<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours4<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeumann5<span class="signature">(model, col, row)</span><span class="type-signature"></span></h5>
+                 <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.randomNeighbours5<span class="signature">(model, col, row) // same as above, different name</span><span class="type-signature"></span></h5>
                  <br>
                  <hr>
                  <br>
@@ -221,8 +225,8 @@
                     <h5>Getting or setting a grid point at arbitrary position:</h5>
                     When programming, you may often want to 'get' or 'set' objects. To do this with gridpoints, you need to know the coordinates of these grid points, and modify them with 'getGridpoint' and 'setGridpoint'. 
                     Note that the i,j coordinates will automatically wrap arround the grid.
-                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>getGridpoint<span class="signature">(i, j)</span><span class="type-signature"></span></h5>
-                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>setGridpoint<span class="signature">(i, j, template_gridpoint)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.getGridpoint<span class="signature">(i, j)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.setGridpoint<span class="signature">(i, j, template_gridpoint)</span><span class="type-signature"></span></h5>
                     
                     So for example, to get a random grid point in the entire grid, and copy it to a random position, you can do:
                     sim.model.rng.genrand_int

@@ -3785,7 +3785,6 @@ class Simulation {
             gridmodel = obj.gridmodel;
         if(typeof gridmodel === 'string' || gridmodel instanceof String) // user passed a string
             gridmodel = this[gridmodel];
-
         // Next, put the default values in the grid
         let p = property || obj.property || 'val';
         if(obj.default != undefined) defaultvalue = obj.default;
