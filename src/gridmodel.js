@@ -466,6 +466,26 @@ class Gridmodel {
     *  but can be mixed to make grids interact.
     *  @param {int} col position (column) for the focal gridpoint
     *  @param {int} row position (row) for the focal gridpoint
+    *  @param {Array} range which section of the neighbourhood must be counted? (see this.moore, e.g. 1-8 is Moore8, 0-4 is Neu5,etc)
+    *  To get all 8 neighbours, use range [1,8]
+    *  To get all neumann neighbours, use range [1,4]
+    */
+   getAllNeighbours(model,col,row,range) {
+        let gps = [];
+        for (let n = range[0]; n <= range[1]; n++) {                        
+            let x = model.moore[n][0]
+            let y = model.moore[n][1]
+            let neigh = model.getGridpoint(col + x, row + y)
+            gps.push(neigh);
+        }
+        return gps;
+    }
+
+    /** Get array of grid points with val in property (Neu4, Neu5, Moore8, Moore9 depending on range-array)
+    *  @param {GridModel} grid The gridmodel used to check neighbours. Usually the gridmodel itself (i.e., this), 
+    *  but can be mixed to make grids interact.
+    *  @param {int} col position (column) for the focal gridpoint
+    *  @param {int} row position (row) for the focal gridpoint
     *  @param {string} property the property that is counted
     *  @param {int} val value 'property' should have
     *  @param {Array} range which section of the neighbourhood must be counted? (see this.moore, e.g. 1-8 is Moore8, 0-4 is Neu5,etc)
@@ -477,7 +497,7 @@ class Gridmodel {
     *  or 
     *  this.getMoore8(this,10,10,3,'species')
     */
-    getNeighbours(model,col,row,property,val,range) {
+       getNeighbours(model,col,row,property,val,range) {
         let gps = [];
         for (let n = range[0]; n <= range[1]; n++) {                        
             let x = model.moore[n][0]
