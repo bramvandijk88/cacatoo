@@ -189,6 +189,8 @@ class Simulation {
 
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours)    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno")    
+        else if(config.fill == "pride") this[name].colourViridis(property, num_colours, false, "pride")    
+        else if(config.fill == "rainbow") this[name].colourViridis(property, num_colours, false, "rainbow")    
         else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno")    
         else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0])
         else if(config.fill == "green") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 255, 0])
@@ -382,6 +384,8 @@ class Simulation {
         
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours)    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno")    
+        else if(config.fill == "pride") this[name].colourViridis(property, num_colours, false, "pride")    
+        else if(config.fill == "rainbow") this[name].colourViridis(property, num_colours, false, "rainbow")    
         else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno")    
         else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0])
         else if(config.fill == "green") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 255, 0])
