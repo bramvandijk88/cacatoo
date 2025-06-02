@@ -502,6 +502,15 @@ class Gridmodel {
                 let colours = this.colourGradientArray(num_colours, 0,[20, 11, 52], [132, 32, 107], [229, 92, 45], [246, 215, 70]); 
                 return_dict[statekey] = colours;                
             }
+            else if (statedict == 'rainbow') {
+                let colours = this.colourGradientArray(num_colours, 0,[251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242], 
+                             [50,100,255]); 
+                return_dict[statekey] = colours;                
+            }
+            else if (statedict == 'pride') {
+                let colours = this.colourGradientArray(num_colours, 0,[228, 3, 3], [255, 140, 0], [255, 237, 0], [0, 128, 38], [0,76,255],[115,41,130]); 
+                return_dict[statekey] = colours;                
+            }
             else if (statedict == 'inferno_rev') {
                 let colours = this.colourGradientArray(num_colours, 0, [246, 215, 70], [229, 92, 45], [132, 32, 107]);
                 return_dict[statekey] = colours;                
