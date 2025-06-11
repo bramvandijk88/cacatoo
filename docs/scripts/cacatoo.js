@@ -3541,8 +3541,8 @@ class Simulation {
         
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours);    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno");    
-        else if(config.fill == "rainbow") this[name].colourGradientArray(num_colours, 0,[251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242],[50,100,255]);
-        else if(config.fill == "pride") this[name].colourGradientArray(num_colours, 0,[228, 3, 3], [255, 140, 0], [255, 237, 0], [0, 128, 38], [0,76,255],[115,41,130]); 
+        else if(config.fill == "rainbow") this[name].statecolours[property] = this[name].colourGradientArray(num_colours, 0,[251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242],[50,100,255]);
+        else if(config.fill == "pride") this[name].statecolours[property] = this[name].colourGradientArray(num_colours, 0, [228, 3, 3], [255, 140, 0], [255, 237, 0], [0, 128, 38], [0,76,255],[115,41,130]);
         else if(config.fill == "inferno_rev") this[name].colourViridis(property, num_colours, true, "inferno");    
         else if(config.fill == "red") this[name].colourGradient(property, num_colours, [0, 0, 0], [255, 0, 0]);
         else if(config.fill == "green") this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 255, 0]);
