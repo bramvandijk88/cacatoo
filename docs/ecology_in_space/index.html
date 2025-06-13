@@ -1,0 +1,142 @@
+  <!-- 
+  ###########################################################################################
+    This is a JSFiddle example of "Cacatoo". This HTML page does not contain the code itself,
+    but determines where the grids, graphs, buttons, etc are placed. The real code is in the 
+    Javascript Tab. I recommend enabling "Tabs (Columns)" under the settings in the top-right. 
+  ###########################################################################################
+-->
+
+<html>
+  <script src="../scripts/cacatoo.js"></script>
+  <script src="../scripts/all.js"></script>
+  <link rel="stylesheet" href="../styles/cacatoo.css">
+  <!-- Dependencies
+    <link rel="stylesheet" href="style.css">        <!-- Set style sheet -->
+
+  <head>
+    <title>Cacatoo examples</title>
+  </head>
+
+
+  <script>
+   
+  
+  /*-----------------------Start user-defined code ---------------------*/
+
+    let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+    var growth_1 = 0.8
+    var growth_2 = 0.8
+    /**
+    * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+    */
+    function cacatoo() {
+        /*
+            1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+        */
+        let config =
+        {
+            title: "Ecological interactions in space",                 // The name of your cacatoo-simulation
+            description: "Resulting in various wave patterns.",         // And a description if you wish
+            maxtime: 1000000,                             // How many time steps the model continues to run            
+            ncol: 100,                                   // Number of columns (width of your grid)
+            nrow: 100,		                              // Number of rows (height of your grid)
+            wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
+            scale: 5,				                      // Scale of the grid (nxn pixels per grid point)
+            bgcolour: "white",
+            statecolours: { 'patch': { 'microbe1': '#c043eeff', 'microbe2': "#e59101ff"} },          // Colours for each state. Background (0) defaults to black. 
+        }
+
+        /*
+            1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+        */
+        sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+        sim.makeGridmodel("model")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
+        sim.reset = function(){
+        let init_individuals = [{patch:'microbe1', growth_rate: 0.8, age: 0, max_age:10},
+                                {patch:'microbe2', growth_rate: 0.8, age: 0,max_age:20}]                         
+        
+        sim.populateGrid(sim.model, init_individuals, [0.1,0.1])         // Place the three 'species' in grid points (33% A, 33% B, 33% C)        
+        }
+        sim.reset()
+        //sim.createDisplay("model", "species", "")                      // Create a display so we can see our newly made gridmodel
+        sim.createDisplay_discrete({model:"model", property:"patch", legend:false,
+      drawdots:true, stroke: true, strokeWidth: 1, strokeStyle: "white", radius: 2.8,
+      label:"Patches can contain type 1 (purple), type 2 (orange), or neither (white).<br> The ecological interactions results in wave-patterns.<br>(use mouse to paint-in type 1)", minval:0, maxval:1, decimals:1, num_colours: 100}) 
+     
+        /*
+            2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+        */
+
+        sim.model.nextState = function (x, y) {
+            let n = this.randomMoore8(this, x, y)   // Random neighbour
+            let t = this.grid[x][y]                         // This gridpoint
+            t.age++
+            
+            if (!t.patch)                        // If empty, and neighbour is microbe1
+            {
+                if (n.patch == 'microbe1' && this.rng.random() < growth_1) {
+                    this.copyIntoGridpoint(x,y,n)
+                    t.age = 0   // reset age
+                }
+                
+            }
+            else if (t.patch == 'microbe1')                   // If microbe1
+            {
+                if (n.patch == 'microbe2' && this.rng.random() < growth_2) {
+                    this.copyIntoGridpoint(x,y,n)
+                    t.age = 0  // reset age
+                }
+            }
+            
+            //if (this.rng.random() < 0.001+0.003*t.age)
+            if (t.age > t.max_age)
+            {
+                t.patch = undefined                         // death
+                t.age = 0                                
+            }
+        }
+
+        /*
+            3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+            applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+        */
+        sim.model.update = function () {
+            this.synchronous()         // Applied as many times as it can in 1/60th of a second
+            this.plotPopsizes('patch', ['microbe1', 'microbe2'])
+        }
+
+        /*
+            OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+        */
+
+sim.addButton("Reset", function () { sim.reset() })
+        sim.addButton("Play/pause", function () { sim.toggle_play() })
+        sim.addButton("Disable/enable mix", function () { sim.toggle_mix() })
+        
+        sim.addSlider("growth_1", 0, 1.0, 0.01, "Growth type 1")
+        sim.addSlider("growth_2", 0, 1.0, 0.01, "Growth type 2")
+        sim.addStatebrush('model', 'patch', 'microbe1', 100);
+       
+        sim.start()        
+    }
+
+
+    /*-------------------------End user-defined code ---------------------*/
+
+
+  </script>
+
+  <body onload="cacatoo()">
+    <div class="header" id="header">
+      <h2>Cacatoo (example project)</h2>
+    </div>
+
+    <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="content" id="form_holder"></div>
+    <div class="footer" id="footer"></div>
+
+
+  </body>
+
+</html>
