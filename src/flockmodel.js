@@ -41,7 +41,7 @@ class Flockmodel {
         this.bgcolour = config.bgcolour || undefined
         this.physics = true
         if(config.physics && config.physics != true) this.physics = false
-        console.log(config)
+        
         this.statecolours = {}
         if(config.statecolours) this.statecolours = this.setupColours(config.statecolours,config.num_colours||100) // Makes sure the statecolours in the config dict are parsed (see below)
         if(!config.qt_capacity) config.qt_capacity = 3

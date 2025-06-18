@@ -1046,7 +1046,6 @@ class Gridmodel {
         }
         let newstate = MakeGrid(this.nc, this.nr); 
 
-        // console.log(this.grid[0][0][statevector])
         for (let x = 0; x < this.nc; x += 1) // every column
             for (let y = 0; y < this.nr; y += 1) // every row
             {
@@ -1080,7 +1079,6 @@ class Gridmodel {
                 for (let n = 1; n <= 4; n++)
                     for(let state of Object.keys(this.grid[x][y][statevector]))
                         this.grid[x][y][statevector][state] = newstate[x][y][statevector][state];
-        // console.log(this.grid)
 
     }
 
@@ -1645,7 +1643,7 @@ class Flockmodel {
         this.bgcolour = config.bgcolour || undefined;
         this.physics = true;
         if(config.physics && config.physics != true) this.physics = false;
-        console.log(config);
+        
         this.statecolours = {};
         if(config.statecolours) this.statecolours = this.setupColours(config.statecolours,config.num_colours||100); // Makes sure the statecolours in the config dict are parsed (see below)
         if(!config.qt_capacity) config.qt_capacity = 3;
