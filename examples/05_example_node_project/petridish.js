@@ -9,7 +9,7 @@
 //Simulation = require('cacatoo') // Loads the Simulation class from installation, or from local package like below
 Simulation = require('../../dist/cacatoo') // Loads the Simulation class from installation, or from local package like below
 let yargs = require('yargs')
-let cmd_params = yargs.argv
+let cmd_params = yargs(process.argv).argv
 
 let birth_rate = 0.85   
 let mutationrate = cmd_params.mu ? cmd_params.mu : 0.00005
