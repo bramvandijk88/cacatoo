@@ -103,6 +103,31 @@ class Genome {
         }
         if (mutation) this.calculate_fitness()
     }
+
+    check_neutral_genome_dynamics(){
+        let focal_species = this
+        let genome_sizes = [focal_species.chromosome.length]
+        let hks = [focal_species.chromosome.filter(g => g.type == "G").length]
+        for(let i=0; i < 1000; i++){
+            let child = new Genome()
+            child.chromosome = []
+            for (let i = 0; i < focal_species.chromosome.length; i++) child.chromosome.push(focal_species.chromosome[i].copy())
+            child.mutate()
+            child.calculate_fitness()
+            if (child.fitness == focal_species.fitness) {
+                //console.log("Mutation did not result to a change in fitness, accepted.")
+                focal_species = child
+                genome_sizes.push(child.chromosome.length)
+                hks.push(child.chromosome.filter(g => g.type == "G").length)
+            }
+        }
+        //sim.log(genome_sizes.join('<br>'), "output")
+        
+        const last200 = genome_sizes.slice(-200)
+        const avg_genome_size = last200.reduce((a, b) => a + b, 0) / last200.length
+        sim.log(`${avg_genome_size}`, "output")
+        //console.log("HKs: ", hks)
+    }
 }
 
 class Gene {

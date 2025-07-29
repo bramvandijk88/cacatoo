@@ -487,8 +487,8 @@ class Flockmodel {
             boid.velocity.x *= (1-friction)
             boid.velocity.y *= (1-friction)
             
-            boid.velocity.x+=brownian*(2*sim.rng.random()-1)
-            boid.velocity.y+=brownian*(2*sim.rng.random()-1)
+            boid.velocity.x+=brownian*(2*this.rng.random()-1)
+            boid.velocity.y+=brownian*(2*this.rng.random()-1)
             
             // Update velocity
             boid.velocity.x += boid.acceleration.x

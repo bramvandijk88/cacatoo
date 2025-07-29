@@ -52,7 +52,7 @@
             description: "",
             maxtime: 200000,            
             ncol: size,
-            seed: 12,
+            seed: 5,
             nrow: size,		            // dimensions of the grid to build
             wrap: [true, true],       // Wrap boundary [COLS, ROWS]   
             scale: scale,				    // scale of the grid (nxn pixels per grid cell)
@@ -91,20 +91,24 @@
                 gp.genomesize = Math.min(sim.max_g, gp.genome.chromosome.length)            // A copy of the genome size is also stored within the grid point itself, so we can visualise it on the grid (capped at 100)
                 gp.fitness = gp.genome.fitness                                       // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
                 gp.T_in_genomes = Math.min(sim.max_t, gp.genome.nr_tra)                                   // A copy of the genomes' fitness is stored within the grid point itself, so we can use it for the "rouletteWheel" function
+                return gp.genome
             }
+            let genome
             for (let i = 0; i < sim.TE_model.nc; i++) for (let j = 0; j < sim.TE_model.nr; j++) {
                 this.grid[i][j].eDNA = []        // Initialise empty eDNA pool
                 this.grid[i][j].T_in_eDNA = 0
 
                 let size = 5
+                
                 if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size)
-                    placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 10, init_tra_rate)
-                else if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size * 50)
-                    placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 0, init_tra_rate)
-                // else if((Math.pow((i-sim.TE_model.nc/2),2) + Math.pow((j-sim.TE_model.nr/2),2) ) < size*10 && j>sim.TE_model.nr/2)
-                //     placeCell(sim.TE_model.grid[i][j],init_es,init_ne,0,0)  
+                    genome = placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 10, init_tra_rate)
+                else if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size * 50){
+                    genome = placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 0, init_tra_rate)            
+                    genome.check_neutral_genome_dynamics() // Check what happens to the initial genome under non-neutral conditions
+                }    
 
             }
+            
         }
 
         sim.TE_model.initialise()  // Initialise for the first time (otherwise used for "RESET" button)
@@ -123,8 +127,8 @@
             else if (this.rng.genrand_real1() < death_rate || this.grid[i][j].genome.fitness == 0)
                 this.death_and_lysis(i, j)
             else {
-                this.TEdynamicsI(i, j)
-                this.TEdynamicsII(i, j)
+                //this.TEdynamicsI(i, j)
+                //this.TEdynamicsII(i, j)
             }
 
             // EDNA DYNAMICS
@@ -344,7 +348,7 @@
     </div>
     <div class="content" id="graph_holder"> </div>
     <div class="content" id="form_holder"></div>
-
+    <div class="output" id="output"></div>
     <div class="footer" id="footer"></div>
 </body>
 
