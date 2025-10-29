@@ -2089,8 +2089,8 @@ class Flockmodel {
             boid.velocity.x *= (1-friction);
             boid.velocity.y *= (1-friction);
             
-            boid.velocity.x+=brownian*(2*sim.rng.random()-1);
-            boid.velocity.y+=brownian*(2*sim.rng.random()-1);
+            boid.velocity.x+=brownian*(2*this.rng.random()-1);
+            boid.velocity.y+=brownian*(2*this.rng.random()-1);
             
             // Update velocity
             boid.velocity.x += boid.acceleration.x;
@@ -3730,11 +3730,12 @@ class Simulation {
                 
             } 
 
-            if (this.config.noheader != true) document.title = `Cacatoo - ${this.config.title}`;            
-            
-            var link = document.querySelector("link[rel~='icon']");
-            if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); }
-            link.href = '../../images/favicon.png';
+            if (this.config.noheader != true) {
+                document.title = `Cacatoo - ${this.config.title}`;            
+                var link = document.querySelector("link[rel~='icon']");
+                if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); }
+                link.href = '../../images/favicon.png';
+            }
 
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src=""https://bramvandijk88.github.io/cacatoo/images/elephant_cacatoo_small.png"></a>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src=""https://bramvandijk88.github.io/cacatoo/images/gh.png"></a></img>`;
