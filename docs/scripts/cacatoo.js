@@ -2898,33 +2898,36 @@ class Canvas {
 
         // Ears
         ctx.beginPath();
-        ctx.ellipse((boid.position.x+1.1)*this.scale,
-                (boid.position.y-0.8)*this.scale,
-                2,
-                6,
+        ctx.ellipse((boid.position.x+1.5)*this.scale,
+                (boid.position.y-1)*this.scale,
+                0.2*this.scale*boid.size,
+                0.6*this.scale*boid.size,
                 5,
                 0,Math.PI*2);
         ctx.fill();
+        ctx.closePath();
 
         ctx.beginPath();
-        ctx.ellipse((boid.position.x-1.1)*this.scale,
-                (boid.position.y-0.8)*this.scale,
-                2,
-                6,
+        ctx.ellipse((boid.position.x-1.5)*this.scale,
+                (boid.position.y-1)*this.scale,
+                0.2*this.scale*boid.size,
+                0.6*this.scale*boid.size,
                 -5,
                 0,Math.PI*2);
         ctx.fill();
+        ctx.closePath();
 
-        // White eyes
+        // Eyes
         ctx.beginPath();
         ctx.fillStyle = 'black';
-        ctx.arc((boid.position.x-0.4)*this.scale,
+        ctx.arc((boid.position.x-0.25*boid.size)*this.scale,
                 (boid.position.y-0.1)*this.scale,
                 0.1*boid.size*this.scale,0,Math.PI*2);
         ctx.fill();  
+        ctx.closePath();
 
         ctx.beginPath();
-        ctx.arc((boid.position.x+0.4)*this.scale,
+        ctx.arc((boid.position.x+0.25*boid.size)*this.scale,
                 (boid.position.y-0.1)*this.scale,
                 0.1*boid.size*this.scale,0,Math.PI*2);
         ctx.fill();  
