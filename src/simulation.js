@@ -223,6 +223,8 @@ class Simulation {
         else if(shape == 'rect') cnv.drawBoid = cnv.drawBoidRect
         else if(shape == 'dot') cnv.drawBoid = cnv.drawBoidPoint
         else if(shape == 'ant') cnv.drawBoid = cnv.drawBoidAnt
+        else if(shape == 'bear') cnv.drawBoid = cnv.drawBoidBear
+        else if(shape == 'bunny') cnv.drawBoid = cnv.drawBoidBunny
         else if(shape == 'line') cnv.drawBoid = cnv.drawBoidLine
         else if(shape == 'png') cnv.drawBoid = cnv.drawBoidPng
         

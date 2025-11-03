@@ -2886,6 +2886,94 @@ class Canvas {
         this.drawBoidArrow(boid,ctx,0.4,1);
     }
 
+    // Draw a circle at the position of the boid
+    drawBoidBunny(boid,ctx){ 
+        ctx.fillStyle = boid.fill;
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(boid.position.x*this.scale,boid.position.y*this.scale,0.5*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();
+        ctx.closePath();
+
+        // Ears
+        ctx.beginPath();
+        ctx.ellipse((boid.position.x+1.1)*this.scale,
+                (boid.position.y-0.8)*this.scale,
+                2,
+                6,
+                5,
+                0,Math.PI*2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse((boid.position.x-1.1)*this.scale,
+                (boid.position.y-0.8)*this.scale,
+                2,
+                6,
+                -5,
+                0,Math.PI*2);
+        ctx.fill();
+
+        // White eyes
+        ctx.beginPath();
+        ctx.fillStyle = 'black';
+        ctx.arc((boid.position.x-0.4)*this.scale,
+                (boid.position.y-0.1)*this.scale,
+                0.1*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();  
+
+        ctx.beginPath();
+        ctx.arc((boid.position.x+0.4)*this.scale,
+                (boid.position.y-0.1)*this.scale,
+                0.1*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();  
+
+        ctx.closePath();
+
+    }
+
+    // Draw a circle at the position of the boid
+    drawBoidBear(boid,ctx){ 
+        ctx.fillStyle = boid.fill;
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(boid.position.x*this.scale,boid.position.y*this.scale,0.5*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();
+        ctx.closePath();
+
+        // Ears
+        ctx.beginPath();
+        ctx.arc((boid.position.x+0.8)*this.scale,
+                (boid.position.y-0.8)*this.scale,
+                0.25*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc((boid.position.x-0.8)*this.scale,
+                (boid.position.y-0.8)*this.scale,
+                0.25*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();
+
+        // White eyes
+        ctx.beginPath();
+        ctx.fillStyle = 'black';
+        ctx.arc((boid.position.x-0.4)*this.scale,
+                (boid.position.y-0.1)*this.scale,
+                0.1*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();  
+
+        ctx.beginPath();
+        ctx.arc((boid.position.x+0.4)*this.scale,
+                (boid.position.y-0.1)*this.scale,
+                0.1*boid.size*this.scale,0,Math.PI*2);
+        ctx.fill();  
+
+        ctx.closePath();
+
+    }
+
     // Draw a line from the boids position to the velocity vector. Indicates speed. 
     drawBoidLine(boid,ctx){
         ctx.beginPath();
@@ -3379,6 +3467,8 @@ class Simulation {
         else if(shape == 'rect') cnv.drawBoid = cnv.drawBoidRect;
         else if(shape == 'dot') cnv.drawBoid = cnv.drawBoidPoint;
         else if(shape == 'ant') cnv.drawBoid = cnv.drawBoidAnt;
+        else if(shape == 'bear') cnv.drawBoid = cnv.drawBoidBear;
+        else if(shape == 'bunny') cnv.drawBoid = cnv.drawBoidBunny;
         else if(shape == 'line') cnv.drawBoid = cnv.drawBoidLine;
         else if(shape == 'png') cnv.drawBoid = cnv.drawBoidPng;
         
