@@ -2898,21 +2898,21 @@ class Canvas {
 
         // Ears
         ctx.beginPath();
-        ctx.ellipse((boid.position.x+0.5*boid.size)*this.scale,
-                (boid.position.y-0.2*boid.size)*this.scale,
+        ctx.ellipse((boid.position.x+0.2*boid.size)*this.scale,
+                (boid.position.y-0.5*boid.size)*this.scale,
                 0.2*this.scale*boid.size,
                 0.5*this.scale*boid.size,
-                5,
+                0,
                 0,Math.PI*2);
         ctx.fill();
         ctx.closePath();
 
         ctx.beginPath();
-        ctx.ellipse((boid.position.x-0.5*boid.size)*this.scale,
-                (boid.position.y-0.2*boid.size)*this.scale,
+        ctx.ellipse((boid.position.x-0.2*boid.size)*this.scale,
+                (boid.position.y-0.5*boid.size)*this.scale,
                 0.2*this.scale*boid.size,
                 0.5*this.scale*boid.size,
-                -5,
+                0,
                 0,Math.PI*2);
         ctx.fill();
         ctx.closePath();
