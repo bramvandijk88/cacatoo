@@ -104,7 +104,7 @@
                     genome = placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 10, init_tra_rate)
                 else if ((Math.pow((i - sim.TE_model.nc / 2), 2) + Math.pow((j - sim.TE_model.nr / 2), 2)) < size * 50){
                     genome = placeCell(sim.TE_model.grid[i][j], init_es, init_ne, init_nc, 0, init_tra_rate)            
-                    genome.check_neutral_genome_dynamics() // Check what happens to the initial genome under non-neutral conditions
+                    //genome.check_neutral_genome_dynamics() // Check what happens to the initial genome under non-neutral conditions
                 }    
 
             }
