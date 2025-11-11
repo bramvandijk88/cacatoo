@@ -71,6 +71,7 @@ function cacatoo() {
     sim.createDisplay_continuous({model:"coop", property:"helping_rate", label:"Cooperation",minval:0, maxval:1, num_colours: 100})
 
     sim.coop.canvases["Cooperation"].legend.style.display = "none"  // Hack to remove the legend :)
+    
     /**
     * Define your next-state function here: for each grid point, what determines what that grid point will be like next timestep?
     */
@@ -87,11 +88,10 @@ function cacatoo() {
                 this.grid[x][y].helping_rate = winner.helping_rate
             }
         }
-
         if (this.rng.random() < death){                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
-            this.grid[x][y].alive = 0
-            this.grid[x][y].helping_rate = 0
-            this.grid[x][y].fitness = 0
+            this.grid[x][y].alive = undefined
+            this.grid[x][y].helping_rate = undefined
+            this.grid[x][y].fitness = undefined
         }
     }
 
