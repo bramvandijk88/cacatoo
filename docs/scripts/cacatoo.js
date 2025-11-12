@@ -2373,7 +2373,15 @@ class Flockmodel {
      *  calculated based on neighbourhoods. 
      */
     perfectMix(){
-        return "Perfectly mixed the individuals"
+        for(let boid of this.boids){
+            boid.position.x = this.rng.genrand_real1() * this.width;
+            boid.position.y = this.rng.genrand_real1() * this.height;
+        }
+        //return "Perfectly mixed the individuals"
+    }
+
+    shuffleBoids(){
+        shuffle(this.boids, this.rng);
     }
 
     /** 
