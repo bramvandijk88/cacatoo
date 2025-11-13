@@ -609,7 +609,6 @@ class Simulation {
                     cancelAnimationFrame(frame);
                 }
 
-                //if (sim.pause == true) { cancelAnimationFrame(frame); }
             }
 
             requestAnimationFrame(animate);
@@ -617,7 +616,7 @@ class Simulation {
         else {
             while (true) {
                 sim.step();
-                if (sim.time >= sim.config.maxtime || sim.exit ) {
+                if (sim.time > sim.config.maxtime || sim.exit ) {
                     console.log("Cacatoo completed.");
                     return true;
                 }
