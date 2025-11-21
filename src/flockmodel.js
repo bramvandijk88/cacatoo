@@ -83,16 +83,32 @@ class Flockmodel {
         let x = put_x || this.width/2
         let y = put_y || this.height/2
         
-        for(let i=0; i<n;i++){
+        for (let i = 0; i < n; i++) {
+            // Random direction
             let angle = this.random() * 2 * Math.PI;
+
+            // Unit direction vector
+            let ux = Math.cos(angle);
+            let uy = Math.sin(angle);
+
+            // Exact initial speed (constant for all boids)
+            let speed = this.init_velocity;
+
             this.boids.push({
-                    position: { x: x + size - 2*this.random()*size, y: y+size-2*this.random()*size },
-                    velocity: { x: this.init_velocity*Math.cos(angle) * this.max_speed, y: this.init_velocity*Math.sin(angle) * this.max_speed },
-                    acceleration: { x: 0, y: 0 },
-                    size: this.config.size
+                position: {
+                    x: x + size - 2 * this.random() * size,
+                    y: y + size - 2 * this.random() * size
+                },
+                velocity: {
+                    x: ux * speed,
+                    y: uy * speed
+                },
+                acceleration: { x: 0, y: 0 },
+                size: this.config.size
             });
             
         }
+
         
     }
 
@@ -263,7 +279,10 @@ class Flockmodel {
     * @param {Object} i The individual to be updates
     */
     flock(){
-        if(this.physics) this.applyPhysics()
+        if(this.physics) {
+            console.log("Applying physics")
+            this.applyPhysics()
+        }
         this.build_quadtree()
     }
     

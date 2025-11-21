@@ -347,6 +347,110 @@ class Canvas {
         ctx.restore();     
     }
 
+    drawBoidRod(boid, ctx) {
+        ctx.fillStyle = boid.fill;
+        ctx.lineWidth = boid.size * this.scale;
+
+        // Normalised velocity
+        const vector = this.model.normaliseVector(boid.velocity);
+
+        // Front circle
+        const frontx = (boid.position.x + 2 * vector.x) * this.scale;
+        const fronty = (boid.position.y + 2 * vector.y) * this.scale;
+        ctx.beginPath();
+        ctx.arc(frontx, fronty, 0.5 * boid.size * this.scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Back circle
+        const backx = (boid.position.x - 2 * vector.x) * this.scale;
+        const backy = (boid.position.y - 2 * vector.y) * this.scale;
+        ctx.beginPath();
+        ctx.arc(backx, backy, 0.5 * boid.size * this.scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Connecting rod
+        ctx.beginPath();
+        ctx.strokeStyle = boid.fill;
+        ctx.moveTo(frontx, fronty);
+        ctx.lineTo(backx, backy);
+        ctx.stroke();
+
+
+        // ================================
+        // FLAGELLA (all logic is here!)
+        // ================================
+        if (boid.flagella) {
+            const size = boid.size * this.scale;
+
+            if (boid.flagella === "directed") {
+                // Base angle = pointing backwards relative to velocity
+                const baseAngle = Math.atan2(-vector.y, -vector.x);
+
+                // 3 flagella fanning out
+                const angles = [
+                    baseAngle,
+                    baseAngle + Math.PI / 10,
+                    baseAngle - Math.PI / 10
+                ];
+
+                angles.forEach((ang, i) => {
+                    this.drawFlagellum(ctx, backx, backy, ang, size, i);
+                });
+
+            } else if (boid.flagella === "random") {
+                // 3 evenly spaced angles around the circle
+                const angles = [
+                    0,
+                    (2 * Math.PI) / 3,
+                    (4 * Math.PI) / 3
+                ];
+
+                const r = 0.15 * boid.size * this.scale;
+                const cx = boid.position.x * this.scale;
+                const cy = boid.position.y * this.scale;
+
+                angles.forEach((ang, i) => {
+                    const x = cx + Math.cos(ang) * r;
+                    const y = cy + Math.sin(ang) * r;
+
+                    this.drawFlagellum(ctx, x, y, ang, size, i);
+                });
+            }
+        }
+    }
+
+    drawFlagellum(ctx, x, y, angle, size, index) {
+        const time = this.model.time * 0.2;     // wave speed
+        const length = 2 * size;                // flagellum length
+        const segments = 6;                     // smoothness
+        const amp = 0.3 * size;                 // wiggle amplitude
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+
+        for (let i = 1; i <= segments; i++) {
+            const t = i / segments;
+
+            // sinusoidal wave animation
+            const wave = Math.sin(t * 6 + time + index) * amp;
+
+            // main direction
+            const dx = Math.cos(angle) * (t * length);
+            const dy = Math.sin(angle) * (t * length);
+
+            // perpendicular wiggle
+            const px = -Math.sin(angle) * wave;
+            const py =  Math.cos(angle) * wave;
+
+            ctx.lineTo(x + dx + px, y + dy + py);
+        }
+
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = 0.15 * size;
+        ctx.stroke();
+    }
+
+
     // Similar to the arrow but very wide. Looks a bit like a bird.
     drawBoidBird(boid,ctx){
         this.drawBoidArrow(boid,ctx,0.4,1)
