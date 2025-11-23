@@ -1669,8 +1669,7 @@ class Flockmodel {
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
         this.bgcolour = config.bgcolour || undefined;
-        this.physics = true;
-        if(config.physics &amp;&amp; config.physics != true) this.physics = false;
+        this.physics = (config.physics === false) ? false : true;
         
         this.statecolours = {};
         if(config.statecolours) this.statecolours = this.setupColours(config.statecolours,config.num_colours||100); // Makes sure the statecolours in the config dict are parsed (see below)
@@ -1909,10 +1908,9 @@ class Flockmodel {
     * @param {Object} i The individual to be updates
     */
     flock(){
-        if(this.physics) {
-            console.log("Applying physics");
-            this.applyPhysics();
-        }
+        if(this.physics) this.applyPhysics();
+        this.updatePositions();
+        this.boundariesAndObstacles();
         this.build_quadtree();
     }
     
@@ -2073,22 +2071,164 @@ class Flockmodel {
         return(Math.sqrt(dx*dx + dy*dy))
     }
 
-    // Rules like boids, collisions, and gravity are done here
-    applyPhysics() { 
-        
-        for (let i = 0; i &lt; this.boids.length; i++) {
+    updatePositions(){
+        for(let i = 0; i&lt;this.boids.length; i++){
             let boid = this.boids[i];
-            let friction = this.friction;
-            let gravity = this.config.gravity ?? 0;
-            let collision_force = this.config.collision_force ?? 0;
+            let max_speed = this.max_speed;
             let max_force = this.max_force;
             let brownian = this.config.brownian ?? 0.0;
-            let max_speed = this.max_speed; 
+            let friction = this.friction;
             if(boid.locked) continue
             
             if(boid.max_speed !== undefined) max_speed = boid.max_speed;
-            if(boid.friction !== undefined) friction = boid.friction;
             if(boid.max_force !== undefined) max_force = boid.max_force;
+            
+            // Limit the force applied to the boid
+            let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
+            if (accLength > max_force) {
+                boid.acceleration.x = (boid.acceleration.x / accLength) * max_force;
+                boid.acceleration.y = (boid.acceleration.y / accLength) * max_force;
+            }
+
+            // Update velocity
+            boid.velocity.x += boid.acceleration.x;
+            boid.velocity.y += boid.acceleration.y; 
+            
+            // Limit speed
+            let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
+            if (speed > max_speed) {
+                boid.velocity.x = (boid.velocity.x / speed) * max_speed;
+                boid.velocity.y = (boid.velocity.y / speed) * max_speed;
+            }
+            speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
+
+            // Update position
+            boid.position.x += boid.velocity.x;
+            boid.position.y += boid.velocity.y;
+
+            
+            // Apply friction (linear, so no drag)
+            boid.velocity.x *= (1-friction);
+            boid.velocity.y *= (1-friction);
+            
+            // Brownian motion
+            boid.velocity.x+=brownian*(2*this.rng.random()-1);
+            boid.velocity.y+=brownian*(2*this.rng.random()-1);
+
+            
+
+            // Reset acceleration
+            boid.acceleration.x = 0;
+            boid.acceleration.y = 0;
+        
+        }
+    }
+
+    boundariesAndObstacles() {
+    for (let boid of this.boids) {
+
+        // Check obstacles first
+        for (let obs of this.obstacles) {
+            this.checkCollisionWithObstacle(boid, obs);
+        }
+
+        const r = boid.size / 2;
+        const damp = 0.8; // damping when hitting wall
+
+        //----------------------------------------------------------------------
+        // LEFT wall (no wrap)
+        //----------------------------------------------------------------------
+        if (!this.wrap[0] &amp;&amp; boid.position.x &lt; r) {
+            const penetration = r - boid.position.x;
+
+            // push out
+            boid.position.x += penetration;
+
+            // inward velocity component
+            if (boid.velocity.x &lt; 0) {
+                boid.velocity.x = 0;      // stop inward motion
+            }
+
+            // damping
+            boid.velocity.x *= damp;
+            boid.velocity.y *= damp;
+        }
+
+        //----------------------------------------------------------------------
+        // RIGHT wall
+        //----------------------------------------------------------------------
+        if (!this.wrap[0] &amp;&amp; boid.position.x > this.width - r) {
+            const penetration = boid.position.x - (this.width - r);
+
+            boid.position.x -= penetration;
+
+            if (boid.velocity.x > 0) {
+                boid.velocity.x = 0;
+            }
+
+            boid.velocity.x *= damp;
+            boid.velocity.y *= damp;
+        }
+
+        //----------------------------------------------------------------------
+        // TOP wall
+        //----------------------------------------------------------------------
+        if (!this.wrap[1] &amp;&amp; boid.position.y &lt; r) {
+            const penetration = r - boid.position.y;
+
+            boid.position.y += penetration;
+
+            if (boid.velocity.y &lt; 0) {
+                boid.velocity.y = 0;
+            }
+
+            boid.velocity.x *= damp;
+            boid.velocity.y *= damp;
+        }
+
+        //----------------------------------------------------------------------
+        // BOTTOM wall
+        //----------------------------------------------------------------------
+        if (!this.wrap[1] &amp;&amp; boid.position.y > this.height - r) {
+            const penetration = boid.position.y - (this.height - r);
+
+            boid.position.y -= penetration;
+
+            if (boid.velocity.y > 0) {
+                boid.velocity.y = 0;
+            }
+
+            boid.velocity.x *= damp;
+            boid.velocity.y *= damp;
+        }
+
+        //----------------------------------------------------------------------
+        // Wrap-around logic unchanged
+        //----------------------------------------------------------------------
+        if (this.wrap[0]) {
+            if (boid.position.x &lt; 0) boid.position.x += this.width;
+            if (boid.position.x >= this.width) boid.position.x -= this.width;
+        }
+
+        if (this.wrap[1]) {
+            if (boid.position.y &lt; 0) boid.position.y += this.height;
+            if (boid.position.y >= this.height) boid.position.y -= this.height;
+        }
+    }
+}
+
+    // Forces like attraction, collisions, and gravity are applied here. Friction is done at the updating of position
+    applyPhysics() { 
+        for (let i = 0; i &lt; this.boids.length; i++) {
+            let boid = this.boids[i];
+            let gravity = this.config.gravity ?? 0;
+            let collision_force = this.config.collision_force ?? 0;
+            let max_speed = this.max_speed;
+            let max_force = this.max_force;
+            if(boid.locked) continue
+            
+            if(boid.max_force !== undefined) max_force = boid.max_force;
+            if(boid.max_speed !== undefined) max_speed = boid.max_speed;
             if(boid.gravity !== undefined) gravity = boid.gravity;
             if(boid.collision_force !== undefined) collision_force = boid.collision_force;
             
@@ -2125,64 +2265,7 @@ class Flockmodel {
             if(this.config.mouseattraction){
                  this.followMouse(boid);
             }
-            // Limit the force applied to the boid
-            let accLength = Math.sqrt(boid.acceleration.x * boid.acceleration.x + boid.acceleration.y * boid.acceleration.y);
-            if (accLength > max_force) {
-                boid.acceleration.x = (boid.acceleration.x / accLength) * max_force;
-                boid.acceleration.y = (boid.acceleration.y / accLength) * max_force;
-            }
             
-            // Apply friction (linear, so no drag)
-            boid.velocity.x *= (1-friction);
-            boid.velocity.y *= (1-friction);
-            
-            boid.velocity.x+=brownian*(2*this.rng.random()-1);
-            boid.velocity.y+=brownian*(2*this.rng.random()-1);
-            
-            // Update velocity
-            boid.velocity.x += boid.acceleration.x;
-            boid.velocity.y += boid.acceleration.y; 
-            
-            // Limit speed
-            let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
-            if (speed > max_speed) {
-                boid.velocity.x = (boid.velocity.x / speed) * max_speed;
-                boid.velocity.y = (boid.velocity.y / speed) * max_speed;
-            }
-            speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
-
-            
-
-            // Update position
-            boid.position.x += boid.velocity.x;
-            boid.position.y += boid.velocity.y;
-
-            // Check for collision with all obstacles
-            for(let obs of this.obstacles){
-                this.checkCollisionWithObstacle(boid,obs);
-            }
-            
-            
-            // Wrap around edges
-            if(this.wrap[0]){
-                if (boid.position.x &lt; 0) boid.position.x += this.width;
-                if (boid.position.x >= this.width) boid.position.x -= this.width;
-            }
-            else {
-                if (boid.position.x &lt; boid.size/2) boid.position.x = boid.size/2, boid.velocity.x *= -this.wrapreflect;
-                if (boid.position.x >= this.width - boid.size/2) boid.position.x = this.width - boid.size/2, boid.velocity.x *= -this.wrapreflect;
-            }
-            if(this.wrap[1]){
-                if (boid.position.y &lt; 0) boid.position.y += this.height;
-                if (boid.position.y >= this.height) boid.position.y -= this.height;
-            }
-            else {
-                if (boid.position.y &lt; boid.size/2) boid.position.y = boid.size/2, boid.velocity.y *= -this.wrapreflect;
-                if (boid.position.y >= this.height - boid.size/2) boid.position.y = this.height - boid.size/2, boid.velocity.y *= -this.wrapreflect;
-            }
-            // Reset acceleration to 0 each cycle
-            boid.acceleration.x = 0;
-            boid.acceleration.y = 0;
         }
     }
 
@@ -2194,49 +2277,96 @@ class Flockmodel {
    }
 
    checkCollisionWithObstacle(boid, obs) {
-        if(obs.type=="rectangle"){
-            // Calculate edges of the ball
-            const r = boid.size/2;
-            const left = boid.position.x - r;
-            const right = boid.position.x + r;
-            const top = boid.position.y - r;
-            const bottom = boid.position.y + r;
+    if (obs.type === "rectangle") {
 
-            // Check for collision with rectangle
-            if (right > obs.x &amp;&amp; left &lt; obs.x + obs.w &amp;&amp; bottom > obs.y &amp;&amp; top &lt; obs.y + obs.h) {
-                const prevX = boid.position.x - boid.velocity.x;
-                const prevY = boid.position.y - boid.velocity.y;
+        const r = boid.size / 2;
 
-                const prevLeft = prevX - r;
-                const prevRight = prevX + r;
-                const prevTop = prevY - r;
-                const prevBottom = prevY + r;
-                // Determine where the collision occurred
-                if (prevRight &lt;= obs.x || prevLeft >= obs.x + obs.w) {
-                    boid.velocity.x = -boid.velocity.x*obs.force;   // Horizontal collision
-                    boid.position.x += boid.velocity.x; // Adjust position to prevent sticking
+        const left   = boid.position.x - r;
+        const right  = boid.position.x + r;
+        const top    = boid.position.y - r;
+        const bottom = boid.position.y + r;
+
+        if (right > obs.x &amp;&amp; left &lt; obs.x + obs.w &amp;&amp;
+            bottom > obs.y &amp;&amp; top &lt; obs.y + obs.h) {
+
+            // Compute center of boid and closest point on rectangle
+            const cx = boid.position.x;
+            const cy = boid.position.y;
+
+            const closestX = Math.max(obs.x, Math.min(cx, obs.x + obs.w));
+            const closestY = Math.max(obs.y, Math.min(cy, obs.y + obs.h));
+
+            // Penetration vector
+            const dx = cx - closestX;
+            const dy = cy - closestY;
+
+            const dist = Math.hypot(dx, dy);
+            const minDist = r;
+
+            // Only resolve if penetrating
+            if (dist &lt; minDist) {
+
+                // Normal vector
+                const nx = dx / (dist || 1);
+                const ny = dy / (dist || 1);
+
+                const penetration = minDist - dist;
+
+                // 1. Push boid out (position correction)
+                boid.position.x += nx * penetration;
+                boid.position.y += ny * penetration;
+
+                // 2. Remove velocity along collision normal
+                const vn = boid.velocity.x * nx + boid.velocity.y * ny;
+
+                if (vn &lt; 0) { 
+                    // cancel inward motion
+                    boid.velocity.x -= vn * nx * 1.0;  // 1 = inelastic; &lt;1 = soft
+                    boid.velocity.y -= vn * ny * 1.0;
                 }
-                if (prevBottom &lt;= obs.y || prevTop >= obs.y + obs.h) {
-                    boid.velocity.y = -boid.velocity.y*obs.force; // Vertical collision
-                    boid.position.y += boid.velocity.y; // Adjust position to prevent sticking
-                }
+
+                // 3. Damping so the boid settles
+                boid.velocity.x *= 0.8;   // tweakable
+                boid.velocity.y *= 0.8;
             }
         }
-        else if(obs.type=="circle"){
-            let bigr = Math.max(boid.size, obs.r);
-            let dx = obs.x - boid.position.x;
-            let dy = obs.y - boid.position.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            if(dist &lt; bigr){
-                let difference = { x: dx, y: dy };
-                difference = this.normaliseVector(difference);
-                boid.velocity.x -= difference.x*obs.force;
-                boid.velocity.y -= difference.y*obs.force;
-            }
-
-        }
-        
     }
+    else if (obs.type === "circle") {
+
+    const r = boid.size / 2;
+    const dx = boid.position.x - obs.x;
+    const dy = boid.position.y - obs.y;
+    const dist = Math.hypot(dx, dy);
+
+    const minDist = obs.r + r;
+
+    if (dist &lt; minDist) {
+
+        // Normalized outward direction
+        const nx = dx / (dist || 1);
+        const ny = dy / (dist || 1);
+
+        // 1. Soft push-out (position correction)
+        const penetration = minDist - dist;
+        boid.position.x += nx * penetration * 0.5;  // gentle correction
+        boid.position.y += ny * penetration * 0.5;
+
+        // 2. Apply a soft repulsive force (like your original code)
+        const force = obs.force ?? 1.0;
+        boid.acceleration.x += nx * force;
+        boid.acceleration.y += ny * force;
+
+        // 3. Light damping only when CLOSE to surface
+        //    (prevents infinite tiny jitters)
+        if (penetration > 0.1) {
+            boid.velocity.x *= 0.9;
+            boid.velocity.y *= 0.9;
+        }
+    }
+}
+
+}
+
 
 
     lengthVector(vector) {
@@ -4920,7 +5050,7 @@ function get2DFromCanvas(canvas) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Nov 21 2025 16:38:24 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Sun Nov 23 2025 16:12:01 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

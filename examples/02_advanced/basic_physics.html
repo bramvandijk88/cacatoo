@@ -26,28 +26,24 @@ function cacatoo() {
     fpsmeter: true,
     
     statecolours: {
-      'type': {
-        1: 'violet',
-				2: 'gold',
-        3: 'cyan'
-      }
+      'type': 'pride'
     },
   }
 
   let flockconfig = {
     shape: 'dot',          // Shape of the boids drawn 
     click: 'repel',          // Clicking the boids pushes them away from the mouse
-    max_speed: 50,          // Maximum velocity of boids
+    max_speed: 10,          // Maximum velocity of boids
     max_force: 0.5,          // Maximum steering force applied to boids (separation/cohesion/alignment rules)
     init_velocity:0.0,
-    friction: 0.1,        
-    gravity: 0.1,
+    friction: 0.05,        
+    gravity: 0.05,
     // Mouse parameters
     mouse_radius: 20,                   // Radius of boids captured by the mouse overlay
     draw_mouse_radius: true,            // Show a circle where the mouse is
     // Collision behaviour
     collision_force: 0.5,
-    size: 2.5,                // Size of the boids (scales drawing and colision detection)
+    size: 2.4,                // Size of the boids (scales drawing and colision detection)
     
     // Optimalisation (speed) parameters
     //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
@@ -59,25 +55,26 @@ function cacatoo() {
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   
   // Define some obstables for collision detection
-  sim.flock.placeObstacle({x:200,y:200,r:30,fill:'#ffffff33'})
-  sim.flock.placeObstacle({x:85,y:15,w:15,h:285,fill:'#ffffff33'})
-  sim.flock.placeObstacle({x:300,y:15,w:15,h:285,fill:'#ffffff33'})
-  sim.flock.placeObstacle({x:85,y:300,w:110,h:15,fill:'#ffffff33'})
-  sim.flock.placeObstacle({x:205,y:300,w:110,h:15,fill:'#ffffff33'})
+  let objforce = 1
+  sim.flock.placeObstacle({x:200,y:200,r:30,fill:'#ffffff33',force:objforce})
+  sim.flock.placeObstacle({x:85,y:15,w:15,h:285,fill:'#ffffff33',force:objforce})
+  sim.flock.placeObstacle({x:300,y:15,w:15,h:285,fill:'#ffffff33',force:objforce})
+  sim.flock.placeObstacle({x:85,y:300,w:110,h:15,fill:'#ffffff33',force:objforce})
+  sim.flock.placeObstacle({x:205,y:300,w:110,h:15,fill:'#ffffff33',force:objforce})
   
   
   
   // Add 3000 particles in the top
-  sim.flock.populateSpot(3000,215,90,70)
+  sim.flock.populateSpot(3000,200,90,30)
 
   for(let boid of sim.flock.boids) {
-    boid.type=Math.round(sim.rng.random()*2)+1
+    boid.type=Math.floor(sim.rng.random()*100)+1
   }
-  // Uncomment this line for a magic ball
-  //sim.flock.boids[0].gravity = -1 
   
-  sim.createFlockDisplay("flock", {legend: false, property:"type",label:"physics"})
-  // sim.addMovieButton(sim.flock, "physics",60)
+  sim.createFlockDisplay("flock", {legend: false, property:"type",label:"Basic physics (please do not build bridges with physics this bad)"})
+  sim.flock.update = function(){
+    for(let i=0; i<2; i++) this.flock()
+  }
   sim.start()
 }
 

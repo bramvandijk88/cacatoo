@@ -56,7 +56,7 @@ function cacatoo() {
     alignment: {strength:0, radius:30}, // Alignment parameters (uses default neighbour radius of 30)
     cohesion:  {strength:0, radius:50},  // Cohesion parameters (uses default neighbour radius of 30)
     separation:{strength:0, radius:4},  // Separation radius is smaller 
-    size: 10,                // Size of the boids (scales drawing and colision detection)
+    size: 12,                // Size of the boids (scales drawing and colision detection)
 
     // Optimalisation (speed) parameters
     //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
@@ -79,7 +79,7 @@ function cacatoo() {
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   sim.createFlockDisplay("flock",{addToDisplay:sim.canvases[0]}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
   
-  sim.flock.populateSpot(500,sim.nrow/2,sim.ncol/2,1)
+  sim.flock.populateSpot(100,sim.ncol/2,sim.nrow/2,1)
   for(boid of sim.flock.boids) {
     boid.png = "../../images/aapje_normal.png"
     boid.velocity.x = sim.rng.random()*2-1

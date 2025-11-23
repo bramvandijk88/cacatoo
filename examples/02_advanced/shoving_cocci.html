@@ -38,12 +38,12 @@ function cacatoo() {
     max_speed: 2,          // Maximum velocity of boids
     max_force: 0.2,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
     init_velocity:0,
-    friction: 0.5,        // Them ants are darn slippery :)
+    friction: 0.5,       
     // Mouse parameters
     mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
     draw_mouse_radius: true,            // Show a circle where the mouse is
     // Collision behaviour
-    collision_force: 0.5,
+    collision_force: 2.5,
     size: 5,                // Size of the boids (scales drawing and colision detection)
 
     // Optimalisation (speed) parameters
@@ -87,9 +87,10 @@ function cacatoo() {
   }
 
   sim.flock.update = function(){
+    
     for(let boid of this.boids) {
       for(let i of sim.flock.getNearbyGridpoints(boid,sim.env,boid.size+1)){
-        let uptake = i.external_resources*0.1
+        let uptake = i.external_resources*0.3
         i.external_resources -= uptake
         boid.internal_resources += uptake
       }
