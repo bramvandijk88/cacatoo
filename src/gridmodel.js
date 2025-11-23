@@ -1094,11 +1094,12 @@ class Gridmodel {
 
         if (fract != undefined) ncol *= fract, nrow *= fract
         let grid = new Array(nrow);             // Makes a column or <rows> long --> grid[cols]
-        for (let x = 0; x < ncol; x++)
+        for (let x = 0; x < ncol; x++){
             grid[x] = new Array(ncol);          // Insert a row of <cols> long   --> grid[cols][rows]
-        for (let y = 0; y < nrow; y++)
-            grid[x][y] = this.grid[x][y][property]
-
+            for (let y = 0; y < nrow; y++){
+                grid[x][y] = this.grid[x][y][property]
+            }
+        }
         console.table(grid)
     }
 }
