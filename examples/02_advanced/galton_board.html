@@ -35,16 +35,16 @@ function cacatoo() {
   let flockconfig = {
     shape: 'dot',          // Shape of the boids drawn 
     click: 'repel',          // Clicking the boids pushes them away from the mouse
-    max_speed: 0.05,          // Maximum velocity of boids
-    max_force: 0.02,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    max_speed: 1,          // Maximum velocity of boids
+    max_force: 0.2,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
     init_velocity:0.0,
-    friction: 0.0003,
-    gravity: 0.0001,
+    friction: 0.003,
+    gravity: 0.001,
     // Mouse parameters
     mouse_radius: 20,                   // Radius of boids captured by the mouse overlay
     draw_mouse_radius: true,            // Show a circle where the mouse is
     // Collision behaviour
-    collision_force: 0.03,
+    collision_force: 0.3,
     brownian: 0.0,
     size: 8,                // Size of the boids (scales drawing and colision detection)
     
@@ -77,7 +77,7 @@ function cacatoo() {
   sim.flock.add = function(){
     
     let n = sim.flock.boids.length
-    sim.flock.populateSpot(20,250,3,20)
+    sim.flock.populateSpot(100,250,3,30)
     for(let i=n; n<sim.flock.boids.length;n++) {
       sim.flock.boids[n].type=sim.colnum
     }

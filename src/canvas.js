@@ -349,23 +349,24 @@ class Canvas {
 
     drawBoidRod(boid, ctx) {
         ctx.fillStyle = boid.fill;
-        ctx.lineWidth = boid.size * this.scale;
-
+        let scale = this.scale
+        ctx.lineWidth = boid.size * scale;
+        
         // Normalised velocity
         const vector = this.model.normaliseVector(boid.velocity);
 
         // Front circle
-        const frontx = (boid.position.x + 2 * vector.x) * this.scale;
-        const fronty = (boid.position.y + 2 * vector.y) * this.scale;
+        const frontx = (boid.position.x + 2 * vector.x) * scale;
+        const fronty = (boid.position.y + 2 * vector.y) * scale;
         ctx.beginPath();
-        ctx.arc(frontx, fronty, 0.5 * boid.size * this.scale, 0, Math.PI * 2);
+        ctx.arc(frontx, fronty, 0.5 * boid.size * scale, 0, Math.PI * 2);
         ctx.fill();
 
         // Back circle
-        const backx = (boid.position.x - 2 * vector.x) * this.scale;
-        const backy = (boid.position.y - 2 * vector.y) * this.scale;
+        const backx = (boid.position.x - 2 * vector.x) * scale;
+        const backy = (boid.position.y - 2 * vector.y) * scale;
         ctx.beginPath();
-        ctx.arc(backx, backy, 0.5 * boid.size * this.scale, 0, Math.PI * 2);
+        ctx.arc(backx, backy, 0.5 * boid.size * scale, 0, Math.PI * 2);
         ctx.fill();
 
         // Connecting rod
@@ -375,12 +376,8 @@ class Canvas {
         ctx.lineTo(backx, backy);
         ctx.stroke();
 
-
-        // ================================
-        // FLAGELLA (all logic is here!)
-        // ================================
         if (boid.flagella) {
-            const size = boid.size * this.scale;
+            const size = boid.size * scale;
 
             if (boid.flagella === "directed") {
                 // Base angle = pointing backwards relative to velocity
@@ -398,21 +395,24 @@ class Canvas {
                 });
 
             } else if (boid.flagella === "random") {
-                // 3 evenly spaced angles around the circle
-                const angles = [
+                // 3 flagella, evenly spaced around body, rotated by boid direction
+                const base = Math.atan2(boid.velocity.y, boid.velocity.x);
+
+                // 3 offsets around the circle
+                const offsets = [
                     0,
                     (2 * Math.PI) / 3,
                     (4 * Math.PI) / 3
                 ];
 
-                const r = 0.15 * boid.size * this.scale;
-                const cx = boid.position.x * this.scale;
-                const cy = boid.position.y * this.scale;
+                const r = 0.15 * boid.size * scale;
+                const cx = boid.position.x * scale;
+                const cy = boid.position.y * scale;
 
-                angles.forEach((ang, i) => {
+                offsets.forEach((off, i) => {
+                    const ang = base + off;  // rotate with boid direction
                     const x = cx + Math.cos(ang) * r;
                     const y = cy + Math.sin(ang) * r;
-
                     this.drawFlagellum(ctx, x, y, ang, size, i);
                 });
             }
@@ -420,9 +420,9 @@ class Canvas {
     }
 
     drawFlagellum(ctx, x, y, angle, size, index) {
-        const time = this.model.time * 0.2;     // wave speed
+        const time = this.model.time * 1;     // wave speed
         const length = 2 * size;                // flagellum length
-        const segments = 6;                     // smoothness
+        const segments = 12;                     // smoothness
         const amp = 0.3 * size;                 // wiggle amplitude
 
         ctx.beginPath();
