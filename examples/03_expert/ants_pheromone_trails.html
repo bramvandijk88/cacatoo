@@ -27,7 +27,7 @@ function cacatoo() {
     description: "Including mosh pits", // And a description if you wish
     maxtime: 1000000, // How many time steps the model continues to run
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-    ncol: 200, // Number of columns (width of your grid)
+    ncol: 100, // Number of columns (width of your grid)
     nrow: 100, // Number of rows (height of your grid)
     scale: 5, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
@@ -144,11 +144,11 @@ function cacatoo() {
     if(sim.time%5  == 0 && sim.flock.boids.length < num_ants) sim.spawnAnt()
     for(let boid of this.boids) {
       
-      let x = Math.floor(boid.position.x)
-      let y = Math.floor(boid.position.y)
-      if(!boid.food && sim.grid.grid[x][y].food > 0){
-        if(depletable)sim.grid.grid[x][y].food -= food_depletion_rate
-        if(sim.grid.grid[x][y].food <= 0) sim.grid.grid[x][y].food = undefined
+      let gp = this.getGridpoint(boid, sim.grid)
+      if(gp==undefined) continue
+      if(!boid.food && gp.food > 0){
+        if(depletable) gp.food -= food_depletion_rate
+        if(gp.food <= 0) gp.food = undefined
         boid.food = "white"
         boid.velocity.x *= -1
         boid.velocity.y *= -1
@@ -169,12 +169,12 @@ function cacatoo() {
       
       
       // Pheromone tracking
-      let nest_pherx = sim.grid.grid[x][y].homing_velocity.x
-      let nest_phery = sim.grid.grid[x][y].homing_velocity.y
-      let nest_pheromone_amount = this.lengthVector(sim.grid.grid[x][y].homing_velocity)
-      let food_pherx = sim.grid.grid[x][y].food_velocity.x
-      let food_phery = sim.grid.grid[x][y].food_velocity.y
-      let food_pheromone_amount = this.lengthVector(sim.grid.grid[x][y].food_velocity)
+      let nest_pherx = gp.homing_velocity.x
+      let nest_phery = gp.homing_velocity.y
+      let nest_pheromone_amount = this.lengthVector(gp.homing_velocity)
+      let food_pherx = gp.food_velocity.x
+      let food_phery = gp.food_velocity.y
+      let food_pheromone_amount = this.lengthVector(gp.food_velocity)
 
       // Randomly rotate a bit
       
@@ -192,16 +192,16 @@ function cacatoo() {
         boid.acceleration.x +=  Math.cos(pheromone_angle) * food_pheromone_amount * -1
         boid.acceleration.y +=  Math.sin(pheromone_angle) * food_pheromone_amount * -1
       }
-      if(sim.inbounds(x,y)){
-        if(!boid.food){
-          sim.grid.grid[x][y].homing_velocity.x += boid.velocity.x*10
-          sim.grid.grid[x][y].homing_velocity.y += boid.velocity.y*10
-        }
-        else{
-          sim.grid.grid[x][y].food_velocity.x += boid.velocity.x*10
-          sim.grid.grid[x][y].food_velocity.y += boid.velocity.y*10
-        }
+      
+      if(!boid.food){
+        gp.homing_velocity.x += boid.velocity.x*10
+        gp.homing_velocity.y += boid.velocity.y*10
       }
+      else{
+        gp.food_velocity.x += boid.velocity.x*10
+        gp.food_velocity.y += boid.velocity.y*10
+      }
+      
       boid.foraging_time++
       if(boid.foraging_time>max_foraging_time){
         let xpos = Math.max(3+sim.nest.x+sim.rng.randomGaus(0,3),0)

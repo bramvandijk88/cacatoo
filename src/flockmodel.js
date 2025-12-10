@@ -503,73 +503,29 @@ class Flockmodel {
         }
 
         const r = boid.size / 2;
-        const damp = 0.8; // damping when hitting wall
-
-        //----------------------------------------------------------------------
-        // LEFT wall (no wrap)
-        //----------------------------------------------------------------------
+        const force = 0.1
+        // left wall
         if (!this.wrap[0] && boid.position.x < r) {
-            const penetration = r - boid.position.x;
-
-            // push out
-            boid.position.x += penetration;
-
-            // inward velocity component
-            if (boid.velocity.x < 0) {
-                boid.velocity.x = 0;      // stop inward motion
-            }
-
-            // damping
-            boid.velocity.x *= damp;
-            boid.velocity.y *= damp;
+        const pen = r - boid.position.x;
+        boid.acceleration.x += pen*force;
         }
 
-        //----------------------------------------------------------------------
-        // RIGHT wall
-        //----------------------------------------------------------------------
+        // right wall
         if (!this.wrap[0] && boid.position.x > this.width - r) {
-            const penetration = boid.position.x - (this.width - r);
-
-            boid.position.x -= penetration;
-
-            if (boid.velocity.x > 0) {
-                boid.velocity.x = 0;
-            }
-
-            boid.velocity.x *= damp;
-            boid.velocity.y *= damp;
+        const pen = boid.position.x - (this.width - r);
+        boid.acceleration.x -= pen*force;
         }
 
-        //----------------------------------------------------------------------
-        // TOP wall
-        //----------------------------------------------------------------------
+        // top wall
         if (!this.wrap[1] && boid.position.y < r) {
-            const penetration = r - boid.position.y;
-
-            boid.position.y += penetration;
-
-            if (boid.velocity.y < 0) {
-                boid.velocity.y = 0;
-            }
-
-            boid.velocity.x *= damp;
-            boid.velocity.y *= damp;
+        const pen = r - boid.position.y;
+        boid.acceleration.y += pen*force;
         }
 
-        //----------------------------------------------------------------------
-        // BOTTOM wall
-        //----------------------------------------------------------------------
+        // bottom wall
         if (!this.wrap[1] && boid.position.y > this.height - r) {
-            const penetration = boid.position.y - (this.height - r);
-
-            boid.position.y -= penetration;
-
-            if (boid.velocity.y > 0) {
-                boid.velocity.y = 0;
-            }
-
-            boid.velocity.x *= damp;
-            boid.velocity.y *= damp;
+        const pen = boid.position.y - (this.height - r);
+        boid.acceleration.y -= pen*force;
         }
 
         //----------------------------------------------------------------------
@@ -639,6 +595,8 @@ class Flockmodel {
         }
     }
 
+   /* The above code is a multi-line comment in JavaScript. It is not executing any code but is used
+   for providing explanations or notes within the code. */
    inBounds(boid, rect){
         if(!rect) rect = {x:0,y:0,w:this.width,h:this.height}
         let r = boid.size/2
@@ -825,9 +783,16 @@ class Flockmodel {
         utility.shuffle(this.upd_order, this.rng)         // Shuffle the update order
     }
 
-    // TODO UITLEG
+    // Returns the grid point corresponding to the boid's position. Returns 'null' if the boid is out of bounds
     getGridpoint(i,gridmodel){
-        return gridmodel.grid[Math.floor(i.x)][Math.floor(i.y)]
+        let x = Math.floor(i.position.x)
+        let y = Math.floor(i.position.y)
+        if(x >= 0 && x < gridmodel.nc && y >= 0 && y < gridmodel.nr) {
+            return(gridmodel.grid[x][y])
+        }
+        else{
+            return undefined
+        }
     }
 
     // TODO UITLEG
