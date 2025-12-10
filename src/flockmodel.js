@@ -503,7 +503,7 @@ class Flockmodel {
         }
 
         const r = boid.size / 2;
-        const force = 0.1
+        const force = this.max_force
         // left wall
         if (!this.wrap[0] && boid.position.x < r) {
         const pen = r - boid.position.x;
