@@ -2391,6 +2391,7 @@ class Flockmodel {
     getBoidGridpoint(i,gridmodel){
         let x = Math.floor(i.position.x);
         let y = Math.floor(i.position.y);
+        console.log(gridmodel);
         if(x >= 0 && x < gridmodel.nc && y >= 0 && y < gridmodel.nr) {
             gridmodel.grid[x][y].x = x;
             gridmodel.grid[x][y].y = y;
