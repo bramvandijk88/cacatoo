@@ -144,7 +144,8 @@ function cacatoo() {
     if(sim.time%5  == 0 && sim.flock.boids.length < num_ants) sim.spawnAnt()
     for(let boid of this.boids) {
       
-      let gp = this.getGridpoint(boid, sim.grid)
+      let gp = this.getBoidGridpoint(boid, sim.grid)
+      
       if(gp==undefined) continue
       if(!boid.food && gp.food > 0){
         if(depletable) gp.food -= food_depletion_rate
