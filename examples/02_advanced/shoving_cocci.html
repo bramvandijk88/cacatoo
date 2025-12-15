@@ -61,9 +61,11 @@ function cacatoo() {
 
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   
-  sim.flock.populateSpot(1,sim.nr/2,sim.nc/2,1)
- 
-  for(let boid of sim.flock.boids) boid.internal_resources=0.0
+  sim.flock.populateSpot(100,sim.nr/2,sim.nc/2,1)
+  
+  for(let boid of sim.flock.boids) {
+    boid.internal_resources=1.0
+  }
   
   sim.createFlockDisplay("flock", {addToDisplay:sim.canvases[0], 
                                    legend: true,
@@ -95,13 +97,17 @@ function cacatoo() {
         boid.internal_resources += uptake
       }
 
-      boid.internal_resources *= 0.99
+      let consumed = boid.internal_resources*0.01
+      if(boid.size < 5) boid.size += consumed/(consumed+3)
+      boid.internal_resources -= consumed
       
       if(!boid.overlapping && boid.internal_resources >= 15 && sim.rng.random() < 0.05){
         let newboid = this.copyBoid(boid)
         let angle = sim.rng.random()*Math.PI*2
         newboid.position.x+= 0.5*boid.size*Math.cos(angle)
         newboid.position.y+= 0.5*boid.size*Math.sin(angle)
+        newboid.size /= 2
+        boid.size /=2
         if(this.inBounds(newboid))
           this.boids.push(newboid)
       }
