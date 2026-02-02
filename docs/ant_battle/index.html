@@ -431,7 +431,7 @@ function cacatoo() {
       
       let x = Math.floor(boid.position.x)
       let y = Math.floor(boid.position.y)
-
+      if(x < 0 || x > sim.ncol ||  y < 0 || y > sim.nrow) continue
       let pherx = sim.pheromones.grid[x][y].homing_velocity.x
       let phery = sim.pheromones.grid[x][y].homing_velocity.y
       let pheromone_angle = Math.atan2(phery,pherx)
@@ -468,13 +468,15 @@ function cacatoo() {
         boid.acceleration.y +=  boid.acceleration.y + Math.sin(pheromone_angle) * pheromone_amount * boid.sense/100 
       }
       
-      if(boid.foraging){
-        sim.pheromones.grid[x][y].homing_velocity.x += boid.velocity.x*100*boid.pherprod
-        sim.pheromones.grid[x][y].homing_velocity.y += boid.velocity.y*100*boid.pherprod
-      }
-      else {
-        sim.pheromones.grid[x][y].food_velocity.x += boid.velocity.x*100*boid.pherprod_food
-        sim.pheromones.grid[x][y].food_velocity.y += boid.velocity.y*100*boid.pherprod_food
+      if(x > 0 && x < sim.ncol && y > 0 && y < sim.nrow){
+        if(boid.foraging){
+          sim.pheromones.grid[x][y].homing_velocity.x += boid.velocity.x*100*boid.pherprod
+          sim.pheromones.grid[x][y].homing_velocity.y += boid.velocity.y*100*boid.pherprod
+        }
+        else {
+          sim.pheromones.grid[x][y].food_velocity.x += boid.velocity.x*100*boid.pherprod_food
+          sim.pheromones.grid[x][y].food_velocity.y += boid.velocity.y*100*boid.pherprod_food
+        }
       }
       boid.foraging_time++
       
