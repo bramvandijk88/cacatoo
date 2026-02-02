@@ -541,7 +541,7 @@ class Gridmodel {
     rouletteWheel(gps, property, non = 0.0) {
         let sum_property = non
         for (let i = 0; i < gps.length; i++) sum_property += gps[i][property]       // Now we have the sum of weight + a constant (non)
-        let randomnr = this.rng.genrand_real1() * sum_property                // Sample a randomnr between 0 and sum_property        
+        let randomnr = this.rng.genrand_real2() * sum_property                // Sample a randomnr between 0 and sum_property        
         let cumsum = 0.0                                                    // This will keep track of the cumulative sum of weights
         for (let i = 0; i < gps.length; i++) {
             cumsum += gps[i][property]

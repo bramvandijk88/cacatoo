@@ -9,8 +9,9 @@
 <style>
   body {
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  background-color: rgb(203, 84, 160);
+  background-color: rgb(0, 0, 0);
   margin: 0px;
+  color: white;
   font-size: 13px;
   overflow-x: hidden;
   }
@@ -87,7 +88,7 @@ button {
     float: right;
     
     border-radius: 15px;
-    background-color: #e0a709AA;
+    background-color: #ffbb00d3;
   }
   @media (max-width: 1000px) {
     .skilltree2 {
@@ -101,7 +102,7 @@ button {
       float: right;
       
       border-radius: 15px;
-      background-color: #e0a709AA;
+      background-color: #ffbb00d3;
     }
   }
   .grid-holder {
@@ -283,7 +284,7 @@ function cacatoo() {
                             sense: ant_1_sense,
                             pherprod: ant_1_pherprod,
                             pherprod_food: ant_1_pherprod_food,
-                            fill: "purple",
+                            fill: "#bc27c4",
                             foraging: true,
                             foraging_time: 0,
                             size: 3 })
@@ -330,13 +331,13 @@ function cacatoo() {
       2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
   */
   sim.pheromones.nextState = function(x, y) {
-    this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.985) // decay
-    this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.985) // decay
+    this.grid[x][y].homing_velocity = sim.flock.scaleVector(this.grid[x][y].homing_velocity, 0.98) // decay
+    this.grid[x][y].food_velocity = sim.flock.scaleVector(this.grid[x][y].food_velocity, 0.98) // decay
     
     for(let i=1; i<=4; i++) { // diffusion
       let neigh = this.getNeighbour(this,x,y,i)
       if(neigh==undefined) continue
-      let diffusion_const = 0.0001
+      let diffusion_const = 0.01
       neigh.homing_velocity.x += diffusion_const*this.grid[x][y].homing_velocity.x
       this.grid[x][y].homing_velocity.x -= diffusion_const*this.grid[x][y].homing_velocity.x
       neigh.homing_velocity.y += diffusion_const*this.grid[x][y].homing_velocity.y
@@ -352,8 +353,8 @@ function cacatoo() {
   }
 
   sim.pheromones.update = function() {
-    //this.diffuseStateVector("homing_velocity",0.01)
-    //this.diffuseStateVector("food_velocity",0.01)
+    //if(sim.time%10==0)this.diffuseStateVector("homing_velocity",0.01)
+    //if(sim.time%10==0)this.diffuseStateVector("food_velocity",0.01)
     this.asynchronous() 
     
     
@@ -361,7 +362,7 @@ function cacatoo() {
 
   sim.flock.update = function(){
     if(sim.time%5==0)sim.spawnAnts()
-    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Food collected",{width:800})
+    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Sugar collected",{width:800})
     for(let boid of this.boids) {
       if(boid.foraging_time>max_foraging_time){
         if(boid.type=="purple") {
@@ -520,25 +521,30 @@ function cacatoo() {
           let veloy = sim.pheromones.grid[x][y].homing_velocity.y
           let length = Math.sqrt(velox*velox + veloy*veloy)
           let scaled = sim.normaliseVector(velox,veloy,10)
-          this.ctx.beginPath()
-          this.ctx.strokeStyle= `rgba(150,0,0,${length/100})`;
-          this.ctx.lineWidth = 1
-          this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
-          this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
-          this.ctx.stroke()
-          this.ctx.closePath()
+          // this.ctx.beginPath()
+          // this.ctx.strokeStyle= `rgba(200,0,0,${length/100})`;
+          // this.ctx.lineWidth = 2
+          // this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
+          // this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
+          // this.ctx.stroke()
+          // this.ctx.closePath()
+          this.ctx.fillStyle= `rgba(200,0,0,${length/100})`;
+          this.ctx.fillRect(x*sim.scale,y*sim.scale,sim.scale/2,sim.scale/2)
 
           velox = sim.pheromones.grid[x][y].food_velocity.x
           veloy = sim.pheromones.grid[x][y].food_velocity.y
           length = Math.sqrt(velox*velox + veloy*veloy)
           scaled = sim.normaliseVector(velox,veloy,10)
-          this.ctx.beginPath() 
-          this.ctx.strokeStyle= `rgba(0,0,150,${length/100})`;
-          this.ctx.lineWidth = 1
-          this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
-          this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
-          this.ctx.stroke()
-          this.ctx.closePath()
+          // this.ctx.beginPath() 
+          // this.ctx.strokeStyle= `rgba(0,100,250,${length/100})`;
+          // this.ctx.lineWidth = 2
+          // this.ctx.moveTo(this.scale*0.5+x*this.scale,this.scale*0.5+y*this.scale)
+          // this.ctx.lineTo(this.scale*0.5+x*this.scale+scaled.x*scale_vector,this.scale*0.5+y*this.scale+scaled.y*scale_vector)
+          // this.ctx.stroke()
+          // this.ctx.closePath()
+
+          this.ctx.fillStyle= `rgba(0,100,250,${length/100})`;
+          this.ctx.fillRect(x*sim.scale,y*sim.scale,sim.scale/2,sim.scale/2)
         }
       }
     
@@ -546,7 +552,7 @@ function cacatoo() {
    
     sim.canvases[0].overlay = function(){
       if(boundary){
-      this.ctx.strokeStyle = "black"
+      this.ctx.strokeStyle = "#444444"
       this.ctx.lineWidth = 5
       this.ctx.beginPath()
       this.ctx.moveTo(0,sim.nrow*this.scale)
@@ -571,27 +577,28 @@ function cacatoo() {
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = 'middle';
       this.ctx.font = "16px sans";
-      this.ctx.fillText(totalfood,x,y)
+      this.ctx.fillText(`Sugar:`,x,y-10)
+      this.ctx.fillText(`${totalfood}`,x,y+10)
 
       // Purple nest
-      this.ctx.fillStyle="#80008088"
+      this.ctx.fillStyle="#800080aa"
       this.ctx.beginPath()
       this.ctx.arc(20,20,30,0,Math.PI*2)
       this.ctx.fill()
       this.ctx.closePath()
-      this.ctx.fillStyle="black"
+      this.ctx.fillStyle="white"
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = 'middle';
       this.ctx.font = "14px sans";
       this.ctx.fillText(Math.round(food_purple),20,20)
 
       // Golden nest
-      this.ctx.fillStyle="#e0a70988"
+      this.ctx.fillStyle="#e0a709aa"
       this.ctx.beginPath()
       this.ctx.arc(sim.ncol*this.scale-20,sim.nrow*this.scale-20,30,0,Math.PI*2)
       this.ctx.fill()
       this.ctx.closePath()
-      this.ctx.fillStyle="black"
+      this.ctx.fillStyle="white"
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = 'middle';
       this.ctx.font = "14px sans";
@@ -623,7 +630,7 @@ function cacatoo() {
     }})
   document.getElementById('Reset').style = ''
   sim.addButton("Respec gold", function () { gb6.reset(); gb1.reset();gb2.reset();gb3.reset();gb4.reset();gb5.reset(); })    
-  document.getElementById('Respec gold').style = 'width:200; margin-right:7.5em; background:#e0a709AA;float: right; width:200px'
+  document.getElementById('Respec gold').style = 'width:200; margin-right:7.5em; background:#ffbb00d3;float: right; width:200px'
   
   sim.addButton("Pause",function () { sim.toggle_play() })
   
@@ -729,7 +736,7 @@ class AntButton {
 
 <body onload="cacatoo()">
     <div class="gameheader" id="gameheader">
-        <h2>Epic ant battle!<br><font size=2>(Power in numbers?)</font> </h2>
+        <h2>Foraging for sugar: power in numbers?<br><font size=2>A simple simulation of ants foraging for food. Try you're own strategy and see what works!</font> </h2>
     </div>
     <div class="gamecanvas" id="canvas_holder"></div>
     
