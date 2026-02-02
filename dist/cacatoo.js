@@ -1633,8 +1633,7 @@ class Flockmodel {
         this.init_velocity = config.init_velocity || 0.1;
         this.rng = rng;
         this.random = () => { return this.rng.random()};
-        this.randomInt = (a,b) => { return this.rng.randomInt(a,b)};        
-        
+        this.randomInt = (a,b) => { return this.rng.randomInt(a,b)};                
         this.wrap = config.wrap || [true, true];
         
         this.wrapreflect = 1;
@@ -2391,7 +2390,6 @@ class Flockmodel {
     getBoidGridpoint(i,gridmodel){
         let x = Math.floor(i.position.x);
         let y = Math.floor(i.position.y);
-        
         if(x >= 0 && x < gridmodel.nc && y >= 0 && y < gridmodel.nr) {
             gridmodel.grid[x][y].x = x;
             gridmodel.grid[x][y].y = y;
@@ -2401,8 +2399,7 @@ class Flockmodel {
             return undefined
         }
     }
-    getGridpoint = this.getBoidGridpoint
-
+    
     // TODO UITLEG
     getNearbyGridpoints(boid,gridmodel,radius){
         let gps = [];
