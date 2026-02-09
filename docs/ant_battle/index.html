@@ -26,6 +26,9 @@ button {
   margin: 10px;
   width: 128px;
 }
+a{
+  color:rgb(132, 0, 255);
+}
   .gameheader{
     font-size: 20px;
     color:white;
@@ -140,6 +143,74 @@ button {
     margin: 0 10px;
     padding: 5px;
 }
+
+/* ===== UITLEG MODAL ===== */
+.helpbtn{
+  position: fixed;
+  cursor: pointer;
+  top: 10px;
+  left: 10px;
+  z-index: 9999;
+  width: auto;
+  padding: 9px 12px;
+  font-size: 14px;
+  background-color: #8438a0;
+}
+
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.68);   /* donkerder overlay */
+  backdrop-filter: blur(10px);     /* minder blur (of 0px) */
+  z-index: 9998;
+  display: none;
+}
+
+.modal{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  width: min(720px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
+  overflow: auto;
+  z-index: 9999;
+  display: none;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: linear-gradient(180deg, var(--card), var(--card2));
+}
+
+.modal-head{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.modal-close{
+  width: auto;
+  padding: 6px 10px;
+  margin: 0;
+  font-size: 14px;
+  background: rgba(255,255,255,.08);
+}
+
+.modal-body{
+  padding: 14px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.modal-body ul{ margin: 8px 0 0 18px; }
+.modal-body code{
+  background: rgba(255,255,255,.06);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
 </style>
 
 <script>
@@ -362,7 +433,21 @@ function cacatoo() {
 
   sim.flock.update = function(){
     if(sim.time%5==0)sim.spawnAnts()
-    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Sugar collected",{width:800})
+    this.plotArray(["Purple","Gold"],[food_purple,food_gold],["#800080","gold"],"Sugar collected",
+  {
+    width:800,  labelsDivStyles: { color: "black" }, 
+    axes: {
+    x: {
+      axisLabelColor: "white",
+      axisLabelFontColor: "white"
+    },
+    y: {
+      axisLabelColor: "white",
+      axisLabelFontColor: "white"
+    }
+  }
+  
+  })
     for(let boid of this.boids) {
       if(boid.foraging_time>max_foraging_time){
         if(boid.type=="purple") {
@@ -732,11 +817,84 @@ class AntButton {
 
 
 
+// ===== UITLEG MODAL LOGIC =====
+function openHelp(){
+  const m = document.getElementById('helpmodal');
+  const b = document.getElementById('helpbackdrop');
+  if(!m || !b) return;
+  m.style.display = 'block';
+  b.style.display = 'block';
+}
+function closeHelp(){
+  const m = document.getElementById('helpmodal');
+  const b = document.getElementById('helpbackdrop');
+  if(!m || !b) return;
+  m.style.display = 'none';
+  b.style.display = 'none';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('helpbtn');
+  const close = document.getElementById('helpclose');
+  const back = document.getElementById('helpbackdrop');
+
+  if(btn) btn.addEventListener('click', openHelp);
+  if(close) close.addEventListener('click', closeHelp);
+  if(back) back.addEventListener('click', closeHelp);
+
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') closeHelp();
+  });
+});
+
 </script>
 
 
 
 <body onload="cacatoo()">
+
+  <button class="helpbtn" id="helpbtn">Uitleg en vragen</button>
+
+<div class="modal-backdrop" id="helpbackdrop"></div>
+
+<div class="modal" id="helpmodal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal-head">
+    <b id="helpTitle">Uitleg en vragen</b>
+    <button class="modal-close" id="helpclose">X</button>
+  </div>
+  <div class="modal-body">
+    <p>
+      Modellen en simulaties kunnen in de biologie worden gebruikt om te begrijpen hoe biologische systemen werken en om voorspellingen te maken. 
+      In deze interactieve simulatie kun je zelf een model van mieren die suiker zoeken aanpassen en kijken wat er gebeurt.
+    </p>
+    <p>
+      Dit is een simpele simulatie van mieren die suiker zoeken. De <b>mieren</b> lopen blind rond op zoek het suiker (in het midden), 
+      en laten daarbij rode en blauwe <b>pheromoon-signalen</b> achter.  Omdat de mieren rode signalen achterlaten als ze van het nest weglopen, 
+      kunnen mieren deze signalen volgen om terug te lopen naar het nest. En omdat ze blauwe signalen achterlaten als ze voedsel hebben gevonden, kunnen
+      andere mieren deze volgen om bij het voedsel te komen. De signalen verspreiden/doven langzaam.
+    </p>
+
+    <p><b>Wat kun je doen?</b></p>
+    <ul>
+      <li>Verdeel de <i> attribute points</i> voor de <font color='magenta'><b>paarse</b></font> en <font color='gold'><b>gouden</b></font> mieren (links/rechts), en kijk wie er wint.</li>
+      <li>Test strategieën: meer mieren vs. sneller vs. beter “ruiken” vs. meer suiker kunnen dragen.</li>
+      <li>Gebruik <code>Reset</code> / <code>Respec</code> om opnieuw te beginnen.</li>
+    </ul>
+
+    <p><b>Probeer deze vragen te beantwoorden:</b></p>
+    <ul>
+      <li>Wie winnen er met de standaardinstellingen op korte termijn? En op lange termijn?</li>
+      <li>Kun je een strategie vinden die de (standaard ingestelde) gouden mieren verslaag?</li>
+      <li>De <i>boundary</i> (grijze lijn) zorgt ervoor dat de mieren niet naar elkaars helft kunnen. Wat zie je als je deze muur weghaalt? </li>
+      </ul>
+
+    <p>
+      Heb je vragen? Stuur ze gerust naar <a href="mailto:b.vandijk@uu.nl">Bram van Dijk</a>
+    </p>
+  </div>
+</div>
+
+
     <div class="gameheader" id="gameheader">
         <h2>Foraging for sugar: power in numbers?<br><font size=2>A simple simulation of ants foraging for food. Try your own strategy and see what works!</font> </h2>
     </div>
