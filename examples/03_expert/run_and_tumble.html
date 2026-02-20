@@ -1,0 +1,430 @@
+<!-- 
+ /**
+ * Chemotaxis toy model (temporal sensing):
+ *
+ * 1. Sense:
+ *    Each agent reads the local chemoattractant concentration R(x,y).
+ *    The receptor methylation M adapts slowly toward R.
+ *    M therefore acts as an internal expectation of “how good it was recently”.
+ *
+ * 2. Run:
+ *    If current concentration ≥ expectation (R ≥ M),
+ *    the agent continues straight (run), with slight angular noise.
+ *
+ * 3. Tumble:
+ *    If current concentration < expectation (R < M),
+ *    the agent enters a tumble phase:
+ *      - pure rotation
+ *      - no forward acceleration
+ *    After tumbling time, the agent resumes running in a new random direction.
+ *
+ * Biological intuition:
+ *    Cells compare “now” vs “recent past”.
+ *    This implements adaptation without explicit 2-component cascades.
+ */
+-->
+
+<html>
+  <head>
+    <title>Cacatoo examples</title>
+    <script src="../../dist/cacatoo.js"></script>   <!-- Cacatoo library -->
+    <script src="../../lib/all.js"></script>        <!-- Overige pakketten -->
+    <link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Stijlen -->
+  </head>
+
+  <script>
+  /*----------------------- Start user-defined code ---------------------*/
+
+  let sim;
+
+  // Globale parameters voor het model
+  var num_startboids        = 1000;
+  let mycohesion            = 0.0;
+  let mycollision           = 0.5;
+  var resource_width        = 150;
+  var resource_noise_level  = 0;
+  var resource_noise_scale  = 1;
+  let nr_peaks              = 1;
+  let speed                 = 1;
+
+  // Methylation- en tumble-parameters
+  let methylation_increase  = 0.1;  // snelheid waarmee M richting R beweegt (run)
+  let methylation_decay     = 0.01; // afname van M tijdens tumble
+  let avg_tumble_time       = 30;   // gemiddelde lengte van tumble-fase (in updates)
+
+  // Voor polling van slider-veranderingen
+  let last_resource_width       = resource_width;
+  let last_resource_noise_level = resource_noise_level;
+  let last_resource_noise_scale = resource_noise_scale;
+  let last_num_startboids = num_startboids;
+  
+  function cacatoo() {
+
+    // Basisconfiguratie van de Cacatoo-simulatie
+    const simconfig = {
+      title: "Collective migration",
+      description: "",
+      maxtime: 1000000,
+      ncol: 500,
+      nrow: 500,
+      scale: 1,
+      sleep: 0,
+      seed: 3,
+      wrap: [false, false],
+      graph_update: 10,
+      graph_interval: 10,
+      fpsmeter: false
+    };
+
+    // Configuratie voor het boid-/bacteriemodel
+    const flockconfig = {
+      num_boids: 0,
+      shape: 'rod',
+      click: 'repel',
+      max_speed: 2,
+      max_force: 1,
+      init_velocity: 0.0,
+      friction: 0.01,
+      brownian: 0.0,
+      mouse_radius: 100,
+      draw_mouse_radius: 'true',
+      draw_mouse_colour: 'white',
+      physics: false,
+      collision_force: 2.0,
+      size: 4.0,
+      qt_capacity: 3
+    };
+    
+    // Simulatie-object aanmaken
+    sim = new Simulation(simconfig);
+
+    // Modellen toevoegen: boids (flock) + grid (environment)
+    sim.makeFlockmodel("flock", flockconfig);
+    sim.makeGridmodel("environment");
+
+    // Beginwaarden voor chemo-attractant in de grid
+    sim.initialGrid(sim.environment, "R", 0.1, 1);
+
+    // Weergave van de veldconcentratie (log-schaal)
+    sim.createDisplay_continuous({
+      model: "environment",
+      property: "dispR",
+      minval: -60.0,
+      maxval: 30,
+      num_colours: 100,
+      decimals: 3,
+      legend: true,
+      legendlabel: "Concentration chemo-attractant",
+      nticks: 1,
+      fill: "inferno",
+      label: "Bacterial chemotaxis"
+    });
+
+    // Peakpositie: start in het midden
+    sim.resource_x = sim.ncol / 2;
+    sim.resource_y = sim.nrow / 2;
+
+    // Plaats één "wolkige" resource-peak met ruis
+    sim.placeResourceGradient = function (xpos, ypos, a, d, noise_radius, noise_strength) {
+      let max_value_placed = -Infinity;
+      let min_value_placed = +Infinity;
+
+      const EPS  = 1e-32;
+      const step = Math.max(1, Math.floor(noise_radius));
+
+      // 1. Coarse noise veld
+      const nx = Math.ceil(sim.ncol / step);
+      const ny = Math.ceil(sim.nrow / step);
+      const coarse = new Array(nx);
+
+      for (let cx = 0; cx < nx; cx++) {
+        coarse[cx] = [];
+        for (let cy = 0; cy < ny; cy++) {
+          coarse[cx][cy] = sim.rng.random(); // 0–1
+        }
+      }
+
+      // 2. Bilineaire interpolatie van het noise veld
+      function sampleNoise(x, y) {
+        const gx = x / step;
+        const gy = y / step;
+
+        const x0 = Math.floor(gx);
+        const y0 = Math.floor(gy);
+        const x1 = Math.min(x0 + 1, nx - 1);
+        const y1 = Math.min(y0 + 1, ny - 1);
+
+        const tx = gx - x0;
+        const ty = gy - y0;
+
+        const n00 = coarse[x0][y0];
+        const n10 = coarse[x1][y0];
+        const n01 = coarse[x0][y1];
+        const n11 = coarse[x1][y1];
+
+        const nx0 = n00 * (1 - tx) + n10 * tx;
+        const nx1 = n01 * (1 - tx) + n11 * tx;
+
+        return nx0 * (1 - ty) + nx1 * ty;
+      }
+
+      // 3. Veld opbouwen: Gaussische peak + gladde ruis
+      for (let x = 0; x < sim.ncol; x++) {
+        for (let y = 0; y < sim.nrow; y++) {
+
+          // Gaussische peak rond (xpos, ypos)
+          const dx = x - xpos;
+          const dy = y - ypos;
+          const distSq = dx * dx + dy * dy;
+          const base = a * Math.exp(-(distSq / d));
+
+          // Noise in [-0.5..0.5]
+          const n = sampleNoise(x, y) - 0.5;
+
+          // Deformatie door noise
+          let value = base * (1 + n * noise_strength);
+
+          // Ondergrens voor stabiliteit (log-schaal en numeriek)
+          if (value < EPS) value = EPS;
+
+          sim.environment.grid[x][y].R += value;
+
+          max_value_placed = Math.max(max_value_placed, value);
+          min_value_placed = Math.min(min_value_placed, value);
+        }
+      }
+
+      // Een beetje diffussie om het vlak smoother te maken
+      for (let i = 0; i < 3; i++) {
+        sim.environment.diffuseStates("R", 0.0001, 1.0, 10);
+      }
+    };
+
+    // Reset van resource-landschap (zelfde peakpositie, maar nieuwe breedte/ruis)
+    sim.resetResource = function () {
+      sim.initialGrid(sim.environment, "R", 0, 0, 1);
+
+      const px = sim.resource_x;
+      const py = sim.resource_y;
+
+      sim.placeResourceGradient(
+        px,
+        py,
+        1,
+        resource_width,
+        resource_noise_scale,
+        resource_noise_level
+      );
+    };
+
+    // Verplaats de peak (nieuwe positie) en herbouw landschap met huidige sliderwaarden
+    sim.movePeak = function () {
+      sim.resource_x = 0.1 * sim.ncol + 0.8 * sim.ncol * sim.rng.random();
+      sim.resource_y = 0.1 * sim.nrow + 0.8 * sim.nrow * sim.rng.random();
+      sim.resetResource();
+    };
+
+    // Reset van bacterie-populatie (boids)
+    sim.reset = function () {
+      sim.flock.boids = [];
+      sim.flock.populateSpot(num_startboids, sim.nr / 2, sim.nc / 2, 200);
+
+      for (let boid of sim.flock.boids) {
+        boid.cohesionstrength = mycohesion;
+        boid.collision_force  = mycollision;
+        boid.fill             = 'white';
+        boid.flagella         = "directed";
+        boid.methylation      = 1e-32;  // klein maar > 0
+        boid.methylation_log  = Math.log(boid.methylation);
+        boid.tumble_time      = 0;
+      }
+    };
+
+    sim.reset();
+    sim.resetResource();
+
+    // Weergave van bacteriën, ingekleurd op log(methylation)
+    sim.createFlockDisplay("flock", {
+      legend: true,
+      addToDisplay: sim.canvases[0],
+      property: "methylation_log",
+      fill: 'rainbow',
+      legendlabel: "Methylation level of bacterial receptors",
+      strokeStyle: "white",
+      strokeWidth: 2.5,
+      minval: -12,
+      maxval: -2,
+      num_colours: 100,
+      nticks: -1,
+      decimals: 2
+    });
+
+    // Hoofd-update voor flock (run–tumble + methylation)
+    /**
+     * -------------------------------------------------------------------------
+     * TOY MODEL: BACTERIAL CHEMOTAXIS MET METHYLATION-GEHEUGEN
+     *
+     * 1. SENSE:
+     *    Lees lokale concentratie R. Methylation M beweegt langzaam richting R.
+     *
+     * 2. RUN:
+     *    Als omgeving ≥ geheugen (R ≥ M): bacterie blijft run uitvoeren
+     *    (vooruit + kleine ruis).
+     *
+     * 3. TUMBLE:
+     *    Als omgeving < geheugen (R < M): bacterie gaat een vaste tumble-fase in,
+     *    roteert willekeurig, en kiest daarna een nieuwe richting.
+     * -------------------------------------------------------------------------
+     */
+    sim.flock.update = function () {
+      sim.experienced_conc = 0;
+
+      // Check of sliders zijn veranderd, zo ja: veld hergenereren, maar peakpositie gelijk
+      if (
+        resource_width       !== last_resource_width ||
+        resource_noise_level !== last_resource_noise_level ||
+        resource_noise_scale !== last_resource_noise_scale
+      ) {
+        // update cached slider values
+        last_resource_width       = resource_width;
+        last_resource_noise_level = resource_noise_level;
+        last_resource_noise_scale = resource_noise_scale;
+
+        // 🧠 1. veld opnieuw opbouwen (peak blijft hetzelfde)
+        sim.resetResource();
+
+        
+      }
+      if( num_startboids       !== last_num_startboids){
+        last_num_startboids       = num_startboids;
+        sim.reset();
+      }
+      
+
+
+      for (let step = 0; step < speed; step++) {
+        for (let boid of this.boids) {
+
+          // 1. SENSE — lees lokale R
+          const bx = Math.floor(boid.position.x);
+          const by = Math.floor(boid.position.y);
+          const R  = sim.environment.grid[bx][by].R;
+
+          sim.experienced_conc += R;
+
+          // 2. METHYLATION — langzaam geheugen van R
+          boid.methylation += methylation_increase * (R - boid.methylation);
+          if (boid.methylation < 1e-32) boid.methylation = 1e-32;
+          boid.methylation_log = Math.log(boid.methylation);
+
+          const mag = Math.hypot(boid.velocity.x, boid.velocity.y) || 1;
+
+          // 3. TUMBLE — rotate only, geen acceleratie
+          if (boid.tumble_time > 0) {
+            boid.flagella = "random";
+            boid.tumble_time--;
+
+            const jitter = 0.3 + 0.3 * sim.rng.random();
+            const vx = boid.velocity.x;
+            const vy = boid.velocity.y;
+            const c  = Math.cos(jitter);
+            const s  = Math.sin(jitter);
+
+            boid.velocity.x = vx * c - vy * s;
+            boid.velocity.y = vx * s + vy * c;
+
+            // M daalt licht tijdens tumble (geheugen wordt "bescheidener")
+            boid.methylation -= methylation_decay;
+            if (boid.methylation < 1e-32) boid.methylation = 1e-32;
+
+            continue; // sla run-logica over
+          } else {
+            boid.flagella    = "directed";
+            boid.tumble_time = 0;
+          }
+
+          // 4. RUN — ga vooruit als R ≥ M, anders start tumble
+          if (R >= boid.methylation) {
+
+            boid.flagella = "directed";
+
+            // Richtingseenheid vector
+            let ux = boid.velocity.x / mag;
+            let uy = boid.velocity.y / mag;
+
+            // Houd bacteriën weg van randen (reflectie-achtige duw)
+            if (boid.position.x < 0.05 * sim.ncol) ux += 5.5;
+            if (boid.position.x > 0.95 * sim.ncol) ux -= 5.5;
+            if (boid.position.y < 0.05 * sim.nrow) uy += 5.5;
+            if (boid.position.y > 0.95 * sim.nrow) uy -= 5.5;
+
+            const acc = 0.03;
+            boid.acceleration.x += ux * acc;
+            boid.acceleration.y += uy * acc;
+
+            // Kleine heading-ruis
+            boid.velocity.x += (sim.rng.random() - 0.5) * 0.02;
+            boid.velocity.y += (sim.rng.random() - 0.5) * 0.02;
+
+          } else {
+            // Omgeving slechter dan geheugen → tumble
+            boid.tumble_time = avg_tumble_time + 5 * (2 * sim.rng.random() - 1);
+          }
+        }
+      }
+    };
+
+    // Grid-update: log-transform voor weergave
+    sim.environment.nextState = function (x, y) {
+      this.grid[x][y].dispR = Math.log(this.grid[x][y].R);
+    };
+
+    sim.environment.update = function () {
+      this.synchronous();
+
+      // Plot elke 20 stappen de totale chemo-attractant die door cellen ervaren wordt
+      if (this.time % 20 === 0) {
+        this.plotArray(
+          ["[Chemoattractant]"],
+          [sim.experienced_conc],
+          ["orange"],
+          "Chemoattractant concentration at cell locations",
+          { height: 200 }
+        );
+      }
+    };
+
+    // UI-elementen en start simulatie
+    sim.start();
+
+    sim.addButton("Start/pause",    function () { sim.toggle_play(); });
+    sim.addButton("Single step",    function () { sim.step();        });
+    sim.addButton("Reset bacteria", function () { sim.reset();       });
+    sim.addButton("Move peak",      function () { sim.movePeak();    });
+
+    sim.addHTML("form_holder", "<br>");
+
+    sim.addSlider("resource_width",       1, 300, 0.1, "Resource width");
+    sim.addSlider("resource_noise_level", 0, 10,  1,   "Resource noise (amount)");
+    sim.addSlider("resource_noise_scale", 0, 5,   1,   "Resource noise (scale)");
+    sim.addSlider("num_startboids",       1, num_startboids*2, 1,   "Nr of bacteria");
+  }
+
+  </script>
+
+  <body onload="cacatoo()" style="background-color: #e2e2e2;">
+    <div id="all_holder">
+      <table>
+        <tr>
+          <td>
+            <div class="content" id="graph_holder"><img src="../../images/run_and_tumble.png" width="70%"></div>
+            <div class="content" id="form_holder"></div>
+          </td>
+          <td><div class="content" id="canvas_holder"></div></td>
+        </tr>
+      </table>
+
+      
+    </div>
+  </body>
+</html>

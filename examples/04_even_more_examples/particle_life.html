@@ -1,0 +1,177 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+
+// Define global parameters
+let num_colours = 6
+let dots_per_colour = 600
+let movement_rate = 0.0003  // Control the influence of the attraction/repulsion
+let self_attraction_rate = 0.0005  // Mild attraction to same color
+let repulsion_distance = 3.5  // distance for repulsion
+ 
+var pressedKeys = {};
+window.onkeyup = function(e) { pressedKeys[e.keyCode] = false; }
+window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
+var winwidth = window.innerWidth/2;
+var winheight = window.innerHeight/2;
+ 
+
+	
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Particle life", // The name of your cacatoo-simulation
+    description: "", // And a description if you wish
+    maxtime: 50000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    width: winwidth, // Number of columns (width of your grid)
+    height: winheight, // Number of rows (height of your grid)
+    scale: 1.4, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    wrap: [true,true],
+    fpsmeter: true,
+    bgcolour: "#151515",
+    statecolours: {
+      'type': { 6: '#E40303',
+                  5: '#FF8C00',
+                  4: '#FFED00',
+                  3: '#008026',
+                  2: '#24408E',
+                  1: '#732982'
+                },
+			'mouse': { 1: 'grey', 2: 'white'}
+    },
+  }
+
+  let flockconfig = {
+    shape: 'dot',          // Shape of the boids drawn 
+    click: 'repel',          // Clicking the boids pushes them away from the mouse
+    max_speed: 2,          // Maximum velocity of boids
+    max_force: 3,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity:0.0,
+    friction: 0.2,        
+		brownian: 0.0,
+    gravity: 0.0,
+    // Mouse parameters
+    mouse_radius: 50,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: true,            // Show a circle where the mouse is
+    // Collision behaviour
+    //collision_force: 0.5,
+		separation: {strength:0.3,radius:3},
+    size: 2.0,                // Size of the boids (scales drawing and colision detection)
+    // Optimalisation (speed) parameters
+    //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 5,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+	sim = 
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+
+  sim.makeFlockmodel("plife", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+	//sim.plife.placeObstacle({x:200,y:200,h:300,w:30,fill:'#ffffff55',force:0.9})
+	let M = Array.from({ length: num_colours }, () => Array(num_colours).fill(0));
+	sim.setMatrix = function(){
+		M = Array.from({ length: num_colours }, () => Array(num_colours).fill(0));
+		for(let i = 0; i<num_colours; i++) {
+			M[i][i] = 1
+			if(i<num_colours-1) M[i][(i+1)] = 0.2
+		}
+	}
+	sim.randMatrix = function(){
+		M = Array.from({ length: num_colours }, () => Array(num_colours).fill(sim.rng.random()));
+	}
+	sim.setMatrix()
+	console.table(M)
+	
+  // Add 3000 particles in the top
+  sim.plife.populateSpot(num_colours*dots_per_colour,sim.nr/2,sim.nc/2,winwidth)
+
+  for(let p of sim.plife.boids) {
+    p.type=sim.rng.genrand_int(1,num_colours)
+		p.mouse = 1
+  }
+  // Uncomment this line for a magic ball
+  //sim.flock.boids[0].gravity = -1 
+  
+  sim.createFlockDisplay("plife", {legend: false, property:"type",label:""})
+	//sim.createFlockDisplay("plife", {legend: false, property:"mouse",label:"particle life2"})
+	sim.plife.update = function(){
+		if(pressedKeys[82]){
+			for(let p of sim.plife.boids) {
+				p.position.x = sim.rng.random()*winwidth
+				p.position.y = sim.rng.random()*winheight
+			}
+			return
+		}
+		if(pressedKeys[77]){
+			sim.randMatrix()
+			console.table(M)
+			return
+		}
+		if(pressedKeys[87]){ // w
+		sim.setMatrix()
+			
+			console.table(M)
+			return
+		}
+		for(let p of sim.plife.boids) p.mouse = 1
+		for(let p of sim.plife.mouseboids) p.mouse = 2
+		for(let p of sim.plife.boids){
+			let neighs = this.getIndividualsInRange(p.position, 50)
+			let attraction_x = 0
+			let attraction_y = 0
+			for(let n of neighs){
+				let dx = n.position.x - p.position.x
+				let dy = n.position.y - p.position.y
+				// Adjust dx and dy for wrapping 
+				if (Math.abs(dx) > this.width / 2) dx = dx - Math.sign(dx) * this.width
+				if (Math.abs(dy) > this.height / 2) dy = dy - Math.sign(dy) * this.height
+				let dist = Math.sqrt(dx*dx+dy*dy)
+
+					attraction_x += M[p.type-1][n.type-1]*0.1*dx
+					attraction_y += M[p.type-1][n.type-1]*0.1*dy
+				
+			}
+			p.acceleration.x = 0.01*attraction_x
+			p.acceleration.y = 0.01*attraction_y
+			
+			if(pressedKeys[70] && p.type==1 && this.mousecoords.x !== -1000) {   
+				let dx = p.position.x - this.mousecoords.x;
+				let dy = p.position.y - this.mousecoords.y;
+				let distance = Math.sqrt(dx*dx + dy*dy);
+				if (distance > 0) { // Ensure we don't divide by zero
+					p.acceleration.x += (dx / distance) * -0.2;
+					p.acceleration.y += (dy / distance) * -0.2;
+				}
+				}
+			//p.acceleration.x = 1
+			
+		}
+	}
+  // sim.addMovieButton(sim.flock, "physics",60)
+  sim.start()
+}
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

@@ -1,0 +1,615 @@
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script> <!-- Include other libraries (concattenated in 1 file) -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<head>
+    <title>Cacatoo</title>
+</head>
+
+
+<script>
+
+   /*-----------------------Start user-defined code ---------------------*/
+
+let sim
+var draw_cells = 1
+
+// Phage parameters
+var mu_phage_bitstrings = 0.001
+var diff_rate_phages = 0.5
+var burst_size = 10 // number of particles created upon infection
+var burst_size_cost = 0 // for every extra tail-fiber, reduce burst size with this much
+var max_phage_decay = 0.02  // phage decay is maximal in the bottom of the grid
+var min_phage_decay = 0.0001 // minimal decay
+var phage_influx = 0.0 // influx chance per grid point
+var mu_tailfibers = 0.001 // add or remove a tail fiber
+
+// Host level parameters
+var N = 1000
+var mu_host = 0.001
+var uptake = 0.5
+var host_birthrate = 0.02
+var deathrate = 0.005
+
+// Lock-and-key parameters
+var bitstring_length = 100
+var lock_and_key_length = 8 // Note: make sure phage-generalism is capped to bitstring_length/lock_and_key_length!!
+var max_infection_chance = 0.1
+
+var max_food_influx = 0.01
+var food_decay = 0.99
+
+function cacatoo() {
+  let simconfig = {
+    title: "Phage-host coevolution with bitstrings", // The name of your cacatoo-simulation
+    description: "Does resource abundance predict phage host-range? (project proposed by Bas Dutilh)", // And a description if you wish
+    maxtime: 200000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 80, // Number of columns (width of your grid)
+    nrow: 100, // Number of rows (height of your grid)
+    scale: 4, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    wrap: [false, false],
+    graph_update: 50,
+    graph_interval: 10,
+    fpsmeter: false,
+  }
+
+  // FLOCKCONFIG EXAMPLE
+  // This example sets up a boid simulation with specific values for the currently implemented parameters
+  // Note however, all these parameters have defaults, so not all need to be set by the user.
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 0, // Starting number of boids (flocking individuals)
+    shape: "dot", // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    click: "kill", // Clicking the boids pushes them away from the mouse
+    max_speed: 1, // Maximum velocity of boids
+    max_force: 1, // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity: 0,
+    friction: 0.3, // Them ants are darn slippery :)
+    brownian: 0.01,
+    // Mouse parameters
+    mouse_radius: 10, // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: "true", // Show a circle where the mouse is
+    draw_mouse_colour: "blue",
+    // Collision behaviour
+    physics: true,
+    num_colours: 200,
+    statecolours: {
+      barcode: "random",
+    },
+    collision_force: 0.1,
+    size: 1.5, // Size of the boids (scales drawing and colision detection)
+
+    // Optimalisation (speed) parameters
+    //qt_colour: "white",       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 3, // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+
+  sim = new Simulation(simconfig) // Initialise the Cacatoo simulation
+
+	for(let d=0; d<10; d++){
+		console.log(get_infection_chance(d))
+	}
+						
+  sim.makeGridmodel("environment") // Build a new Gridmodel within the simulation called "model"
+
+  sim.createDisplay_continuous({
+    model: "environment",
+    property: "food",
+    label: "Resources", // Createa a display for a continuous variable (ODE state for external resources)
+    minval: 0,
+    maxval: 1.0,
+    num_colours: 100,
+    decimals: 2,
+    fill: "viridis",
+    legend: true,
+    legendlabel: "concentration",
+  })
+  sim.createDisplay_continuous({
+    model: "environment",
+    property: "num_phages",
+    label: "Phage density", // Createa a display for a continuous variable (ODE state for external resources)
+    minval: 0,
+    maxval: 20,
+    num_colours: 100,
+    decimals: 2,
+    fill: "inferno",
+    legend: true,
+    legendlabel: "concentration",
+  })
+
+  sim.environment.colourGradient(
+    "tailfibers",
+    100,
+    [228, 3, 3],
+    [255, 140, 0],
+    [255, 237, 0],
+    [0, 128, 38],
+    [0, 76, 255],
+    [115, 41, 130],
+  )
+  sim.createDisplay_continuous({
+    model: "environment",
+    property: "tailfibers",
+    label: "Num. tailfibers of phages", // Createa a display for a continuous variable (ODE state for external resources)
+    minval: 1,
+    maxval: 10,
+    num_colours: 100,
+    decimals: 2,
+    legend: true,
+    legendlabel: "<-- specialist / generalist -->",
+  })
+
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+
+  sim.randomString = function (len) {
+    let bs = new Int8Array(len).fill(0)
+    for (let i = 0; i < len; i++) {
+      if (sim.rng.random() < 0.5) bs[i] = 1
+    }
+    return bs
+  }
+  sim.reset = function () {
+    sim.environment.resetPlots()
+    sim.initialGrid(sim.environment, "num_phages", 0, 0.0)
+		let init_phage_string = new Int8Array(bitstring_length).fill(0)
+    for (let i = 0; i < bitstring_length; i++) 
+      if (sim.rng.random() < 0.5) init_phage_string[i] = 1
+    for (let x = 0; x < sim.ncol; x++) {
+      for (let y = 0; y < sim.nrow; y++) {
+        sim.environment.grid[x][y].food = 0.5
+        sim.environment.grid[x][y].phages = []
+				sim.environment.grid[x][y].phages.push(new Phage())
+        sim.environment.grid[x][y].num_phages =
+				sim.environment.grid[x][y].phages.length
+        sim.environment.grid[x][y].tailfibers = sim.rng.random() * 10
+      }
+    }
+    sim.flock.boids = []
+    sim.flock.populateSpot(
+      N / 10,
+      sim.nr / 2,
+      sim.nc / 2,
+      Math.min(sim.ncol, sim.nrow, 10),
+    )
+    for (let boid of sim.flock.boids) {
+      boid.food = 0.0
+      boid.fill = "yellow"
+      boid.bitstring = sim.randomString(bitstring_length)
+    }
+  }
+  sim.resetBarcodes = function () {
+    for (let boid of sim.flock.boids) boid.barcode = sim.rng.genrand_int(1, 100)
+  }
+  sim.reset()
+  sim.resetBarcodes()
+  sim.createFlockDisplay("flock", {
+    addToDisplay: sim.canvases[0],
+    legend: false,
+    property: "barcode",
+    legendlabel: "Host type",
+    strokeStyle: "black",
+    strokeWidth: 0,
+    minval: 0,
+    maxval: 100,
+    num_colours: 200,
+    nticks: 3,
+    decimals: 0,
+  })
+
+  sim.environment.update = function () {
+    this.synchronous() // Applied as many times as it can in 1/60th of a second
+    //this.perfectMix()
+    this.apply_async(this.diffuse_phages)
+    this.diffuseStates("food", 0.2)
+
+    let sum_phages = 0
+    let food_on_grid = 0
+    let food_in_cells = 0
+    let all_host_bitstrings = []
+    let all_phage_bitstrings = []
+    for (let boid of sim.flock.boids) {
+      food_in_cells += boid.food
+      all_host_bitstrings.push(boid.bitstring.join(""))
+    }
+
+    // Output the sorted entries
+
+    //bact_avg_food /= sim.flock.boids.length
+    for (
+      let x = 0;
+      x < this.nc;
+      x++ // x are columns
+    )
+      for (
+        let y = 0;
+        y < this.nr;
+        y++ // y are rows
+      ) {
+        sum_phages += sim.environment.grid[x][y].phages.length
+        for (let p of sim.environment.grid[x][y].phages) {
+          all_phage_bitstrings.push(p.bitstring.join(""))
+        }
+        //							if(sum_phages>1) sum_g /= sum_phages
+        food_on_grid += sim.environment.grid[x][y].food
+      }
+    let avg_generalism = 1 / sum_phages
+    const host_bitstring_counts = new Map()
+    const phage_bitstring_counts = new Map()
+    all_host_bitstrings.forEach((bitstring) => {
+      host_bitstring_counts.set(
+        bitstring,
+        (host_bitstring_counts.get(bitstring) || 0) + 1,
+      )
+    })
+    all_phage_bitstrings.forEach((bitstring) => {
+      phage_bitstring_counts.set(
+        bitstring,
+        (phage_bitstring_counts.get(bitstring) || 0) + 1,
+      )
+    })
+
+    let tailfibers = []
+    let num_tailfibers = []
+    if (sim.time % 50 == 0) {
+      for (
+        let x = 0;
+        x < this.nc;
+        x++ // x are columns
+      )
+        for (
+          let y = 0;
+          y < this.nr;
+          y++ // y are rows
+        )
+          for (let p of sim.environment.grid[x][y].phages) {
+            num_tailfibers.push(p.tailfibers.length)
+            for (let t of p.tailfibers) tailfibers.push(t)
+          }
+      tailfibers = shuffle(tailfibers)
+      tailfibers = shuffle(num_tailfibers)
+      tailfibers = tailfibers.slice(0, 100)
+      num_tailfibers = num_tailfibers.slice(0, 100)
+      const sorted_host_bitstrings = Array.from(
+        host_bitstring_counts.entries(),
+      ).sort((a, b) => b[1] - a[1]) // Sort in descending order by count
+      const sorted_phage_bitstrings = Array.from(
+        phage_bitstring_counts.entries(),
+      ).sort((a, b) => b[1] - a[1]) // Sort in descending order by count
+      const top_host_bitstrings = sorted_host_bitstrings.slice(0, 8)
+      const top_phage_bitstrings = sorted_phage_bitstrings.slice(0, 8)
+      // If you want just the bitstrings and their counts for further use
+      sim.log("<b>BITSTRING STATS:</b><br>", "output", (append = false))
+      top_host_bitstrings.forEach(([bitstring, count]) => {
+        sim.log(
+          `Top hosts bitstring: ${bitstring}, Count: ${count}`,
+          "output",
+          (append = true),
+        )
+      })
+      sim.log("<br>", "output", (append = true))
+      top_phage_bitstrings.forEach(([bitstring, count]) => {
+        sim.log(
+          `Top phage bitstring: ${bitstring}, Count: ${count}`,
+          "output",
+          (append = true),
+        )
+      })
+      sim.log(
+        `<br> Note: only the first ${lock_and_key_length} bits are used for lock-and-key. The rest can be used for more accurate clustering in downstream analyses.`,
+        "output",
+        (append = true),
+      )
+      if (sim.time % 10000 == 0) sim.resetBarcodes()
+      //this.plotPoints(tailfibers, "Used tailfibers", {labelsDivWidth: 0, width:350})
+      this.plotPoints(num_tailfibers, "Average num tailfibers", {
+        labelsDivWidth: 0,
+        width: 350,
+      })
+    }
+
+    const frequent_host_bitstrings = Array.from(host_bitstring_counts.entries())
+      .filter(([, count]) => count > 20)
+      .map(([bitstring]) => bitstring)
+    const frequent_phage_bitstrings = Array.from(
+      phage_bitstring_counts.entries(),
+    )
+      .filter(([, count]) => count > 20)
+      .map(([bitstring]) => bitstring)
+
+    this.plotArray(
+      ["Bacterial population size"],
+      [sim.flock.boids.length],
+      ["gold"],
+      "Population size host",
+      { width: 350 },
+    )
+    this.plotArray(
+      ["Food on grid", "Food in cells"],
+      [food_on_grid, food_in_cells],
+      ["green", "darkgreen"],
+      "Food on grid / in bacteria",
+      { width: 350 },
+    )
+    this.plotArray(
+      ["Phage population size"],
+      [sum_phages],
+      ["red"],
+      "Population size phages",
+      { width: 350 },
+    )
+    this.plotArray(
+      ["Number host bitstrings", "Number phage bitstrings"],
+      [frequent_host_bitstrings.length, frequent_phage_bitstrings.length],
+      ["gold", "red"],
+      "Bitstrings with abundance > 20",
+      { width: 350 },
+    )
+  }
+  sim.environment.nextState = function (x, y) {
+		sim.environment.grid[x][y].food += max_food_influx*(1-x/sim.ncol)
+    sim.environment.grid[x][y].food *= food_decay
+
+    if (sim.rng.random() < phage_influx)
+      sim.environment.grid[x][y].phages.push(new Phage())
+    for (let p = 0; p < sim.environment.grid[x][y].phages.length; p++) {
+			let decay = max_phage_decay*(1-Math.abs(y-sim.nrow)/sim.nrow) + min_phage_decay
+      if (sim.rng.random() < decay) {
+        sim.environment.grid[x][y].phages.splice(p, 1)
+      }
+    }
+    sim.environment.grid[x][y].num_phages =
+      sim.environment.grid[x][y].phages.length
+    sim.environment.grid[x][y].tailfibers = undefined
+    if (sim.environment.grid[x][y].num_phages > 0)
+      sim.environment.grid[x][y].tailfibers =
+        sim.environment.grid[x][y].phages[0].tailfibers.length
+  }
+
+	sim.movePhage = function (k, direction,x,y) {
+      let coords = sim.environment.moore[direction]
+      let target = sim.environment.getGridpoint(coords[0] + x, coords[1] + y)
+			if(target==undefined) return
+      target.phages.push(sim.environment.grid[x][y].phages[k])
+      sim.environment.grid[x][y].phages.splice(k, 1)
+      // target.num_phages++
+      // sim.environment.grid[x][y].num_phages--
+    }
+  sim.environment.diffuse_phages = function (x, y) {
+    
+
+    for (let k = 0; k < sim.environment.grid[x][y].phages.length; k++) {
+      let randomnr = sim.environment.rng.genrand_real1()
+      if (randomnr < diff_rate_phages / 4) sim.movePhage(k, 1,x,y)
+      else if (randomnr < (2 * diff_rate_phages) / 4) sim.movePhage(k, 2,x,y)
+      else if (randomnr < (3 * diff_rate_phages) / 4) sim.movePhage(k, 3,x,y)
+      else if (randomnr < (4 * diff_rate_phages) / 4) sim.movePhage(k, 4,x,y)
+    }
+  }
+  sim.flock.update = function () {
+    for (let boid of this.boids) {
+      // Bacteria resource uptake
+      for (let i of sim.flock.getNearbyGridpoints(boid,sim.environment,boid.size + 2,)) {
+        let u = i.food * uptake
+        i.food -= u
+        boid.food += u
+      }
+			
+      // X and Y coordinate on grid for this boid
+      //console.log('Fetching gridpoint for', boid, 'on grid', sim.environment)
+      let gp = this.getGridpoint(boid, sim.environment)
+      if(gp==undefined) continue // Boids that are not on the grid can't do anything :)
+      //else console.log("Cool")
+      let x = gp.x
+      let y = gp.y
+      
+      // Bacteria reproduction
+      boid.food *= 0.99
+      let birthrate = boid.food * host_birthrate
+
+      if (sim.rng.random() < birthrate) {
+        let newboid = this.copyBoid(boid)
+        newboid.food /= 2
+        boid.food /= 2
+        newboid.bitstring = new Int8Array(bitstring_length).fill(0)
+        for (let i = 0; i < newboid.bitstring.length; i++) {
+          if (sim.rng.random() < mu_host) {
+            newboid.bitstring[i] = !boid.bitstring[i]
+            if (i < lock_and_key_length)
+              newboid.barcode = sim.rng.genrand_int(1, 100)
+          } else {
+            newboid.bitstring[i] = boid.bitstring[i]
+          }
+        }
+        //console.log(newboid.bitstring.join(''))
+        let angle = sim.rng.random() * Math.PI * 2
+        newboid.position.x += 0.5 * boid.size * Math.cos(angle)
+        newboid.position.y += 0.5 * boid.size * Math.sin(angle)
+        newboid.position.x = (newboid.position.x + sim.ncol) % sim.ncol
+        newboid.position.y = (newboid.position.y + sim.nrow) % sim.nrow
+        this.boids.push(newboid)
+      }
+
+      // Bacteria death
+      const index = this.boids.indexOf(boid)
+      if (sim.rng.random() < deathrate) {
+        this.boids.splice(index, 1)
+      } else {
+        // Bacteria infection
+        let new_phages = []
+        for (let p of sim.environment.grid[x][y].phages) {
+          for (let t of p.tailfibers) {
+							// Generalism counter.
+							let d = 0
+
+							for (let i = 0; i < lock_and_key_length; i++) {
+								d += p.bitstring[t + i] != boid.bitstring[i]
+							}
+
+							let infect_chance = get_infection_chance(d)
+							//console.log(p.bitstring,boid.bitstring,infect_chance)
+							if (sim.rng.random() < infect_chance) {
+								//if(d==0){
+								this.boids.splice(index, 1)
+								let penalty = (p.tailfibers.length - 1) * burst_size_cost
+								for (let b = 0; b < burst_size - penalty; b++) {
+									new_phages.push(new Phage(p))
+								}
+								break
+							}
+						}
+        	}
+        	sim.environment.grid[x][y].phages.push(...new_phages)
+      }
+    }
+
+    if (sim.time % 50 == 0)
+      console.log(
+        `Simulation step ${sim.time} has ${sim.flock.boids.length} cells`,
+      )
+  }
+
+  sim.start()
+  sim.addButton("Pause", function () {
+    sim.toggle_play()
+  })
+  sim.addButton("Restart", function () {
+    sim.reset()
+  })
+  sim.addButton("Reset barcodes", function () {
+    sim.resetBarcodes()
+  })
+  sim.addToggle("draw_cells", "Show bacteria", function () {
+    sim.flock.draw = !sim.flock.draw
+  })
+  sim.addHTML("form_holder", "<br>")
+  //sim.addSlider("range_helping",2,50,1,"Range helping")
+  sim.addSlider("mu_phages", 0.0, 0.1, 0.001, "Mutation rate (phages)")
+  sim.addSlider("mu_host", 0.0, 0.1, 0.001, "Mutation rate (host)")
+  sim.addSlider("diff_rate_phages", 0.0, 1.0, 0.001, "Diffusion phages")
+  sim.addHTML("form_holder", "<br>")
+
+  sim.addSlider("burst_size", 2, 20, 1, "Burst size")
+  sim.addSlider("phage_decay", 0.001, 0.1, 0.001, "Phage decay")
+  sim.addSlider("phage_influx", 0.0, 0.01, 0.0001, "Random phage influx")
+}
+
+// Phage class
+// Phages contain a list of bitsrings. More bitstrings means more chance to infect bacteria,
+// but this reduces the burst size (larger phage particles to fit the extra seq info)
+
+class Phage {
+  // Gene constructor
+  constructor(parent) {
+    if (parent instanceof Phage) {
+      this.uid = phageIDs.next().value
+      this.generation = parent.generation
+      this.mutations = parent.mutations
+
+      // Mutate generalism
+      this.tailfibers = []
+      for (let i of parent.tailfibers) {
+        if (sim.rng.random() > mu_tailfibers) this.tailfibers.push(i)
+      }
+      if (sim.rng.random() < mu_tailfibers)
+        this.tailfibers.push(
+          sim.rng.genrand_int(0, bitstring_length - lock_and_key_length),
+        )
+      //				console.log(this.tailfibers)
+
+      // Inherit / mutate bitstring
+      this.bitstring = new Int8Array(bitstring_length).fill(0)
+
+      for (let i = 0; i < this.bitstring.length; i++) {
+        this.bitstring[i] =
+          sim.rng.random() > mu_phage_bitstrings
+            ? parent.bitstring[i]
+            : !parent.bitstring[i]
+      }
+    } else if(parent instanceof Int8Array){
+			this.generation = 0
+      this.mutations = 0
+      this.tailfibers = [20]
+      this.len = bitstring_length
+      this.uid = phageIDs.next() // Just so it has a unique identifier, no biological function
+      this.bitstring = parent
+      this.uid = phageIDs.next() // Just so it has a unique identifier, no biological function
+		}
+		else{
+      this.generation = 0
+      this.mutations = 0
+      this.tailfibers = [20]
+      this.len = bitstring_length
+      this.uid = phageIDs.next() // Just so it has a unique identifier, no biological function
+      this.bitstring = this.newBitstring(bitstring_length)
+    }
+  }
+
+  newBitstring(len) {
+    let bs = new Int8Array(len).fill(0)
+    for (let i = 0; i < len; i++) {
+      if (sim.rng.random() < 0.5) bs[i] = 1
+    }
+    return bs
+  }
+
+  copy() {
+    return new Phage(this.len)
+  }
+}
+/**
+ * Shuffles array in place.
+ * @param {Array} a items An array containing the items.
+ */
+function shuffle(a) {
+  var j, x, i
+  for (i = a.length - 1; i > 0; i--) {
+    j = Math.floor(sim.rng.genrand_real2() * (i + 1))
+    x = a[i]
+    a[i] = a[j]
+    a[j] = x
+  }
+  return a
+}
+
+function* idGenerator() {
+  let id = 1
+  while (true) {
+    yield id
+    id++
+  }
+}
+
+function get_infection_chance(d){
+  //return (0.9*max_infection_chance - d*max_infection_chance / (d + h))
+	return (max_infection_chance*Math.exp(-2*d))
+						
+}
+
+const phageIDs = idGenerator()
+const hostIDs = idGenerator()
+
+</script>
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo (example project)</h2>
+    </div>
+
+    <div class="content" id="canvas_holder"> </div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="content" id="form_holder"></div>
+
+    <div class="content" id="examples">
+        <div class="output" id="output"></div>
+    </div>
+    <div class="footer" id="footer"></div>
+
+    </div>
+</body>
+
+</html>

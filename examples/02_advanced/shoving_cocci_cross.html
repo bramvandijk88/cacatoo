@@ -1,0 +1,264 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+mu1max = 0.2
+mu2max = 0.2
+d = 0.005
+outflux = 0.1 // flux out when outside of the chamber
+q11 = 10    // amt of tyr per biomass of type 1 cell
+q12 = 1    // amt of phe per biomass of type 1 cell
+q13 = 10    // amt of glu per biomass of type 1 cell
+q21 = 1    // amt of tyr per biomass of type 2 cell
+q22 = 10    // amt of phe per biomass of type 2 cell
+q23 = 10    // amt of glu per biomass of type 2 cell
+k12 = 1     // kinetic parameter of phe to type 1 cell biomass conversion
+k13 = 1     // kinetic parameter of glu to type 1 cell biomass conversion
+k21 = 1     // kinetic parameter of tyr to type 2 cell biomass conversion
+k23 = 1     // kinetic parameter of glu to type 2 cell biomass conversion
+gluDiff = 1
+tyrDiff = 1
+pheDiff = 1
+glu_in = 0.01
+tyr_in = 1
+phe_in = 1
+
+dt = 0.1
+
+let sim;
+var draw_cells = 1
+
+function safeDivide(numerator, denominator) {
+    if (denominator === 0) {
+        return 1;  // Return 1 if division by zero is attempted
+    }
+    return numerator / denominator;  // Otherwise, perform the division
+}
+
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Shoving cells in a microluidic chamber", // The name of your cacatoo-simulation
+    description: "", // And a description if you wish
+    maxtime: 10000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 120, // Number of columns (width of your grid)
+    nrow: 120, // Number of rows (height of your grid)
+    scale: 3, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    seed: 3,
+    wrap: [false,false],
+    fpsmeter: true
+  }
+
+  // FLOCKCONFIG EXAMPLE
+  // This example sets up a boid simulation with specific values for the currently implemented parameters
+  // Note however, all these parameters have defaults, so not all need to be set by the user. 
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 0,          // Starting number of boids (flocking individuals)
+    shape: 'dot',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    click: 'kill',         // Clicking the boids pushes them away from the mouse
+    max_speed: 2,          // Maximum velocity of boids
+    max_force: 0.5,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity:0,
+    friction: 0.2,  
+    // Mouse parameters
+    mouse_radius: 30,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: true,            // Show a circle where the mouse is
+    // Collision behaviour
+    collision_force: 0.05,
+    size: 3,                // Size of the boids (scales drawing and colision detection)
+
+    // Optimalisation (speed) parameters
+    //qt_colour: "white",       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 3,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+
+  sim.makeGridmodel("env")                              // Build a new Gridmodel within the simulation called "model"
+  sim.initialGrid(sim.env,'glucose',glu_in ,0.0)
+  sim.initialGrid(sim.env,'tyr',tyr_in ,1.0)
+  sim.initialGrid(sim.env,'phe',phe_in ,1.0)
+  sim.createDisplay_continuous({model:"env", property:"glucose", label:"Glucose", // Createa a display for a continuous variable (ODE state for external resources)
+                      minval:0, maxval:10, num_colours: 100, decimals: 2, 
+                      fill:"viridis", legend:true, legendlabel: "concentration"}) 
+  sim.createDisplay_continuous({model:"env", property:"tyr", label:"Tyrosine", // Createa a display for a continuous variable (ODE state for external resources)
+                      minval:0, maxval:1, num_colours: 100, decimals: 2, 
+                      fill:"viridis", legend:true, legendlabel: "concentration"}) 
+  sim.createDisplay_continuous({model:"env", property:"phe", label:"Phenylalanine", // Createa a display for a continuous variable (ODE state for external resources)
+                      minval:0, maxval:1, num_colours: 100, decimals: 2, 
+                      fill:"viridis", legend:true, legendlabel: "concentration"}) 
+
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  
+  sim.flock.populateSpot(50,sim.nr/2,sim.nc/2,20)
+ 
+  for(let boid of sim.flock.boids){
+    boid.internal_state = sim.rng.random()*5
+    if (sim.rng.genrand_real1() < 0.5) boid.type = 1
+    else boid.type = 2
+  }
+  
+  sim.createFlockDisplay("flock", {//addToDisplay:sim.canvases[0], 
+                                   legend: true,
+                                   label:"Cell types",
+                                   legendlabel: "type",
+                                   fill:"inferno",                  // Colour scheme to use
+                                   strokeStyle: "white",
+                                   strokeWidth: 2,
+                                   property: 'type',      // Which property to colour
+                                   minval:1, maxval:2, num_colours: 200, nticks:2, decimals:0})
+
+  
+  
+  // the nextstate for the environment grid (emtpy in this example)
+  sim.env.nextState = function(x, y) {
+    //if (x==0){
+      this.grid[x][y].glucose += glu_in
+      //this.grid[x][y].tyr = tyr_in
+      //this.grid[x][y].phe = phe_in
+    //}
+  }
+
+  sim.env.update = function() {
+    this.diffuseStates('glucose',0.2)
+    this.diffuseStates('tyr',0.2)
+    this.diffuseStates('phe',0.2)
+    this.synchronous() // Applied as many times as it can in 1/60th of a second    
+    //this.perfectMix()
+  }
+
+  sim.flock.update = function(){
+    let sum_1 = 0
+    let sum_2 = 0
+    for (let i = this.boids.length - 1; i >= 0; i--) {
+      let R1 = 0
+      let R2 = 0
+      let R3 = 0
+      let numnbr = 0
+
+      // calculate total amount of glu, tyr and phe available to the cell
+      for(let a of sim.flock.getNearbyGridpoints(this.boids[i],sim.env,this.boids[i].size+1)){
+        R1 += a.tyr
+        R2 += a.phe
+        R3 += a.glucose
+        numnbr ++    // keeping track of grid points to distribute the released products later
+      }
+      
+      if (this.boids[i].type == 1){
+        sum_1++
+        let mu12 = mu1max*R2/(R2+k12) // intake rate of phe
+        let mu13 = mu1max*R3/(R3+k13) // intake rate of glu
+
+        let R3_uptake = Math.min(R3,dt*mu13*q13*this.boids[i].internal_state)  // biomass from glu
+        let R2_uptake = Math.min(R2,dt*mu12*q12*this.boids[i].internal_state)  // biomass from phe
+        let growth = Math.min(R3_uptake/q13, R2_uptake/q12)                    // actual biomass created based on limiting nutrient
+        let R1_release = dt*q11*(R3_uptake/q13 - growth)*this.boids[i].internal_state  // excess 'potential' biomass from glu used to produce tyr
+        this.boids[i].internal_state += growth
+
+        for(let a of sim.flock.getNearbyGridpoints(this.boids[i],sim.env,this.boids[i].size+1)){
+          a.tyr += R1_release / numnbr    // tyr produced evenly distributed to environment
+          a.phe = (1 - safeDivide(R2_uptake,R2))*a.phe           // subract used up phe from environment
+          a.glucose = (1 - safeDivide(R3_uptake,R3))*a.glucose   // subract used up glu from environment
+        }
+        
+        // if internal state exceeds 1, that excess amount from 1 is the chance of creating a new cell.
+        // the logic is to measure biomass in terms of internal state. 1 is equal to the mass of one fully grown cell. Any more growth is the potential to create an offspring.
+        // Upon birth (binary fission), internal state is equally divided between parent and offspring
+
+        if(!this.boids[i].overlapping && sim.rng.random() < this.boids[i].internal_state - 1){
+          this.boids[i].internal_state *= 0.5
+          let newboid = this.copyBoid(this.boids[i])
+          let angle = sim.rng.random()*Math.PI*2
+          newboid.position.x+= 0.5*this.boids[i].size*Math.cos(angle)
+          newboid.position.y+= 0.5*this.boids[i].size*Math.sin(angle)
+          if(this.inBounds(newboid)){
+            this.boids.push(newboid)
+          }
+        }
+
+        // cell dies randomly. Since carbon is stored as biomass (not glucose or amino acid), there is no release of anything to env
+        if((this.boids[i].position.y > sim.nrow*0.8 && sim.rng.random() < outflux) || sim.rng.random() < d){
+          this.boids.splice(i, 1)
+        }
+      }
+
+      else if (this.boids[i].type == 2){
+        sum_2++
+        let mu21 = mu2max*R1/(R1+k21) // intake rate of tyr
+        let mu23 = mu2max*R3/(R3+k23) // intake rate of glu
+
+        let R3_uptake = Math.min(R3,dt*mu23*q23*this.boids[i].internal_state)  // biomass from glu
+        let R1_uptake = Math.min(R1,dt*mu21*q21*this.boids[i].internal_state)  // biomass from tyr  
+        let growth = Math.min(R3_uptake/q23, R1_uptake/q21)                    // actual biomass created based on limiting nutrient
+        let R2_release = dt*q22*(R3_uptake/q23 - growth)*this.boids[i].internal_state  // excess 'potential' biomass from glu used to produce phe
+        this.boids[i].internal_state += growth
+
+        for(let a of sim.flock.getNearbyGridpoints(this.boids[i],sim.env,this.boids[i].size+1)){
+          a.phe += R2_release / numnbr    // phe produced evenly distributed to environment
+          a.tyr = (1 - safeDivide(R1_uptake,R1))*a.tyr          // subract used up phe from environment
+          a.glucose = (1 - safeDivide(R3_uptake,R3))*a.glucose   // subract used up glu from environment
+        }
+
+        // if internal state exceeds 1, that excess amount from 1 is the chance of creating a new cell.
+        // the logic is to measure biomass in terms of internal state. 1 is equal to the mass of one fully grown cell. Any more growth is the potential to create an offspring.
+        // Upon birth (binary fission), internal state is equally divided between parent and offspring
+
+        if(!this.boids[i].overlapping && sim.rng.random() < this.boids[i].internal_state - 1){
+          this.boids[i].internal_state *= 0.5
+          let newboid = this.copyBoid(this.boids[i])
+          let angle = sim.rng.random()*Math.PI*2
+          newboid.position.x+= 0.5*this.boids[i].size*Math.cos(angle)
+          newboid.position.y+= 0.5*this.boids[i].size*Math.sin(angle)
+          if(this.inBounds(newboid)){
+            this.boids.push(newboid)
+          }
+        }
+
+        // cell dies randomly. Since carbon is stored as biomass (not glucose or amino acid), there is no release of anything to env
+        if((this.boids[i].position.y > sim.nrow*0.8 && sim.rng.random() < outflux) || sim.rng.random() < d){
+          this.boids.splice(i, 1)
+        }
+      }
+    }
+    
+    if(sim.time %50 == 0) console.log(`Simulation step ${sim.time} has ${sim.flock.boids.length} cells`)
+    this.plotArray(["Type 1", "Type 2"],
+                [sum_1, sum_2],
+                ["black", "gold"],
+                "Population size (type 1 and 2)")
+    
+  }
+
+
+  sim.start()
+  sim.addButton("pause/continue", function () { sim.toggle_play() })
+
+  sim.addButton("step", function () { sim.step(); sim.display() })    
+  sim.addToggle("draw_cells", "Show cells", function(){ sim.flock.draw = !sim.flock.draw})
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

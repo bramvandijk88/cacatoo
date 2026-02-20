@@ -1,0 +1,303 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+
+
+
+var birth = 0.1
+var num_startboids = 500
+var mycohesion = 0.00
+var mycollision = 0.5
+var resource_width = 70
+var resource_noise = 3
+var nr_peaks = 3
+var time_between = 5000
+var speed = 10
+var disperse = false
+var mutation_rate = 0.1
+
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Collective migration", // The name of your cacatoo-simulation
+    description: "", // And a description if you wish
+    maxtime: 1000000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 250, // Number of columns (width of your grid)
+    nrow: 250, // Number of rows (height of your grid)
+    scale: 2, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+		seed: 2,
+    wrap: [true,true],
+    graph_update: 10,
+    graph_interval: 10,
+    fpsmeter: false
+  }
+
+  // FLOCKCONFIG EXAMPLE
+  // This example sets up a boid simulation with specific values for the currently implemented parameters
+  // Note however, all these parameters have defaults, so not all need to be set by the user. 
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 0,            // Starting number of boids (flocking individuals)
+    shape: 'dot',            // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    click: 'repel',          // Clicking the boids pushes them away from the mouse
+    max_speed: 1.0,          // Maximum velocity of boids
+    max_force: 1.0,          // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity:0,
+    friction: 0.1,           // Them ants are darn slippery :)
+    brownian: 0.05,
+    // Mouse parameters
+    mouse_radius: 20,        // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: 'true',    // Show a circle where the mouse is
+    draw_mouse_colour: 'white', 
+    // Collision behaviour
+    collision_force: 1.0,
+		cohesion: {strength:0.5, radius: 4.5},
+    size: 3,                // Size of the boids (scales drawing and colision detection)
+
+    // Optimalisation (speed) parameters
+    //qt_colour: "white",       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 3,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+	
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  sim.makeGridmodel("environment")
+	sim.initialGrid(sim.environment,"R",0.1,1)
+	sim.createDisplay_continuous({
+    model: "environment",
+    property: "dispR",
+		minval: -50.0, maxval: 50, 
+		num_colours: 100, decimals: 2, 
+    legend: true,
+		legendlabel: "concentration (log scaled)",
+		n_ticks: 2,
+		fill: "viridis",
+    label: "Collective migration"
+  })
+	sim.createDisplay_continuous({
+    model: "environment",
+    property: "traject",
+		minval: 0.0, maxval: 100, 
+		num_colours: 100, decimals: 2, 
+		fill: "viridis", legend: true,
+		legendlabel: "",
+		n_ticks: 2,
+		fill: "inferno",
+    label: "Boid trajectories"
+  })
+	
+  sim.placeResourceGradient = function(xpos, ypos, a, d) {
+    sim.ResourceGradient = [];
+    for (let x = 0; x < sim.ncol; x++) {
+      for (let y = 0; y < sim.nrow; y++) {
+        let dx = Math.min(Math.abs(x - xpos), sim.ncol - Math.abs(x - xpos));
+        let dy = Math.min(Math.abs(y - ypos), sim.nrow - Math.abs(y - ypos));
+        let distSq = dx * dx + dy * dy;
+        let R = a * Math.exp(-(1 / d) * distSq);
+        
+        let rand = sim.rng.random();
+        sim.environment.grid[x][y].R += R * Math.pow(rand*2, resource_noise);
+        if (y == sim.nrow / 2) sim.ResourceGradient.push(sim.environment.grid[x][y].R);
+      }
+    }
+  };
+	
+	
+	sim.resetResource = function(){
+    sim.initialGrid(sim.environment,"R",0,0,1)
+		for(let x=0;x<nr_peaks;x++)sim.placeResourceGradient(sim.ncol*sim.rng.random(),sim.nrow*sim.rng.random(),1,resource_width)
+		sim.initialGrid(sim.environment,"traject",undefined,1)
+	}
+  sim.reset = function(){
+		
+		sim.initialGrid(sim.environment,"traject",undefined,1)	
+    sim.flock.boids = []
+    sim.flock.populateSpot(num_startboids,sim.nr/2,sim.nc/2,120)
+    for(let boid of sim.flock.boids) {
+			//boid.cohesionstrength// = sim.rng.random() < 0.0 ? 0.2 : 0.2
+      boid.cohesionstrength = mycohesion
+			boid.collision_force = mycollision
+		}
+  }
+  sim.reset()
+	sim.resetResource()
+  
+  
+  sim.createFlockDisplay("flock", {
+    legend: true,
+    property: "cohesionstrength",
+    fill: "inferno",
+    addToDisplay: sim.canvases[0],
+    legendlabel: "Adhesion (of boids)",
+    strokeStyle: "white",
+    strokeWidth: 0.5,
+    minval: 0, maxval: 0.3, num_colours: 200, nticks: 3, decimals: 2
+  })
+
+  
+  sim.steps = 0  
+
+  sim.flock.update = function(){
+		sim.flock.mouse_radius = 10
+    
+    for(let i=0;i<speed;i++){ 
+      sim.steps++
+      this.flock()
+      let stickiness = 0
+      for (let boid of this.boids) {
+        stickiness += boid.cohesionstrength
+        let x = Math.floor(boid.position.x);
+        let y = Math.floor(boid.position.y);
+        let dirx = Math.round((boid.position.x + 10 * boid.velocity.x + this.width)) % this.width;
+        let diry = Math.round((boid.position.y + 10 * boid.velocity.y + this.height)) % this.height;
+        let R = sim.environment.grid[x][y].R;
+        let dirR = sim.environment.grid[dirx][diry] ? sim.environment.grid[dirx][diry].R : 0;
+        sim.environment.grid[x][y].traject = 100
+
+        if (R - dirR >= 0) {
+          // Going up the gradient, modify direction a little
+          let angle = (sim.rng.random() - 0.5) * 0.1; // Small random angle
+          let cosTheta = Math.cos(angle);
+          let sinTheta = Math.sin(angle);
+          let newVelX = boid.velocity.x * cosTheta - boid.velocity.y * sinTheta;
+          let newVelY = boid.velocity.x * sinTheta + boid.velocity.y * cosTheta;
+          boid.velocity.x = newVelX;
+          boid.velocity.y = newVelY;
+        } else {
+          // Not going up the gradient, modify direction smoothly
+          let angle = (sim.rng.random() - 0.5) * Math.PI; // Small random angle
+          let cosTheta = Math.cos(angle);
+          let sinTheta = Math.sin(angle);
+          let newVelX = boid.velocity.x * cosTheta - boid.velocity.y * sinTheta;
+          let newVelY = boid.velocity.x * sinTheta + boid.velocity.y * cosTheta;
+          boid.velocity.x -= newVelX;
+          boid.velocity.y -= newVelY;
+        }
+        // Normalize velocity to maintain consistent speed
+        let speed = Math.sqrt(boid.velocity.x * boid.velocity.x + boid.velocity.y * boid.velocity.y);
+        if (speed > 0) {
+          boid.velocity.x -= (boid.velocity.x / speed) * this.max_speed;
+          boid.velocity.y -= (boid.velocity.y / speed) * this.max_speed;
+        }
+      }
+      if(sim.steps %time_between==1){
+        this.plotArray(["Avg. stickiness"],
+          [stickiness/sim.flock.boids.length],
+          ["black"],
+          "Stickiness",
+          { },
+          )
+      }
+      
+      if (sim.steps > 0 && sim.steps % time_between === 0) {
+        let stickiness = 0
+        let newboids = []
+        let new_births = 0
+        for (let boid of this.boids) {
+
+          stickiness += boid.cohesionstrength
+          let x = Math.floor(boid.position.x);
+          let y = Math.floor(boid.position.y);
+          let resources = sim.environment.grid[x][y].R;
+          let birthrate = resources*10 + birth
+          
+          while (sim.rng.random() < birthrate) {
+            let newboid = this.copyBoid(boid);
+            let angle = sim.rng.random() * Math.PI * 2;
+            newboid.position.x += 0.5 * boid.size * Math.cos(angle);
+            newboid.position.y += 0.5 * boid.size * Math.sin(angle);
+            if(sim.rng.random() < mutation_rate) newboid.cohesionstrength = Math.max(0, Math.min(1, boid.cohesionstrength + (sim.rng.random() - 0.5) * 0.3));
+            if (this.inBounds(newboid)) {
+              newboids.push(newboid);
+              new_births++
+            }
+            birthrate--
+          }
+          
+        }
+        this.boids = this.boids.concat(newboids);
+        sim.log(`New births last round: ${new_births}`,"output",false)
+        if (this.boids.length > num_startboids) {
+          this.boids = this.boids.sort(() => Math.random() - 0.5).slice(0, num_startboids);
+        }
+        sim.resetResource()
+        if(disperse){
+          for (let boid of this.boids){
+            boid.position.x = sim.rng.random()*sim.ncol
+            boid.position.y = sim.rng.random()*sim.nrow
+          }
+        }
+      }
+    }
+			
+  }
+	sim.environment.nextState = function(x,y){
+		if(this.grid[x][y].traject>0){
+			this.grid[x][y].traject*= 0.90 - 0.002*speed
+		}
+		
+    this.grid[x][y].dispR = Math.log(this.grid[x][y].R)
+			
+	}
+	sim.environment.update = function(){
+		this.synchronous()
+	}
+
+  sim.start()
+	  sim.addButton("Start", function () { sim.toggle_play() })
+  sim.addButton("Reset boids", function () { sim.reset() })
+	sim.addButton("Reset peak", function () { sim.resetResource() })
+  sim.addHTML("form_holder","<br>")
+  sim.addSlider("resource_width",1,2000,0.1, "R sigma")
+  sim.addSlider("resource_noise",0,5,1, "R noise")
+  sim.addSlider("nr_peaks",0,8,1, "Nr R peaks")
+  sim.addSlider("time_between",1,10000,1, "Season duration")
+	  sim.addSlider("num_startboids",1,800,1, "Nr of boids")
+    sim.addSlider("mycohesion",0,0.2,0.01, "Init stickiness")
+    
+		sim.addSlider("mycollision",0,1.0,0.01, "Collision force")
+    sim.addSlider("speed",1,100,1, "Sim speed")
+    sim.addToggle("disperse", "Disperse after season")
+
+}
+
+  </script>
+
+  <body onload="cacatoo()">
+    
+
+		<div class="", id="all_holder">		
+        
+          
+			<div class="content" id="canvas_holder"> </div>
+			<div class="content" id="graph_holder"> </div>
+		<div class="content" id="form_holder"></div>
+    <div style="padding:5%" class="content"> <p align="left">This is a simulation of bacterial cells performing "run and tumbling" behaviour for chemotaxis. 
+      Because the resource gradient is noisy, cells benefit from sticking to one another. 
+      This collective behavior helps them to better navigate and find resources in their environment, 
+        increasing their chances of reproduction (at the peak). The stickiness is an evolving
+        property that, as you can see if you wait long enough, evolved to higher values. </p>
+      </div>
+		<div class="output" id="output"></div>
+		</div>
+
+
+
+    
+  </body>
+
+</html>

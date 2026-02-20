@@ -1,0 +1,213 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+// First, we declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+let sim;
+var draw_cattle = true;
+var c = 0.05
+var konijnen_death = 0.1
+var mixing = false
+
+/**
+ * function cacatoo() contains all the user-defined parts of a cacatoo-model. 
+ 	 Configuration, update rules, what is displayed or plotted, etc. It's all here.
+ */
+function cacatoo() {
+  /*
+      1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+  */
+  let config = {
+    title: "Een veld vol konijnen", // The name of your cacatoo-simulation
+    description: "...die gras eten.", // And a description if you wish
+    maxtime: 1000000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 150, // Number of columns (width of your grid)
+    nrow: 150, // Number of rows (height of your grid)
+    wrap: [false, false], // Wrapped boundary conditions? [COLS, ROWS]   
+    scale: 3, // Scale of the grid (nxn pixels per grid point)
+    sleep: 20,
+		seed: 11,
+		show_fps: true,
+		graph_update: 10,
+    graph_interval: 1,
+    statecolours: {
+      'state': {
+				'gras': '#5ffc38',
+				'zand': '#DEB887'
+      }
+    }, // Colours for each state. Background (0) defaults to black. 
+  }
+	
+	 let flockconfig = {
+    // Flock parameters
+    num_boids: 0, // Starting number of boids (flocking individuals)
+    shape: "bunny", // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    click: "none", // Clicking the boids pushes them away from the mouse
+    max_speed: 1, // Maximum velocity of boids
+    max_force: 1, // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity: 0,
+    friction: 0.04, // Them ants are darn slippery :)
+    brownian: 0.5,
+    // Mouse parameters
+    mouse_radius: 20, // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: "true", // Show a circle where the mouse is
+    draw_mouse_colour: "blue",
+    // Collision behaviour
+    physics: false,
+    num_colours: 200,
+    statecolours: {
+      food: "random",
+    },
+    collision_force: 0.999,
+    size: 4.0, 
+    qt_capacity: 5, 
+  }
+	
+	
+  sim = new Simulation(config) // Initialise the Cacatoo simulation
+  sim.makeGridmodel("model") // Build a new Gridmodel within the simulation called "model"
+
+
+	
+  sim.createDisplay("model", "state", "") 
+
+sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+	sim.createFlockDisplay("flock", { addToDisplay: sim.canvases[0], legend: false, 
+	legendlabel: "Host type", strokeStyle: "brown", 
+	strokeWidth: 1, minval: 0, maxval: 1, num_colours: 200, nticks: 3, decimals: 0 })
+	
+	
+  sim.model.nextState = function(x, y) {
+		let randomneigh = this.randomMoore8(this, x, y)   // Random neighbour
+		if(this.grid[x][y].state == 'zand' && randomneigh.state == 'gras' && sim.rng.random() < 1){
+				this.grid[x][y].state = 'gras'
+				}
+  }
+
+	sim.reset = function(){
+		 sim.flock.resetPlots()
+
+		 sim.initialGrid(sim.model,'state','zand','gras',0.1)
+		
+		 sim.flock.boids = [];
+		 let N = 10
+		 sim.flock.populateSpot(N, sim.ncol / 2, sim.nrow / 2, 10);
+		 previous_herdsize = N
+		 sim.flock.boids.forEach(boid => {
+				boid.food = sim.rng.random();
+                boid.fill = '#69481d'
+			});  
+
+	}
+
+	sim.reset()
+	
+  sim.model.update = function() {
+    this.asynchronous() // Applied as many times as it can in 1/60th of a second    
+		if(mixing) this.perfectMix()
+  }
+	
+	sim.flock.update = function () {
+		hoeveelheid_gras = 0
+		for(let boid of this.mouseboids){
+			if(this.mouseDown){
+				const index = this.boids.indexOf(boid)
+				this.boids.splice(index,1)
+				}
+		}
+		if(mixing)
+			for (let boid of this.boids) {		
+				boid.position.x = sim.rng.random()*sim.ncol
+				boid.position.y = sim.rng.random()*sim.nrow
+			}
+    for (let boid of this.boids) {				
+//				boid.food -= 1
+				const index = this.boids.indexOf(boid)
+				if (sim.rng.random() <= konijnen_death){
+					this.boids.splice(index, 1)
+				}
+				
+				for(let i of sim.flock.getNearbyGridpoints(boid,sim.model,boid.size + 4)){
+						if(i.state=="gras") {
+							boid.food += c
+							i.state="zand"
+						}
+				}
+      
+				if (boid.food >= 1) {
+					let newboid = this.copyBoid(boid)
+					newboid.food = 0
+					boid.food -= 1
+					let angle = sim.rng.random() * Math.PI * 2
+					newboid.position.x += 0.5 * boid.size * Math.cos(angle)
+					newboid.position.y += 0.5 * boid.size * Math.sin(angle)
+					newboid.position.x = (newboid.position.x + sim.ncol) % sim.ncol
+					newboid.position.y = (newboid.position.y + sim.nrow) % sim.nrow
+					this.boids.push(newboid) 
+			}
+		}
+		for(let x=0; x<sim.ncol; x++)
+				for(let y=0; y<sim.nrow; y++){
+					if(sim.model.grid[x][y].state=='gras') hoeveelheid_gras++
+				}
+			
+		this.plotArray(["Hoeveelheid konijnen","Hoeveelheid grassen"], 
+								[sim.flock.boids.length,hoeveelheid_gras], 
+								["#993322","green"], 
+								"Dynamiek", 
+								{width:500, height:250})
+    
+
+			this.graphs['Dynamiek'].data = this.graphs['Dynamiek'].data.slice(-500)
+
+			
+	}
+
+	sim.addButton("Pause", function () {
+    sim.toggle_play()
+  })
+	sim.addCustomSlider("Snelheid", function(new_value) {
+    sim.sleep = 1000-new_value
+  }, 0, 1000, 1, 1000-sim.sleep) // addCustomSlider(function, minimal, maximal, step-size, default, label)
+
+	sim.addButton("Reset", function () {
+    sim.reset()
+  })
+	sim.addSlider("c",0,1,0.001,"Conversie-efficientie")
+	sim.addToggle("draw_cattle", "Konijnen laten zien", function () {
+    sim.flock.draw = !sim.flock.draw
+  })
+	sim.addToggle("mixing", "Systeem mengen", function () {
+		
+  })
+	
+  sim.start()
+
+
+}
+
+
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

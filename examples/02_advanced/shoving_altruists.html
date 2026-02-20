@@ -1,0 +1,139 @@
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+var draw_cells = 1
+var killing_range = 40
+var birth_range = 6
+var killing_rate = 0.002
+var birth = 0.1
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Population growth", // The name of your cacatoo-simulation
+    description: "", // And a description if you wish
+    maxtime: 100000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol: 200, // Number of columns (width of your grid)
+    nrow: 200, // Number of rows (height of your grid)
+    scale: 2, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    wrap: [false,false],
+    fpsmeter: true
+  }
+
+  // FLOCKCONFIG EXAMPLE
+  // This example sets up a boid simulation with specific values for the currently implemented parameters
+  // Note however, all these parameters have defaults, so not all need to be set by the user. 
+  let flockconfig = {
+    // Flock parameters
+    num_boids: 0,          // Starting number of boids (flocking individuals)
+    shape: 'dot',          // Shape of the boids drawn (options: bird, arrow, line, rect, dot, ant)
+    click: 'kill',         // Clicking the boids pushes them away from the mouse
+    max_speed: 1,          // Maximum velocity of boids
+    max_force: 0.1,        // Maximum steering force applied to boids (separation/cohesion/alignment rules)
+    init_velocity:0,
+    friction: 0.3,        // Them ants are darn slippery :)
+    brownian: 2.2,
+    // Mouse parameters
+    mouse_radius: 40,                   // Radius of boids captured by the mouse overlay
+    draw_mouse_radius: 'true',            // Show a circle where the mouse is
+    draw_mouse_colour: 'white', 
+    // Collision behaviour
+    collision_force: 20,
+    size: 3,                // Size of the boids (scales drawing and colision detection)
+
+    // Optimalisation (speed) parameters
+    qt_visible: false,       // Show quadtree (optimalisation by automatically tessalating the space)
+    qt_capacity: 5,        // How many boids can be in one subspace of the quadtree before it is divided further
+  }
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+
+  sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
+  
+  sim.reset = function(){
+    sim.flock.boids = []
+    sim.flock.populateSpot(100,sim.nr/2,sim.nc/2,10)
+    for(let boid of sim.flock.boids) boid.fill="blue"
+  }
+  sim.reset()
+  
+  
+  sim.createFlockDisplay("flock", {legend: true,
+                                   legendlabel: "internal resources",
+                                   strokeStyle: "white",
+                                   strokeWidth: 1,
+                                   minval:0, maxval:100, num_colours: 200, nticks:3, decimals:0})
+
+  
+  
+
+  sim.flock.update = function(){
+		sim.flock.mouse_radius = killing_range
+    for(let boid of this.boids) {
+      if(this.boids.length < 1000) {
+        let numhelpers = this.getIndividualsInRange(boid.position, birth_range).length 
+        let birthrate = numhelpers*birth
+        if(sim.rng.random() < birthrate){
+          let newboid = this.copyBoid(boid)
+          let angle = sim.rng.random()*Math.PI*2
+          newboid.position.x+= 0.5*boid.size*Math.cos(angle)
+          newboid.position.y+= 0.5*boid.size*Math.sin(angle)
+          if(this.inBounds(newboid))
+            this.boids.push(newboid)
+        }
+      }
+      let numcomp = this.getIndividualsInRange(boid.position, killing_range).length 
+      let deathrate = numcomp*killing_rate
+      
+      if(sim.rng.random() < deathrate){
+        const index = this.boids.indexOf(boid);
+        this.boids.splice(index,1)
+      }
+
+    }
+    
+    if(sim.time %50 == 0) console.log(`Simulation step ${sim.time} has ${sim.flock.boids.length} cells`)
+
+	  //console.log(sim.flock.boids.length)   
+  }
+
+
+  sim.start()
+	  sim.addButton("Start", function () { sim.toggle_play() })
+		sim.pause=false
+  sim.addButton("Reset", function () { sim.reset() })
+	sim.addHTML("form_holder","<br>")
+		  sim.addSlider("birth",0,0.003,0.0001,"birth")
+	  sim.addSlider("killing_rate",0,0.003,0.0001,"toxiciteit")
+
+	sim.addSlider("birth_range",1,10,1,"radius birth")
+	sim.addSlider("killing_range",3,50,1,"radius killing")
+
+
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" id="form_holder"></div>
+    <div class="content" id="graph_holder"> </div>
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

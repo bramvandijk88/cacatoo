@@ -1,0 +1,345 @@
+<!-- Single celled fungus (yeast) and mycelial growth -->
+
+<html>
+<script src="../../dist/cacatoo.js"></script>   <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="shortcut icon" type="image/jpg" href="../../patterns/cacatoo.png"/>
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+<script>
+
+/*-----------------------Start user-defined code ---------------------*/
+
+let sim;
+var uptake = 0.005 // How much resources a cell (myc) takes up from the environment (instantly converted to  biomass)
+var division_threshold_cells = 0.2 // How much biomass a cell needs to divide
+var division_threshold_hyphae = 0.2
+var differentiation_rate_purple = 0.000
+var differentiation_rate_gold = 0.01
+var cell_sporulation_rate = 0.05
+var hyphae_sporulation_rate = 0.05
+var branching_probability = 0.1
+var season_length = 10000
+var refresh_resources = true // If true, external resources are reset to 1 at the end of each season
+var disperse_cells = false
+
+var cell_division_range = 0.6
+var hyphae_extension_range = cell_division_range * division_threshold_hyphae / division_threshold_cells // How far a hyphae extends in one time step is proportional to how much faster it divides (it represents how much thinner it is compared to a round cell)
+var grid_resolution = 10
+var speed = 1
+function cacatoo() {
+  
+  let simconfig = {
+    title: "Dispersal advantage for filamentous growth", // The name of your cacatoo-simulation
+    description: "Proof of principle toy model", // And a description if you wish
+    maxtime: 100000, // How many time steps the model continues to run
+    // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+    ncol:100, // Number of columns (width of your grid)
+    nrow:100, // Number of rows (height of your grid)
+    scale: 4, // Scale of the grid (nxn pixels per grid point)
+    sleep: 0,
+    skip: speed,
+    wrap: [false,false],
+    fpsmeter: true,
+    graph_interval: 2,
+    graph_update: 10,
+    statecolours: {
+            'type': {
+                0: "black",
+                1: "violet",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                2: "gold",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+            },
+            'mycelia':{
+                0: "black",
+                1: "violet",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                2: "gold"
+            }
+        }
+  }
+
+  
+  
+  sim = new Simulation(simconfig)   // Initialise the Cacatoo simulation
+  
+  
+
+  sim.makeGridmodel("env")   // Build a new Gridmodel within the simulation called "model"
+  sim.config.nrow *=grid_resolution
+  sim.config.ncol *=grid_resolution
+  sim.makeGridmodel("celldisplay") // For the display of cells
+  //sim.createDisplay("env", "type", "Cell types")                               // Display the 'species' property of the cheater grid
+  //sim.createDisplay_continuous({model:"env", property:"celldensity", label:"Cell density", // Createa a display for a continuous variable (ODE state for external resources)
+  //                    minval:0, maxval:5, num_colours: 100, decimals: 1, nticks: 3, scale:simconfig.scale,
+  //                    fill:"inferno", legend:true, legendlabel: "Density of cells"})
+  sim.createDisplay_discrete({model:"celldisplay", property:"type", label:"Cell types", drawdots: true, radius:3.0*Math.sqrt(division_threshold_cells),scale:simconfig.scale/grid_resolution})
+  sim.createDisplay_discrete({model:"celldisplay", property:"mycelia", label:"Hyphae types", drawdots: true, radius:3.0*Math.sqrt(division_threshold_hyphae),  scale:simconfig.scale/grid_resolution})
+   
+
+  
+  sim.createDisplay_continuous({model:"env", property:"external_resources", label:"Cells on a dish", // Createa a display for a continuous variable (ODE state for external resources)
+                      minval:0, maxval:1, num_colours: 100, decimals: 1, nticks: 2, scale: simconfig.scale,
+                      fill:"viridis", legend:true, legendlabel: "external resources"}) 
+  
+
+  sim.reset = function(){
+    sim.time = 0
+    for(let x=0; x<sim.celldisplay.nc; x++)
+      for(let y=0; y<sim.celldisplay.nr; y++){
+        sim.celldisplay.grid[x][y].type = undefined // Set all cells to type 0 (no cells)
+        sim.celldisplay.grid[x][y].mycelia = undefined // Set all cells to no mycelia
+      }
+    sim.initialGrid(sim.env,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+    sim.initialGrid(sim.env,'celldensity',0,0.0) // Give 100% of grid points external resources (set to 1)
+    
+    
+    sim.cells = []
+      for(let x = 0; x<50; x++){
+        let theta = sim.rng.random()*Math.PI*2
+        let max_radius = 2
+        let cell = {x:sim.ncol/2-20+max_radius*sim.rng.random()*Math.cos(theta), 
+                     y:sim.nrow/2+max_radius*sim.rng.random()*Math.sin(theta)}
+        cell.biomass = sim.rng.random()
+        cell.type = 1,
+        sim.cells.push(cell)
+      }
+      for(let x = 0; x<50; x++){
+        let theta = sim.rng.random()*Math.PI*2
+        let max_radius = 2
+        let cell = {x:sim.ncol/2+20+max_radius*sim.rng.random()*Math.cos(theta), 
+                     y:sim.nrow/2+max_radius*sim.rng.random()*Math.sin(theta)}
+        cell.biomass = sim.rng.random()
+        cell.type = 2,
+        sim.cells.push(cell)
+      }
+      //let rand = Math.random()*Math.PI*2
+      //sim.mycelia = [{cells:[{biomass: 1.0, tip:true, type: 1, x:50,y:50,vx:Math.cos(rand),vy:Math.sin(rand)}]}]
+      sim.mycelia = []
+      sim.env.resetPlots()
+  }
+  
+  sim.reset() 
+  sim.update_mycelia = function(){
+    
+    for(let myc of this.mycelia){
+      //console.log(myc.length)
+      let add_cells = []
+      for(let cell of myc.cells){
+        let x = Math.floor(cell.x)
+        let y = Math.floor(cell.y)
+        let gp = this.env.grid[x][y]
+        let gp_cell = this.celldisplay.grid[Math.floor(cell.x*grid_resolution)][Math.floor(cell.y*grid_resolution)]
+        let amount_taken_up = gp.external_resources * uptake
+        gp.external_resources -= amount_taken_up
+        cell.biomass += amount_taken_up
+        // If this cell is a hyphae tip
+        if(cell.tip && cell.biomass > division_threshold_hyphae){
+          cell.biomass /= 2
+          gp_cell.mycelia = cell.type // Set the pixel to this colour
+          let old_cell = {biomass: cell.biomass, tip:false, type: cell.type, x:cell.x,y:cell.y,vx:cell.vx,vy:cell.vy} // the old cell that remains left behind
+          cell.x += cell.vx*hyphae_extension_range  // move the cell in the vx direction
+          cell.y += cell.vy*hyphae_extension_range  // move the cell in the vy direction
+          let rangle = (2*sim.rng.random()-1) * 0.0 * Math.PI;
+          let new_vx = cell.vx * Math.cos(rangle) - cell.vy * Math.sin(rangle)
+          let new_vy = cell.vy * Math.cos(rangle) + cell.vx * Math.sin(rangle)
+          cell.vx = new_vx 
+          cell.vy = new_vy
+          cell.x = cell.x%sim.ncol
+          cell.y = cell.y%sim.ncol
+          if(cell.x < 0) cell.x+= sim.ncol
+          if(cell.y < 0) cell.y+= sim.ncol
+          // If there is no branching, the old cell is no longer a tip, the new           
+          if(sim.rng.random() < branching_probability){
+            old_cell.tip = true // the 
+            let rangle = (2*sim.rng.random()-1) * 0.25 *  Math.PI;
+            let angle_vx = old_cell.vx * Math.cos(rangle) - old_cell.vy * Math.sin(rangle)
+            let angle_vy = old_cell.vy * Math.cos(rangle) + old_cell.vx * Math.sin(rangle)
+            old_cell.vx = angle_vx
+            old_cell.vy = angle_vy
+          }
+          add_cells.push(old_cell)
+        }
+      }
+      myc.cells = [...myc.cells, ...add_cells]
+      
+      
+    }
+    
+    
+  }
+
+  sim.update_cells = function(){
+    sim.initialGrid(sim.env,'celldensity',0,0.0) // Give 100% of grid points external resources (set to 1)
+    let survivors = []
+    let new_cells = []
+    for(let cell of this.cells){
+      let x = Math.floor(cell.x)
+      let y = Math.floor(cell.y)
+      let gp = this.env.grid[x][y]
+      let gp_cell = this.celldisplay.grid[Math.floor(cell.x*grid_resolution)][Math.floor(cell.y*grid_resolution)]
+      if(cell.type == 1 && sim.rng.random() < differentiation_rate_purple){
+        let theta = sim.rng.random()*Math.PI*2
+        let new_myc = {cells: [{tip: true, type: 1, biomass:cell.biomass, 
+                               x:cell.x, y:cell.y, 
+                               vx:Math.cos(theta), vy:Math.sin(theta)} ] }
+        sim.mycelia.push(new_myc)
+        gp.celldensity--
+        if(gp.celldensity < 1) gp.type = undefined
+        continue // Skip to the next spore, as this one has been converted to mycelium
+      }
+      else if(cell.type == 2 && sim.rng.random() < differentiation_rate_gold){
+        let theta = sim.rng.random()*Math.PI*2
+        let new_myc = {cells: [{tip: true, type: 2, biomass:cell.biomass, 
+                               x:cell.x, y:cell.y, 
+                               vx:Math.cos(theta), vy:Math.sin(theta)} ] }
+        sim.mycelia.push(new_myc)
+        gp.celldensity--
+        if(gp.celldensity < 1) gp.type = undefined
+        continue // Skip to the next spore, as this one has been converted to mycelium
+      }
+      survivors.push(cell)
+      gp_cell.type = cell.type
+      gp.celldensity += 1 // Increase Cell density in the cell
+      let amount_taken_up = gp.external_resources * uptake
+      gp.external_resources -= amount_taken_up
+      cell.biomass += amount_taken_up
+      
+      if(cell.biomass > division_threshold_cells){
+        cell.biomass /= 2 // Divide the cell
+        // Place new spore in a random direction at radius 1 from parent
+        let angle = sim.rng.random() * 2 * Math.PI;
+        let new_cell = {
+          x: cell.x + Math.cos(angle) * cell_division_range,
+          y: cell.y + Math.sin(angle) * cell_division_range,
+          biomass: cell.biomass, // already halved,
+          type: cell.type
+        }
+        // Check if the new spore is within bounds of the grid
+        if(new_cell.x < 0) new_cell.x += this.ncol
+        if(new_cell.x >= this.ncol) new_cell.x -= this.ncol
+        if(new_cell.y < 0) new_cell.y += this.nrow
+        if(new_cell.y >= this.nrow) new_cell.y -= this.nrow
+        new_cells.push(new_cell) // Add new spore to the list
+      }
+    }
+    this.cells = [...survivors, ...new_cells] // Add new cells to the list
+  }
+  sim.end_of_season = function(){
+    for(let x=0; x<sim.celldisplay.nc; x++)
+      for(let y=0; y<sim.celldisplay.nr; y++){
+        sim.celldisplay.grid[x][y].type = undefined // Set all cells to type 0 (no cells)
+        sim.celldisplay.grid[x][y].mycelia = undefined // Set all cells to no mycelia
+      }
+    
+    // Flatten all mycelial cells into a single array
+    let all_mycelial_cells = [];
+    for (let myc of this.mycelia) {
+      all_mycelial_cells.push(...myc.cells);
+    }
+
+    // Randomly select 10% mycelial cells to convert to cells (assuming hyphae are thinner cells we do not let them all become cells)
+    
+    let surviving_hyphael_cells = []
+    for (let cell of all_mycelial_cells) {
+      if (sim.rng.random() < hyphae_sporulation_rate*division_threshold_hyphae) {
+        surviving_hyphael_cells.push(cell);
+      }
+    }
+
+    let surviving_cells = [];
+    for (let cell of this.cells) {
+      if (sim.rng.random() < cell_sporulation_rate*division_threshold_cells) {
+        surviving_cells.push(cell);
+      }
+    }
+    this.cells = [...surviving_cells,...surviving_hyphael_cells];
+
+    // Reset mycelia for the new season
+    this.mycelia = [];
+    if(refresh_resources) sim.initialGrid(sim.env,'external_resources',1.0,1.0) // Give 100% of grid points external resources (set to 1)
+    if(disperse_cells){
+      for(let cell of this.cells){
+        cell.x = sim.rng.random() * sim.ncol
+        cell.y = sim.rng.random() * sim.nrow
+      }
+    }
+    
+  
+  }
+  
+  sim.env.nextState = function(x, y) {}
+
+  sim.env.update = function() {
+    this.diffuseStates('external_resources',0.02)
+    sim.update_cells()
+    sim.update_mycelia()
+    
+    if(sim.time>0 && sim.time % season_length == 0){
+      sim.end_of_season()
+    }
+    // Print the number of cells and mycelial cells of both types:
+    if(sim.time % 100==0){
+      let num_cells_violet = sim.cells.filter(s => s.type === 1).length;
+      let num_cells_gold = sim.cells.filter(s => s.type === 2).length;
+      let num_mycelial_cells_violet = sim.mycelia.reduce((acc, myc) => acc + myc.cells.filter(c => c.type === 1).length, 0);
+      let num_mycelial_cells_gold = sim.mycelia.reduce((acc, myc) => acc + myc.cells.filter(c => c.type === 2).length, 0);
+      console.log(`Time: ${sim.time}, Cells_1: ${num_cells_violet}, Cells_2: ${num_cells_gold}, Hyphae_1: ${num_mycelial_cells_violet}, Hyphae_2: ${num_mycelial_cells_gold}`);
+    }
+    // Sum up the total biomass off cells. Normal cells count as biomass 0.2 (division_threshold_cells) and mycelial cells count as biomass 0.1 (division_threshold_hyphae)
+    let spores_produced_violet = sim.cells.filter(s => s.type === 1).length * cell_sporulation_rate * division_threshold_cells + 
+      sim.mycelia.reduce((acc, myc) => acc + myc.cells.filter(c => c.type === 1).length * hyphae_sporulation_rate * division_threshold_hyphae, 0);
+    let spores_produced_gold = sim.cells.filter(s => s.type === 2).length * cell_sporulation_rate * division_threshold_cells +
+      sim.mycelia.reduce((acc, myc) => acc + myc.cells.filter(c => c.type === 2).length * hyphae_sporulation_rate * division_threshold_hyphae, 0);
+    
+    // Plot the number of cells and mycelial cells
+
+
+    this.plotArray(["Num cells", "Num mycelial cells"],
+            [spores_produced_violet, spores_produced_gold],
+            ["violet", "gold"],
+            "Predicted number of spores",{width:400,height:320})
+  }
+
+  sim.celldisplay.nextState = function(x,y) {}
+  sim.celldisplay.update = function() { }
+
+  sim.start()
+  
+  sim.addHTML("form_holder", "<b><h2>Within-season simulation parameters:</h2></b> ")
+  sim.addSlider("uptake", 0.0, 0.1, 0.01, "Uptake rate")
+  sim.addSlider("division_threshold_cells", 0.0, 1.0, 0.01, "Division threshold (cells)")
+  sim.addSlider("division_threshold_hyphae", 0.0, 1.0, 0.01, "Division threshold (hyphae)")
+  sim.addSlider("differentiation_rate_purple", 0.0, 1.0, 0.1, "Differentation (purple)")
+  sim.addSlider("differentiation_rate_gold", 0.0, 1.0, 0.1, "Differentation (yellow)")
+  sim.addHTML("form_holder", "<b><h2>Between-season simulation parameters:</h2></b> ")
+  sim.addSlider("season_length", 100, 20000, 1, "Season length")
+  sim.addSlider("cell_sporulation_rate", 0.0, 1.0, 0.1, "Sporulation (cells)")
+  sim.addSlider("hyphae_sporulation_rate", 0.0, 1.0, 0.1, "Sporulation (hyphae)")
+  sim.addToggle("refresh_resources", "Refresh resources")
+  sim.addToggle("disperse_cells", "Disperse cells")
+  
+  sim.addHTML("form_holder", "<b><h2>Controls:</h2></b> ")
+  sim.addButton("Pause / continue", function () { sim.toggle_play() })
+  sim.addButton("Reset", function () { sim.reset() })
+  sim.addCustomSlider("Speed", function(new_value) { console.log(new_value); sim.skip = new_value }, 1, 100, 1, speed)
+    
+}
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header">
+        <h2>Cacatoo </h2>
+    </div>
+    <div class="content" id="canvas_holder"></div>
+    <div class="content" >
+        <div class="" id="form_holder" style="display:inline-block;width:61%"></div>
+        <div class="" id="graph_holder" style="display:inline-block;width:27%"> </div>
+    </div>
+    
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

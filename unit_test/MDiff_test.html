@@ -1,0 +1,170 @@
+<!-- 
+  ###########################################################################################
+    This is a JSFiddle example of "Cacatoo". This HTML page does not contain the code itself,
+    but determines where the grids, graphs, buttons, etc are placed. The real code is in the 
+    Javascript Tab. I recommend enabling "Tabs (Columns)" under the settings in the top-right. 
+  ###########################################################################################
+-->
+
+<html>
+  <script src="../dist/cacatoo.js"></script>
+  <script src="../dist/all.js"></script>
+  
+  <link rel="stylesheet" href="../docs/styles/cacatoo.css">        <!-- Set style sheet -->
+  
+  <head>
+    <title>Cacatoo examples</title>
+  </head>
+
+
+  <script>
+    /*-------------------------End user-defined code ---------------------*/
+
+  
+
+/*-----------------------Start user-defined code ---------------------*/
+    
+let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+
+/**
+* function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+*/
+var death = 0.05
+let mut = 0.001 //if mut == 0, then system survives
+let n_mdif_interval = 1
+let mdif_interval = 5
+
+function cacatoo()
+{
+    /*
+        1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+    */
+    let config = 
+    {                                        
+            title: "Endosymbiosis",                        // The name of your cacatoo-simulation
+            description: "",         // And a description if you wish
+            maxtime: 1000000,                             // How many time steps the model continues to run
+            fastmode: false,                               // If possible, fast-mode will update the model more than once before displaying the grid
+            seed: 6930,
+                                                          // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
+            ncol : 20,                                   // Number of columns (width of your grid)
+            nrow : 20,		                              // Number of rows (height of your grid)
+            wrap : [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
+            scale : 10,				                      // Scale of the grid (nxn pixels per grid point)
+            statecolours: {'state':{'dead':'black',
+                                    'alive':'green'},
+                            },          // Colours for each state. Background (0) defaults to black. 
+    }
+
+    /*
+        1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+    */
+    sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+    sim.makeGridmodel("growth")               
+
+
+    let state0 = [{state: 'dead', a:0, b:0, symbs:[], Nsymb:0}, {state:'alive',a: 1, b: 0, symbs:[[1, 0.3], [1, 0.3],[1, 0.3],[1, 0.3]], Nsymb: 4}] //sets the defaulr parameters for the cells, with dead cells having an empty list and a 0 in all value.
+    
+    /**
+ *  populateGrid populates a grid with custom individuals. 
+ *  @param {@GridModel} grid The gridmodel containing the grid to be modified. 
+ *  @param {Array} individuals The properties for individuals 1..n
+ *  @param {Array} freqs The initial frequency of individuals 1..n
+ */
+/*       sim.populateGrid = function(gridmodel,individuals,freqs)
+  {
+      if(typeof gridmodel === 'string' || gridmodel instanceof String) gridmodel = this[gridmodel];
+      if(individuals.length != freqs.length) throw new Error("populateGrid should have as many individuals as frequencies")
+      if(freqs.reduce((a, b) => a + b) > 1) throw new Error("populateGrid should not have frequencies that sum up to greater than 1")
+  
+      for (let x = 0; x < gridmodel.nc; x++)                          // x are columns
+          for (let y = 0; y < gridmodel.nr; y++){                 // y are rows
+              for (const property in individuals[0]) {
+                  gridmodel.grid[x][y][property] = 0;    
+              }
+              let random_number = this.rng.random();
+              let sum_freqs = 0;
+              for(let n=0; n<individuals.length; n++)
+              {
+                  sum_freqs += freqs[n];
+                  if(random_number < sum_freqs) {
+                      gridmodel.grid[x][y] = structuredClone(individuals[n]);
+                      break
+                  }
+              }
+          }  
+  } */
+    
+    sim.populateSpot(sim.growth, state0, [0, 1], 30, 1, 1) 
+    sim.createDisplay("growth","state","organisms") 
+    
+    sim.makeGridmodel("Nutrients")  
+    //(Nutrients","food","Available food")                                
+    
+    /*
+        2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+    */
+    sim.growth.nextState = function(x, y)                   
+    {  	
+    }
+    
+    
+    
+    sim.Nutrients.nextState = function(x,y) {  
+     
+     }
+
+    sim.growth.update = function(){ 	
+        this.asynchronous() 
+        if (this.time % mdif_interval == 0) this.MargolusDiffusion()
+        
+                
+      
+     }
+            sim.Nutrients.update = function(){
+        this.asynchronous() 
+      
+      this.MargolusDiffusion()
+    }
+        
+
+                
+    
+
+    /*
+        OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+    */
+   
+sim.addButton("Play", function() {
+sim.toggle_play()
+}) // Add a button that calls function "display" in "model"     
+sim.addButton("Step", function() {
+sim.step();
+sim.display();
+}) // Add a button that calls function "display" in "model"     
+sim.addButton("Well mix", function() {
+sim.toggle_mix()
+}) // Add a button that calls function "perfectMix" in "model.cheater"  
+sim.addHTML("form_holder", "<br>")
+sim.start()
+  //sim.toggle_play()
+}
+
+
+/*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+<body onload="cacatoo()">
+  <div class="header" id="header">
+    <h2>Cacatoo (example project)</h2>
+  </div>
+
+  <div class="content" id="canvas_holder"> </div>
+  <div class="content" id="graph_holder"> </div>
+  <div class="content" id="form_holder"></div>
+  <div class="footer" id="footer"></div>
+
+</body>
+
+</html>
