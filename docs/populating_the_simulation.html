@@ -138,6 +138,47 @@
         </section>
 
 
+       <section>
+    <h2>Populating the grid points with PNGs</h2>
+    <article>
+        <p>You can use PNG images to initialize your grid with spatial patterns. There are two options for mapping image colors to grid states:</p>
+
+        <h3>1. Range-based Color Mapping</h3>
+        <p>Map color ranges to different states in your model:</p>
+        <pre style="font-size: 16px; line-height: 1.4;"><code style="font-size:16px">const rangeStateMapping = [
+    { rMin: 0, rMax: 100, gMin: 0, gMax: 100, bMin: 100, bMax: 255, state: 'S' }, // Blues shades → Susceptible
+    { rMin: 100, rMax: 255, gMin: 0, gMax: 100, bMin: 0, bMax: 100, state: 'I' }, // Reds shades → Infected
+    { rMin: 200, rMax: 255, gMin: 200, gMax: 255, bMin: 200, bMax: 255, state: 'R' } // Light shades → Resistant
+];
+
+sim.loadPNGToGrid("image.png", rangeStateMapping, "modelName", "stateProperty", callback);</code></pre>
+
+        <h3>2. Exact Color Matching</h3>
+        <p>Match specific RGB values to states (useful for simple on/off patterns):</p>
+        <pre style="font-size: 16px; line-height: 1.4;"><code style="font-size:16px">const exactStateMapping = {
+    "255,255,255,255": 'X' // White pixels become X to be "excluded" areas (e.g. if you have a topological map)
+};
+
+sim.loadPNGToGrid("image.png", exactStateMapping, "modelName", "stateProperty", callback);</code></pre>
+
+        <h4>Key Considerations:</h4>
+        <ul>
+            <li><strong>Range-based</strong> is better for initialising from complex images</li>
+            <li><strong>Exact matching</strong> works well for simple patterns or Cacatoo-derived images</li>
+            <li>Make sure to call any initialization functions <em>after</em> image loading by using the callback function</li>
+        </ul>
+
+        <h4>Example use case:</h4>
+        <ul>
+            <li><b><a href="https://jsfiddle.net/bramvandijk88/a1g0khd2/">SIR in the Netherlands</a></li>
+        </ul>
+    </article>
+</section>
+
+
+
+
+
         
         <section>
             <h2> Manually setting the grid points</h2>
