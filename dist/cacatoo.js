@@ -4889,6 +4889,10 @@ class Simulation {
             if (callback) callback();
         };
 
+        img.onerror = function() {
+            console.error("Failed to load the image: " + imageSource);
+            if (errorCallback) errorCallback();
+        };
         // Handle local files (for local use)
         if (imageSource instanceof File) {
             const reader = new FileReader();
