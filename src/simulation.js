@@ -1378,9 +1378,10 @@ class Simulation {
                         // Range-based mapping
                         for (const mapping of stateMapping) {
                             if (
-                                r >= mapping.min[0] && r <= mapping.max[0] &&
-                                g >= mapping.min[1] && g <= mapping.max[1] &&
-                                b >= mapping.min[2] && b <= mapping.max[2]
+                                r >= mapping.rMin && r <= mapping.rMax &&
+                                g >= mapping.gMin && g <= mapping.gMax &&
+                                b >= mapping.bMin && b <= mapping.bMax &&
+                                a >= mapping.aMin && a <= mapping.aMax
                             ) {
                                 matchedState = mapping.state;
                                 break;
