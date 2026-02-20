@@ -1339,7 +1339,7 @@ class Simulation {
      * @param {string} stateName - The name of the state in the grid.
      * @param {Function} callback - A callback function to execute after the image is loaded and processed.
      */
-    loadPNGToGrid(imageSource, stateMapping, gridName, stateName, callback) {
+    loadPNGToGrid = function(imageSource, stateMapping, gridName, stateName, callback) {
         // Create an image object
         const img = new Image();
         img.crossOrigin = "Anonymous"; // For CORS if loading from a URL
@@ -1356,15 +1356,14 @@ class Simulation {
             // Get the image data
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-            // Initialize the grid with the correct dimensions
-            if(sim.ncol != canvas.width || sim.nrow != canvas.height){
-            throw new Error("Cacatoo: dimensions of the image have to match the grid size!")
-            }
+            let max_x = Math.min(sim.ncol,canvas.width)
+            let max_y = Math.min(sim.nrow,canvas.height)
+            
             
 
             // Loop through each pixel and set the grid state based on the stateMapping
-            for (let y = 0; y < canvas.height; y++) {
-                for (let x = 0; x < canvas.width; x++) {
+            for (let y = 0; y < max_y; y++) {
+                for (let x = 0; x < max_x; x++) {
                     const i = (y * canvas.width + x) * 4; // RGBA index
                     const r = imageData[i];
                     const g = imageData[i + 1];
