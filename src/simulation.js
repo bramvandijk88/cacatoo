@@ -1339,7 +1339,7 @@ class Simulation {
      * @param {string} stateName - The name of the state in the grid.
      * @param {Function} callback - A callback function to execute after the image is loaded and processed.
      */
-    loadPNGToGrid(imageSource, stateMapping, gridName, stateName) {
+    loadPNGToGrid(imageSource, stateMapping, gridName, stateName, callback) {
         // Create an image object
         const img = new Image();
         img.crossOrigin = "Anonymous"; // For CORS if loading from a URL
@@ -1403,7 +1403,11 @@ class Simulation {
             }
 
             // Update the display
+            
             sim.display()
+
+            // Execute the callback
+            if (callback) callback();
         };
 
         // Handle local files (for local use)
