@@ -910,7 +910,7 @@ class Gridmodel {
     rouletteWheel(gps, property, non = 0.0) {
         let sum_property = non;
         for (let i = 0; i &lt; gps.length; i++) sum_property += gps[i][property];       // Now we have the sum of weight + a constant (non)
-        let randomnr = this.rng.genrand_real1() * sum_property;                // Sample a randomnr between 0 and sum_property        
+        let randomnr = this.rng.genrand_real2() * sum_property;                // Sample a randomnr between 0 and sum_property        
         let cumsum = 0.0;                                                    // This will keep track of the cumulative sum of weights
         for (let i = 0; i &lt; gps.length; i++) {
             cumsum += gps[i][property];
@@ -4838,6 +4838,95 @@ class Simulation {
     }
 
     /**
+     * Loads a PNG image and converts its pixel values to grid states, supporting both exact and range-based mappings.
+     * If no state matches the mapping, the grid state remains unchanged.
+     * @param {string} imageSource - The source of the image (local file path or URL).
+     * @param {Object|Array} stateMapping - Either an object for exact pixel value mappings or an array for range-based mappings.
+     * @param {string} gridName - The name of the grid in the simulation.
+     * @param {string} stateName - The name of the state in the grid.
+     * @param {Function} callback - A callback function to execute after the image is loaded and processed.
+     */
+    loadPNGToGrid(imageSource, stateMapping, gridName, stateName) {
+        // Create an image object
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // For CORS if loading from a URL
+        img.onload = function() {
+            // Create a canvas to draw the image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = this.width;
+            canvas.height = this.height;
+
+            // Draw the image on the canvas
+            ctx.drawImage(this, 0, 0);
+
+            // Get the image data
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+            // Initialize the grid with the correct dimensions
+            if(sim.ncol != canvas.width || sim.nrow != canvas.height){
+            throw new Error("Cacatoo: dimensions of the image have to match the grid size!")
+            }
+            
+
+            // Loop through each pixel and set the grid state based on the stateMapping
+            for (let y = 0; y &lt; canvas.height; y++) {
+                for (let x = 0; x &lt; canvas.width; x++) {
+                    const i = (y * canvas.width + x) * 4; // RGBA index
+                    const r = imageData[i];
+                    const g = imageData[i + 1];
+                    const b = imageData[i + 2];
+                    const a = imageData[i + 3];
+                    const pixelKey = `${r},${g},${b},${a}`;
+
+                    // Determine the grid state based on the type of stateMapping
+                    let matchedState = undefined; // Default to undefined (no change)
+
+                    if (Array.isArray(stateMapping)) {
+                        // Range-based mapping
+                        for (const mapping of stateMapping) {
+                            if (
+                                r >= mapping.rMin &amp;&amp; r &lt;= mapping.rMax &amp;&amp;
+                                g >= mapping.gMin &amp;&amp; g &lt;= mapping.gMax &amp;&amp;
+                                b >= mapping.bMin &amp;&amp; b &lt;= mapping.bMax &amp;&amp;
+                                a >= mapping.aMin &amp;&amp; a &lt;= mapping.aMax
+                            ) {
+                                matchedState = mapping.state;
+                                break;
+                            }
+                        }
+                    } else {
+                        // Exact mapping
+                        if (stateMapping[pixelKey] !== undefined) {
+                            matchedState = stateMapping[pixelKey];
+                        }
+                    }
+
+                    // Only update the grid state if a match is found
+                    if (matchedState !== undefined) {
+                        sim[gridName].grid[x][y] = { [stateName]: matchedState };
+                    }
+                }
+            }
+
+            // Update the display
+            sim.display();
+        };
+
+        // Handle local files (for local use)
+        if (imageSource instanceof File) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(imageSource);
+        } else {
+            // Load from URL
+            img.src = imageSource;
+        }
+    };
+
+    /**
      *  addCheckpointButton adds a button to the HTML environment which allows the user
      *  to reload the grid to the state as found in a JSON file saved by save_grid. The JSON
      *  file must of course match the simulation (nrows, ncols, properties in gps), but this
@@ -5021,7 +5110,7 @@ function get2DFromCanvas(canvas) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon Dec 15 2025 15:12:08 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Feb 20 2026 12:58:04 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
