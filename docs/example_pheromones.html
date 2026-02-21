@@ -90,6 +90,7 @@
             for(let boid of this.boids) {
               let x = Math.floor(boid.position.x)
               let y = Math.floor(boid.position.y)
+              if(x < 0 || x >= sim.ncol || y < 0 || y >= sim.nrow) continue; // Skip boids outside of the grid
               let pherx = sim.pheromones.grid[x][y].homing_velocity.x
               let phery = sim.pheromones.grid[x][y].homing_velocity.y
               let pheromone_angle = Math.atan2(phery,pherx)
