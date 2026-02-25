@@ -45,7 +45,7 @@ class Simulation {
         
         this.printcursor = true
         if(config.printcursor == false) this.printcursor = false        
-        if (!this.config.nodarkmode) this.addDarkModeToggle()
+        if (this.config.darkmode) this.addDarkModeToggle()
 
     }
     
