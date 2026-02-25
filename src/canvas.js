@@ -764,7 +764,7 @@ class Canvas {
                 }
 
                 ctx.font = 'bold 12px helvetica neue'
-                ctx.fillStyle = document.body.classList.contains('dark') ? '#c9bfe0' : '#555555'
+                ctx.fillStyle = '#555555'
                 ctx.textAlign = "center"
                 ctx.fillText(keys[i], pos, 45)
             }
