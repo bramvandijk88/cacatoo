@@ -3524,7 +3524,7 @@ class Simulation {
         
         this.printcursor = true;
         if(config.printcursor == false) this.printcursor = false;        
-        if (this.config.darkmode !== false) this.addDarkModeToggle();
+        if (!this.config.nodarkmode) this.addDarkModeToggle();
 
     }
     
@@ -4831,7 +4831,6 @@ addDarkModeToggle() {
     btn.id = 'dark-toggle';
     btn.textContent = '🌙 Dark';
     
-
     // Update Dygraphs' own axisLabelColor option on every graph instance.
     // This survives redraws because it's stored inside Dygraphs itself,
     // unlike patching DOM element styles which get overwritten each frame.
@@ -4865,6 +4864,7 @@ addDarkModeToggle() {
 
     document.body.appendChild(btn);
     updateDygraphColours(); // apply on load in case dark is already active
+    if(this.config.darkmode) btn.click(); 
     }
 
 

@@ -51,7 +51,6 @@ body {
   margin: 16px;
   font-size: 13px;
   line-height: 1.6;
-  transition: background-color .3s, color .3s;
 }
 
 /* ── Dark toggle — fixed top-right ── */
@@ -69,7 +68,6 @@ body {
   cursor: pointer;
 
   box-shadow: var(--shadow);
-  transition: background .2s, color .2s, border-color .2s, box-shadow .2s;
   width: auto;        /* override Cacatoo's global button width */
   margin: 0;
 }
@@ -93,7 +91,6 @@ body {
   color: var(--header-text);
   position: relative;
   z-index: 1;           /* shadow bleeds over content below */
-  transition: background-color .3s;
 }
 
 /* ── Content ── */
@@ -101,7 +98,7 @@ body {
   text-align: center;
   padding: 18px 12px;
   background-color: var(--bg);
-  transition: background-color .3s;
+
 }
 
 /* ── Footer ── */
@@ -115,7 +112,7 @@ body {
   text-align: center;
   font-size: 8px;
   color: var(--muted);
-  transition: background-color .3s;
+  
 }
 .footer a {
   color: var(--muted);
@@ -178,7 +175,7 @@ button {
   width: 124px;
   color: var(--text);
   box-shadow: var(--shadow-sm);
-  transition: background-color .15s, border-color .15s, box-shadow .15s;
+  transition: background-color .5s, border-color .5s, box-shadow .5s, color .5s;
 }
 button:hover {
   background-color: var(--accent-light);
