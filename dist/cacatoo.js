@@ -3380,7 +3380,7 @@ class Canvas {
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 ctx.closePath();
-                ctx.fillStyle = document.body.classList.contains('dark') ? '#c9bfe0' : '#000000';
+                ctx.fillStyle = "#555555";
                 ctx.textAlign = "center";
                 ctx.font = '12px helvetica';
                 let ticklab = (this.minval + i * tick_increment);
@@ -3426,7 +3426,7 @@ class Canvas {
                 }
 
                 ctx.font = 'bold 12px helvetica neue';
-                ctx.fillStyle = document.body.classList.contains('dark') ? '#c9bfe0' : '#555555';
+                ctx.fillStyle = '#555555';
                 ctx.textAlign = "center";
                 ctx.fillText(keys[i], pos, 45);
             }
