@@ -667,113 +667,112 @@ class Canvas {
 
 
     }
-    // Add legend to plot
-    add_legend(div,property,lab="")
-    {
+    add_legend(div, property, lab = "") {
         if (typeof document == "undefined") return
         let statecols = this.statecolours[property]
-        if(statecols == undefined){
+        if (statecols == undefined) {
             console.warn(`Cacatoo warning: no colours setup for canvas "${this.label}"`)
             return
         }
-                    
+
         this.legend = document.createElement("canvas")
         this.legend.className = "legend"
-        this.legend.width = this.width*this.scale*0.6
-        
         this.legend.height = 50
+        this.legend.style.display = 'block'
+        this.legend.style.margin = '0 auto'
         let ctx = this.legend.getContext("2d")
 
-        ctx.textAlign = "center";
-        ctx.font = '14px helvetica';     
-        ctx.fillText(lab, this.legend.width/2, 16);
+        ctx.textAlign = "center"
+        ctx.font = '14px helvetica'
 
-        if(this.maxval!==undefined) {
-            let bar_width = this.width*this.scale*0.48
-            let offset = 0.1*this.legend.width  
-            let n_ticks = this.nticks-1
-            
-            let tick_increment = (this.maxval-this.minval) / n_ticks
-            let step_size =  (this.legend.width / n_ticks)*0.8
-            
-            for(let i=0;i<bar_width;i++)
-            {
-                let colval = Math.ceil(this.num_colours*i/bar_width)
-                if(statecols[colval] == undefined) {                    
+        if (this.maxval !== undefined) {
+            // --- continuous colourbar legend ---
+            this.legend.width = this.width * this.scale * 0.8
+
+            ctx.fillText(lab, this.legend.width / 2, 16)
+
+            let bar_width = this.legend.width * 0.8
+            let offset = 0.1 * this.legend.width
+            let n_ticks = this.nticks - 1
+
+            let tick_increment = (this.maxval - this.minval) / n_ticks
+            let step_size = bar_width / n_ticks
+
+            for (let i = 0; i < bar_width; i++) {
+                let colval = Math.ceil(this.num_colours * i / bar_width)
+                if (statecols[colval] == undefined) {
                     ctx.fillStyle = this.bgcolor
-                }
-                else {
+                } else {
                     ctx.fillStyle = rgbToHex(statecols[colval])
                 }
-                ctx.fillRect(offset+i, 20, 1, 10);
-                ctx.closePath();
-                
-            }
-            for(let i = 0; i<n_ticks+1; i++){
-                let tick_position = (i*step_size+offset)
-                ctx.strokeStyle = "#FFFFFF";                        
-                ctx.beginPath();
-                ctx.moveTo(tick_position, 25);
-                ctx.lineTo(tick_position, 30);
-                ctx.lineWidth=2
-                ctx.stroke();
-                ctx.closePath();
-                ctx.fillStyle = "#000000"
-                ctx.textAlign = "center";
-                ctx.font = '12px helvetica';     
-                let ticklab = (this.minval+i*tick_increment)
-                ticklab = ticklab.toFixed(this.decimals)         
-                ctx.fillText(ticklab, tick_position, 45);
+                ctx.fillRect(offset + i, 20, 1, 10)
+                ctx.closePath()
             }
 
-            ctx.beginPath();
-            ctx.rect(offset, 20, bar_width, 10);
-            ctx.strokeStyle = "#000000";
-            ctx.stroke();
-            ctx.closePath();
+            for (let i = 0; i < n_ticks + 1; i++) {
+                let tick_position = (i * step_size + offset)
+                ctx.strokeStyle = "#FFFFFF"
+                ctx.beginPath()
+                ctx.moveTo(tick_position, 25)
+                ctx.lineTo(tick_position, 30)
+                ctx.lineWidth = 2
+                ctx.stroke()
+                ctx.closePath()
+                ctx.fillStyle = document.body.classList.contains('dark') ? '#c9bfe0' : '#000000'
+                ctx.textAlign = "center"
+                ctx.font = '12px helvetica'
+                let ticklab = (this.minval + i * tick_increment)
+                ticklab = ticklab.toFixed(this.decimals)
+                ctx.fillText(ticklab, tick_position, 45)
+            }
+
+            ctx.beginPath()
+            ctx.rect(offset, 20, bar_width, 10)
+            ctx.strokeStyle = "#000000"
+            ctx.stroke()
+            ctx.closePath()
             div.appendChild(this.legend)
-        }
-        else{                    
-             
-            let keys = Object.keys(statecols)
-            
-            let total_num_values = keys.length
-            let spacing = 0.9
-            // if(total_num_values < 8) spacing = 0.7
-            // if(total_num_values < 4) spacing = 0.8
-            
-            let bar_width = this.width*this.scale*spacing   
-            
-            let step_size = Math.round(bar_width / (total_num_values+1))
-            let offset = this.legend.width*0.5 - step_size*(total_num_values-1)/2
-           
 
-            for(let i=0;i<total_num_values;i++)
-            {                                    
-                let pos = offset+Math.floor(i*step_size)
-                ctx.beginPath()                
-                ctx.strokeStyle = "#000000"
-                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor                
+        } else {
+            // --- discrete dot/swatch legend ---
+            let keys = Object.keys(statecols)
+            let total_num_values = keys.length
+
+            // Make the legend as wide as the canvas and distribute items evenly
+            this.legend.width = this.width * this.scale * 0.8
+            let step_size = this.legend.width / total_num_values
+            let offset = step_size / 2                               // center of first slot
+
+            ctx.fillText(lab, this.legend.width / 2, 16)
+
+            for (let i = 0; i < total_num_values; i++) {
+                let pos = offset + i * step_size
+
+                if (statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor
                 else ctx.fillStyle = rgbToHex(statecols[keys[i]])
-                if(this.radius){
+
+                if (this.radius) {
                     ctx.beginPath()
-                    ctx.arc(pos,10,5,0,Math.PI*2)
+                    ctx.arc(pos, 18, 6, 0, Math.PI * 2)
                     ctx.fill()
                     ctx.closePath()
+                } else {
+                    ctx.beginPath()
+                    ctx.strokeStyle = "#00000022"
+                    ctx.fillRect(pos - 5, 10, 10, 10)
+                    ctx.closePath()
                 }
-                else{
-                    ctx.fillRect(pos-4, 10, 10, 10)
-                }
-                ctx.closePath()
-                ctx.font = '12px helvetica';
-                ctx.fillStyle = "#000000"
-                ctx.textAlign = "center";
-                ctx.fillText(keys[i], pos, 35);
+
+                ctx.font = 'bold 12px helvetica neue'
+                ctx.fillStyle = document.body.classList.contains('dark') ? '#c9bfe0' : '#555555'
+                ctx.textAlign = "center"
+                ctx.fillText(keys[i], pos, 45)
             }
+
             div.appendChild(this.legend)
         }
-        
     }
+
     remove_legend()
     {
         this.legend.getContext("2d").clearRect(0, 0, this.legend.width, this.legend.height);

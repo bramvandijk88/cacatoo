@@ -3329,62 +3329,62 @@ class Canvas {
 
 
     }
-    // Add legend to plot
-    add_legend(div,property,lab="")
-    {
+    add_legend(div, property, lab = "") {
         if (typeof document == "undefined") return
         let statecols = this.statecolours[property];
-        if(statecols == undefined){
+        if (statecols == undefined) {
             console.warn(`Cacatoo warning: no colours setup for canvas "${this.label}"`);
             return
         }
-                    
+
         this.legend = document.createElement("canvas");
         this.legend.className = "legend";
-        this.legend.width = this.width*this.scale*0.6;
-        
         this.legend.height = 50;
+        this.legend.style.display = 'block';
+        this.legend.style.margin = '0 auto';
         let ctx = this.legend.getContext("2d");
 
         ctx.textAlign = "center";
-        ctx.font = '14px helvetica';     
-        ctx.fillText(lab, this.legend.width/2, 16);
+        ctx.font = '14px helvetica';
 
-        if(this.maxval!==undefined) {
-            let bar_width = this.width*this.scale*0.48;
-            let offset = 0.1*this.legend.width;  
-            let n_ticks = this.nticks-1;
-            
-            let tick_increment = (this.maxval-this.minval) / n_ticks;
-            let step_size =  (this.legend.width / n_ticks)*0.8;
-            
-            for(let i=0;i<bar_width;i++)
-            {
-                let colval = Math.ceil(this.num_colours*i/bar_width);
-                if(statecols[colval] == undefined) {                    
+        if (this.maxval !== undefined) {
+            // --- continuous colourbar legend ---
+            this.legend.width = this.width * this.scale * 0.8;
+
+            ctx.fillText(lab, this.legend.width / 2, 16);
+
+            let bar_width = this.legend.width * 0.8;
+            let offset = 0.1 * this.legend.width;
+            let n_ticks = this.nticks - 1;
+
+            let tick_increment = (this.maxval - this.minval) / n_ticks;
+            let step_size = bar_width / n_ticks;
+
+            for (let i = 0; i < bar_width; i++) {
+                let colval = Math.ceil(this.num_colours * i / bar_width);
+                if (statecols[colval] == undefined) {
                     ctx.fillStyle = this.bgcolor;
-                }
-                else {
+                } else {
                     ctx.fillStyle = rgbToHex(statecols[colval]);
                 }
-                ctx.fillRect(offset+i, 20, 1, 10);
+                ctx.fillRect(offset + i, 20, 1, 10);
                 ctx.closePath();
-                
             }
-            for(let i = 0; i<n_ticks+1; i++){
-                let tick_position = (i*step_size+offset);
-                ctx.strokeStyle = "#FFFFFF";                        
+
+            for (let i = 0; i < n_ticks + 1; i++) {
+                let tick_position = (i * step_size + offset);
+                ctx.strokeStyle = "#FFFFFF";
                 ctx.beginPath();
                 ctx.moveTo(tick_position, 25);
                 ctx.lineTo(tick_position, 30);
-                ctx.lineWidth=2;
+                ctx.lineWidth = 2;
                 ctx.stroke();
                 ctx.closePath();
-                ctx.fillStyle = "#000000";
+                ctx.fillStyle = document.body.classList.contains('dark') ? '#c9bfe0' : '#000000';
                 ctx.textAlign = "center";
-                ctx.font = '12px helvetica';     
-                let ticklab = (this.minval+i*tick_increment);
-                ticklab = ticklab.toFixed(this.decimals);         
+                ctx.font = '12px helvetica';
+                let ticklab = (this.minval + i * tick_increment);
+                ticklab = ticklab.toFixed(this.decimals);
                 ctx.fillText(ticklab, tick_position, 45);
             }
 
@@ -3394,48 +3394,47 @@ class Canvas {
             ctx.stroke();
             ctx.closePath();
             div.appendChild(this.legend);
-        }
-        else {                    
-             
-            let keys = Object.keys(statecols);
-            
-            let total_num_values = keys.length;
-            let spacing = 0.9;
-            // if(total_num_values < 8) spacing = 0.7
-            // if(total_num_values < 4) spacing = 0.8
-            
-            let bar_width = this.width*this.scale*spacing;   
-            
-            let step_size = Math.round(bar_width / (total_num_values+1));
-            let offset = this.legend.width*0.5 - step_size*(total_num_values-1)/2;
-           
 
-            for(let i=0;i<total_num_values;i++)
-            {                                    
-                let pos = offset+Math.floor(i*step_size);
-                ctx.beginPath();                
-                ctx.strokeStyle = "#000000";
-                if(statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;                
+        } else {
+            // --- discrete dot/swatch legend ---
+            let keys = Object.keys(statecols);
+            let total_num_values = keys.length;
+
+            // Make the legend as wide as the canvas and distribute items evenly
+            this.legend.width = this.width * this.scale * 0.8;
+            let step_size = this.legend.width / total_num_values;
+            let offset = step_size / 2;                               // center of first slot
+
+            ctx.fillText(lab, this.legend.width / 2, 16);
+
+            for (let i = 0; i < total_num_values; i++) {
+                let pos = offset + i * step_size;
+
+                if (statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor;
                 else ctx.fillStyle = rgbToHex(statecols[keys[i]]);
-                if(this.radius){
+
+                if (this.radius) {
                     ctx.beginPath();
-                    ctx.arc(pos,10,5,0,Math.PI*2);
+                    ctx.arc(pos, 18, 6, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.closePath();
+                } else {
+                    ctx.beginPath();
+                    ctx.strokeStyle = "#00000022";
+                    ctx.fillRect(pos - 5, 10, 10, 10);
+                    ctx.closePath();
                 }
-                else {
-                    ctx.fillRect(pos-4, 10, 10, 10);
-                }
-                ctx.closePath();
-                ctx.font = '12px helvetica';
-                ctx.fillStyle = "#000000";
+
+                ctx.font = 'bold 12px helvetica neue';
+                ctx.fillStyle = document.body.classList.contains('dark') ? '#c9bfe0' : '#555555';
                 ctx.textAlign = "center";
-                ctx.fillText(keys[i], pos, 35);
+                ctx.fillText(keys[i], pos, 45);
             }
+
             div.appendChild(this.legend);
         }
-        
     }
+
     remove_legend()
     {
         this.legend.getContext("2d").clearRect(0, 0, this.legend.width, this.legend.height);
@@ -3525,6 +3524,8 @@ class Simulation {
         
         this.printcursor = true;
         if(config.printcursor == false) this.printcursor = false;        
+        if (this.config.darkmode !== false) this.addDarkModeToggle();
+
     }
     
 
@@ -4053,7 +4054,7 @@ class Simulation {
         let meter = undefined;
         if (this.inbrowser) {
             if(this.fpsmeter){               
-                meter = new FPSMeter({ position: 'absolute', show: 'fps', left: "auto", top: "45px", right: "25px", graph: 1, history: 20, smoothing: 100});                
+                meter = new FPSMeter({ position: 'absolute', width: '30px', show: 'fps', left: "auto", top: "65px", right: "25px", graph: 1, history: 20, smoothing: 100});                
                 
             } 
 
@@ -4067,7 +4068,7 @@ class Simulation {
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src=""https://bramvandijk88.github.io/cacatoo/cacatoo/images/elephant_cacatoo_small.png"></a>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src=""https://bramvandijk88.github.io/cacatoo/cacatoo/images/gh.png"></a></img>`;
             if (this.config.noheader != true && document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`;
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>";
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2><u><a href=\"https://bramvandijk88.github.io/cacatoo\" target=\"_blank\">Cacatoo</a></u> is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <u><a href=\"https://github.com/bramvandijk88/cacatoo/issues\" target=\"_blank\">here</a></u>.</h2>";
             let simStartTime = performance.now();
 
             async function animate() {
@@ -4808,6 +4809,66 @@ class Simulation {
         imageLoader.addEventListener('change', handleImage, false);
         imageLoader.grid = targetgrid;    // Bind a grid to imageLoader 
     }
+
+    /**
+     * Automatically injects a dark-mode toggle button into the page.
+     * Skipped if config.darkmode === false.
+     * Patches Dygraph inline tick-label colours on each toggle.
+     */
+    /**
+ * Automatically injects a dark-mode toggle button into the page.
+ * Skipped if config.darkmode === false.
+ * Uses Dygraphs' updateOptions() to set axisLabelColor so the colour
+ * survives graph redraws rather than patching DOM elements.
+ */
+addDarkModeToggle() {
+    if (!this.inbrowser) return
+    // Avoid duplicates if sim is reset
+    
+    if (document.getElementById('dark-toggle')) return
+
+    const btn = document.createElement('button');
+    btn.id = 'dark-toggle';
+    btn.textContent = '🌙 Dark';
+    
+
+    // Update Dygraphs' own axisLabelColor option on every graph instance.
+    // This survives redraws because it's stored inside Dygraphs itself,
+    // unlike patching DOM element styles which get overwritten each frame.
+    const updateDygraphColours = () => {
+        const dark = document.body.classList.contains('dark');
+        const axisColour  = dark ? '#c9bfe0' : '#6e7a88';
+        const gridColour  = dark ? '#2a3d4e' : '#e4e7ec';
+
+        // Cacatoo stores gridmodels on `this` (the Simulation instance).
+        // Each gridmodel exposes its Dygraph instances in a `graphs` array.
+        for (const key of Object.keys(this)) {
+            const model = this[key];
+            if (model && Array.isArray(model.graphs)) {
+                for (const graph of model.graphs) {
+                    if (graph && typeof graph.updateOptions === 'function') {
+                        graph.updateOptions({
+                            axisLabelColor: axisColour,
+                            gridLineColor:  gridColour,
+                        });
+                    }
+                }
+            }
+        }
+    };
+
+    btn.onclick = () => {
+        document.body.classList.toggle('dark');
+        btn.textContent = document.body.classList.contains('dark') ? '☀ Light' : '🌙 Dark';
+        updateDygraphColours();
+    };
+
+    document.body.appendChild(btn);
+    updateDygraphColours(); // apply on load in case dark is already active
+    }
+
+
+
 
     /**
      * Loads a PNG image and converts its pixel values to grid states, supporting both exact and range-based mappings.

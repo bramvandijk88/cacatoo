@@ -1,194 +1,276 @@
+/* ================================================================
+   Cacatoo CSS reskin — "Slightly Beneficial Genes" aesthetic
+   Warmer teal-slate accent, generous spacing, soft shadows.
+   Dark mode: toggle class "dark" on <body>.
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── Variables — light ── */
+:root {
+  --bg:           #f2f4f6;
+  --surface:      #ffffff;
+  --border:       #e4e7ec;
+  --text:         #1c2128;
+  --muted:        #6e7a88;
+  --accent:       #3d8b8b;      /* teal-slate, not electric blue */
+  --accent-light: #e8f4f4;
+  --radius:       12px;
+  --slider-bg:    #dde3ea;
+  --slider-thumb: #3d8b8b;
+  --btn-bg:       #c7eaea;
+  --btn-border:   #e4e7ec;
+  --header-bg:    #5a4e6e;    /* muted dusty purple */
+  --header-text:  #ede9f4;
+  --footer-bg:    #f2f4f6;
+}
+
+/* ── Variables — dark ── */
+body.dark {
+  --bg:           #141c22;
+  --surface:      #1c2730;
+  --border:       #263340;
+  --text:         #cdd8e0;
+  --muted:        #6a8494;
+  --accent:       #4aa8a8;
+  --accent-light: #1a2e30;
+  --slider-bg:    #263340;
+  --slider-thumb: #4aa8a8;
+  --btn-bg:       #1c2730;
+  --btn-border:   #263340;
+  --header-bg:    #2e2440;    /* deeper muted purple for dark */
+  --header-text:  #c9bfe0;
+  --footer-bg:    #141c22;
+}
+
+/* ── Base ── */
 body {
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  background-color: #BBBBBB;
-  margin: 10px;
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 16px;
   font-size: 13px;
+  line-height: 1.6;
+  transition: background-color .3s, color .3s;
 }
 
-/* Style the header */
+/* ── Dark toggle — fixed top-right ── */
+#dark-toggle {
+  position: absolute;
+  top: 28px; right: 25px;
+  z-index: 999;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+
+  box-shadow: var(--shadow);
+  transition: background .2s, color .2s, border-color .2s, box-shadow .2s;
+  width: auto;        /* override Cacatoo's global button width */
+  margin: 0;
+}
+#dark-toggle:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Header ── */
 .header {
-  background-color: rgb(108, 62, 122);
-  display: block;
-  border: 0px solid #FFFFFF;
-  /*box-shadow: 3px 1px 0px #24242444;*/
-  border-radius: 15px 15px 0px 0px;
-  padding: 10px;
+  background-color: var(--header-bg);
+  border: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 16px 40px rgba(0,0,0,.1);
+  border-radius: var(--radius) var(--radius) var(--radius) var(--radius);
+  padding: 16px 24px;
   text-align: center;
-  font-size: 20px;
-  font-weight: 900;
-  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -.25px;
+  color: var(--header-text);
+  position: relative;
+  z-index: 1;           /* shadow bleeds over content below */
+  transition: background-color .3s;
 }
 
-
-.logos {
-  z-index: -1;
-  vertical-align: middle;
-  display: inline-block;
-  padding-left: 10px;
-  padding-top: 10px;
-}
-
-.example_card {
-  width: 170px;
-  height: 170px;
-  background-color: rgb(151, 183, 204);
-  box-shadow: rgba(100, 100, 111, 0.1) 20px 7px 29px 0px;
-  /* font-weight: bold; */
-  color: rgb(229, 239, 245);
-  font-size: 12px;
-  line-height: 25px;
-  margin: 10px;
-  padding: 10px;
-  padding-bottom: 25px;
-  padding-top: 10px;
-  border-radius: 0px 0px 0px 0px;
-  display: inline-block;
-  transition: all 100ms ease-out 200ms;
-  transition-delay: 0s;
-}
-
-.example_card_img {
-  width: 100%;
-  height: 100%;
-  border-radius: 0px 0px 0px 0px;
-  background-position: 45% 50%;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
-.example_card:hover {
-  background-color: rgb(151, 183, 204);
-  font-size: 12px;
-  color: black;
-  border-radius: 30px 0px 30px 0px;
-  box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
-}
-
-.example_card:active {
-  background-color: rgb(151, 183, 204);
-  font-size: 12px;
-  padding-top: 11px;
-  height: 199px;
-  color: black;
-  box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
-}
-
-
-/* Content (grid, graphs, sliders) */
+/* ── Content ── */
 .content {
   text-align: center;
-  /*box-shadow: 3px 1px 0px #24242444;*/
-  /*border-bottom: 1px dashed #88888844;*/
-  background-color: #e2e2e2;
-  padding: 10px;
+  padding: 18px 12px;
+  background-color: var(--bg);
+  transition: background-color .3s;
 }
 
-/* Output div */
-.output {
-  border-radius: 8px 8px 8px 8px;
-  margin: 30px;
-  height: 300px;
-  overflow-y: scroll;
-  font-size: 11px;
-  text-align: left;
-  background-color: #000000;
-  color: #00FF00;
-  /*border-bottom: 1px dashed #88888844;*/
-  padding: 30px;
-}
-
-/* Style the footer */
+/* ── Footer ── */
 .footer {
-  background-color: #e2e2e2;
-  border: 0px solid #FFFFFF;
-  /*box-shadow: 3px 1px 0px #24242444;*/
-  border-radius: 0px 0px 15px 15px;
-  padding: 10px;
+  background-color: var(--footer-bg);
+  border: none;
+  box-shadow: var(--shadow);
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: 12px;
+  font-weight: light;
   text-align: center;
   font-size: 8px;
+  color: var(--muted);
+  transition: background-color .3s;
+}
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
 }
 
+/* ── Grid / graph holders ── */
 .grid-holder {
-  margin: 10px;
+  margin: 12px;
   display: inline-block;
-}
-
-.form-container {
-  /* Sliders and buttons */
-  display: inline-block;
-  margin: 10px;
 }
 
 .graph-holder {
-  margin: 10px;
+  margin: 12px;
   display: inline-block;
-  padding: 10px;
+  padding: 0;
 }
 
-/* The button itself */
+/* ── FPS meter ── */
+#fpsmeter,
+#fpsmeter * {
+  font-size: 9px !important;
+}
+
+/* ── Dygraph labels ── */
+/* Dygraphs inlines color on tick labels so we need !important here.
+   The JS snippet patches the remaining inline styles on toggle. */
+.dygraph-axis-label {
+  color: var(--muted) !important;
+  font-family: 'DM Mono', monospace !important;
+  font-size: 10px !important;
+}
+
+/* ── Form container ── */
+.form-container {
+  display: inline-block;
+  width: 220px;
+  margin: 12px;
+  vertical-align: middle;
+  border-radius: var(--radius);
+  padding: 18px 18px;
+  transition: background .3s, border-color .3s, box-shadow .3s;
+}
+
+/* ── Buttons ── */
 button {
-  background-color: rgb(239, 218, 245);
-  border-radius: 10px;
-  border: 2px solid rgb(188, 141, 201);
-  ;
-  padding: 7px;
+  background-color: var(--btn-bg);
+  border-radius: 8px;
+  border: 1px solid var(--btn-border);
+  padding: 8px 12px;
+  font-family: 'DM Sans', sans-serif;
   font-size: 12px;
+  font-weight: 500;
+  margin: 5px auto;
+  display: inline-block;  /* back to inline-block so vertical-align works */
+  float: none;
+  vertical-align: middle;
+  padding: 10px;
   margin: 10px;
-  width: 128px;
+  width: 124px;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  transition: background-color .15s, border-color .15s, box-shadow .15s;
+}
+button:hover {
+  background-color: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+/* ── Slider row — match button height so they sit at the same vertical position ── */
+.form-container br {
+  display: none;       /* Cacatoo uses <br> between elements; hide them */
 }
 
-/* The numeric form */
+.form-container > * {
+  vertical-align: bottom;  /* align to bottom so buttons sit level with slider track */
+}
+
+/* ── Numeric input ── */
 input[type=number] {
-  background-color: rgb(239, 218, 245);
-  border: 2px solid rgb(188, 141, 201);
-  font-size: 12px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  padding: 4px 7px;
+  transition: background .2s, border-color .2s;
+}
+input[type=number]:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
-/* The slider itself */
+/* ── Slider ── */
 .slider {
   -webkit-appearance: none;
-  /* Override default CSS styles */
   appearance: none;
-  width: 50%;
-  /* Full-width */
+  width: 55%;
   cursor: pointer;
-  height: 8px;
-  /* Specified height */
-  background-color: rgb(223, 126, 250);
+  height: 5px;
+  background: var(--slider-bg);
+  border-radius: 3px;
   outline: none;
-  /* Remove outline */
-  opacity: 0.5;
-  /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s;
-  /* 0.2 seconds transition on hover */
+  opacity: 0.6;
+  vertical-align: middle;
   transition: opacity .2s;
 }
+.slider:hover { opacity: 1; }
 
-/* The number input */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--slider-thumb);
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(61,139,139,.15);
+  transition: box-shadow .15s;
+}
+.slider:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 0 5px rgba(61,139,139,.22);
+}
+.slider::-moz-range-thumb {
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--slider-thumb);
+  cursor: pointer;
+  border: none;
+}
+
+/* ── Number display ── */
 .number {
   -webkit-appearance: none;
-  /* Override default CSS styles */
   appearance: none;
-  width: 50%;
-  /* Full-width */
-  margin-top: 10px;
-  height: 30px;
-  /* Specified height */
-  background: #FFFFFF;
-  /* Grey background */
-  opacity: 0.7;
-  /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s;
-  /* 0.2 seconds transition on hover */
-  transition: opacity .2s;
+  width: 40%;
+  margin-top: 5px;
+  height: 24px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 0 6px;
+  opacity: 0.75;
+  vertical-align: middle;
+  transition: opacity .2s, border-color .2s;
 }
+.number:hover { opacity: 1; }
+.number:focus { outline: none; border-color: var(--accent); opacity: 1; }
 
-/* Mouse-over effects */
-.slider:hover {
-  opacity: 1;
-  /* Fully shown on mouse-over */
-}
-
-.canvas {
-  border: '3px solid red';    
+/* ── Canvas ── */
+canvas {
+  border-radius: 8px !important;
+  display: block;
+  box-shadow: var(--shadow);
 }

@@ -45,6 +45,8 @@ class Simulation {
         
         this.printcursor = true
         if(config.printcursor == false) this.printcursor = false        
+        if (this.config.darkmode !== false) this.addDarkModeToggle()
+
     }
     
 
@@ -574,7 +576,7 @@ class Simulation {
         let meter = undefined;
         if (this.inbrowser) {
             if(this.fpsmeter){               
-                meter = new FPSMeter({ position: 'absolute', show: 'fps', left: "auto", top: "45px", right: "25px", graph: 1, history: 20, smoothing: 100});                
+                meter = new FPSMeter({ position: 'absolute', width: '30px', show: 'fps', left: "auto", top: "65px", right: "25px", graph: 1, history: 20, smoothing: 100});                
                 
             } 
 
@@ -588,7 +590,7 @@ class Simulation {
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML = `<a target="blank" href="https://bramvandijk88.github.io/cacatoo/"><img class="logos" src=""https://bramvandijk88.github.io/cacatoo/images/elephant_cacatoo_small.png"></a>`;
             if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += `<a target="blank" href="https://github.com/bramvandijk88/cacatoo"><img class="logos" style="padding-top:32px;" src=""https://bramvandijk88.github.io/cacatoo/images/gh.png"></a></img>`;
             if (this.config.noheader != true && document.getElementById("header") != null) document.getElementById("header").innerHTML = `<div style="height:40px;"><h2>Cacatoo - ${this.config.title}</h2></div><div style="padding-bottom:20px;"><font size=2>${this.config.description}</font size></div>`;
-            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2>Cacatoo is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <a href=\"https://github.com/bramvandijk88/cacatoo/issues\">here.</a></h2>";
+            if (document.getElementById("footer") != null) document.getElementById("footer").innerHTML += "<h2><u><a href=\"https://bramvandijk88.github.io/cacatoo\" target=\"_blank\">Cacatoo</a></u> is a toolbox to explore spatially structured models straight from your webbrowser. Suggestions or issues can be reported <u><a href=\"https://github.com/bramvandijk88/cacatoo/issues\" target=\"_blank\">here</a></u>.</h2>";
             let simStartTime = performance.now();
 
             async function animate() {
@@ -1329,6 +1331,66 @@ class Simulation {
         imageLoader.addEventListener('change', handleImage, false);
         imageLoader.grid = targetgrid    // Bind a grid to imageLoader 
     }
+
+    /**
+     * Automatically injects a dark-mode toggle button into the page.
+     * Skipped if config.darkmode === false.
+     * Patches Dygraph inline tick-label colours on each toggle.
+     */
+    /**
+ * Automatically injects a dark-mode toggle button into the page.
+ * Skipped if config.darkmode === false.
+ * Uses Dygraphs' updateOptions() to set axisLabelColor so the colour
+ * survives graph redraws rather than patching DOM elements.
+ */
+addDarkModeToggle() {
+    if (!this.inbrowser) return
+    // Avoid duplicates if sim is reset
+    
+    if (document.getElementById('dark-toggle')) return
+
+    const btn = document.createElement('button')
+    btn.id = 'dark-toggle'
+    btn.textContent = '🌙 Dark'
+    
+
+    // Update Dygraphs' own axisLabelColor option on every graph instance.
+    // This survives redraws because it's stored inside Dygraphs itself,
+    // unlike patching DOM element styles which get overwritten each frame.
+    const updateDygraphColours = () => {
+        const dark = document.body.classList.contains('dark')
+        const axisColour  = dark ? '#c9bfe0' : '#6e7a88'
+        const gridColour  = dark ? '#2a3d4e' : '#e4e7ec'
+
+        // Cacatoo stores gridmodels on `this` (the Simulation instance).
+        // Each gridmodel exposes its Dygraph instances in a `graphs` array.
+        for (const key of Object.keys(this)) {
+            const model = this[key]
+            if (model && Array.isArray(model.graphs)) {
+                for (const graph of model.graphs) {
+                    if (graph && typeof graph.updateOptions === 'function') {
+                        graph.updateOptions({
+                            axisLabelColor: axisColour,
+                            gridLineColor:  gridColour,
+                        })
+                    }
+                }
+            }
+        }
+    }
+
+    btn.onclick = () => {
+        document.body.classList.toggle('dark')
+        btn.textContent = document.body.classList.contains('dark') ? '☀ Light' : '🌙 Dark'
+        updateDygraphColours()
+    }
+
+    document.body.appendChild(btn)
+    updateDygraphColours() // apply on load in case dark is already active
+    }
+
+
+
 
     /**
      * Loads a PNG image and converts its pixel values to grid states, supporting both exact and range-based mappings.
