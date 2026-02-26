@@ -807,7 +807,7 @@ class Simulation {
         let button = document.createElement("button")
         button.innerHTML = "▶ / ⏸";
         button.id = "pausebutton"
-        button.addEventListener("click", toggle_play, true);
+        button.addEventListener("click", this.toggle_play, true);
         document.getElementById("form_holder").appendChild(button)
         if(!start) this.toggle_play()
     }
