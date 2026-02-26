@@ -155,8 +155,8 @@
 
         }
 
-
-        sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"
+        sim.addPauseButton()              // Add a button that calls function "display" in "model"
+        //sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"
         sim.addMovieButton(sim.batchculture, "Internal resources")
         sim.start()
     }
