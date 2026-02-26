@@ -4277,9 +4277,8 @@ class Simulation {
     }
 
     /**
-     *  addButton adds a HTML button which can be linked to a function by the user. 
-     *  @param {string} text Text displayed on the button
-     *  @param {function} func Function to be linked to the button
+     *  addButton adds a HTML button, in this case a default "pause button"
+     *  @param {boolean} start Whether the simulation should start in a paused state
      */
     addPauseButton(start=true) {
         if (!this.inbrowser) return
