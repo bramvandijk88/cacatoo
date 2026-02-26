@@ -799,6 +799,20 @@ class Simulation {
     }
 
     /**
+     *  addButton adds a HTML button, in this case a default "pause button"
+     *  @param {boolean} start Whether the simulation should start in a paused state
+     */
+    addPauseButton(start=true) {
+        if (!this.inbrowser) return
+        let button = document.createElement("button")
+        button.innerHTML = "▶ / ⏸";
+        button.id = "pausebutton"
+        button.addEventListener("click", toggle_play, true);
+        document.getElementById("form_holder").appendChild(button)
+        if(!start) this.toggle_play()
+    }
+
+    /**
      *  addSlider adds a HTML slider to the DOM-environment which allows the user
      *  to modify a model parameter at runtime. 
      *  @param {string} parameter The name of the (global!) parameter to link to the slider

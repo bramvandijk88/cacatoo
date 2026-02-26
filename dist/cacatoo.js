@@ -4277,6 +4277,21 @@ class Simulation {
     }
 
     /**
+     *  addButton adds a HTML button which can be linked to a function by the user. 
+     *  @param {string} text Text displayed on the button
+     *  @param {function} func Function to be linked to the button
+     */
+    addPauseButton(start=true) {
+        if (!this.inbrowser) return
+        let button = document.createElement("button");
+        button.innerHTML = "▶ / ⏸";
+        button.id = "pausebutton";
+        button.addEventListener("click", toggle_play, true);
+        document.getElementById("form_holder").appendChild(button);
+        if(!start) this.toggle_play();
+    }
+
+    /**
      *  addSlider adds a HTML slider to the DOM-environment which allows the user
      *  to modify a model parameter at runtime. 
      *  @param {string} parameter The name of the (global!) parameter to link to the slider
