@@ -172,7 +172,7 @@ button {
   vertical-align: middle;
   padding: 10px;
   margin: 10px;
-  width: 124px;
+  width: 154px;
   color: var(--text);
   box-shadow: var(--shadow-sm);
   transition: background-color .5s, border-color .5s, box-shadow .5s, color .5s;
