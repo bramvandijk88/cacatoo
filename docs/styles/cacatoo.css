@@ -267,7 +267,6 @@ input[type=number]:focus {
 
 /* ── Canvas ── */
 canvas {
-  border-radius: 8px !important;
+  border-radius: 0px !important;
   display: block;
-  box-shadow: var(--shadow);
 }
