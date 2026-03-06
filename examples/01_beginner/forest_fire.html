@@ -61,9 +61,10 @@ var TreeDensity = 0.40
             this.synchronous()                              
         }
         
+        
         sim.addSlider('TreeDensity',min=0,max=1)
         sim.addButton("Reset trees", function () { sim.reset() })
-        
+        sim.addPauseButton()
         sim.addMovieButton(sim.forest,"Tile type")
         sim.addStatebrush("forest", "type", 'burned', 1)
         sim.start()

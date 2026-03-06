@@ -4286,6 +4286,8 @@ class Simulation {
         button.innerHTML = "▶ / ⏸";
         button.id = "pausebutton";
         button.style.width = "70px";
+        //button.style.height = "34px"
+        button.style.fontSize = "11px";
         button.addEventListener("click", () => this.toggle_play(), true);
         document.getElementById("form_holder").appendChild(button);
         if(!start) this.toggle_play();

@@ -25,10 +25,10 @@ function cacatoo() {
   let simconfig = {
     title: "Aapjes", // The name of your cacatoo-simulation
     description: "Foraging in groups<br><u>NOTE: REQUIRES LIVE SERVER</u>", // And a description if you wish
-    maxtime: 10000, // How many time steps the model continues to run
+    maxtime: 1000000, // How many time steps the model continues to run
     // (note, the onscreen FPS may drop below 60 fps when using fast mode, although many more timesteps may be handled per second)
-    ncol: 400, // Number of columns (width of your grid)
-    nrow: 300, // Number of rows (height of your grid)
+    ncol: 600, // Number of columns (width of your grid)
+    nrow: 400, // Number of rows (height of your grid)
     scale: 2, // Scale of the grid (nxn pixels per grid point)
     sleep: 0,
     seed: 2,
@@ -56,7 +56,7 @@ function cacatoo() {
     alignment: {strength:0, radius:30}, // Alignment parameters (uses default neighbour radius of 30)
     cohesion:  {strength:0, radius:50},  // Cohesion parameters (uses default neighbour radius of 30)
     separation:{strength:0, radius:4},  // Separation radius is smaller 
-    size: 12,                // Size of the boids (scales drawing and colision detection)
+    size: 8,                // Size of the boids (scales drawing and colision detection)
 
     // Optimalisation (speed) parameters
     //qt_colour: 'white',       // Show quadtree (optimalisation by automatically tessalating the space)
@@ -79,7 +79,7 @@ function cacatoo() {
   sim.makeFlockmodel("flock", flockconfig) // Add a flockmodel, which contains invidiuals (boids) in continuous space
   sim.createFlockDisplay("flock",{addToDisplay:sim.canvases[0]}) // Alias for old 'createDisplay' function, makes distinction with new flocks clearer
   
-  sim.flock.populateSpot(100,sim.ncol/2,sim.nrow/2,1)
+  sim.flock.populateSpot(500,sim.ncol/2,sim.nrow/2,1)
   for(boid of sim.flock.boids) {
     boid.png = "../../images/aapje_normal.png"
     boid.velocity.x = sim.rng.random()*2-1
@@ -123,7 +123,7 @@ function cacatoo() {
       }
 
       //boid.velocity = this.rotateVector(boid.velocity,3*sim.rng.random()-1.5)
-      let numneighs = this.getIndividualsInRange(boid.position, 20).length -1
+      let numneighs = this.getIndividualsInRange(boid.position, 10).length -1
       if(numneighs < 10) {
         boid.cohesionstrength = 1.0
         boid.png = "../../images/aapje_scared.png"
