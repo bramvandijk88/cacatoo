@@ -3359,6 +3359,9 @@ class Canvas {
             this.legend.style.height = logicalHeight + "px";
 
             ctx.scale(dpr, dpr);
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#666666";
+            ctx.font = '12px helvetica';
 
             ctx.fillText(lab, logicalWidth / 2, 16);
 
@@ -3422,6 +3425,8 @@ class Canvas {
 
             // Scale context once, before any drawing
             ctx.scale(dpr, dpr);
+            ctx.textAlign = "center";
+            ctx.font = '14px helvetica';
 
             let step_size = logicalWidth / total_num_values;
             let offset = step_size / 2;
