@@ -75,19 +75,18 @@ class Graph {
      * Update the graph axes   
     */
     update() {
-        let max_x = 0
-        let min_x = 999999999999
+        let max_x = 0;
+        let min_x = 999999999999;
         for (let i of this.data) {
-            if (i[0] == null) continue;   // if no data point exists (yet or resetted)
-            if (i[0] > max_x) max_x = i[0]
-            if (i[0] < min_x) min_x = i[0]
+            if (i[0] == null) continue;
+            if (i[0] > max_x) max_x = i[0];
+            if (i[0] < min_x) min_x = i[0];
         }
-        this.g.updateOptions(
-        {
+        if (min_x >= max_x) return;   // ← ADD THIS: skip if no range yet (avoids [0,0] window)
+        this.g.updateOptions({
             'file': this.data,
             dateWindow: [min_x, max_x]
         });
-
     }
 }
 export default Graph
