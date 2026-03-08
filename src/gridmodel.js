@@ -902,7 +902,7 @@ class Gridmodel {
         opts.drawPoints = true
         opts.strokeWidth = 0
         opts.pointSize = 1
-        opts.legend = opts.legend !== undefined ? opts.legend : 'never';
+        opts.labelsDivWidth = 0
 
         
         opts.series = {[seriesname]: {strokeWidth: 3.0, strokeColor:"green", drawPoints: false, pointSize: 0, highlightCircleSize: 3 }}
