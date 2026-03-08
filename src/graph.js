@@ -79,7 +79,7 @@ class Graph {
         let min_x = 999999999999;
         for (let i of this.data) {
             if (i[0] == null) continue;
-            if (i[0] > max_x) max_x = i[0];
+            if (i[0] > max_x) max_x = i[0]; 
             if (i[0] < min_x) min_x = i[0];
         }
         if (min_x >= max_x) return;   // ← ADD THIS: skip if no range yet (avoids [0,0] window)
