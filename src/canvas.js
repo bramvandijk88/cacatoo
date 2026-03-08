@@ -687,12 +687,21 @@ class Canvas {
 
         if (this.maxval !== undefined) {
             // --- continuous colourbar legend ---
-            this.legend.width = this.width * this.scale * 0.8
+            const dpr = window.devicePixelRatio || 1
+            let logicalWidth = this.width * this.scale * 0.8
+            let logicalHeight = 50
 
-            ctx.fillText(lab, this.legend.width / 2, 16)
+            this.legend.width = logicalWidth * dpr
+            this.legend.height = logicalHeight * dpr
+            this.legend.style.width = logicalWidth + "px"
+            this.legend.style.height = logicalHeight + "px"
 
-            let bar_width = this.legend.width * 0.8
-            let offset = 0.1 * this.legend.width
+            ctx.scale(dpr, dpr)
+
+            ctx.fillText(lab, logicalWidth / 2, 16)
+
+            let bar_width = logicalWidth * 0.8
+            let offset = 0.1 * logicalWidth
             let n_ticks = this.nticks - 1
 
             let tick_increment = (this.maxval - this.minval) / n_ticks
@@ -701,7 +710,7 @@ class Canvas {
             for (let i = 0; i < bar_width; i++) {
                 let colval = Math.ceil(this.num_colours * i / bar_width)
                 if (statecols[colval] == undefined) {
-                    ctx.fillStyle = this.bgcolor
+                    ctx.fillStyle = this.bgcolour
                 } else {
                     ctx.fillStyle = rgbToHex(statecols[colval])
                 }
@@ -718,7 +727,7 @@ class Canvas {
                 ctx.lineWidth = 2
                 ctx.stroke()
                 ctx.closePath()
-                ctx.fillStyle = "#555555"
+                ctx.fillStyle = "#666666"
                 ctx.textAlign = "center"
                 ctx.font = '12px helvetica'
                 let ticklab = (this.minval + i * tick_increment)
@@ -738,17 +747,29 @@ class Canvas {
             let keys = Object.keys(statecols)
             let total_num_values = keys.length
 
-            // Make the legend as wide as the canvas and distribute items evenly
-            this.legend.width = this.width * this.scale * 0.8
-            let step_size = this.legend.width / total_num_values
-            let offset = step_size / 2                               // center of first slot
+            // Logical dimensions
+            const dpr = window.devicePixelRatio || 1
+            let logicalWidth = this.width * this.scale * 0.8
+            let logicalHeight = 50
 
-            ctx.fillText(lab, this.legend.width / 2, 16)
+            // Scale canvas backing store
+            this.legend.width = logicalWidth * dpr
+            this.legend.height = logicalHeight * dpr
+            this.legend.style.width = logicalWidth + "px"
+            this.legend.style.height = logicalHeight + "px"
+
+            // Scale context once, before any drawing
+            ctx.scale(dpr, dpr)
+
+            let step_size = logicalWidth / total_num_values
+            let offset = step_size / 2
+
+            ctx.fillText(lab, logicalWidth / 2, 16)
 
             for (let i = 0; i < total_num_values; i++) {
                 let pos = offset + i * step_size
 
-                if (statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolor
+                if (statecols[keys[i]] == undefined) ctx.fillStyle = this.bgcolour
                 else ctx.fillStyle = rgbToHex(statecols[keys[i]])
 
                 if (this.radius) {
@@ -759,16 +780,15 @@ class Canvas {
                 } else {
                     ctx.beginPath()
                     ctx.strokeStyle = "#00000022"
-                    ctx.fillRect(pos - 5, 10, 10, 10)
+                    ctx.fillRect(pos - 5, 10, 11, 11)
                     ctx.closePath()
                 }
 
-                ctx.font = 'bold 12px helvetica neue'
-                ctx.fillStyle = '#555555'
+                ctx.font = '16px helvetica'
+                ctx.fillStyle = '#666666'
                 ctx.textAlign = "center"
                 ctx.fillText(keys[i], pos, 45)
             }
-
             div.appendChild(this.legend)
         }
     }

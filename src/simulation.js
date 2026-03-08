@@ -465,13 +465,9 @@ class Simulation {
         this.canvases.push(cnv)             // Add a reference to the canvas to the sim
         const canvas = cnv
 
-        var newCanvas = document.createElement('canvas')
-        var context = newCanvas.getContext('2d')
-        newCanvas.width = source_canvas.legend.width
-        newCanvas.height = source_canvas.legend.height
-        context.drawImage(source_canvas.legend, 0, 0)
-
-        cnv.canvasdiv.appendChild(newCanvas)
+        cnv.radius = source_canvas.radius
+        cnv.bgcolour = source_canvas.bgcolour
+        cnv.add_legend(cnv.canvasdiv, property, "")
         cnv.bgcolour = this.config.bgcolour || 'black'
         cnv.elem.addEventListener('mousedown', (e) => { sim.active_canvas = cnv }, false)
     }

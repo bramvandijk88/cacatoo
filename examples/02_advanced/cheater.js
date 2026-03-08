@@ -142,15 +142,16 @@ function cacatoo() {
     /**
     * OPTIONAL: add some buttons and sliders so you can play with your model easily
     */
-    sim.addButton("pause/continue", function () { sim.toggle_play() })              // Add a button that calls function "display" in "model"
+sim.addPauseButton()
+sim.addMovieButton(sim.cheater, "Mutualists and cheater")
     sim.addButton("mix once", function () { sim.cheater.perfectMix() })            // Add a button that calls function "perfectMix" in "model.cheater"    
     sim.addButton("well-mix", function () { sim.toggle_mix() })                    // Add a button that calls function "perfectMix" in "model.cheater"  
+    sim.addHTML("form_holder","<br>Parameters:<br>")
     sim.addSlider("A2B")
     sim.addSlider("B2A")
     sim.addSlider("B2C")
     sim.addSlider("stay_empty", 0.00, 20.00, 0.01)
     sim.addSlider("death", 0.00, 1.00, 0.001)
-    sim.addMovieButton(sim.cheater, "Mutualists and cheater")
     sim.start()
 }
 
