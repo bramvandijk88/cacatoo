@@ -63,14 +63,12 @@ class Graph {
     }
 
     reset_plot() {
-        let first_dp = this.data[0]
-        this.data = []
-        let empty = Array(first_dp.length).fill(undefined)
-        this.data.push(empty)
-        this.g.updateOptions(
-            {
-                'file': this.data
-            });
+        let first_dp = this.data[0];
+        this.data = [];
+        let empty = Array(first_dp.length).fill(null);  // null = "missing data" in Dygraph
+        empty[0] = 0;                                   // valid x so dateWindow doesn't invert
+        this.data.push(empty);
+        this.g.updateOptions({'file': this.data});
     }
 
     /** 
@@ -80,6 +78,7 @@ class Graph {
         let max_x = 0
         let min_x = 999999999999
         for (let i of this.data) {
+            if (i[0] == null) continue;   // if no data point exists (yet or resetted)
             if (i[0] > max_x) max_x = i[0]
             if (i[0] < min_x) min_x = i[0]
         }
