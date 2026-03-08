@@ -1236,12 +1236,14 @@ class Gridmodel {
         let avg = (sum / num) || 0;
         graph_values.unshift(avg);
         graph_labels.unshift(seriesname);
-        cols.unshift("#666666");
+        cols.unshift("#418b4e");
         
         if(opts == undefined) opts = {};
         opts.drawPoints = true;
         opts.strokeWidth = 0;
         opts.pointSize = 1;
+        opts.legend = opts.legend !== undefined ? opts.legend : 'never';
+
         
         opts.series = {[seriesname]: {strokeWidth: 3.0, strokeColor:"green", drawPoints: false, pointSize: 0, highlightCircleSize: 3 }};
         if (typeof window == 'undefined') return
