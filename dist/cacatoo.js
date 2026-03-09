@@ -3361,7 +3361,7 @@ class Canvas {
             ctx.scale(dpr, dpr);
             ctx.textAlign = "center";
             ctx.fillStyle = "#666666";
-            ctx.font = '12px helvetica';
+            ctx.font = '11px helvetica';
 
             ctx.fillText(lab, logicalWidth / 2, 16);
 
@@ -3394,7 +3394,7 @@ class Canvas {
                 ctx.closePath();
                 ctx.fillStyle = "#666666";
                 ctx.textAlign = "center";
-                ctx.font = '12px helvetica';
+                ctx.font = '11px helvetica';
                 let ticklab = (this.minval + i * tick_increment);
                 ticklab = ticklab.toFixed(this.decimals);
                 ctx.fillText(ticklab, tick_position, 45);
@@ -3426,7 +3426,7 @@ class Canvas {
             // Scale context once, before any drawing
             ctx.scale(dpr, dpr);
             ctx.textAlign = "center";
-            ctx.font = '14px helvetica';
+            ctx.font = '12px helvetica';
 
             let step_size = logicalWidth / total_num_values;
             let offset = step_size / 2;
@@ -3451,7 +3451,7 @@ class Canvas {
                     ctx.closePath();
                 }
 
-                ctx.font = '16px helvetica';
+                ctx.font = '12px helvetica';
                 ctx.fillStyle = '#666666';
                 ctx.textAlign = "center";
                 ctx.fillText(keys[i], pos, 45);
