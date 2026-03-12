@@ -458,7 +458,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5015">line 5015</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5235">line 5235</a>
     </li></ul></dd>
     
 
@@ -816,7 +816,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4862">line 4862</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5082">line 5082</a>
     </li></ul></dd>
     
 
@@ -976,7 +976,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4524">line 4524</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4553">line 4553</a>
     </li></ul></dd>
     
 
@@ -1131,7 +1131,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4787">line 4787</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4847">line 4847</a>
     </li></ul></dd>
     
 
@@ -1360,7 +1360,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4638">line 4638</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4667">line 4667</a>
     </li></ul></dd>
     
 
@@ -1515,7 +1515,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4801">line 4801</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5021">line 5021</a>
     </li></ul></dd>
     
 
@@ -1661,6 +1661,329 @@
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
         <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4304">line 4304</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="addRecordControls"><span class="type-signature"></span>addRecordControls<span class="signature">(target_div, opts<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    addRecordControls — adds a "Record frames → PNG" panel to form_holder.Uses the File System Access API (Chrome/Edge only).Call sim.capturePNGFrame() unconditionally in your update loop;it self-throttles by the chosen interval and does nothing when not recording.Optional CSV: provide csvHeaders + csvCallback to also write stats.csv on Stop.Example usage:  sim.addRecordControls('canvas_holder', {    every: 50,    csvHeaders: 'time,nA,nB',    csvCallback: () => `${sim.time},${nA},${nB}`  })  // in your update function:  sim.capturePNGFrame()
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>target_div</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">ID of the div to screenshot each frame</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>every</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    25
+                
+                </td>
+            
+
+            <td class="description last">Default capture interval in steps</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>csvHeaders</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">CSV header row (optional)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>csvCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">Returns one CSV data-row string per frame (optional)</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4879">line 4879</a>
     </li></ul></dd>
     
 
@@ -2154,7 +2477,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4539">line 4539</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4568">line 4568</a>
     </li></ul></dd>
     
 
@@ -2291,7 +2614,95 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4497">line 4497</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4526">line 4526</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="capturePNGFrame"><span class="type-signature">(async) </span>capturePNGFrame<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    capturePNGFrame — call unconditionally in your update loop.Does nothing when not recording or between intervals.Requires addRecordControls() to have been called first.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4982">line 4982</a>
     </li></ul></dd>
     
 
@@ -2474,7 +2885,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5112">line 5112</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5332">line 5332</a>
     </li></ul></dd>
     
 
@@ -4382,7 +4793,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5058">line 5058</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5278">line 5278</a>
     </li></ul></dd>
     
 
@@ -4792,7 +5203,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4920">line 4920</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5140">line 5140</a>
     </li></ul></dd>
     
 
@@ -4952,7 +5363,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4697">line 4697</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4726">line 4726</a>
     </li></ul></dd>
     
 
@@ -6002,7 +6413,7 @@
     
 
     
-    <h4 class="name" id="sectionToPNG"><span class="type-signature"></span>sectionToPNG<span class="signature">(div)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="sectionToPNG"><span class="type-signature">(async) </span>sectionToPNG<span class="signature">(div)</span><span class="type-signature"></span></h4>
     
 
     
@@ -6717,7 +7128,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4451">line 4451</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4458">line 4458</a>
     </li></ul></dd>
     
 
@@ -6981,7 +7392,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5092">line 5092</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5312">line 5312</a>
     </li></ul></dd>
     
 
@@ -7069,7 +7480,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5100">line 5100</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line5320">line 5320</a>
     </li></ul></dd>
     
 
@@ -7105,7 +7516,7 @@
     
 
     
-    <h4 class="name" id="write"><span class="type-signature"></span>write<span class="signature">(text, filename)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="write"><span class="type-signature">(async) </span>write<span class="signature">(text, filename)</span><span class="type-signature"></span></h4>
     
 
     
@@ -7229,7 +7640,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4711">line 4711</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4740">line 4740</a>
     </li></ul></dd>
     
 
@@ -7389,7 +7800,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4735">line 4735</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4795">line 4795</a>
     </li></ul></dd>
     
 
@@ -7549,7 +7960,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4755">line 4755</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line4815">line 4815</a>
     </li></ul></dd>
     
 
@@ -7601,7 +8012,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Mar 12 2026 08:45:27 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Mar 12 2026 16:29:45 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

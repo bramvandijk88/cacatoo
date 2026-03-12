@@ -4423,27 +4423,34 @@ class Simulation {
      * save a PNG of an entire HTML div element
      * @param {div} div object to store to
      */
-    sectionToPNG(div, prefix){
-        function downloadURI(uri, filename) {
-            var link = document.createElement("a");
-            link.download = filename;
-            link.href = uri;
-            link.click();
-            
-            //after creating link you should delete dynamic link
-            //clearDynamicLink(link); 
+    async sectionToPNG(div, prefix) {
+        if (!this.inbrowser) {
+            console.warn("[Cacatoo] sectionToPNG is browser-only.");
+            return
         }
-        
-        div = document.getElementById(div);
-        let time = sim.time+1;
-        let timestamp = time.toString();
-        timestamp = timestamp.padStart(6, "0");
+        const elem = typeof div === 'string' ? document.getElementById(div) : div;
+        if (!elem) { console.warn(`[Cacatoo] sectionToPNG: element not found`); return }
 
-        html2canvas(div).then(canvas => {
-            var myImage = canvas.toDataURL();
-            downloadURI(myImage, prefix+timestamp+".png");
-        });
+        const timestamp = String(sim.time + 1).padStart(6, '0');
+        const filename  = `${prefix}${timestamp}.png`;
+
+        const canvas = await html2canvas(elem);
+
+        if (this.outputDirHandle) {
+            const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+            const fh = await this.outputDirHandle.getFileHandle(filename, { create: true });
+            const ws = await fh.createWritable();
+            await ws.write(blob);
+            await ws.close();
+        } else {
+            // fallback: download (original behaviour)
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
     }
+
     /**
      *  recordVideo captures the canvas to an webm-video (browser only)    
      *  @param {canvas} canvas Canvas object to record
@@ -4488,6 +4495,28 @@ class Simulation {
             sim.recording=false;
         }
     }
+
+    async pickOutputDir(path = null) {
+    if (!this.inbrowser) {
+        const fs = require('fs');
+        if (!path) throw new Error("In Node mode, provide a path: sim.pickOutputDir('./output')")
+        if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
+        this.outputDir = path;
+        console.log(`[Cacatoo] Output directory set to: ${path}`);
+    } else {
+        if (!('showDirectoryPicker' in window)) {
+            console.warn("[Cacatoo] File System Access API not supported. Use Chrome or Edge.");
+            return
+        }
+        try {
+            this.outputDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            console.log(`[Cacatoo] Output directory: ${this.outputDirHandle.name}`);
+        } catch (e) {
+            console.log("[Cacatoo] Directory picker cancelled.");
+        }
+    }
+}
+
         
     /**
      *  addToggle adds a HTML checkbox element to the DOM-environment which allows the user
@@ -4708,24 +4737,55 @@ class Simulation {
      *  @param {String} text String to write
      *  @param {String} filename write to this filename
      */
-     write(text, filename){
-         
-        if (!this.inbrowser) {
-            let fs;
-            try { fs = require('fs'); }
-            catch(e){ console.warn(`[Cacatoo warning] Module 'fs' is not installed. Cannot write to \'${filename}\'. Please run 'npm install fs'`); return }           
-            fs.writeFileSync(filename, text);
+     async write(text, filename) {
+            if (!this.inbrowser) {
+                const fs   = require('fs');
+                const path = require('path');
+                const dest = this.outputDir ? path.join(this.outputDir, filename) : filename;
+                fs.writeFileSync(dest, text);
+            } else {
+                if (this.outputDirHandle) {
+                    const fh = await this.outputDirHandle.getFileHandle(filename, { create: true });
+                    const ws = await fh.createWritable();
+                    await ws.write(text);
+                    await ws.close();
+                } else {
+                    // fallback: download (original behaviour)
+                    const el = document.createElement('a');
+                    el.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                    el.setAttribute('download', filename);
+                    el.style.display = 'none';
+                    document.body.appendChild(el);
+                    el.click();
+                    document.body.removeChild(el);
+                }
+            }
         }
-        else {            
-            var element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-            element.setAttribute('download', filename);          
-            element.style.display = 'none';
-            document.body.appendChild(element);          
-            element.click();          
-            document.body.removeChild(element);
+        async openWriter(filename) {
+        if (!this.inbrowser) {
+            const fs   = require('fs');
+            const path = require('path');
+            const dest = this.outputDir ? path.join(this.outputDir, filename) : filename;
+            // Wipe file if it exists so each run starts fresh
+            fs.writeFileSync(dest, '');
+            return {
+                write: (text) => fs.appendFileSync(dest, text),
+                close: ()     => {}   // nothing to close for sync fs
+            }
+        } else {
+            if (!this.outputDirHandle)
+                throw new Error("[Cacatoo] Call sim.pickOutputDir() before sim.openWriter()")
+            const fh = await this.outputDirHandle.getFileHandle(filename, { create: true });
+            const ws = await fh.createWritable();
+            return {
+                write: async (text) => ws.write(text),
+                close: async ()     => ws.close()
+            }
         }
     }
+    
+
+
 
     /**
      *  append a string to a file (only supported in nodejs mode)
@@ -4791,6 +4851,166 @@ class Simulation {
         });
     }
 
+
+    /**
+     * addRecordControls — adds a "Record frames → PNG" panel to form_holder.
+     *
+     * Uses the File System Access API (Chrome/Edge only).
+     * Call sim.capturePNGFrame() unconditionally in your update loop;
+     * it self-throttles by the chosen interval and does nothing when not recording.
+     *
+     * Optional CSV: provide csvHeaders + csvCallback to also write stats.csv on Stop.
+     *
+     * Example usage:
+     *   sim.addRecordControls('canvas_holder', {
+     *     every: 50,
+     *     csvHeaders: 'time,nA,nB',
+     *     csvCallback: () => `${sim.time},${nA},${nB}`
+     *   })
+     *   // in your update function:
+     *   sim.capturePNGFrame()
+     *
+     * @param {string}   target_div         ID of the div to screenshot each frame
+     * @param {object}   [opts]
+     * @param {number}   [opts.every=25]    Default capture interval in steps
+     * @param {string}   [opts.csvHeaders]  CSV header row (optional)
+     * @param {function} [opts.csvCallback] Returns one CSV data-row string per frame (optional)
+     */
+    addRecordControls(target_div, opts = {}) {
+        if (!this.inbrowser) return
+
+        this._rec_dir      = null;
+        this._rec_active   = false;
+        this._rec_frame    = 0;
+        this._rec_rows     = [];
+        this._rec_every    = opts.every       ?? 25;
+        this._rec_headers  = opts.csvHeaders  || null;
+        this._rec_callback = opts.csvCallback || null;
+        this._rec_target   = target_div;
+
+        const sim = this;
+
+        function setStatus(msg) {
+            const el = document.getElementById('_cac_rec_status');
+            if (el) el.textContent = msg;
+        }
+
+        async function _start() {
+            if (!('showDirectoryPicker' in window)) {
+                alert('File System Access API not supported.\nUse Chrome or Edge.');
+                return
+            }
+            try {
+                sim._rec_dir    = await window.showDirectoryPicker({ mode: 'readwrite' });
+                sim._rec_active = true;
+                sim._rec_frame  = 0;
+                sim._rec_rows   = [];
+                setStatus('Recording… frame 0');
+
+                // warn if nothing captured after 3 seconds
+                setTimeout(() => {
+                    if (sim._rec_active && sim._rec_frame === 0)
+                        setStatus('No frames are captured, dont forget to call sim.capturePNGFrame() in your main update loop');
+                }, 3000);
+                sim._rec_frame  = 0;
+                sim._rec_rows   = [];
+                setStatus('Recording… frame 0');
+            } catch (e) {
+                setStatus('Cancelled.');
+            }
+        }
+
+        async function _stop() {
+            sim._rec_active = false;
+            if (sim._rec_rows.length > 0 && sim._rec_dir && sim._rec_headers) {
+                try {
+                    const csv = sim._rec_headers + '\n' + sim._rec_rows.join('\n') + '\n';
+                    const fh  = await sim._rec_dir.getFileHandle('stats.csv', { create: true });
+                    const ws  = await fh.createWritable();
+                    await ws.write(csv);
+                    await ws.close();
+                    setStatus(`Stopped — ${sim._rec_frame} frames + stats.csv saved`);
+                } catch (e) {
+                    setStatus(`Stopped (CSV error: ${e.message})`);
+                }
+                sim._rec_rows = [];
+            } else {
+                setStatus(sim._rec_frame > 0
+                    ? `Stopped — ${sim._rec_frame} frames saved`
+                    : 'Not recording');
+            }
+        }
+
+        const container = document.createElement('div');
+        container.classList.add('form-container');
+        container.innerHTML = `
+        <div style="border:none;border-radius:6px;background:rgba(0,0,0,0.02); padding:10px">
+            <div style="width:100%;font-size:12px;margin-bottom:6px"><b>Record frames &rarr; PNG</b></div>
+           <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;font-size:12px">
+    Every
+    <input id="_cac_rec_every" type="number" min="1" value="${this._rec_every}" step="1"
+        style="width:52px;padding:4px 6px;text-align:center">
+    steps
+</div>
+<div style="display:flex;gap:6px;margin-bottom:6px">
+    <button id="_cac_rec_start" style="flex:1">&#9210; Pick &amp; record</button>
+    <button id="_cac_rec_stop" style="width:100px; flex:0 0 auto">&#9209; Stop</button>
+</div>
+            <div id="_cac_rec_status"
+                style="font-size:11px;color:#888;font-family:monospace;margin-top:2px">Not recording</div>
+            <div style="margin-top:6px;font-size:10px;color:#aaa;line-height:1.5">
+    Saves <code>frame_000001.png</code>&hellip;<br>
+    <span style="display:block;margin-top:8px"><code>(ffmpeg -r 30 -i frame_%06d.png out.mp4)</code></span>
+</div>
+         </div>   
+        `;
+        document.getElementById('form_holder').appendChild(container);
+        container.style.width = '350px';
+        container.style.boxSizing = 'border-box';
+        document.getElementById('_cac_rec_start').addEventListener('click', _start);
+        document.getElementById('_cac_rec_stop').addEventListener('click', _stop);
+        document.getElementById('_cac_rec_every').addEventListener('change', function () {
+            sim._rec_every = parseInt(this.value) || 25;
+        });
+    }
+
+    /**
+     * capturePNGFrame — call unconditionally in your update loop.
+     * Does nothing when not recording or between intervals.
+     * Requires addRecordControls() to have been called first.
+     */
+    async capturePNGFrame() {
+        if (!this._rec_active || !this._rec_dir) return
+        if (this.time % this._rec_every !== 0) return
+
+        if (this._rec_callback) this._rec_rows.push(this._rec_callback());
+
+        const target = document.getElementById(this._rec_target);
+        if (!target) {
+            console.warn(`Cacatoo capturePNGFrame: element '${this._rec_target}' not found`);
+            return
+        }
+        try {
+            const canvas   = await html2canvas(target, {
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth:  document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight
+            });
+            const blob     = await new Promise(res => canvas.toBlob(res, 'image/png'));
+            const fname    = `frame_${String(++this._rec_frame).padStart(6, '0')}.png`;
+            const fh       = await this._rec_dir.getFileHandle(fname, { create: true });
+            const writable = await fh.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            const el = document.getElementById('_cac_rec_status');
+            if (el) el.textContent = `Recording… frame ${this._rec_frame}`;
+        } catch (e) {
+            const el = document.getElementById('_cac_rec_status');
+            if (el) el.textContent = `Error: ${e.message}`;
+            this._rec_active = false;
+        }
+    }
     /**
      *  addPatternButton adds a pattern button to the HTML environment which allows the user
      *  to load a PNG which then sets the state of 'proparty' for the @GridModel. 
