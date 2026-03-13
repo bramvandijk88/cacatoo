@@ -5,6 +5,11 @@
 # If you have suggested changes to the documentation, issue a pull request on github.
 # (rollout command: sudo bash make_bundle.sh once; git add *; git commit -a -m "Message"; git push )
 # 
+# Publishing to npm is done by 
+# first: npm version minor/major
+# Then: generate a token from npmjs website
+# Then npm set //registry.npmjs.org/:_authToken=TOKEN_HERE
+# Then: npm publish
 
 compile_cacatoo()
 {            
