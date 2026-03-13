@@ -1387,9 +1387,9 @@ class Simulation {
 
         const sim = this
 
-        function setStatus(msg) {
+        function setStatus(msg, color = '#888') {
             const el = document.getElementById('_cac_rec_status')
-            if (el) el.textContent = msg
+            if (el) { el.textContent = msg; el.style.color = color }
         }
 
         async function _start() {
