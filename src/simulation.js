@@ -1393,6 +1393,10 @@ class Simulation {
         }
 
         async function _start() {
+            if (window.self !== window.top) {
+                setStatus('Recording requires running locally — not supported in iframes (JSFiddle, CodePen, etc.)', '#cc0000')
+                return
+            }
             if (!('showDirectoryPicker' in window)) {
                 alert('File System Access API not supported.\nUse Chrome or Edge.')
                 return
