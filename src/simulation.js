@@ -1413,7 +1413,11 @@ class Simulation {
                 sim._rec_rows   = []
                 setStatus('Recording… frame 0')
             } catch (e) {
-                setStatus('Cancelled.')
+                if (e.name === 'AbortError') {
+                    setStatus('Cancelled.')
+                } else {
+                    setStatus(`Error: ${e.name} — ${e.message}`)
+                }
             }
         }
 

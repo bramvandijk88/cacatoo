@@ -288,7 +288,7 @@ button {
   }
   
   .example_card{    
-    width: 220px;
+    width: 160px;
     height: 220px;
     background-color: rgb(203, 151, 204);
     box-shadow: rgba(100, 100, 111, 0.1) 20px 7px 29px 0px;
