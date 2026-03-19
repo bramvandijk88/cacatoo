@@ -61,7 +61,7 @@ function cacatoo() {
   let config = {
     title: "IS-elements and their host",
     description: "",
-    maxtime: 150000,
+    maxtime: 100,
 
     fpsmeter: false,
     ncol: size,
@@ -377,7 +377,7 @@ function cacatoo() {
     if (this.time % sim.config.graph_interval == 0) this.updateGraphs()
 		successful_replications = 0
 		attempted_replications = 0
-    this.synchronous() // Applied as many times as it can in 1/60th of a second
+    this.synchronous2() // Applied as many times as it can in 1/60th of a second
     this.apply_async(this.diffuse_eDNA)
     if (sim.mixDNApool == true) this.mixeDNA()
   }

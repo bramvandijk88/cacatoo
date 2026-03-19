@@ -23,6 +23,10 @@ class Gridmodel {
         this.nr = config.nrow || 200
         this.grid = MakeGrid(this.nc, this.nr)       // Initialises an (empty) grid
         this.grid_buffer = MakeGrid(this.nc, this.nr)       // Initialises an (empty) grid
+
+        this._old_grid = null
+        this._new_grid = null
+
         this.wrap = config.wrap || [true, true]
         this.rng = rng
         this.random = () => { return this.rng.random()}
@@ -54,7 +58,9 @@ class Gridmodel {
     /** Replaces current grid with an empty grid */
     clearGrid()
     {
-        this.grid = MakeGrid(this.nc,this.nr)        
+        this.grid = MakeGrid(this.nc,this.nr)  
+        this._old_grid = null 
+        this._new_grid = null 
     }
 
     /**
@@ -307,7 +313,6 @@ class Gridmodel {
     
     
     
-    
 
     /** Like the synchronous function above, but can not take a custom user-defined function rather
      *  than the default next-state function. Technically one should be able to refarctor this by making
@@ -325,6 +330,8 @@ class Gridmodel {
         }
         this.grid = newstate;
     }
+
+    
 
     /** Asynchronously apply the nextState function (defined by user) to the entire grid
      *  Asynchronous means that all grid points will be updated in a random order. For this
@@ -423,6 +430,11 @@ class Gridmodel {
         else {
             return new Gridpoint(this.grid[x][y])
         }
+    }
+
+    /** Copy properties from src gridpoint into dst gridpoint (reuses dst object) */
+    copyGP(dst, src) {
+        for (var prop in src) dst[prop] = src[prop]
     }
 
     /** Change the gridpoint at position x,y into gp

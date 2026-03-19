@@ -362,6 +362,10 @@ class Gridmodel {
         this.nr = config.nrow || 200;
         this.grid = MakeGrid(this.nc, this.nr);       // Initialises an (empty) grid
         this.grid_buffer = MakeGrid(this.nc, this.nr);       // Initialises an (empty) grid
+
+        this._old_grid = null;
+        this._new_grid = null;
+
         this.wrap = config.wrap || [true, true];
         this.rng = rng;
         this.random = () => { return this.rng.random()};
@@ -393,7 +397,9 @@ class Gridmodel {
     /** Replaces current grid with an empty grid */
     clearGrid()
     {
-        this.grid = MakeGrid(this.nc,this.nr);        
+        this.grid = MakeGrid(this.nc,this.nr);  
+        this._old_grid = null; 
+        this._new_grid = null; 
     }
 
     /**
@@ -646,7 +652,6 @@ class Gridmodel {
     
     
     
-    
 
     /** Like the synchronous function above, but can not take a custom user-defined function rather
      *  than the default next-state function. Technically one should be able to refarctor this by making
@@ -664,6 +669,8 @@ class Gridmodel {
         }
         this.grid = newstate;
     }
+
+    
 
     /** Asynchronously apply the nextState function (defined by user) to the entire grid
      *  Asynchronous means that all grid points will be updated in a random order. For this
@@ -762,6 +769,11 @@ class Gridmodel {
         else {
             return new Gridpoint(this.grid[x][y])
         }
+    }
+
+    /** Copy properties from src gridpoint into dst gridpoint (reuses dst object) */
+    copyGP(dst, src) {
+        for (var prop in src) dst[prop] = src[prop];
     }
 
     /** Change the gridpoint at position x,y into gp
@@ -4856,7 +4868,7 @@ class Simulation {
      * addRecordControls — adds a "Record frames → PNG" panel to form_holder.
      *
      * Uses the File System Access API (Chrome/Edge only).
-     * Call sim.capturePNGFrame() unconditionally in your update loop;
+     * Call sim.captureStep() unconditionally in your update loop;
      * it self-throttles by the chosen interval and does nothing when not recording.
      *
      * Optional CSV: provide csvHeaders + csvCallback to also write stats.csv on Stop.
@@ -4868,7 +4880,7 @@ class Simulation {
      *     csvCallback: () => `${sim.time},${nA},${nB}`
      *   })
      *   // in your update function:
-     *   sim.capturePNGFrame()
+     *   sim.captureStep()
      *
      * @param {string}   target_div         ID of the div to screenshot each frame
      * @param {object}   [opts]
@@ -4968,13 +4980,35 @@ class Simulation {
                 style="font-size:11px;color:#888;font-family:monospace;margin-top:2px">Not recording</div>
             <div style="margin-top:6px;font-size:10px;color:#aaa;line-height:1.5">
     Saves <code>frame_000001.png</code>&hellip;<br>
-    <span style="display:block;margin-top:8px"><code>(ffmpeg -r 30 -i frame_%06d.png out.mp4)</code></span>
+    
+    
+    <div style="margin-top:8px;font-size:10px;color:#aaa;position:relative; ">
+    <span id="_cac_ffmpeg_btn" style="cursor:pointer;text-decoration:underline dotted;">click to show some ffmpeg convert commands</span>
+    <div id="_cac_ffmpeg_tip" style="display:none;position:absolute;bottom:100%;left:0;background:#222;color:#eee;text-align:left;
+                padding:10px;border-radius:6px;width:380px;font-size:10px;line-height:1.8;z-index:999">
+        <span id="_cac_ffmpeg_close" style="float:right;cursor:pointer;padding:0 4px">✕</span>
+        <div style="margin-bottom:8px"><div><b>Mov (Apple/Keynote):</b></div> <code>ffmpeg -r 30 -i frame_%06d.png -c:v prores_ks -profile:v 3 out.mov </code></div>
+       <div style="margin-bottom:8px"><div>MP4 (QT/h264):</b></div><code>ffmpeg -r 30 -i frame_%06d.png -c:v libx264 -pix_fmt yuv420p -crf 23 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" out.mp4</code></div>
+<div style="margin-bottom:8px"><div>MP4 (simple):</b></div><code>ffmpeg -r 30 -i frame_%06d.png out.mp4</code></div>
+<div><div><b>Convert to mp4:</b></div><code>ffmpeg -i out.mp4 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -c:v libx264 -pix_fmt yuv420p -crf 23 converted.mp4</code></div>
+
+
+    </div>
+</div>
+
+
 </div>
          </div>   
         `;
         document.getElementById('form_holder').appendChild(container);
         container.style.width = '350px';
         container.style.boxSizing = 'border-box';
+        const tip = document.getElementById('_cac_ffmpeg_tip');
+        const btn = document.getElementById('_cac_ffmpeg_btn');
+        btn.onclick = (e) => { tip.style.display = tip.style.display === 'none' ? 'block' : 'none'; e.stopPropagation(); };
+        document.getElementById('_cac_ffmpeg_close').onclick = () => tip.style.display = 'none';
+        document.addEventListener('click', (e) => { if (!tip.contains(e.target) && e.target !== btn) tip.style.display = 'none'; });
+
         document.getElementById('_cac_rec_start').addEventListener('click', _start);
         document.getElementById('_cac_rec_stop').addEventListener('click', _stop);
         document.getElementById('_cac_rec_every').addEventListener('change', function () {
@@ -4983,11 +5017,12 @@ class Simulation {
     }
 
     /**
-     * capturePNGFrame — call unconditionally in your update loop.
-     * Does nothing when not recording or between intervals.
-     * Requires addRecordControls() to have been called first.
-     */
-    async capturePNGFrame() {
+    * captureStep — call unconditionally in your update loop.
+    * Records a PNG frame and/or a CSV row (depending on addRecordControls options).
+    * Does nothing when not recording or between intervals.
+    * Requires addRecordControls() to have been called first.
+   */
+    async captureStep() {
         if (!this._rec_active || !this._rec_dir) return
         if (this.time % this._rec_every !== 0) return
 
@@ -4995,11 +5030,12 @@ class Simulation {
 
         const target = document.getElementById(this._rec_target);
         if (!target) {
-            console.warn(`Cacatoo capturePNGFrame: element '${this._rec_target}' not found`);
+            console.warn(`Cacatoo captureStep: element '${this._rec_target}' not found`);
             return
         }
         try {
             const canvas   = await html2canvas(target, {
+                logging: false,
                 scrollX: 0,
                 scrollY: -window.scrollY,
                 windowWidth:  document.documentElement.scrollWidth,
