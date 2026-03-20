@@ -4895,6 +4895,7 @@ class Simulation {
         this._rec_active   = false;
         this._rec_frame    = 0;
         this._rec_rows     = [];
+        this._rec_error = null;
         this._rec_every    = opts.every       ?? 25;
         this._rec_headers  = opts.csvHeaders  || null;
         this._rec_callback = opts.csvCallback || null;
@@ -4925,9 +4926,14 @@ class Simulation {
 
                 // warn if nothing captured after 3 seconds
                 setTimeout(() => {
-                    if (sim._rec_active && sim._rec_frame === 0)
-                        setStatus('No frames are captured, dont forget to call sim.capturePNGFrame() in your main update loop');
-                }, 3000);
+    if (sim._rec_active && sim._rec_frame === 0) {
+        // Still active but no frames = captureStep() never called
+        setStatus(`No frames captured. Did you call sim.captureStep() in your update loop? Does a div with ID "${sim._rec_target}" exist?`, '#cc0000');
+    } else if (!sim._rec_active && sim._rec_frame === 0) {
+        // Stopped itself immediately = CSV callback threw on frame 1
+        setStatus('Recording stopped immediately — your csvCallback is throwing an error. Check the console.', '#cc0000');
+    }
+}, 3000);
                 sim._rec_frame  = 0;
                 sim._rec_rows   = [];
                 setStatus('Recording… frame 0');
@@ -5016,45 +5022,59 @@ class Simulation {
         });
     }
 
-    /**
-    * captureStep — call unconditionally in your update loop.
-    * Records a PNG frame and/or a CSV row (depending on addRecordControls options).
-    * Does nothing when not recording or between intervals.
-    * Requires addRecordControls() to have been called first.
-   */
-    async captureStep() {
-        if (!this._rec_active || !this._rec_dir) return
-        if (this.time % this._rec_every !== 0) return
+   js/**
+ * captureStep — call unconditionally in your update loop.
+ * Records a PNG frame and/or a CSV row (depending on addRecordControls options).
+ * Does nothing when not recording or between intervals.
+ * Requires addRecordControls() to have been called first.
+ */
+async captureStep() {
+    if (!this._rec_active || !this._rec_dir) return
+    if (this.time % this._rec_every !== 0) return
 
-        if (this._rec_callback) this._rec_rows.push(this._rec_callback());
-
-        const target = document.getElementById(this._rec_target);
-        if (!target) {
-            console.warn(`Cacatoo captureStep: element '${this._rec_target}' not found`);
-            return
-        }
-        try {
-            const canvas   = await html2canvas(target, {
-                logging: false,
-                scrollX: 0,
-                scrollY: -window.scrollY,
-                windowWidth:  document.documentElement.scrollWidth,
-                windowHeight: document.documentElement.scrollHeight
-            });
-            const blob     = await new Promise(res => canvas.toBlob(res, 'image/png'));
-            const fname    = `frame_${String(++this._rec_frame).padStart(6, '0')}.png`;
-            const fh       = await this._rec_dir.getFileHandle(fname, { create: true });
-            const writable = await fh.createWritable();
-            await writable.write(blob);
-            await writable.close();
-            const el = document.getElementById('_cac_rec_status');
-            if (el) el.textContent = `Recording… frame ${this._rec_frame}`;
-        } catch (e) {
-            const el = document.getElementById('_cac_rec_status');
-            if (el) el.textContent = `Error: ${e.message}`;
-            this._rec_active = false;
-        }
+    const target = document.getElementById(this._rec_target);
+    if (!target) {
+        console.warn(`Cacatoo captureStep: element '${this._rec_target}' not found`);
+        return
     }
+    try {
+        const canvas   = await html2canvas(target, {
+            logging: false,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth:  document.documentElement.scrollWidth,
+            windowHeight: document.documentElement.scrollHeight
+        });
+        const blob     = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        const fname    = `frame_${String(++this._rec_frame).padStart(6, '0')}.png`;
+        const fh       = await this._rec_dir.getFileHandle(fname, { create: true });
+        const writable = await fh.createWritable();
+        await writable.write(blob);
+        await writable.close();
+
+        if (this._rec_callback) {
+            try {
+                this._rec_rows.push(this._rec_callback());
+            } catch (csvErr) {
+                console.error('Cacatoo captureStep: csvCallback failed:', csvErr);
+                this._rec_error = 'csv';
+                const el = document.getElementById('_cac_rec_status');
+                if (el) el.textContent = `CSV error: ${csvErr.message}`;
+                this._rec_active = false;
+                return
+            }
+        }
+
+        const el = document.getElementById('_cac_rec_status');
+        if (el) el.textContent = `Recording… frame ${this._rec_frame}`;
+    } catch (e) {
+        console.error('Cacatoo captureStep: PNG capture failed:', e);
+        const el = document.getElementById('_cac_rec_status');
+        if (el) el.textContent = `PNG error: ${e.message}`;
+        this._rec_active = false;
+    }
+}
+
     /**
      *  addPatternButton adds a pattern button to the HTML environment which allows the user
      *  to load a PNG which then sets the state of 'proparty' for the @GridModel. 
