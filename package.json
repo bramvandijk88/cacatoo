@@ -1,6 +1,6 @@
 {
   "name": "cacatoo",
-  "version": "2.3.0",
+  "version": "2.2.2",
   "description": "Building, exploring, and sharing spatially structured models",
   "main": "dist/cacatoo.js",
   "directories": {
@@ -14,7 +14,6 @@
     "aproba": "^1.2.0",
     "balanced-match": "^1.0.2",
     "brace-expansion": "^1.1.11",
-    "cacatoo": "^1.1.2",
     "chai": "^4.3.7",
     "chownr": "^1.1.4",
     "code-point-at": "^1.1.0",
