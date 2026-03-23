@@ -703,8 +703,8 @@ class Canvas {
 
             ctx.fillText(lab, logicalWidth / 2, 16)
 
-            let bar_width = logicalWidth * 0.8
-            let offset = 0.1 * logicalWidth
+            let bar_width = Math.round(logicalWidth * 0.8)
+            let offset = Math.round(0.1 * logicalWidth)
             let n_ticks = this.nticks - 1
 
             let tick_increment = (this.maxval - this.minval) / n_ticks
