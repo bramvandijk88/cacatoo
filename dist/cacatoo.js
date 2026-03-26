@@ -3384,16 +3384,19 @@ class Canvas {
             let tick_increment = (this.maxval - this.minval) / n_ticks;
             let step_size = bar_width / n_ticks;
 
-            for (let i = 0; i < bar_width; i++) {
-                let colval = Math.ceil(this.num_colours * i / bar_width);
-                if (statecols[colval] == undefined) {
-                    ctx.fillStyle = this.bgcolour;
-                } else {
-                    ctx.fillStyle = rgbToHex(statecols[colval]);
-                }
-                ctx.fillRect(offset + i, 20, 1, 10);
-                ctx.closePath();
+            // Draw gradient in physical pixels to avoid anti-aliasing stripes at any DPR
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            let barWidthPhys = Math.round(bar_width * dpr);
+            let offsetPhys = Math.round(offset * dpr);
+            let barTopPhys = Math.round(20 * dpr);
+            let barHeightPhys = Math.round(10 * dpr);
+            for (let i = 0; i < barWidthPhys; i++) {
+                let colval = Math.ceil(this.num_colours * i / barWidthPhys);
+                ctx.fillStyle = statecols[colval] == undefined ? this.bgcolour : rgbToHex(statecols[colval]);
+                ctx.fillRect(offsetPhys + i, barTopPhys, 1, barHeightPhys);
             }
+            ctx.restore();
 
             for (let i = 0; i < n_ticks + 1; i++) {
                 let tick_position = (i * step_size + offset);
