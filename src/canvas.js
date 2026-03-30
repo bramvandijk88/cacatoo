@@ -240,8 +240,12 @@ class Canvas {
             
             if(boid.invisible) continue
             if(!boid.fill) boid.fill = 'black'
+
             
-            if(this.model.statecolours[prop]){
+            if(typeof boid[prop] === 'string' && boid[prop].startsWith('#')) { // Check if boid prop starts with hash, then read it as hexa 
+                boid.fill = boid[prop];
+            }
+            else if(this.model.statecolours[prop]){ // otherwise see colour mappings
                 let val = boid[prop]
                 if(this.maxval !== undefined){
                     let cols = this.model.statecolours[prop]
