@@ -801,13 +801,16 @@ class Flockmodel {
     getGridpoint = this.getBoidGridpoint
 
     // TODO UITLEG
-    getNearbyGridpoints(boid,gridmodel,radius){
-        let gps = []
+    getNearbyGridpoints(boid,gridmodel,diameter){
+        
         let ix = Math.floor(boid.position.x)
         let iy = Math.floor(boid.position.y)
-        radius = Math.floor(0.5*radius)
-        for (let x = ix-radius; x < ix+radius; x++)                         
-        for (let y = iy-radius; y < iy+radius; y++)                         
+        let gps = [gridmodel.grid[ix][iy]]
+        let radius = 0.5*diameter
+        let radius_floor = Math.floor(radius)
+        
+        for (let x = ix-radius_floor; x < ix+radius_floor; x++)                         
+        for (let y = iy-radius_floor; y < iy+radius_floor; y++)                         
         {
             if(!this.wrap[0])
                 if(x < 0 || x > this.width-1) continue
