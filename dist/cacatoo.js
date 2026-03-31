@@ -2416,25 +2416,33 @@ class Flockmodel {
     getGridpoint = this.getBoidGridpoint
 
     // TODO UITLEG
-    getNearbyGridpoints(boid,gridmodel,diameter){
-        
+    getNearbyGridpoints(boid, gridmodel, diameter) {
         let ix = Math.floor(boid.position.x);
         let iy = Math.floor(boid.position.y);
-        let gps = [gridmodel.grid[ix][iy]];
-        let radius = 0.5*diameter;
+
+        // Clamp to grid bounds for edge/corner safety
+        let cix = Math.min(Math.max(ix, 0), gridmodel.nc - 1);
+        let ciy = Math.min(Math.max(iy, 0), gridmodel.nr - 1);
+
+        let radius = 0.5 * diameter;
         let radius_floor = Math.floor(radius);
-        
-        for (let x = ix-radius_floor; x < ix+radius_floor; x++)                         
-        for (let y = iy-radius_floor; y < iy+radius_floor; y++)                         
-        {
-            if(!this.wrap[0])
-                if(x < 0 || x > this.width-1) continue
-            if(!this.wrap[1])
-                if(y < 0 || y > this.height-1) continue
-            if ((Math.pow((boid.position.x - x), 2) + Math.pow((boid.position.y - y), 2)) < radius*radius){
+
+        // Always include the containing cell
+        let gps = [gridmodel.grid[cix][ciy]];
+
+        // Boid smaller than a cell: nothing more to add
+        if (radius_floor === 0) return gps
+
+        for (let x = ix - radius_floor; x <= ix + radius_floor; x++)
+        for (let y = iy - radius_floor; y <= iy + radius_floor; y++) {
+            if (x === ix && y === iy) continue  // already added
+            if (!this.wrap[0] && (x < 0 || x > this.width - 1)) continue
+            if (!this.wrap[1] && (y < 0 || y > this.height - 1)) continue
+
+            if ((boid.position.x - x) ** 2 + (boid.position.y - y) ** 2 < radius * radius)
                 gps.push(gridmodel.grid[(x + gridmodel.nc) % gridmodel.nc][(y + gridmodel.nr) % gridmodel.nr]);
-            }
         }
+
         return gps
     }
 
