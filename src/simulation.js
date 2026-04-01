@@ -97,8 +97,8 @@ class Simulation {
         rng.randomInt = () => { return rng.genrand_int() }     
         
         rng.randomGaus = (mean=0, stdev=1) => { // Standard gaussian sample
-            const u = 1 - sim.rng.random(); 
-            const v = sim.rng.random();
+            const u = 1 - this.rng.random(); 
+            const v = this.rng.random();
             const z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
             return z * stdev + mean;
         }           
