@@ -3915,7 +3915,7 @@ class Simulation {
         let width = config.width || this[name].nc;
         let scale = config.scale || this[name].scale;               
         let maxval = config.maxval || this.maxval || undefined;   
-        let decimals= config.decimals || 0;
+        let decimals= config.decimals || 1;
         let nticks= config.nticks || 5;
         let minval = config.minval || 0;
         let num_colours = config.num_colours || 100;
