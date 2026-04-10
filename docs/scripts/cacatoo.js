@@ -826,17 +826,15 @@ class Gridmodel {
     *  but can be mixed to make grids interact.
     *  @param {int} col position (column) for the focal gridpoint
     *  @param {int} row position (row) for the focal gridpoint
-    *  @param {Array} range which section of the neighbourhood must be counted? (see this.moore, e.g. 1-8 is Moore8, 0-4 is Neu5,etc)
-    *  To get all 8 neighbours, use range [1,8]
-    *  To get all neumann neighbours, use range [1,4]
+    *  @param {Array} dist distance from focal cell to collect neighbours from (square)
     */
-   getAllNeighbours(model,col,row,range) {
+   getAllNeighbours(model,col,row,dist) {
         let gps = [];
-        for (let n = range[0]; n <= range[1]; n++) {                        
-            let x = model.moore[n][0];
-            let y = model.moore[n][1];
-            let neigh = model.getGridpoint(col + x, row + y);
-            gps.push(neigh);
+        for(let x=col-dist; x<=col+dist;x++){
+            for(let y=row-dist; y<=row+dist; y++){
+                let neigh = model.getGridpoint(x,y);
+                if(neigh) gps.push(neigh);
+            }
         }
         return gps;
     }
