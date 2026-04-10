@@ -489,10 +489,11 @@ class Gridmodel {
     *  @param {int} row position (row) for the focal gridpoint
     *  @param {Array} dist distance from focal cell to collect neighbours from (square)
     */
-   getAllNeighbours(model,col,row,dist) {
+   getAllNeighbours(model,col,row,dist,including=FALSE) {
         let gps = [];
         for(let x=col-dist; x<=col+dist;x++){
             for(let y=row-dist; y<=row+dist; y++){
+                if(!including && x==col && y==row) continue
                 let neigh = model.getGridpoint(x,y)
                 if(neigh) gps.push(neigh)
             }
