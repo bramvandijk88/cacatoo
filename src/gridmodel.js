@@ -705,6 +705,110 @@ class Gridmodel {
                 this.grid[x][y][state] = newstate[x][y][state]
     }
 
+    // ============================================================================
+// Add these three methods to the Gridmodel class in src/gridmodel.js
+// Paste them directly after the existing diffuseStates method (~line 707)
+//
+// gridmodel.js already has:  import * as utility from './utility.js'
+// so utility.makeGaussianKernel etc. are in scope here exactly like
+// utility.shuffle, utility.parseColours etc. that already exist in the file.
+// ============================================================================
+
+    /**
+     * Diffuse a continuous state using FFT-based Gaussian convolution.
+     *
+     * One call with sigma σ equals running ∂ρ/∂t = D∇²ρ for time t = σ²/(2D).
+     * Perfectly isotropic, no directional grid bias. Works in browser and Node.
+     *
+     * @param {string} state   Gridpoint property to diffuse (numeric)
+     * @param {number} [sigma] Spread in grid cells. Required if no kernel given.
+     * @param {{ data: Float64Array, size: number }} [kernel]
+     *   Pre-built from utility.makeGaussianKernel(sigma). Pass this when
+     *   calling every timestep to avoid rebuilding the kernel each call.
+     *
+     * @example
+     * // Simple — kernel built each call:
+     * this.diffuseStatesFFT('signal', 2)
+     *
+     * @example
+     * // Efficient — build once in setup, reuse every step:
+     * // setup:   sim.model.gKernel = utility.makeGaussianKernel(2)
+     * // update:  this.diffuseStatesFFT('signal', null, this.gKernel)
+     */
+    diffuseStatesFFT(state, sigma, kernel) {
+        if (!kernel) {
+            if (sigma == null) throw new Error('diffuseStatesFFT: provide sigma or a pre-built kernel')
+            kernel = utility.makeGaussianKernel(sigma)
+        }
+        utility.applyKernelFFT(this, state, state, kernel)
+    }
+
+    /**
+     * For every gridpoint where sourceState === sourceValue, deposit `amount`
+     * of targetState uniformly within a disk radius using FFT — O(N log N)
+     * regardless of radius.
+     *
+     * Result is ADDED to existing values of targetState. Zero the field first
+     * if you want a clean slate each timestep.
+     *
+     * @param {string} sourceState   Property to check (e.g. 'alive')
+     * @param {number} sourceValue   Value marking a source cell (e.g. 1)
+     * @param {string} targetState   Property to deposit into
+     * @param {number} amount        Total deposited per source cell across disk
+     * @param {{ data: Float64Array, size: number }} [kernel]
+     *   Pre-built from utility.makeDiskKernel(radius).
+     * @param {number} [radius]      Disk radius in grid cells.
+     *
+     * @example
+     * // setup:   sim.model.dKernel = utility.makeDiskKernel(8)
+     * // update:
+     * for (let x = 0; x < this.nc; x++)
+     *     for (let y = 0; y < this.nr; y++)
+     *         this.grid[x][y].public_good = 0
+     * this.castDiskFFT('alive', 1, 'public_good', 1.0, this.dKernel)
+     */
+    castDiskFFT(sourceState, sourceValue, targetState, amount, kernel, radius) {
+        if (!kernel) {
+            if (radius == null) throw new Error('castDiskFFT: provide radius or a pre-built kernel')
+            kernel = utility.makeDiskKernel(radius)
+        }
+        const srcProp = '__castDisk_src__'
+        const resProp = '__castDisk_res__'
+        for (let x = 0; x < this.nc; x++)
+            for (let y = 0; y < this.nr; y++)
+                this.grid[x][y][srcProp] = (this.grid[x][y][sourceState] === sourceValue) ? 1 : 0
+        utility.applyKernelFFT(this, srcProp, resProp, kernel, amount)
+        for (let x = 0; x < this.nc; x++)
+            for (let y = 0; y < this.nr; y++) {
+                this.grid[x][y][targetState] = (this.grid[x][y][targetState] || 0)
+                    + (this.grid[x][y][resProp] || 0)
+                delete this.grid[x][y][srcProp]
+                delete this.grid[x][y][resProp]
+            }
+    }
+
+    /**
+     * Diffuse a continuous state using GPU (WebGL2) separable Gaussian.
+     * Two fragment shader passes (H then V). Browser only — warns and no-ops
+     * in Node, so you can safely use it in shared code with a fallback.
+     *
+     * @param {string} state   Gridpoint property to diffuse (numeric)
+     * @param {number} [sigma] Spread in grid cells. Required if no kernel given.
+     * @param {{ data1d: Float32Array, size: number }} [kernel]
+     *   Pre-built from utility.makeGaussianKernel1D(sigma).
+     *
+     * @example
+     * // setup:   sim.model.gpuKernel = utility.makeGaussianKernel1D(2)
+     * // update:  this.diffuseStateGPU('signal', null, this.gpuKernel)
+     */
+    diffuseStateGPU(state, sigma, kernel) {
+        if (!kernel) {
+            if (sigma == null) throw new Error('diffuseStateGPU: provide sigma or a pre-built kernel')
+            kernel = utility.makeGaussianKernel1D(sigma)
+        }
+        utility.diffuseStateGPU(this, state, kernel)
+    }
+
     /** Diffuse continuous states on the grid. 
      * *  @param {string} state The name of the state to diffuse
      *  but can be mixed to make grids interact.

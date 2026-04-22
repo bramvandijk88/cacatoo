@@ -370,6 +370,967 @@ function copy(aObject) {
     return bObject;
   }
 
+  
+
+
+// ============================================================================
+// FFT-based convolution utilities for Cacatoo
+// ----------------------------------------------------------------------------
+// Append this entire block to the bottom of src/utility.js
+//
+// Works in both browser (ES module via Rollup) and Node.js (CommonJS).
+//
+// Public API:
+//   makeGaussianKernel(sigma)                           → { data, size }
+//   makeDiskKernel(radius)                              → { data, size }
+//   applyKernelFFT(gm, readProp, writeProp, kernel, scale)
+//   makeGaussianKernel1D(sigma)                         → { data1d, size }
+//   diffuseStateGPU(gridmodel, state, kernel1dObj)      (browser only)
+//
+// GridModel methods added in gridmodel.js:
+//   this.diffuseStatesFFT(state, sigma, kernel)
+//   this.castDiskFFT(sourceState, sourceValue, targetState, amount, kernel, radius)
+//   this.diffuseStateGPU(state, sigma, kernel1d)
+//
+// The FFT engine is inlined from fft.js v4.0.3 by Fedor Indutny (MIT licence)
+// https://github.com/indutny/fft.js — no extra runtime dependency.
+// ============================================================================
+
+// ── Inlined FFT engine (fft.js v4.0.3) ───────────────────────────────────────
+function FFT(size) {
+  this.size = size | 0;
+  if (this.size &lt;= 1 || (this.size &amp; (this.size - 1)) !== 0)
+    throw new Error('FFT size must be a power of two and bigger than 1');
+
+  this._csize = size &lt;&lt; 1;
+
+  // NOTE: Use of `var` is intentional for old V8 versions
+  var table = new Array(this.size * 2);
+  for (var i = 0; i &lt; table.length; i += 2) {
+    const angle = Math.PI * i / this.size;
+    table[i] = Math.cos(angle);
+    table[i + 1] = -Math.sin(angle);
+  }
+  this.table = table;
+
+  // Find size's power of two
+  var power = 0;
+  for (var t = 1; this.size > t; t &lt;&lt;= 1)
+    power++;
+
+  // Calculate initial step's width:
+  //   * If we are full radix-4 - it is 2x smaller to give inital len=8
+  //   * Otherwise it is the same as `power` to give len=4
+  this._width = power % 2 === 0 ? power - 1 : power;
+
+  // Pre-compute bit-reversal patterns
+  this._bitrev = new Array(1 &lt;&lt; this._width);
+  for (var j = 0; j &lt; this._bitrev.length; j++) {
+    this._bitrev[j] = 0;
+    for (var shift = 0; shift &lt; this._width; shift += 2) {
+      var revShift = this._width - shift - 2;
+      this._bitrev[j] |= ((j >>> shift) &amp; 3) &lt;&lt; revShift;
+    }
+  }
+
+  this._out = null;
+  this._data = null;
+  this._inv = 0;
+}
+
+
+FFT.prototype.fromComplexArray = function fromComplexArray(complex, storage) {
+  var res = storage || new Array(complex.length >>> 1);
+  for (var i = 0; i &lt; complex.length; i += 2)
+    res[i >>> 1] = complex[i];
+  return res;
+};
+
+FFT.prototype.createComplexArray = function createComplexArray() {
+  const res = new Array(this._csize);
+  for (var i = 0; i &lt; res.length; i++)
+    res[i] = 0;
+  return res;
+};
+
+FFT.prototype.toComplexArray = function toComplexArray(input, storage) {
+  var res = storage || this.createComplexArray();
+  for (var i = 0; i &lt; res.length; i += 2) {
+    res[i] = input[i >>> 1];
+    res[i + 1] = 0;
+  }
+  return res;
+};
+
+FFT.prototype.completeSpectrum = function completeSpectrum(spectrum) {
+  var size = this._csize;
+  var half = size >>> 1;
+  for (var i = 2; i &lt; half; i += 2) {
+    spectrum[size - i] = spectrum[i];
+    spectrum[size - i + 1] = -spectrum[i + 1];
+  }
+};
+
+FFT.prototype.transform = function transform(out, data) {
+  if (out === data)
+    throw new Error('Input and output buffers must be different');
+
+  this._out = out;
+  this._data = data;
+  this._inv = 0;
+  this._transform4();
+  this._out = null;
+  this._data = null;
+};
+
+FFT.prototype.realTransform = function realTransform(out, data) {
+  if (out === data)
+    throw new Error('Input and output buffers must be different');
+
+  this._out = out;
+  this._data = data;
+  this._inv = 0;
+  this._realTransform4();
+  this._out = null;
+  this._data = null;
+};
+
+FFT.prototype.inverseTransform = function inverseTransform(out, data) {
+  if (out === data)
+    throw new Error('Input and output buffers must be different');
+
+  this._out = out;
+  this._data = data;
+  this._inv = 1;
+  this._transform4();
+  for (var i = 0; i &lt; out.length; i++)
+    out[i] /= this.size;
+  this._out = null;
+  this._data = null;
+};
+
+// radix-4 implementation
+//
+// NOTE: Uses of `var` are intentional for older V8 version that do not
+// support both `let compound assignments` and `const phi`
+FFT.prototype._transform4 = function _transform4() {
+  var out = this._out;
+  var size = this._csize;
+
+  // Initial step (permute and transform)
+  var width = this._width;
+  var step = 1 &lt;&lt; width;
+  var len = (size / step) &lt;&lt; 1;
+
+  var outOff;
+  var t;
+  var bitrev = this._bitrev;
+  if (len === 4) {
+    for (outOff = 0, t = 0; outOff &lt; size; outOff += len, t++) {
+      const off = bitrev[t];
+      this._singleTransform2(outOff, off, step);
+    }
+  } else {
+    // len === 8
+    for (outOff = 0, t = 0; outOff &lt; size; outOff += len, t++) {
+      const off = bitrev[t];
+      this._singleTransform4(outOff, off, step);
+    }
+  }
+
+  // Loop through steps in decreasing order
+  var inv = this._inv ? -1 : 1;
+  var table = this.table;
+  for (step >>= 2; step >= 2; step >>= 2) {
+    len = (size / step) &lt;&lt; 1;
+    var quarterLen = len >>> 2;
+
+    // Loop through offsets in the data
+    for (outOff = 0; outOff &lt; size; outOff += len) {
+      // Full case
+      var limit = outOff + quarterLen;
+      for (var i = outOff, k = 0; i &lt; limit; i += 2, k += step) {
+        const A = i;
+        const B = A + quarterLen;
+        const C = B + quarterLen;
+        const D = C + quarterLen;
+
+        // Original values
+        const Ar = out[A];
+        const Ai = out[A + 1];
+        const Br = out[B];
+        const Bi = out[B + 1];
+        const Cr = out[C];
+        const Ci = out[C + 1];
+        const Dr = out[D];
+        const Di = out[D + 1];
+
+        // Middle values
+        const MAr = Ar;
+        const MAi = Ai;
+
+        const tableBr = table[k];
+        const tableBi = inv * table[k + 1];
+        const MBr = Br * tableBr - Bi * tableBi;
+        const MBi = Br * tableBi + Bi * tableBr;
+
+        const tableCr = table[2 * k];
+        const tableCi = inv * table[2 * k + 1];
+        const MCr = Cr * tableCr - Ci * tableCi;
+        const MCi = Cr * tableCi + Ci * tableCr;
+
+        const tableDr = table[3 * k];
+        const tableDi = inv * table[3 * k + 1];
+        const MDr = Dr * tableDr - Di * tableDi;
+        const MDi = Dr * tableDi + Di * tableDr;
+
+        // Pre-Final values
+        const T0r = MAr + MCr;
+        const T0i = MAi + MCi;
+        const T1r = MAr - MCr;
+        const T1i = MAi - MCi;
+        const T2r = MBr + MDr;
+        const T2i = MBi + MDi;
+        const T3r = inv * (MBr - MDr);
+        const T3i = inv * (MBi - MDi);
+
+        // Final values
+        const FAr = T0r + T2r;
+        const FAi = T0i + T2i;
+
+        const FCr = T0r - T2r;
+        const FCi = T0i - T2i;
+
+        const FBr = T1r + T3i;
+        const FBi = T1i - T3r;
+
+        const FDr = T1r - T3i;
+        const FDi = T1i + T3r;
+
+        out[A] = FAr;
+        out[A + 1] = FAi;
+        out[B] = FBr;
+        out[B + 1] = FBi;
+        out[C] = FCr;
+        out[C + 1] = FCi;
+        out[D] = FDr;
+        out[D + 1] = FDi;
+      }
+    }
+  }
+};
+
+// radix-2 implementation
+//
+// NOTE: Only called for len=4
+FFT.prototype._singleTransform2 = function _singleTransform2(outOff, off,
+                                                             step) {
+  const out = this._out;
+  const data = this._data;
+
+  const evenR = data[off];
+  const evenI = data[off + 1];
+  const oddR = data[off + step];
+  const oddI = data[off + step + 1];
+
+  const leftR = evenR + oddR;
+  const leftI = evenI + oddI;
+  const rightR = evenR - oddR;
+  const rightI = evenI - oddI;
+
+  out[outOff] = leftR;
+  out[outOff + 1] = leftI;
+  out[outOff + 2] = rightR;
+  out[outOff + 3] = rightI;
+};
+
+// radix-4
+//
+// NOTE: Only called for len=8
+FFT.prototype._singleTransform4 = function _singleTransform4(outOff, off,
+                                                             step) {
+  const out = this._out;
+  const data = this._data;
+  const inv = this._inv ? -1 : 1;
+  const step2 = step * 2;
+  const step3 = step * 3;
+
+  // Original values
+  const Ar = data[off];
+  const Ai = data[off + 1];
+  const Br = data[off + step];
+  const Bi = data[off + step + 1];
+  const Cr = data[off + step2];
+  const Ci = data[off + step2 + 1];
+  const Dr = data[off + step3];
+  const Di = data[off + step3 + 1];
+
+  // Pre-Final values
+  const T0r = Ar + Cr;
+  const T0i = Ai + Ci;
+  const T1r = Ar - Cr;
+  const T1i = Ai - Ci;
+  const T2r = Br + Dr;
+  const T2i = Bi + Di;
+  const T3r = inv * (Br - Dr);
+  const T3i = inv * (Bi - Di);
+
+  // Final values
+  const FAr = T0r + T2r;
+  const FAi = T0i + T2i;
+
+  const FBr = T1r + T3i;
+  const FBi = T1i - T3r;
+
+  const FCr = T0r - T2r;
+  const FCi = T0i - T2i;
+
+  const FDr = T1r - T3i;
+  const FDi = T1i + T3r;
+
+  out[outOff] = FAr;
+  out[outOff + 1] = FAi;
+  out[outOff + 2] = FBr;
+  out[outOff + 3] = FBi;
+  out[outOff + 4] = FCr;
+  out[outOff + 5] = FCi;
+  out[outOff + 6] = FDr;
+  out[outOff + 7] = FDi;
+};
+
+// Real input radix-4 implementation
+FFT.prototype._realTransform4 = function _realTransform4() {
+  var out = this._out;
+  var size = this._csize;
+
+  // Initial step (permute and transform)
+  var width = this._width;
+  var step = 1 &lt;&lt; width;
+  var len = (size / step) &lt;&lt; 1;
+
+  var outOff;
+  var t;
+  var bitrev = this._bitrev;
+  if (len === 4) {
+    for (outOff = 0, t = 0; outOff &lt; size; outOff += len, t++) {
+      const off = bitrev[t];
+      this._singleRealTransform2(outOff, off >>> 1, step >>> 1);
+    }
+  } else {
+    // len === 8
+    for (outOff = 0, t = 0; outOff &lt; size; outOff += len, t++) {
+      const off = bitrev[t];
+      this._singleRealTransform4(outOff, off >>> 1, step >>> 1);
+    }
+  }
+
+  // Loop through steps in decreasing order
+  var inv = this._inv ? -1 : 1;
+  var table = this.table;
+  for (step >>= 2; step >= 2; step >>= 2) {
+    len = (size / step) &lt;&lt; 1;
+    var halfLen = len >>> 1;
+    var quarterLen = halfLen >>> 1;
+    var hquarterLen = quarterLen >>> 1;
+
+    // Loop through offsets in the data
+    for (outOff = 0; outOff &lt; size; outOff += len) {
+      for (var i = 0, k = 0; i &lt;= hquarterLen; i += 2, k += step) {
+        var A = outOff + i;
+        var B = A + quarterLen;
+        var C = B + quarterLen;
+        var D = C + quarterLen;
+
+        // Original values
+        var Ar = out[A];
+        var Ai = out[A + 1];
+        var Br = out[B];
+        var Bi = out[B + 1];
+        var Cr = out[C];
+        var Ci = out[C + 1];
+        var Dr = out[D];
+        var Di = out[D + 1];
+
+        // Middle values
+        var MAr = Ar;
+        var MAi = Ai;
+
+        var tableBr = table[k];
+        var tableBi = inv * table[k + 1];
+        var MBr = Br * tableBr - Bi * tableBi;
+        var MBi = Br * tableBi + Bi * tableBr;
+
+        var tableCr = table[2 * k];
+        var tableCi = inv * table[2 * k + 1];
+        var MCr = Cr * tableCr - Ci * tableCi;
+        var MCi = Cr * tableCi + Ci * tableCr;
+
+        var tableDr = table[3 * k];
+        var tableDi = inv * table[3 * k + 1];
+        var MDr = Dr * tableDr - Di * tableDi;
+        var MDi = Dr * tableDi + Di * tableDr;
+
+        // Pre-Final values
+        var T0r = MAr + MCr;
+        var T0i = MAi + MCi;
+        var T1r = MAr - MCr;
+        var T1i = MAi - MCi;
+        var T2r = MBr + MDr;
+        var T2i = MBi + MDi;
+        var T3r = inv * (MBr - MDr);
+        var T3i = inv * (MBi - MDi);
+
+        // Final values
+        var FAr = T0r + T2r;
+        var FAi = T0i + T2i;
+
+        var FBr = T1r + T3i;
+        var FBi = T1i - T3r;
+
+        out[A] = FAr;
+        out[A + 1] = FAi;
+        out[B] = FBr;
+        out[B + 1] = FBi;
+
+        // Output final middle point
+        if (i === 0) {
+          var FCr = T0r - T2r;
+          var FCi = T0i - T2i;
+          out[C] = FCr;
+          out[C + 1] = FCi;
+          continue;
+        }
+
+        // Do not overwrite ourselves
+        if (i === hquarterLen)
+          continue;
+
+        // In the flipped case:
+        // MAi = -MAi
+        // MBr=-MBi, MBi=-MBr
+        // MCr=-MCr
+        // MDr=MDi, MDi=MDr
+        var ST0r = T1r;
+        var ST0i = -T1i;
+        var ST1r = T0r;
+        var ST1i = -T0i;
+        var ST2r = -inv * T3i;
+        var ST2i = -inv * T3r;
+        var ST3r = -inv * T2i;
+        var ST3i = -inv * T2r;
+
+        var SFAr = ST0r + ST2r;
+        var SFAi = ST0i + ST2i;
+
+        var SFBr = ST1r + ST3i;
+        var SFBi = ST1i - ST3r;
+
+        var SA = outOff + quarterLen - i;
+        var SB = outOff + halfLen - i;
+
+        out[SA] = SFAr;
+        out[SA + 1] = SFAi;
+        out[SB] = SFBr;
+        out[SB + 1] = SFBi;
+      }
+    }
+  }
+};
+
+// radix-2 implementation
+//
+// NOTE: Only called for len=4
+FFT.prototype._singleRealTransform2 = function _singleRealTransform2(outOff,
+                                                                     off,
+                                                                     step) {
+  const out = this._out;
+  const data = this._data;
+
+  const evenR = data[off];
+  const oddR = data[off + step];
+
+  const leftR = evenR + oddR;
+  const rightR = evenR - oddR;
+
+  out[outOff] = leftR;
+  out[outOff + 1] = 0;
+  out[outOff + 2] = rightR;
+  out[outOff + 3] = 0;
+};
+
+// radix-4
+//
+// NOTE: Only called for len=8
+FFT.prototype._singleRealTransform4 = function _singleRealTransform4(outOff,
+                                                                     off,
+                                                                     step) {
+  const out = this._out;
+  const data = this._data;
+  const inv = this._inv ? -1 : 1;
+  const step2 = step * 2;
+  const step3 = step * 3;
+
+  // Original values
+  const Ar = data[off];
+  const Br = data[off + step];
+  const Cr = data[off + step2];
+  const Dr = data[off + step3];
+
+  // Pre-Final values
+  const T0r = Ar + Cr;
+  const T1r = Ar - Cr;
+  const T2r = Br + Dr;
+  const T3r = inv * (Br - Dr);
+
+  // Final values
+  const FAr = T0r + T2r;
+
+  const FBr = T1r;
+  const FBi = -T3r;
+
+  const FCr = T0r - T2r;
+
+  const FDr = T1r;
+  const FDi = T3r;
+
+  out[outOff] = FAr;
+  out[outOff + 1] = 0;
+  out[outOff + 2] = FBr;
+  out[outOff + 3] = FBi;
+  out[outOff + 4] = FCr;
+  out[outOff + 5] = 0;
+  out[outOff + 6] = FDr;
+  out[outOff + 7] = FDi;
+};
+
+// ════════════════════════════════════════════════════════════════
+// CPU FFT CONVOLUTION
+// ════════════════════════════════════════════════════════════════
+
+// ── Internal helpers ──────────────────────────────────────────────────────────
+
+function nextPow2(n) { let p = 1; while (p &lt; n) p &lt;&lt;= 1; return p }
+
+/** Forward 2-D FFT of a flat real array (nrows×ncols), zero-padded to padR×padC. */
+function _fft2d(realFlat, nrows, ncols, padR, padC) {
+    const fR = new FFT(padR), fC = new FFT(padC);
+    const mid = new Float64Array(padR * padC * 2);
+    const rowReal = new Float64Array(padC), rowCpx = fC.createComplexArray();
+    for (let r = 0; r &lt; padR; r++) {
+        rowReal.fill(0);
+        if (r &lt; nrows) for (let c = 0; c &lt; ncols; c++) rowReal[c] = realFlat[r * ncols + c];
+        fC.realTransform(rowCpx, rowReal); fC.completeSpectrum(rowCpx);
+        for (let c = 0; c &lt; padC; c++) {
+            mid[(r*padC+c)*2]   = rowCpx[c*2];
+            mid[(r*padC+c)*2+1] = rowCpx[c*2+1];
+        }
+    }
+    const colIn = fR.createComplexArray(), colOut = fR.createComplexArray();
+    const freq = new Float64Array(padR * padC * 2);
+    for (let c = 0; c &lt; padC; c++) {
+        for (let r = 0; r &lt; padR; r++) {
+            colIn[r*2]   = mid[(r*padC+c)*2];
+            colIn[r*2+1] = mid[(r*padC+c)*2+1];
+        }
+        fR.transform(colOut, colIn);
+        for (let r = 0; r &lt; padR; r++) {
+            freq[(r*padC+c)*2]   = colOut[r*2];
+            freq[(r*padC+c)*2+1] = colOut[r*2+1];
+        }
+    }
+    return { freq, fR, fC }
+}
+
+/** Inverse 2-D FFT. Each 1-D pass normalises by its own size, giving 1/(padR*padC) total. */
+function _ifft2d(freq, padR, padC, fR, fC) {
+    const mid = new Float64Array(padR * padC * 2);
+    const colIn = fR.createComplexArray(), colOut = fR.createComplexArray();
+    for (let c = 0; c &lt; padC; c++) {
+        for (let r = 0; r &lt; padR; r++) {
+            colIn[r*2]   = freq[(r*padC+c)*2];
+            colIn[r*2+1] = freq[(r*padC+c)*2+1];
+        }
+        fR.inverseTransform(colOut, colIn);
+        for (let r = 0; r &lt; padR; r++) {
+            mid[(r*padC+c)*2]   = colOut[r*2];
+            mid[(r*padC+c)*2+1] = colOut[r*2+1];
+        }
+    }
+    const rowIn = fC.createComplexArray(), rowOut = fC.createComplexArray();
+    const out = new Float64Array(padR * padC);
+    for (let r = 0; r &lt; padR; r++) {
+        for (let c = 0; c &lt; padC; c++) {
+            rowIn[c*2]   = mid[(r*padC+c)*2];
+            rowIn[c*2+1] = mid[(r*padC+c)*2+1];
+        }
+        fC.inverseTransform(rowOut, rowIn);
+        for (let c = 0; c &lt; padC; c++) out[r*padC+c] = rowOut[c*2];
+    }
+    return out
+}
+
+// ── GPU helpers (browser only) ────────────────────────────────────────────────
+
+const _GPU_VS = `#version 300 es
+in vec2 a_pos; out vec2 v_uv;
+void main() { v_uv = a_pos * 0.5 + 0.5; gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+
+const _GPU_FS = `#version 300 es
+precision highp float;
+uniform sampler2D u_tex; uniform vec2 u_dir;
+uniform float u_kernel[128]; uniform int u_ksize;
+in vec2 v_uv; out vec4 outColor;
+void main() {
+    vec2 texel = 1.0 / vec2(textureSize(u_tex, 0));
+    int half_k = u_ksize / 2; float sum = 0.0;
+    for (int i = 0; i &lt; u_ksize; i++) {
+        float offset = float(i - half_k);
+        sum += texture(u_tex, v_uv + u_dir * texel * offset).r * u_kernel[i];
+    }
+    outColor = vec4(sum, 0.0, 0.0, 1.0);
+}`;
+
+function _compileShader(gl, type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+        throw new Error('Cacatoo GPU shader: ' + gl.getShaderInfoLog(s))
+    return s
+}
+
+function _makeGPUFBO(gl, w, h) {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, w, h, 0, gl.RED, gl.FLOAT, null);
+    const fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return { tex, fbo }
+}
+
+/**
+ * Lazily initialise (or return cached) GPU state on a gridmodel.
+ * Returns the state object, or null if WebGL2 / float textures unavailable.
+ * Rebuilds FBOs automatically if the grid is resized.
+ */
+function _getGPUState(gridmodel) {
+    const nc = gridmodel.nc, nr = gridmodel.nr;
+    if (typeof document === 'undefined') {
+        console.warn('[Cacatoo] diffuseStateGPU: WebGL2 requires a browser environment.');
+        return null
+    }
+    if (gridmodel._gpuState) {
+        const s = gridmodel._gpuState;
+        if (s === null) return null   // previously failed, don't retry
+        if (s.nc === nc &amp;&amp; s.nr === nr) return s
+        // Grid resized — rebuild FBOs only
+        s.fboSrc = _makeGPUFBO(s.gl, nc, nr);
+        s.fboTmp = _makeGPUFBO(s.gl, nc, nr);
+        s.fboDst = _makeGPUFBO(s.gl, nc, nr);
+        s.readBuf = new Float32Array(nr * nc);
+        s.nc = nc; s.nr = nr;
+        return s
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = nc; canvas.height = nr;
+    const gl = canvas.getContext('webgl2');
+    if (!gl) {
+        console.warn('[Cacatoo] diffuseStateGPU: WebGL2 not available.');
+        gridmodel._gpuState = null; return null
+    }
+    if (!gl.getExtension('EXT_color_buffer_float')) {
+        console.warn('[Cacatoo] diffuseStateGPU: EXT_color_buffer_float not supported.');
+        gridmodel._gpuState = null; return null
+    }
+    const prog = gl.createProgram();
+    gl.attachShader(prog, _compileShader(gl, gl.VERTEX_SHADER,   _GPU_VS));
+    gl.attachShader(prog, _compileShader(gl, gl.FRAGMENT_SHADER, _GPU_FS));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+        throw new Error('Cacatoo GPU link: ' + gl.getProgramInfoLog(prog))
+    const vbuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+    const aPos = gl.getAttribLocation(prog, 'a_pos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+    gl.bindVertexArray(null);
+    const state = {
+        gl, prog, vao, nc, nr,
+        uTex:    gl.getUniformLocation(prog, 'u_tex'),
+        uDir:    gl.getUniformLocation(prog, 'u_dir'),
+        uKernel: gl.getUniformLocation(prog, 'u_kernel'),
+        uKsize:  gl.getUniformLocation(prog, 'u_ksize'),
+        fboSrc:  _makeGPUFBO(gl, nc, nr),
+        fboTmp:  _makeGPUFBO(gl, nc, nr),
+        fboDst:  _makeGPUFBO(gl, nc, nr),
+        readBuf: new Float32Array(nr * nc),
+        kPad:    new Float32Array(128),
+    };
+    gridmodel._gpuState = state;
+    return state
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+/**
+ * Build a normalised 2-D Gaussian kernel for use with diffuseStatesFFT.
+ * Size is auto-chosen to cover ±3σ (always odd). Values sum to 1.0.
+ *
+ * One diffuseStatesFFT call with this kernel equals running ∂ρ/∂t = D∇²ρ
+ * for time t = σ²/(2D).
+ *
+ * @param {number} sigma  Standard deviation in grid cells
+ * @returns {{ data: Float64Array, size: number }}
+ */
+function makeGaussianKernel(sigma) {
+    let size = Math.ceil(6 * sigma) | 1;
+    if (size &lt; 3) size = 3;
+    if (size % 2 === 0) size++;
+    const half = (size - 1) / 2;
+    const data = new Float64Array(size * size);
+    let sum = 0;
+    for (let r = 0; r &lt; size; r++)
+        for (let c = 0; c &lt; size; c++) {
+            const v = Math.exp(-((r-half)**2 + (c-half)**2) / (2*sigma*sigma));
+            data[r*size+c] = v; sum += v;
+        }
+    for (let i = 0; i &lt; data.length; i++) data[i] /= sum;
+    return { data, size }
+}
+
+/**
+ * Build a flat disk (top-hat) kernel for use with castDiskFFT.
+ * Cells within radius get value 1, cells outside get 0. NOT normalised.
+ *
+ * This means castDiskFFT deposits exactly `amount` at EACH cell within the
+ * disk around each source — not `amount` spread across the disk area.
+ * That matches the typical biological interpretation: every cell within
+ * range receives the full benefit from a nearby source cell.
+ *
+ * @param {number} radius  Disk radius in grid cells
+ * @returns {{ data: Float64Array, size: number }}
+ */
+function makeDiskKernel(radius) {
+    const size = 2 * Math.ceil(radius) + 1;
+    const half = (size - 1) / 2;
+    const data = new Float64Array(size * size);
+    for (let r = 0; r &lt; size; r++)
+        for (let c = 0; c &lt; size; c++) {
+            const dr = r-half, dc = c-half;
+            if (dr*dr + dc*dc &lt;= radius*radius) data[r*size+c] = 1;
+        }
+    return { data, size }
+}
+
+/**
+ * Build a normalised 1-D Gaussian kernel for use with diffuseStateGPU.
+ * The GPU path is separable, so it needs a 1-D kernel.
+ *
+ * @param {number} sigma  Standard deviation in grid cells
+ * @returns {{ data1d: Float32Array, size: number }}
+ */
+function makeGaussianKernel1D(sigma) {
+    let size = Math.ceil(6 * sigma) | 1;
+    if (size &lt; 3) size = 3;
+    if (size % 2 === 0) size++;
+    if (size > 128) {
+        console.warn(`[makeGaussianKernel1D] sigma=${sigma} → size=${size} exceeds GPU max of 128. Clamping.`);
+        size = 127;  // force odd and ≤ 128
+    }
+    const half = (size - 1) / 2;
+    const data1d = new Float32Array(size);
+    let sum = 0;
+    for (let i = 0; i &lt; size; i++) {
+        const d = i - half;
+        data1d[i] = Math.exp(-(d*d) / (2*sigma*sigma));
+        sum += data1d[i];
+    }
+    for (let i = 0; i &lt; size; i++) data1d[i] /= sum;
+    return { data1d, size }
+}
+
+/**
+ * Apply a 2-D FFT convolution to one numeric state of every gridpoint.
+ * Reads from readProp, writes to writeProp (may be the same property).
+ * Low-level engine used by diffuseStatesFFT and castDiskFFT.
+ *
+ * Works in both browser and Node.js.
+ *
+ * @param {object} gridmodel
+ * @param {string} readProp
+ * @param {string} writeProp
+ * @param {{ data: Float64Array, size: number }} kernelObj
+ * @param {number} [scale=1]
+ */
+function applyKernelFFT(gridmodel, readProp, writeProp, kernelObj, scale = 1) {
+    const { nc, nr } = gridmodel;
+    const { data: kdata, size: ksize } = kernelObj;
+
+    // Use circular convolution when the grid wraps in both directions.
+    // Circular: pad to next-pow-2 of grid size; kernel centred at (0,0) with
+    // negative lags wrapped to the far end — signal that diffuses off one edge
+    // reappears on the other, matching Cacatoo's toroidal boundary.
+    // Linear: pad to grid+kernel-1; signal absorbed at boundaries.
+    const circular = gridmodel.wrap &amp;&amp; gridmodel.wrap[0] &amp;&amp; gridmodel.wrap[1];
+
+    let padR, padC, kernFlat;
+
+    if (circular) {
+        padR = nextPow2(nr);
+        padC = nextPow2(nc);
+        if (ksize > Math.min(nc, nr) / 2)
+            console.warn(`[applyKernelFFT] Kernel (${ksize}x${ksize}) is larger than half the grid — it will wrap onto itself.`);
+
+        // Place kernel centred at (0,0), wrapping negative lags to far end
+        const half = Math.floor(ksize / 2);
+        kernFlat = new Float64Array(padR * padC);
+        for (let r = 0; r &lt; ksize; r++)
+            for (let c = 0; c &lt; ksize; c++) {
+                const pr = (r - half + padR) % padR;
+                const pc = (c - half + padC) % padC;
+                kernFlat[pr * padC + pc] = kdata[r * ksize + c];
+            }
+    } else {
+        padR = nextPow2(nr + ksize - 1);
+        padC = nextPow2(nc + ksize - 1);
+        if (ksize > Math.min(nc, nr) / 2)
+            console.warn(`[applyKernelFFT] Kernel (${ksize}x${ksize}) is large relative to grid (${nc}x${nr}) — edge artefacts likely.`);
+
+        // Place kernel at top-left (0,0), zero-padded
+        kernFlat = new Float64Array(padR * padC);
+        for (let r = 0; r &lt; ksize; r++)
+            for (let c = 0; c &lt; ksize; c++)
+                kernFlat[r * padC + c] = kdata[r * ksize + c];
+    }
+
+    // Extract signal from grid.
+    // Circular: tile periodically to fill padded buffer so the FFT sees a
+    // truly periodic signal — required for correct toroidal wrap-around.
+    // Linear: zero-pad (signal outside grid = 0).
+    const signal = new Float64Array(padR * padC);
+    if (circular) {
+        for (let r = 0; r &lt; padR; r++)
+            for (let c = 0; c &lt; padC; c++)
+                signal[r*padC+c] = gridmodel.grid[c % nc][r % nr][readProp] || 0;
+    } else {
+        for (let r = 0; r &lt; nr; r++)
+            for (let c = 0; c &lt; nc; c++)
+                signal[r*padC+c] = gridmodel.grid[c][r][readProp] || 0;
+    }
+
+    const { freq: sf, fR, fC } = _fft2d(signal,   padR, padC, padR, padC);
+    const { freq: kf }         = _fft2d(kernFlat, padR, padC, padR, padC);
+
+    const prod = new Float64Array(padR * padC * 2);
+    for (let i = 0; i &lt; padR * padC; i++) {
+        const sr=sf[i*2], si=sf[i*2+1], kr=kf[i*2], ki=kf[i*2+1];
+        prod[i*2]   = sr*kr - si*ki;
+        prod[i*2+1] = sr*ki + si*kr;
+    }
+
+    const flat = _ifft2d(prod, padR, padC, fR, fC);
+
+    if (circular) {
+        // Output is already aligned — just crop top-left nc x nr block
+        for (let r = 0; r &lt; nr; r++)
+            for (let c = 0; c &lt; nc; c++)
+                gridmodel.grid[c][r][writeProp] = flat[r*padC + c] * scale;
+    } else {
+        // Crop with "same" offset: kernel was at (0,0), valid output starts at (off,off)
+        const off = Math.floor(ksize / 2);
+        for (let r = 0; r &lt; nr; r++)
+            for (let c = 0; c &lt; nc; c++)
+                gridmodel.grid[c][r][writeProp] = flat[(r+off)*padC + (c+off)] * scale;
+    }
+}
+
+/**
+ * Diffuse a continuous state using GPU (WebGL2) separable Gaussian convolution.
+ * Two fragment shader passes (H then V). Faster than FFT for large grids.
+ *
+ * Browser only — silently falls back to a console warning in Node.
+ * GPU context and shaders are lazily created and cached on the gridmodel.
+ *
+ * @param {object} gridmodel
+ * @param {string} state
+ * @param {{ data1d: Float32Array, size: number }} kernel1dObj  from makeGaussianKernel1D
+ */
+function diffuseStateGPU(gridmodel, state, kernel1dObj) {
+    const s = _getGPUState(gridmodel);
+    if (!s) return
+
+    const { gl, prog, vao, nc, nr,
+            uTex, uDir, uKernel, uKsize,
+            fboSrc, fboTmp, fboDst, readBuf, kPad } = s;
+    const { data1d, size: ksize } = kernel1dObj;
+
+    if (ksize > 128)
+        throw new Error(`diffuseStateGPU: kernel size ${ksize} > 128 max. Use a smaller sigma.`)
+
+    // Pack grid → flat Float32 → GPU texture
+    const flat = new Float32Array(nr * nc);
+    for (let r = 0; r &lt; nr; r++)
+        for (let c = 0; c &lt; nc; c++)
+            flat[r*nc+c] = gridmodel.grid[c][r][state] || 0;
+
+    gl.bindTexture(gl.TEXTURE_2D, fboSrc.tex);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, nc, nr, gl.RED, gl.FLOAT, flat);
+
+    // Upload kernel
+    kPad.fill(0);
+    for (let i = 0; i &lt; ksize; i++) kPad[i] = data1d[i];
+
+    gl.useProgram(prog); gl.bindVertexArray(vao);
+    gl.viewport(0, 0, nc, nr);
+    gl.uniform1i(uTex, 0);
+    gl.uniform1iv(uKsize, [ksize]);
+    gl.uniform1fv(uKernel, kPad);
+    gl.activeTexture(gl.TEXTURE0);
+
+    // Horizontal pass: fboSrc → fboTmp
+    gl.bindTexture(gl.TEXTURE_2D, fboSrc.tex);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fboTmp.fbo);
+    gl.uniform2f(uDir, 1.0, 0.0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    // Vertical pass: fboTmp → fboDst
+    gl.bindTexture(gl.TEXTURE_2D, fboTmp.tex);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fboDst.fbo);
+    gl.uniform2f(uDir, 0.0, 1.0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    // Read back GPU → CPU → gridpoints
+    gl.readPixels(0, 0, nc, nr, gl.RED, gl.FLOAT, readBuf);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindVertexArray(null);
+
+    for (let r = 0; r &lt; nr; r++)
+        for (let c = 0; c &lt; nc; c++)
+            gridmodel.grid[c][r][state] = readBuf[r*nc+c];
+}
+
+// ── Dual CJS/ESM export ───────────────────────────────────────────────────────
+// When bundled by Rollup (browser) the `export function` declarations above
+// are used. When required directly in Node.js, the block below provides
+// CommonJS exports so the functions work without a build step.
+if (typeof module !== 'undefined' &amp;&amp; module.exports) {
+    module.exports = {
+        makeGaussianKernel,
+        makeDiskKernel,
+        makeGaussianKernel1D,
+        applyKernelFFT,
+        diffuseStateGPU,   // no-ops in Node (no WebGL), but safe to export
+    };
+}
+
 /**
  *  Gridmodel is the main type of model in Cacatoo. Most of these models
  *  will look and feel like CAs, but GridModels can also contain ODEs with diffusion, making
@@ -1070,6 +2031,110 @@ class Gridmodel {
         for (let x = 0; x &lt; this.nc; x += 1) // every column
             for (let y = 0; y &lt; this.nr; y += 1) // every row
                 this.grid[x][y][state] = newstate[x][y][state];
+    }
+
+    // ============================================================================
+// Add these three methods to the Gridmodel class in src/gridmodel.js
+// Paste them directly after the existing diffuseStates method (~line 707)
+//
+// gridmodel.js already has:  import * as utility from './utility.js'
+// so utility.makeGaussianKernel etc. are in scope here exactly like
+// utility.shuffle, utility.parseColours etc. that already exist in the file.
+// ============================================================================
+
+    /**
+     * Diffuse a continuous state using FFT-based Gaussian convolution.
+     *
+     * One call with sigma σ equals running ∂ρ/∂t = D∇²ρ for time t = σ²/(2D).
+     * Perfectly isotropic, no directional grid bias. Works in browser and Node.
+     *
+     * @param {string} state   Gridpoint property to diffuse (numeric)
+     * @param {number} [sigma] Spread in grid cells. Required if no kernel given.
+     * @param {{ data: Float64Array, size: number }} [kernel]
+     *   Pre-built from utility.makeGaussianKernel(sigma). Pass this when
+     *   calling every timestep to avoid rebuilding the kernel each call.
+     *
+     * @example
+     * // Simple — kernel built each call:
+     * this.diffuseStatesFFT('signal', 2)
+     *
+     * @example
+     * // Efficient — build once in setup, reuse every step:
+     * // setup:   sim.model.gKernel = utility.makeGaussianKernel(2)
+     * // update:  this.diffuseStatesFFT('signal', null, this.gKernel)
+     */
+    diffuseStatesFFT(state, sigma, kernel) {
+        if (!kernel) {
+            if (sigma == null) throw new Error('diffuseStatesFFT: provide sigma or a pre-built kernel')
+            kernel = makeGaussianKernel(sigma);
+        }
+        applyKernelFFT(this, state, state, kernel);
+    }
+
+    /**
+     * For every gridpoint where sourceState === sourceValue, deposit `amount`
+     * of targetState uniformly within a disk radius using FFT — O(N log N)
+     * regardless of radius.
+     *
+     * Result is ADDED to existing values of targetState. Zero the field first
+     * if you want a clean slate each timestep.
+     *
+     * @param {string} sourceState   Property to check (e.g. 'alive')
+     * @param {number} sourceValue   Value marking a source cell (e.g. 1)
+     * @param {string} targetState   Property to deposit into
+     * @param {number} amount        Total deposited per source cell across disk
+     * @param {{ data: Float64Array, size: number }} [kernel]
+     *   Pre-built from utility.makeDiskKernel(radius).
+     * @param {number} [radius]      Disk radius in grid cells.
+     *
+     * @example
+     * // setup:   sim.model.dKernel = utility.makeDiskKernel(8)
+     * // update:
+     * for (let x = 0; x &lt; this.nc; x++)
+     *     for (let y = 0; y &lt; this.nr; y++)
+     *         this.grid[x][y].public_good = 0
+     * this.castDiskFFT('alive', 1, 'public_good', 1.0, this.dKernel)
+     */
+    castDiskFFT(sourceState, sourceValue, targetState, amount, kernel, radius) {
+        if (!kernel) {
+            if (radius == null) throw new Error('castDiskFFT: provide radius or a pre-built kernel')
+            kernel = makeDiskKernel(radius);
+        }
+        const srcProp = '__castDisk_src__';
+        const resProp = '__castDisk_res__';
+        for (let x = 0; x &lt; this.nc; x++)
+            for (let y = 0; y &lt; this.nr; y++)
+                this.grid[x][y][srcProp] = (this.grid[x][y][sourceState] === sourceValue) ? 1 : 0;
+        applyKernelFFT(this, srcProp, resProp, kernel, amount);
+        for (let x = 0; x &lt; this.nc; x++)
+            for (let y = 0; y &lt; this.nr; y++) {
+                this.grid[x][y][targetState] = (this.grid[x][y][targetState] || 0)
+                    + (this.grid[x][y][resProp] || 0);
+                delete this.grid[x][y][srcProp];
+                delete this.grid[x][y][resProp];
+            }
+    }
+
+    /**
+     * Diffuse a continuous state using GPU (WebGL2) separable Gaussian.
+     * Two fragment shader passes (H then V). Browser only — warns and no-ops
+     * in Node, so you can safely use it in shared code with a fallback.
+     *
+     * @param {string} state   Gridpoint property to diffuse (numeric)
+     * @param {number} [sigma] Spread in grid cells. Required if no kernel given.
+     * @param {{ data1d: Float32Array, size: number }} [kernel]
+     *   Pre-built from utility.makeGaussianKernel1D(sigma).
+     *
+     * @example
+     * // setup:   sim.model.gpuKernel = utility.makeGaussianKernel1D(2)
+     * // update:  this.diffuseStateGPU('signal', null, this.gpuKernel)
+     */
+    diffuseStateGPU(state, sigma, kernel) {
+        if (!kernel) {
+            if (sigma == null) throw new Error('diffuseStateGPU: provide sigma or a pre-built kernel')
+            kernel = makeGaussianKernel1D(sigma);
+        }
+        diffuseStateGPU(this, state, kernel);
     }
 
     /** Diffuse continuous states on the grid. 
@@ -5451,6 +6516,12 @@ addDarkModeToggle() {
 }
 
 
+
+Simulation.makeGaussianKernel   = makeGaussianKernel;
+Simulation.makeDiskKernel       = makeDiskKernel;
+Simulation.makeGaussianKernel1D = makeGaussianKernel1D;
+
+
 /**
 * Below are a few global functions that are used by Simulation classes, but not a method of a Simulation instance per se
 */
@@ -5511,13 +6582,13 @@ function get2DFromCanvas(canvas) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Canvas.html">Canvas</a></li><li><a href="Flockmodel.html">Flockmodel</a></li><li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="QuadTree.html">QuadTree</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#copy">copy</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#get2DFromCanvas">get2DFromCanvas</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#random_colours">random_colours</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB">stringToRGB</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Canvas.html">Canvas</a></li><li><a href="Flockmodel.html">Flockmodel</a></li><li><a href="Graph.html">Graph</a></li><li><a href="Gridmodel.html">Gridmodel</a></li><li><a href="Gridpoint.html">Gridpoint</a></li><li><a href="ODE.html">ODE</a></li><li><a href="QuadTree.html">QuadTree</a></li><li><a href="Simulation.html">Simulation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CopyGridODEs">CopyGridODEs</a></li><li><a href="global.html#MakeGrid">MakeGrid</a></li><li><a href="global.html#_fft2d">_fft2d</a></li><li><a href="global.html#_getGPUState">_getGPUState</a></li><li><a href="global.html#_ifft2d">_ifft2d</a></li><li><a href="global.html#applyKernelFFT">applyKernelFFT</a></li><li><a href="global.html#copy">copy</a></li><li><a href="global.html#default_colours">default_colours</a></li><li><a href="global.html#dict_reverse">dict_reverse</a></li><li><a href="global.html#diffuseStateGPU">diffuseStateGPU</a></li><li><a href="global.html#get2DFromCanvas">get2DFromCanvas</a></li><li><a href="global.html#hexToRGB">hexToRGB</a></li><li><a href="global.html#makeDiskKernel">makeDiskKernel</a></li><li><a href="global.html#makeGaussianKernel">makeGaussianKernel</a></li><li><a href="global.html#makeGaussianKernel1D">makeGaussianKernel1D</a></li><li><a href="global.html#nameToRGB">nameToRGB</a></li><li><a href="global.html#parseColours">parseColours</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#random_colours">random_colours</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#stringToRGB">stringToRGB</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Apr 10 2026 11:22:14 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Apr 22 2026 14:59:56 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

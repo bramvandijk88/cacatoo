@@ -1893,6 +1893,12 @@ addDarkModeToggle() {
 export default Simulation
 
 
+
+Simulation.makeGaussianKernel   = utility.makeGaussianKernel
+Simulation.makeDiskKernel       = utility.makeDiskKernel
+Simulation.makeGaussianKernel1D = utility.makeGaussianKernel1D
+
+
 /**
 * Below are a few global functions that are used by Simulation classes, but not a method of a Simulation instance per se
 */
