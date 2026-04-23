@@ -806,7 +806,7 @@ class Gridmodel {
             if (sigma == null) throw new Error('diffuseStateGPU: provide sigma or a pre-built kernel')
             kernel = utility.makeGaussianKernel1D(sigma)
         }
-        utility.diffuseStateGPU(this, state, kernel)
+        utility.diffuseStatesGPU(this, state, kernel)
     }
 
     /** Diffuse continuous states on the grid. 

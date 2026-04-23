@@ -844,7 +844,7 @@ function _makeGPUFBO(gl, w, h) {
 function _getGPUState(gridmodel) {
     const nc = gridmodel.nc, nr = gridmodel.nr
     if (typeof document === 'undefined') {
-        console.warn('[Cacatoo] diffuseStateGPU: WebGL2 requires a browser environment.')
+        console.warn('[Cacatoo] diffuseStatesGPU: WebGL2 requires a browser environment.')
         return null
     }
     if (gridmodel._gpuState) {
@@ -863,11 +863,11 @@ function _getGPUState(gridmodel) {
     canvas.width = nc; canvas.height = nr
     const gl = canvas.getContext('webgl2')
     if (!gl) {
-        console.warn('[Cacatoo] diffuseStateGPU: WebGL2 not available.')
+        console.warn('[Cacatoo] diffuseStatesGPU: WebGL2 not available.')
         gridmodel._gpuState = null; return null
     }
     if (!gl.getExtension('EXT_color_buffer_float')) {
-        console.warn('[Cacatoo] diffuseStateGPU: EXT_color_buffer_float not supported.')
+        console.warn('[Cacatoo] diffuseStatesGPU: EXT_color_buffer_float not supported.')
         gridmodel._gpuState = null; return null
     }
     const prog = gl.createProgram()
@@ -954,7 +954,7 @@ export function makeDiskKernel(radius) {
 }
 
 /**
- * Build a normalised 1-D Gaussian kernel for use with diffuseStateGPU.
+ * Build a normalised 1-D Gaussian kernel for use with diffuseStatesGPU.
  * The GPU path is separable, so it needs a 1-D kernel.
  *
  * @param {number} sigma  Standard deviation in grid cells
@@ -1086,7 +1086,7 @@ export function applyKernelFFT(gridmodel, readProp, writeProp, kernelObj, scale 
  * @param {string} state
  * @param {{ data1d: Float32Array, size: number }} kernel1dObj  from makeGaussianKernel1D
  */
-export function diffuseStateGPU(gridmodel, state, kernel1dObj) {
+export function diffuseStatesGPU(gridmodel, state, kernel1dObj) {
     const s = _getGPUState(gridmodel)
     if (!s) return
 
@@ -1096,7 +1096,7 @@ export function diffuseStateGPU(gridmodel, state, kernel1dObj) {
     const { data1d, size: ksize } = kernel1dObj
 
     if (ksize > 128)
-        throw new Error(`diffuseStateGPU: kernel size ${ksize} > 128 max. Use a smaller sigma.`)
+        throw new Error(`diffuseStatesGPU: kernel size ${ksize} > 128 max. Use a smaller sigma.`)
 
     // Pack grid → flat Float32 → GPU texture
     const flat = new Float32Array(nr * nc)
@@ -1150,6 +1150,6 @@ if (typeof module !== 'undefined' && module.exports) {
         makeDiskKernel,
         makeGaussianKernel1D,
         applyKernelFFT,
-        diffuseStateGPU,   // no-ops in Node (no WebGL), but safe to export
+        diffuseStatesGPU,   // no-ops in Node (no WebGL), but safe to export
     }
 }
