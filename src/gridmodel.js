@@ -801,7 +801,7 @@ class Gridmodel {
      * // setup:   sim.model.gpuKernel = utility.makeGaussianKernel1D(2)
      * // update:  this.diffuseStateGPU('signal', null, this.gpuKernel)
      */
-    diffuseStateGPU(state, sigma, kernel) {
+    diffuseStatesGPU(state, sigma, kernel) {
         if (!kernel) {
             if (sigma == null) throw new Error('diffuseStateGPU: provide sigma or a pre-built kernel')
             kernel = utility.makeGaussianKernel1D(sigma)
