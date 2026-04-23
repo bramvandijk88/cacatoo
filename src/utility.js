@@ -907,22 +907,29 @@ function _getGPUState(gridmodel) {
  * Build a normalised 2-D Gaussian kernel for use with diffuseStatesFFT.
  * Size is auto-chosen to cover ±3σ (always odd). Values sum to 1.0.
  *
- * One diffuseStatesFFT call with this kernel equals running ∂ρ/∂t = D∇²ρ
- * for time t = σ²/(2D).
+ * One call equals running ∂ρ/∂t = D_x ∂²ρ/∂x² + D_y ∂²ρ/∂y²
+ * for one step, where D_x = sigma_x²/2, D_y = sigma_y²/2.
+ * Pass only sigma_x for isotropic diffusion (sigma_y defaults to sigma_x).
  *
- * @param {number} sigma  Standard deviation in grid cells
+ * @param {number} sigma_x  Spread in x (columns). Also used for y if sigma_y omitted.
+ * @param {number} [sigma_y] Spread in y (rows). Omit for symmetric diffusion.
  * @returns {{ data: Float64Array, size: number }}
  */
-export function makeGaussianKernel(sigma) {
-    let size = Math.ceil(6 * sigma) | 1
+export function makeGaussianKernel(sigma_x, sigma_y) {
+    if (sigma_y === undefined) sigma_y = sigma_x   // symmetric by default
+    const reach_x = Math.ceil(3 * sigma_x)
+    const reach_y = Math.ceil(3 * sigma_y)
+    let size = 2 * Math.max(reach_x, reach_y) + 1
     if (size < 3) size = 3
     if (size % 2 === 0) size++
-    const half = (size - 1) / 2
+    const half     = (size - 1) / 2
+    const inv2sx2  = 1 / (2 * sigma_x * sigma_x)
+    const inv2sy2  = 1 / (2 * sigma_y * sigma_y)
     const data = new Float64Array(size * size)
     let sum = 0
     for (let r = 0; r < size; r++)
         for (let c = 0; c < size; c++) {
-            const v = Math.exp(-((r-half)**2 + (c-half)**2) / (2*sigma*sigma))
+            const v = Math.exp(-((c-half)**2) * inv2sx2 - ((r-half)**2) * inv2sy2)
             data[r*size+c] = v; sum += v
         }
     for (let i = 0; i < data.length; i++) data[i] /= sum

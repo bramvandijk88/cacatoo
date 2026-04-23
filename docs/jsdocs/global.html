@@ -251,7 +251,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line2554">line 2554</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line2561">line 2561</a>
     </li></ul></dd>
     
 
@@ -434,7 +434,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line2535">line 2535</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line2542">line 2542</a>
     </li></ul></dd>
     
 
@@ -995,7 +995,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1145">line 1145</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1152">line 1152</a>
     </li></ul></dd>
     
 
@@ -1540,7 +1540,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1238">line 1238</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1245">line 1245</a>
     </li></ul></dd>
     
 
@@ -1677,7 +1677,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line6510">line 6510</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line6517">line 6517</a>
     </li></ul></dd>
     
 
@@ -1973,7 +1973,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1093">line 1093</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1100">line 1100</a>
     </li></ul></dd>
     
 
@@ -2027,7 +2027,7 @@
     
 
     
-    <h4 class="name" id="makeGaussianKernel"><span class="type-signature"></span>makeGaussianKernel<span class="signature">(sigma)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="makeGaussianKernel"><span class="type-signature"></span>makeGaussianKernel<span class="signature">(sigma_x, sigma_y<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -2035,7 +2035,7 @@
 
 
 <div class="description">
-    Build a normalised 2-D Gaussian kernel for use with diffuseStatesFFT.Size is auto-chosen to cover ±3σ (always odd). Values sum to 1.0.One diffuseStatesFFT call with this kernel equals running ∂ρ/∂t = D∇²ρfor time t = σ²/(2D).
+    Build a normalised 2-D Gaussian kernel for use with diffuseStatesFFT.Size is auto-chosen to cover ±3σ (always odd). Values sum to 1.0.One call equals running ∂ρ/∂t = D_x ∂²ρ/∂x² + D_y ∂²ρ/∂y²for one step, where D_x = sigma_x²/2, D_y = sigma_y²/2.Pass only sigma_x for isotropic diffusion (sigma_y defaults to sigma_x).
 </div>
 
 
@@ -2059,6 +2059,8 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -2071,7 +2073,7 @@
 
         <tr>
             
-                <td class="name"><code>sigma</code></td>
+                <td class="name"><code>sigma_x</code></td>
             
 
             <td class="type">
@@ -2084,10 +2086,51 @@
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last">Standard deviation in grid cells</td>
+            <td class="description last">Spread in x (columns). Also used for y if sigma_y omitted.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sigma_y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Spread in y (rows). Omit for symmetric diffusion.</td>
         </tr>
 
     
@@ -2128,7 +2171,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1065">line 1065</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1067">line 1067</a>
     </li></ul></dd>
     
 
@@ -2283,7 +2326,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1112">line 1112</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line1119">line 1119</a>
     </li></ul></dd>
     
 
@@ -2663,7 +2706,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line6503">line 6503</a>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line6510">line 6510</a>
     </li></ul></dd>
     
 
@@ -3100,7 +3143,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Apr 23 2026 14:25:31 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Apr 23 2026 15:05:12 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>
