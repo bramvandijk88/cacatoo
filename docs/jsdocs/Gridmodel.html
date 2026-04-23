@@ -2823,224 +2823,6 @@
     
 
     
-    <h4 class="name" id="diffuseStateGPU"><span class="type-signature"></span>diffuseStateGPU<span class="signature">(state, sigma<span class="signature-attributes">opt</span>, kernel<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Diffuse a continuous state using GPU (WebGL2) separable Gaussian.Two fragment shader passes (H then V). Browser only — warns and no-opsin Node, so you can safely use it in shared code with a fallback.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>state</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">Gridpoint property to diffuse (numeric)</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>sigma</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">Spread in grid cells. Required if no kernel given.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>kernel</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">Pre-built from utility.makeGaussianKernel1D(sigma).</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line2104">line 2104</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// setup:   sim.model.gpuKernel = utility.makeGaussianKernel1D(2)// update:  this.diffuseStateGPU('signal', null, this.gpuKernel)</code></pre>
-
-
-
-        
-            
-
-    
-
-    
     <h4 class="name" id="diffuseStateVector"><span class="type-signature"></span>diffuseStateVector<span class="signature">(rate)</span><span class="type-signature"></span></h4>
     
 
@@ -3526,6 +3308,224 @@
     <pre class="prettyprint"><code>// Simple — kernel built each call:this.diffuseStatesFFT('signal', 2)</code></pre>
 
     <pre class="prettyprint"><code>// Efficient — build once in setup, reuse every step:// setup:   sim.model.gKernel = utility.makeGaussianKernel(2)// update:  this.diffuseStatesFFT('signal', null, this.gKernel)</code></pre>
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="diffuseStatesGPU"><span class="type-signature"></span>diffuseStatesGPU<span class="signature">(state, sigma<span class="signature-attributes">opt</span>, kernel<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Diffuse a continuous state using GPU (WebGL2) separable Gaussian.Two fragment shader passes (H then V). Browser only — warns and no-opsin Node, so you can safely use it in shared code with a fallback.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>state</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Gridpoint property to diffuse (numeric)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sigma</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Spread in grid cells. Required if no kernel given.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>kernel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Pre-built from utility.makeGaussianKernel1D(sigma).</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="cacatoo.js.html">cacatoo.js</a>, <a href="cacatoo.js.html#line2104">line 2104</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// setup:   sim.model.gpuKernel = utility.makeGaussianKernel1D(2)// update:  this.diffuseStateGPU('signal', null, this.gpuKernel)</code></pre>
 
 
 
@@ -9143,7 +9143,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Apr 22 2026 14:59:56 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Apr 23 2026 14:18:38 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>
