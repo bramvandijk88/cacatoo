@@ -2025,7 +2025,6 @@ class Gridmodel {
     }
 
    
-
 /**
      * Diffuse a continuous state using the fastest available method:
      * GPU (WebGL2 separable Gaussian) in the browser, FFT on CPU as fallback
@@ -2061,9 +2060,21 @@ class Gridmodel {
      * this.diffuseStatesFFT('signal', 2)
      */
     diffuseStatesFFT(state, sigma_x, sigma_y, kernel) {
-        // Support old 2-arg signature: diffuseStatesFFT(state, sigma)
-        // where sigma was a single number and kernel was 3rd arg
-        if (typeof sigma_y === 'object') { kernel = sigma_y; sigma_y = undefined; }
+        // Flexible argument handling — accept any of these call patterns:
+        //   diffuseStatesFFT('s', 2)             sigma only
+        //   diffuseStatesFFT('s', 2, 1)          sigma_x and sigma_y
+        //   diffuseStatesFFT('s', kernel)         kernel object as 2nd arg
+        //   diffuseStatesFFT('s', null, kernel)   kernel object as 3rd arg
+        //   diffuseStatesFFT('s', 2, null, kernel) full explicit form
+ 
+        // If sigma_x is a kernel object, shift args
+        if (sigma_x && typeof sigma_x === 'object' && sigma_x.data) {
+            kernel = sigma_x; sigma_x = undefined; sigma_y = undefined;
+        }
+        // If sigma_y is a kernel object, shift args
+        else if (sigma_y && typeof sigma_y === 'object' && sigma_y.data) {
+            kernel = sigma_y; sigma_y = undefined;
+        }
  
         if (!kernel) {
             if (sigma_x == null) throw new Error('diffuseStatesFFT: provide sigma or a pre-built kernel')
@@ -2130,7 +2141,7 @@ class Gridmodel {
     }
  
 
-    
+
 
 
 
