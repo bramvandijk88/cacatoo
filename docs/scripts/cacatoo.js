@@ -2086,7 +2086,12 @@ class Gridmodel {
         if (this._gpuAvailable === undefined) {
             diffuseStateGPU(this, state, kernel);
             this._gpuAvailable = (this._gpuState !== null && this._gpuState !== undefined);
-            if (!this._gpuAvailable) applyKernelFFT(this, state, state, kernel);
+            if (this._gpuAvailable)
+                console.log(`[Cacatoo] diffuseStatesFFT (${this.name}): using GPU (WebGL2)`);
+            else {
+                console.log(`[Cacatoo] diffuseStatesFFT (${this.name}): GPU unavailable, using CPU FFT`);
+                applyKernelFFT(this, state, state, kernel);
+            }
             return
         }
  
