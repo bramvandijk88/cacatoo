@@ -345,6 +345,9 @@ function copy(aObject) {
   
 
 
+
+
+
 // ============================================================================
 // FFT-based convolution utilities for Cacatoo
 // ----------------------------------------------------------------------------
@@ -356,7 +359,6 @@ function copy(aObject) {
 //   makeGaussianKernel(sigma)                           → { data, size }
 //   makeDiskKernel(radius)                              → { data, size }
 //   applyKernelFFT(gm, readProp, writeProp, kernel, scale)
-//   makeGaussianKernel1D(sigma)                         → { data1d, size }
 //   diffuseStateGPU(gridmodel, state, kernel1dObj)      (browser only)
 //
 // GridModel methods added in gridmodel.js:
@@ -883,7 +885,7 @@ FFT.prototype._singleRealTransform4 = function _singleRealTransform4(outOff,
 
 function nextPow2(n) { let p = 1; while (p < n) p <<= 1; return p }
 
-/** Forward 2-D FFT of a flat real array (nrows×ncols), zero-padded to padR×padC. */
+
 function _fft2d(realFlat, nrows, ncols, padR, padC) {
     const fR = new FFT(padR), fC = new FFT(padC);
     const mid = new Float64Array(padR * padC * 2);
@@ -913,7 +915,7 @@ function _fft2d(realFlat, nrows, ncols, padR, padC) {
     return { freq, fR, fC }
 }
 
-/** Inverse 2-D FFT. Each 1-D pass normalises by its own size, giving 1/(padR*padC) total. */
+
 function _ifft2d(freq, padR, padC, fR, fC) {
     const mid = new Float64Array(padR * padC * 2);
     const colIn = fR.createComplexArray(), colOut = fR.createComplexArray();
@@ -985,15 +987,13 @@ function _makeGPUFBO(gl, w, h) {
     return { tex, fbo }
 }
 
-/**
- * Lazily initialise (or return cached) GPU state on a gridmodel.
- * Returns the state object, or null if WebGL2 / float textures unavailable.
- * Rebuilds FBOs automatically if the grid is resized.
- */
+// Lazily initialise (or return cached) GPU state on a gridmodel.
+// Returns the state object, or null if WebGL2 / float textures unavailable.
+// Rebuilds FBOs automatically if the grid is resized.
 function _getGPUState(gridmodel) {
     const nc = gridmodel.nc, nr = gridmodel.nr;
     if (typeof document === 'undefined') {
-        console.warn('[Cacatoo] diffuseStatesGPU: WebGL2 requires a browser environment.');
+        console.warn('[Cacatoo] diffuseStateGPU: WebGL2 requires a browser environment.');
         return null
     }
     if (gridmodel._gpuState) {
@@ -1012,11 +1012,11 @@ function _getGPUState(gridmodel) {
     canvas.width = nc; canvas.height = nr;
     const gl = canvas.getContext('webgl2');
     if (!gl) {
-        console.warn('[Cacatoo] diffuseStatesGPU: WebGL2 not available.');
+        console.warn('[Cacatoo] diffuseStateGPU: WebGL2 not available.');
         gridmodel._gpuState = null; return null
     }
     if (!gl.getExtension('EXT_color_buffer_float')) {
-        console.warn('[Cacatoo] diffuseStatesGPU: EXT_color_buffer_float not supported.');
+        console.warn('[Cacatoo] diffuseStateGPU: EXT_color_buffer_float not supported.');
         gridmodel._gpuState = null; return null
     }
     const prog = gl.createProgram();
@@ -1053,36 +1053,75 @@ function _getGPUState(gridmodel) {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
- * Build a normalised 2-D Gaussian kernel for use with diffuseStatesFFT.
- * Size is auto-chosen to cover ±3σ (always odd). Values sum to 1.0.
+ * Build a normalised Gaussian kernel for use with both diffuseStatesFFT
+ * and diffuseStateGPU. Returns one object with everything both methods need.
+ * Build it once, pass it to either method.
  *
- * One call equals running ∂ρ/∂t = D_x ∂²ρ/∂x² + D_y ∂²ρ/∂y²
- * for one step, where D_x = sigma_x²/2, D_y = sigma_y²/2.
- * Pass only sigma_x for isotropic diffusion (sigma_y defaults to sigma_x).
+ * Pass only sigma_x for isotropic (symmetric) diffusion.
+ * Pass both for anisotropic: sigma_x = horizontal spread (x/columns),
+ * sigma_y = vertical spread (y/rows).
  *
- * @param {number} sigma_x  Spread in x (columns). Also used for y if sigma_y omitted.
- * @param {number} [sigma_y] Spread in y (rows). Omit for symmetric diffusion.
- * @returns {{ data: Float64Array, size: number }}
+ * @param {number} sigma_x   Horizontal spread in grid cells.
+ * @param {number} [sigma_y] Vertical spread. Defaults to sigma_x.
+ * @returns {{ data: Float64Array, size: number,
+ *             data1d_x: Float32Array, size_x: number,
+ *             data1d_y: Float32Array, size_y: number }}
+ *
+ * @example
+ * sim.model.k = makeGaussianKernel(3)        // symmetric
+ * sim.model.k = makeGaussianKernel(8, 1)     // wide in x, narrow in y
+ * this.diffuseStatesFFT('signal', null, this.k)  // FFT path
+ * this.diffuseStateGPU('signal',  null, this.k)  // GPU path
  */
 function makeGaussianKernel(sigma_x, sigma_y) {
-    if (sigma_y === undefined) sigma_y = sigma_x;   // symmetric by default
+    if (sigma_y === undefined) sigma_y = sigma_x;
+
+    // 1-D kernels for GPU separable passes
+    function make1d(sigma) {
+        let size = Math.ceil(6 * sigma) | 1;
+        if (size < 3) size = 3;
+        if (size % 2 === 0) size++;
+        if (size > 128) {
+            console.warn(`[makeGaussianKernel] sigma=${sigma} → 1D size=${size} exceeds GPU max of 128. Clamping.`);
+            size = 127;
+        }
+        const half = (size - 1) / 2;
+        const data = new Float32Array(size);
+        let sum = 0;
+        for (let i = 0; i < size; i++) {
+            const d = i - half;
+            data[i] = Math.exp(-(d*d) / (2*sigma*sigma));
+            sum += data[i];
+        }
+        for (let i = 0; i < size; i++) data[i] /= sum;
+        return { data, size }
+    }
+    const k1d_x = make1d(sigma_x);
+    const k1d_y = make1d(sigma_y);
+
+    // 2-D kernel for FFT path
     const reach_x = Math.ceil(3 * sigma_x);
     const reach_y = Math.ceil(3 * sigma_y);
-    let size = 2 * Math.max(reach_x, reach_y) + 1;
-    if (size < 3) size = 3;
-    if (size % 2 === 0) size++;
-    const half     = (size - 1) / 2;
-    const inv2sx2  = 1 / (2 * sigma_x * sigma_x);
-    const inv2sy2  = 1 / (2 * sigma_y * sigma_y);
-    const data = new Float64Array(size * size);
-    let sum = 0;
-    for (let r = 0; r < size; r++)
-        for (let c = 0; c < size; c++) {
-            const v = Math.exp(-((c-half)**2) * inv2sx2 - ((r-half)**2) * inv2sy2);
-            data[r*size+c] = v; sum += v;
+    let size2d = 2 * Math.max(reach_x, reach_y) + 1;
+    if (size2d < 3) size2d = 3;
+    if (size2d % 2 === 0) size2d++;
+    const half2d  = (size2d - 1) / 2;
+    const inv2sx2 = 1 / (2 * sigma_x * sigma_x);
+    const inv2sy2 = 1 / (2 * sigma_y * sigma_y);
+    const data2d  = new Float64Array(size2d * size2d);
+    let sum2d = 0;
+    for (let r = 0; r < size2d; r++)
+        for (let c = 0; c < size2d; c++) {
+            const v = Math.exp(-((c-half2d)**2) * inv2sx2 - ((r-half2d)**2) * inv2sy2);
+            data2d[r*size2d+c] = v; sum2d += v;
         }
-    for (let i = 0; i < data.length; i++) data[i] /= sum;
-    return { data, size }
+    for (let i = 0; i < data2d.length; i++) data2d[i] /= sum2d;
+
+    return {
+        data:     data2d,        size:   size2d,     // FFT path
+        data1d_x: k1d_x.data,   size_x: k1d_x.size, // GPU horizontal pass
+        data1d_y: k1d_y.data,   size_y: k1d_y.size,  // GPU vertical pass
+    }
 }
 
 /**
@@ -1108,34 +1147,6 @@ function makeDiskKernel(radius) {
         }
     return { data, size }
 }
-
-/**
- * Build a normalised 1-D Gaussian kernel for use with diffuseStatesGPU.
- * The GPU path is separable, so it needs a 1-D kernel.
- *
- * @param {number} sigma  Standard deviation in grid cells
- * @returns {{ data1d: Float32Array, size: number }}
- */
-function makeGaussianKernel1D(sigma) {
-    let size = Math.ceil(6 * sigma) | 1;
-    if (size < 3) size = 3;
-    if (size % 2 === 0) size++;
-    if (size > 128) {
-        console.warn(`[makeGaussianKernel1D] sigma=${sigma} → size=${size} exceeds GPU max of 128. Clamping.`);
-        size = 127;  // force odd and ≤ 128
-    }
-    const half = (size - 1) / 2;
-    const data1d = new Float32Array(size);
-    let sum = 0;
-    for (let i = 0; i < size; i++) {
-        const d = i - half;
-        data1d[i] = Math.exp(-(d*d) / (2*sigma*sigma));
-        sum += data1d[i];
-    }
-    for (let i = 0; i < size; i++) data1d[i] /= sum;
-    return { data1d, size }
-}
-
 /**
  * Apply a 2-D FFT convolution to one numeric state of every gridpoint.
  * Reads from readProp, writes to writeProp (may be the same property).
@@ -1240,19 +1251,19 @@ function applyKernelFFT(gridmodel, readProp, writeProp, kernelObj, scale = 1) {
  *
  * @param {object} gridmodel
  * @param {string} state
- * @param {{ data1d: Float32Array, size: number }} kernel1dObj  from makeGaussianKernel1D
+ * @param {object} kernelObj  from makeGaussianKernel
  */
-function diffuseStatesGPU(gridmodel, state, kernel1dObj) {
+function diffuseStateGPU(gridmodel, state, kernel1dObj) {
     const s = _getGPUState(gridmodel);
     if (!s) return
 
     const { gl, prog, vao, nc, nr,
             uTex, uDir, uKernel, uKsize,
             fboSrc, fboTmp, fboDst, readBuf, kPad } = s;
-    const { data1d, size: ksize } = kernel1dObj;
+    const { data1d_x, size_x, data1d_y, size_y } = kernel1dObj;
 
-    if (ksize > 128)
-        throw new Error(`diffuseStatesGPU: kernel size ${ksize} > 128 max. Use a smaller sigma.`)
+    if (size_x > 128 || size_y > 128)
+        throw new Error(`diffuseStateGPU: kernel size ${Math.max(size_x,size_y)} > 128 max. Use a smaller sigma.`)
 
     // Pack grid → flat Float32 → GPU texture
     const flat = new Float32Array(nr * nc);
@@ -1263,24 +1274,26 @@ function diffuseStatesGPU(gridmodel, state, kernel1dObj) {
     gl.bindTexture(gl.TEXTURE_2D, fboSrc.tex);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, nc, nr, gl.RED, gl.FLOAT, flat);
 
-    // Upload kernel
-    kPad.fill(0);
-    for (let i = 0; i < ksize; i++) kPad[i] = data1d[i];
-
     gl.useProgram(prog); gl.bindVertexArray(vao);
     gl.viewport(0, 0, nc, nr);
     gl.uniform1i(uTex, 0);
-    gl.uniform1iv(uKsize, [ksize]);
-    gl.uniform1fv(uKernel, kPad);
     gl.activeTexture(gl.TEXTURE0);
 
-    // Horizontal pass: fboSrc → fboTmp
+    // Horizontal pass: fboSrc → fboTmp  (x kernel)
+    kPad.fill(0);
+    for (let i = 0; i < size_x; i++) kPad[i] = data1d_x[i];
+    gl.uniform1i(uKsize, size_x);
+    gl.uniform1fv(uKernel, kPad);
     gl.bindTexture(gl.TEXTURE_2D, fboSrc.tex);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fboTmp.fbo);
     gl.uniform2f(uDir, 1.0, 0.0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    // Vertical pass: fboTmp → fboDst
+    // Vertical pass: fboTmp → fboDst  (y kernel)
+    kPad.fill(0);
+    for (let i = 0; i < size_y; i++) kPad[i] = data1d_y[i];
+    gl.uniform1i(uKsize, size_y);
+    gl.uniform1fv(uKernel, kPad);
     gl.bindTexture(gl.TEXTURE_2D, fboTmp.tex);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fboDst.fbo);
     gl.uniform2f(uDir, 0.0, 1.0);
@@ -1304,9 +1317,8 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         makeGaussianKernel,
         makeDiskKernel,
-        makeGaussianKernel1D,
         applyKernelFFT,
-        diffuseStatesGPU,   // no-ops in Node (no WebGL), but safe to export
+        diffuseStateGPU,   // no-ops in Node (no WebGL), but safe to export
     };
 }
 
@@ -2012,44 +2024,68 @@ class Gridmodel {
                 this.grid[x][y][state] = newstate[x][y][state];
     }
 
-    // ============================================================================
-// Add these three methods to the Gridmodel class in src/gridmodel.js
-// Paste them directly after the existing diffuseStates method (~line 707)
-//
-// gridmodel.js already has:  import * as utility from './utility.js'
-// so utility.makeGaussianKernel etc. are in scope here exactly like
-// utility.shuffle, utility.parseColours etc. that already exist in the file.
-// ============================================================================
+   
 
-    /**
-     * Diffuse a continuous state using FFT-based Gaussian convolution.
+/**
+     * Diffuse a continuous state using the fastest available method:
+     * GPU (WebGL2 separable Gaussian) in the browser, FFT on CPU as fallback
+     * (including Node.js, or any browser where WebGL2 is unavailable).
      *
-     * One call with sigma σ equals running ∂ρ/∂t = D∇²ρ for time t = σ²/(2D).
-     * Perfectly isotropic, no directional grid bias. Works in browser and Node.
+     * One call with sigma σ equals running ∂ρ/∂t = D_x ∂²ρ/∂x² + D_y ∂²ρ/∂y²
+     * for one step, where D_x = sigma_x²/2, D_y = sigma_y²/2.
      *
-     * @param {string} state   Gridpoint property to diffuse (numeric)
-     * @param {number} [sigma] Spread in grid cells. Required if no kernel given.
-     * @param {{ data: Float64Array, size: number }} [kernel]
-     *   Pre-built from utility.makeGaussianKernel(sigma). Pass this when
-     *   calling every timestep to avoid rebuilding the kernel each call.
+     * The GPU path is tried first on every call. If it fails or is unavailable,
+     * it falls back to FFT silently (after a one-time console.warn). The
+     * result is identical either way.
+     *
+     * Build the kernel once in setup and reuse it every step:
+     *   sim.model.k = makeGaussianKernel(sigma_x)           // symmetric
+     *   sim.model.k = makeGaussianKernel(sigma_x, sigma_y)  // anisotropic
+     *
+     * @param {string} state    Gridpoint property to diffuse (numeric)
+     * @param {number} [sigma_x] Horizontal spread in grid cells.
+     *                           Required if no kernel provided.
+     * @param {number} [sigma_y] Vertical spread. Defaults to sigma_x.
+     * @param {object} [kernel]  Pre-built from utility.makeGaussianKernel().
+     *                           Pass this when calling every timestep.
      *
      * @example
-     * // Simple — kernel built each call:
+     * // Setup — build kernel once:
+     * sim.model.k = utility.makeGaussianKernel(3)
+     *
+     * // Update loop — auto GPU→FFT fallback:
+     * this.diffuseStatesFFT('signal', null, null, this.k)
+     *
+     * @example
+     * // Or just pass sigma directly (kernel rebuilt each call):
      * this.diffuseStatesFFT('signal', 2)
-     *
-     * @example
-     * // Efficient — build once in setup, reuse every step:
-     * // setup:   sim.model.gKernel = utility.makeGaussianKernel(2)
-     * // update:  this.diffuseStatesFFT('signal', null, this.gKernel)
      */
-    diffuseStatesFFT(state, sigma, kernel) {
+    diffuseStatesFFT(state, sigma_x, sigma_y, kernel) {
+        // Support old 2-arg signature: diffuseStatesFFT(state, sigma)
+        // where sigma was a single number and kernel was 3rd arg
+        if (typeof sigma_y === 'object') { kernel = sigma_y; sigma_y = undefined; }
+ 
         if (!kernel) {
-            if (sigma == null) throw new Error('diffuseStatesFFT: provide sigma or a pre-built kernel')
-            kernel = makeGaussianKernel(sigma);
+            if (sigma_x == null) throw new Error('diffuseStatesFFT: provide sigma or a pre-built kernel')
+            kernel = makeGaussianKernel(sigma_x, sigma_y);
         }
-        applyKernelFFT(this, state, state, kernel);
+ 
+        // On the very first call, attempt GPU init and cache the result on the model.
+        // _gpuAvailable is set once and never re-checked — no overhead on subsequent calls.
+        if (this._gpuAvailable === undefined) {
+            diffuseStateGPU(this, state, kernel);
+            this._gpuAvailable = (this._gpuState !== null && this._gpuState !== undefined);
+            if (!this._gpuAvailable) applyKernelFFT(this, state, state, kernel);
+            return
+        }
+ 
+        if (this._gpuAvailable) {
+            diffuseStateGPU(this, state, kernel);
+        } else {
+            applyKernelFFT(this, state, state, kernel);
+        }
     }
-
+ 
     /**
      * For every gridpoint where sourceState === sourceValue, deposit `amount`
      * of targetState uniformly within a disk radius using FFT — O(N log N)
@@ -2062,17 +2098,16 @@ class Gridmodel {
      * @param {number} sourceValue   Value marking a source cell (e.g. 1)
      * @param {string} targetState   Property to deposit into
      * @param {number} amount        Total deposited per source cell across disk
-     * @param {{ data: Float64Array, size: number }} [kernel]
-     *   Pre-built from utility.makeDiskKernel(radius).
+     * @param {object} [kernel]      Pre-built from utility.makeDiskKernel(radius).
      * @param {number} [radius]      Disk radius in grid cells.
      *
      * @example
-     * // setup:   sim.model.dKernel = utility.makeDiskKernel(8)
-     * // update:
+     * // Setup:   sim.model.dk = utility.makeDiskKernel(8)
+     * // Update:
      * for (let x = 0; x < this.nc; x++)
      *     for (let y = 0; y < this.nr; y++)
      *         this.grid[x][y].public_good = 0
-     * this.castDiskFFT('alive', 1, 'public_good', 1.0, this.dKernel)
+     * this.castDiskFFT('alive', 1, 'public_good', 1.0, this.dk)
      */
     castDiskFFT(sourceState, sourceValue, targetState, amount, kernel, radius) {
         if (!kernel) {
@@ -2093,28 +2128,11 @@ class Gridmodel {
                 delete this.grid[x][y][resProp];
             }
     }
+ 
 
-    /**
-     * Diffuse a continuous state using GPU (WebGL2) separable Gaussian.
-     * Two fragment shader passes (H then V). Browser only — warns and no-ops
-     * in Node, so you can safely use it in shared code with a fallback.
-     *
-     * @param {string} state   Gridpoint property to diffuse (numeric)
-     * @param {number} [sigma] Spread in grid cells. Required if no kernel given.
-     * @param {{ data1d: Float32Array, size: number }} [kernel]
-     *   Pre-built from utility.makeGaussianKernel1D(sigma).
-     *
-     * @example
-     * // setup:   sim.model.gpuKernel = utility.makeGaussianKernel1D(2)
-     * // update:  this.diffuseStateGPU('signal', null, this.gpuKernel)
-     */
-    diffuseStatesGPU(state, sigma, kernel) {
-        if (!kernel) {
-            if (sigma == null) throw new Error('diffuseStateGPU: provide sigma or a pre-built kernel')
-            kernel = makeGaussianKernel1D(sigma);
-        }
-        diffuseStatesGPU(this, state, kernel);
-    }
+    
+
+
 
     /** Diffuse continuous states on the grid. 
      * *  @param {string} state The name of the state to diffuse
@@ -6498,7 +6516,6 @@ addDarkModeToggle() {
 
 Simulation.makeGaussianKernel   = makeGaussianKernel;
 Simulation.makeDiskKernel       = makeDiskKernel;
-Simulation.makeGaussianKernel1D = makeGaussianKernel1D;
 
 
 /**

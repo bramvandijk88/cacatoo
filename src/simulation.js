@@ -1896,7 +1896,6 @@ export default Simulation
 
 Simulation.makeGaussianKernel   = utility.makeGaussianKernel
 Simulation.makeDiskKernel       = utility.makeDiskKernel
-Simulation.makeGaussianKernel1D = utility.makeGaussianKernel1D
 
 
 /**
