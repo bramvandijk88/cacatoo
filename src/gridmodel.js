@@ -146,10 +146,13 @@ class Gridmodel {
     *                             | or {state:object} where objects are {val:'colour},
     *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
     */
-    setupColours(statecols,num_colours=18) {
+    setupColours(statecols,num_colours=100) {
         let return_dict = {}
         if (statecols == null)           // If the user did not define statecols (yet)
+        {
             return return_dict["state"] = utility.default_colours(num_colours)
+        }
+        
         let colours = utility.dict_reverse(statecols) || { 'val': 1 }
 
         for (const [statekey, statedict] of Object.entries(colours)) {

@@ -1465,10 +1465,13 @@ class Gridmodel {
     *                             | or {state:object} where objects are {val:'colour},
     *                             | e.g.  {'species':{0:"black", 1:"#DDDDDD", 2:"red"}}, see cheater.html 
     */
-    setupColours(statecols,num_colours=18) {
+    setupColours(statecols,num_colours=100) {
         let return_dict = {};
         if (statecols == null)           // If the user did not define statecols (yet)
+        {
             return return_dict["state"] = default_colours(num_colours)
+        }
+        
         let colours = dict_reverse(statecols) || { 'val': 1 };
 
         for (const [statekey, statedict] of Object.entries(colours)) {
@@ -5024,7 +5027,6 @@ class Simulation {
         let nticks= config.nticks || 5;
         let minval = config.minval || 0;
         let num_colours = config.num_colours || 100;
-        
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours);    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno");    
         else if(config.fill == "rainbow") this[name].statecolours[property] = this[name].colourGradientArray(num_colours, 0,[251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242],[50,100,255]);
@@ -5037,7 +5039,6 @@ class Simulation {
             console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`);
             this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255]);
         } 
-        
 
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
 

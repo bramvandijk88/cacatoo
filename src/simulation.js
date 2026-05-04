@@ -385,7 +385,6 @@ class Simulation {
         let nticks= config.nticks || 5
         let minval = config.minval || 0
         let num_colours = config.num_colours || 100
-        
         if(config.fill == "viridis") this[name].colourViridis(property, num_colours)    
         else if(config.fill == "inferno") this[name].colourViridis(property, num_colours, false, "inferno")    
         else if(config.fill == "rainbow") this[name].statecolours[property] = this[name].colourGradientArray(num_colours, 0,[251, 169, 73], [250, 228, 66], [139, 212, 72], [42, 168, 242],[50,100,255])
@@ -398,7 +397,6 @@ class Simulation {
             console.log(`Cacatoo: no fill colour supplied for property ${property}. Using default and hoping for the best.`)
             this[name].colourGradient(property, num_colours, [0, 0, 0], [0, 0, 255])
         } 
-        
 
         let cnv = new Canvas(gridmodel, property, label, height, width, scale, true);
 
