@@ -285,10 +285,8 @@ class Canvas {
             }
         }
         
-        this.draw_qt()
-
         this.overlay()
-
+        this.draw_qt()
     }
 
     /**
