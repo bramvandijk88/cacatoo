@@ -2916,36 +2916,31 @@ class Flockmodel {
     * @param {int} n How many colours the gradient consists off
     * For example usage, see colourViridis below
     */
-    colourGradientArray(n,total) 
-    {        
+    colourGradientArray(n, total) {        
         let color_dict = {};
-        //color_dict[0] = [0, 0, 0]
-
         let n_arrays = arguments.length - 2;
         if (n_arrays <= 1) throw new Error("colourGradient needs at least 2 arrays")
-        let segment_len = Math.ceil(n / (n_arrays-1));
+        let segment_len = Math.ceil(n / (n_arrays - 1));
 
         if(n <= 10 && n_arrays > 3) console.warn("Cacatoo warning: forming a complex gradient with only few colours... hoping for the best.");
         let total_added_colours = 0;
 
-        for (let arr = 0; arr < n_arrays - 1 ; arr++) {
+        for (let arr = 0; arr < n_arrays - 1; arr++) {
             let arr1 = arguments[2 + arr];
             let arr2 = arguments[2 + arr + 1];
 
             for (let i = 0; i < segment_len; i++) {
-                let r, g, b;
-                if (arr2[0] > arr1[0]) r = Math.floor(arr1[0] + (arr2[0] - arr1[0])*( i / (segment_len-1) ));
-                else r = Math.floor(arr1[0] - (arr1[0] - arr2[0]) * (i / (segment_len-1)));
-                if (arr2[1] > arr1[1]) g = Math.floor(arr1[1] + (arr2[1] - arr1[1]) * (i / (segment_len - 1)));
-                else g = Math.floor(arr1[1] - (arr1[1] - arr2[1]) * (i / (segment_len - 1)));
-                if (arr2[2] > arr1[2]) b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * (i / (segment_len - 1)));
-                else b = Math.floor(arr1[2] - (arr1[2] - arr2[2]) * (i / (segment_len - 1)));
-                color_dict[Math.floor(i + arr * segment_len + total)+1] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
+                let t = i / segment_len;  // <-- was (i / (segment_len - 1)), which reaches 1.0 (= next segment's 0)
+                let r = Math.floor(arr1[0] + (arr2[0] - arr1[0]) * t);
+                let g = Math.floor(arr1[1] + (arr2[1] - arr1[1]) * t);
+                let b = Math.floor(arr1[2] + (arr2[2] - arr1[2]) * t);
+                color_dict[Math.floor(i + arr * segment_len + total)] = [Math.min(r,255), Math.min(g,255), Math.min(b,255)];
                 total_added_colours++;
-                if(total_added_colours == n) break
+                if (total_added_colours == n) break
             }
+            color_dict[n] = arguments[arguments.length - 1];  // final colour always set exactly
         }        
-        return(color_dict)
+        return color_dict
     }
 
     /** Initiate a gradient of colours for a property. 
