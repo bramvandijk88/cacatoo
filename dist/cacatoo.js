@@ -3554,46 +3554,41 @@ class Flockmodel {
         return gps
     }
 
-    getIndividualsInRange(position,radius){
-        
+    getIndividualsInRange(position, radius) {
         let qt = this.qt;
         let width = this.width;
         let height = this.height;
-        let neighbours = [];     // Collect all found neighbours here
-        const offsets = [       // Fetch in 9 possible ways for wrapping around the grid
-            { x: 0, y: 0 },         
-            { x: width, y: 0 },
-            { x: -width, y: 0 },
-            { x: 0, y: height },
-            { x: 0, y: -height },
-            { x: width, y: height },
-            { x: width, y: -height },
-            { x: -width, y: height },
-            { x: -width, y: -height }
-        ];				
+        let neighbours = [];
 
-        // Fetch all neighbours for each range
+        const wrapX = this.wrap[0];
+        const wrapY = this.wrap[1];
+
+        // Build offsets only for axes that actually wrap
+        const xOffsets = wrapX ? [0, width, -width] : [0];
+        const yOffsets = wrapY ? [0, height, -height] : [0];
+
+        const offsets = [];
+        for (const x of xOffsets)
+            for (const y of yOffsets)
+                offsets.push({ x, y });
+
         for (const offset of offsets) {
-            let range = { x:position.x+offset.x, y:position.y+offset.y, w:radius*2, h:radius*2 };
+            let range = { x: position.x + offset.x, y: position.y + offset.y, w: radius * 2, h: radius * 2 };
             neighbours.push(...qt.query(range));
         }
-        
-        // Filter neighbours to only include those within the circular radius (a bit quicker than slicing in for loop, i noticed)
+
         return neighbours.filter(neighbour => {
             let dx = neighbour.position.x - position.x;
             let dy = neighbour.position.y - position.y;
-            // Adjust for wrapping in the x direction
-            if (Math.abs(dx) > width/2) {
+
+            if (wrapX && Math.abs(dx) > width / 2)
                 dx = dx - Math.sign(dx) * width;
-            }
-        
-            // Adjust for wrapping in the y direction
-            if (Math.abs(dy) > height/2) {
+
+            if (wrapY && Math.abs(dy) > height / 2)
                 dy = dy - Math.sign(dy) * height;
-            }
-        
-            return (dx*dx + dy*dy) <= (radius*radius);
-        }); 
+
+            return (dx * dx + dy * dy) <= (radius * radius)
+        })
     }
 
     /** From a list of individuals, e.g. this.individuals, sample one weighted by a property. This is analogous
