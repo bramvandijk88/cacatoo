@@ -509,19 +509,19 @@ class Flockmodel {
         }
 
         // right wall
-        if (!this.wrap[0] && this.boundaries[1] && && boid.position.x > this.width - r) {
+        if (!this.wrap[0] && this.boundaries[1] && boid.position.x > this.width - r) {
         const pen = boid.position.x - (this.width - r);
         boid.acceleration.x -= pen*force;
         }
 
         // top wall
-        if (!this.wrap[1] && this.boundaries[0] && && boid.position.y < r) {
+        if (!this.wrap[1] && this.boundaries[0] && boid.position.y < r) {
         const pen = r - boid.position.y;
         boid.acceleration.y += pen*force;
         }
 
         // bottom wall
-        if (!this.wrap[1] && this.boundaries[2] && && boid.position.y > this.height - r) {
+        if (!this.wrap[1] && this.boundaries[2] &&  boid.position.y > this.height - r) {
         const pen = boid.position.y - (this.height - r);
         boid.acceleration.y -= pen*force;
         }
