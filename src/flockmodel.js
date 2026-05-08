@@ -42,7 +42,7 @@ class Flockmodel {
         this.graph_interval = config.graph_interval || 2
         this.bgcolour = config.bgcolour || undefined
         this.physics = (config.physics === false) ? false : true;
-        this.boundaries = (config.boundaries === false) ? false : true;
+        this.boundaries = config.boundaries || [true,true,true,true];
         
         this.statecolours = {}
         if(config.statecolours) this.statecolours = this.setupColours(config.statecolours,config.num_colours||100) // Makes sure the statecolours in the config dict are parsed (see below)
@@ -278,7 +278,7 @@ class Flockmodel {
     flock(){
         if(this.physics) this.applyPhysics()
         this.updatePositions()
-        if(this.boundaries) this.boundariesAndObstacles()
+        this.boundariesAndObstacles()
         this.build_quadtree()
     }
     
@@ -503,25 +503,25 @@ class Flockmodel {
         const r = boid.size / 2;
         const force = this.max_force
         // left wall
-        if (!this.wrap[0] && boid.position.x < r) {
+        if (!this.wrap[0] && this.boundaries[3] && boid.position.x < r) {
         const pen = r - boid.position.x;
         boid.acceleration.x += pen*force;
         }
 
         // right wall
-        if (!this.wrap[0] && boid.position.x > this.width - r) {
+        if (!this.wrap[0] && this.boundaries[1] && && boid.position.x > this.width - r) {
         const pen = boid.position.x - (this.width - r);
         boid.acceleration.x -= pen*force;
         }
 
         // top wall
-        if (!this.wrap[1] && boid.position.y < r) {
+        if (!this.wrap[1] && this.boundaries[0] && && boid.position.y < r) {
         const pen = r - boid.position.y;
         boid.acceleration.y += pen*force;
         }
 
         // bottom wall
-        if (!this.wrap[1] && boid.position.y > this.height - r) {
+        if (!this.wrap[1] && this.boundaries[2] && && boid.position.y > this.height - r) {
         const pen = boid.position.y - (this.height - r);
         boid.acceleration.y -= pen*force;
         }
