@@ -2752,12 +2752,14 @@ class Flockmodel {
         this.wrap = config.wrap || [true, true];
         
         this.wrapreflect = 1;
+        
         if(config.wrapreflect) this.wrapreflect = config.wrapreflect;
 
         this.graph_update = config.graph_update || 20;
         this.graph_interval = config.graph_interval || 2;
         this.bgcolour = config.bgcolour || undefined;
         this.physics = (config.physics === false) ? false : true;
+        this.boundaries = (config.boundaries === false) ? false : true;
         
         this.statecolours = {};
         if(config.statecolours) this.statecolours = this.setupColours(config.statecolours,config.num_colours||100); // Makes sure the statecolours in the config dict are parsed (see below)
@@ -2993,7 +2995,7 @@ class Flockmodel {
     flock(){
         if(this.physics) this.applyPhysics();
         this.updatePositions();
-        this.boundariesAndObstacles();
+        if(this.boundaries) this.boundariesAndObstacles();
         this.build_quadtree();
     }
     
@@ -3208,8 +3210,8 @@ class Flockmodel {
     }
 
     boundariesAndObstacles() {
+    
     for (let boid of this.boids) {
-
         // Check obstacles first
         for (let obs of this.obstacles) {
             this.checkCollisionWithObstacle(boid, obs);
