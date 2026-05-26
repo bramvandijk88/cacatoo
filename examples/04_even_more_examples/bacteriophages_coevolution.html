@@ -356,7 +356,7 @@ function cacatoo() {
 
     if (sim.rng.random() < phage_influx)
       sim.environment.grid[x][y].phages.push(new Phage())
-    for (let p = 0; p < sim.environment.grid[x][y].phages.length; p++) {
+    for (let p = sim.environment.grid[x][y].phages.length-1; p >= 0; p--) { // loop backwards because we might remove phages from the array
 			let decay = max_phage_decay*(1-Math.abs(y-sim.nrow)/sim.nrow) + min_phage_decay
       if (sim.rng.random() < decay) {
         sim.environment.grid[x][y].phages.splice(p, 1)
